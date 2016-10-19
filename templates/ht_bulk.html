@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+{% block title %}Bulk Acquisitions - hxTool{% endblock %}
+{% block navlocation %}Bulk Acquisitions{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+		var table = $('#bulkTable').DataTable();
+
+		$(".clickable-row").click(function() {
+			window.document.location = $(this).data("href");
+		});
+
+
+		$("#cir1").circliful({
+			animation: 1,
+			animationStep: 15,
+			foregroundBorderWidth: 15,
+			backgroundBorderWidth: 15,
+			percent: 18,
+			textSize: 28,
+			text: 'Completed',
+			textStyle: 'font-size: 14px;',
+			textColor: '#666',
+			multiPercentage: 1,
+			percentages: [10, 20, 30]
+		});
+
+                $("#cir2").circliful({
+                        animation: 1,
+                        animationStep: 15,
+                        foregroundBorderWidth: 15,
+                        backgroundBorderWidth: 15,
+                        percent: 78,
+                        textSize: 28,
+                        text: 'Completed',
+                        textStyle: 'font-size: 14px;',
+                        textColor: '#666',
+                        multiPercentage: 1,
+                        percentages: [10, 20, 30]
+                });
+
+                $("#cir3").circliful({
+                        animation: 1,
+                        animationStep: 15,
+                        foregroundBorderWidth: 15,
+                        backgroundBorderWidth: 15,
+                        percent: 51,
+                        textSize: 28,
+                        text: 'Completed',
+                        textStyle: 'font-size: 14px;',
+                        textColor: '#666',
+                        multiPercentage: 1,
+                        percentages: [10, 20, 30]
+                });
+
+
+
+
+
+	});
+</script>
+
+<form method='POST' action='/bulk' enctype="multipart/form-data">
+        <div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
+                Bulk acquisition script (xml)
+        </div>
+        <input type='file' id='bulkscript' name='bulkscript'>
+	<select name='bulkhostset' id='bulkhostset'>
+		<option value='1010'>All Hosts Henrik
+		<option value='1000'>All Hosts
+		<option value='1001'>zombie
+		<option value='1006'>new group
+	</select>
+	<br><br>
+        <input type='submit' value='Start Bulk Acquisition...'>
+</form>
+
+<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
+	Bulk acquisitions on the controller
+</div>
+
+<div style='margin-top: 5px; margin-bottom: 10px;'>
+	<div id="cir1" style='width: 120px; float: left; border-right: 1px dotted #cccccc; padding-right: 10px; text-align: center;'>% Completed</div>
+	<div id="cir2" style='width: 120px; float: left; border-right: 1px dotted #cccccc; padding-right: 10px; text-align: center;'>% Running</div>
+	<div id="cir3" style='width: 120px; float: left; text-align: center;'>% Queued</div>
+</div>
+<div style='clear: both;'></div>
+
+{% if bulktable %} {{ bulktable|safe }} {% endif %}
+{% endblock %}

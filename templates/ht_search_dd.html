@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}Search & Sweep - hxTool{% endblock %}
+{% block navlocation %}Search and Sweep - Drilldown{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+		$('#resultsTable').DataTable( {
+			"lengthMenu": [[10, 15, 25, -1], [10, 15, 25, "All"]],
+			"pageLength": 15 
+		});
+	});
+
+</script>
+
+{% if result %} {{ result|safe }} {% endif %}
+{% endblock %}

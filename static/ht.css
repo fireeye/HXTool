@@ -1,0 +1,220 @@
+
+/* Navigation table */
+
+.ht_auth_submit {
+	width: 260px;
+	height: 30px;
+}
+
+.ht_input_title {
+	font-size: 14px;
+}
+
+.ht_auth_placeholder {
+	margin: 10px;
+	padding: 30px;
+	padding-top: 100px;
+}
+
+.ht_auth_title {
+	border: 10px solid #cccccc;
+	border-radius: 25px;
+	width: 140px;
+	position: absolute;
+	margin-top: -50px;
+	margin-left: 120px;
+	background: #ffffff;
+}
+
+.ht_auth_center {
+	position: absolute;
+	left: 50%;
+	top: 40%;
+	width: 600px; 
+	height: 660px;
+	margin-left: -300px;
+	margin-top: -300px;
+	background: rgb(68, 67, 70);
+	border: 1px solid rgb(68, 67, 70);
+	border-radius: 10px;
+}
+
+.ht_auth_wrap {
+	margin: 100px;
+	background: #ffffff;
+	border 1px solid rgb(68, 67, 70);
+	border-radius: 10px;
+}
+
+/* Main layout table */
+
+.ht_main_table {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	height: 100%;
+	width: 100%;
+	background: #ffffff;
+}
+
+.ht_main_table_left_td {
+	text-align: center; 
+	width: 140px; 
+	background: rgb(47, 54, 63);
+	vertical-align: top;
+}
+
+.ht_main_table_top_td {
+	width: 1800px;
+	height: 50px;
+	border-bottom: 1px solid #dddddd;
+	background: #eeeeee;
+	padding-left: 15px;
+	font-size: 24px;
+	font-weight: bold;
+}
+
+.ht_main_table_main_td {
+	vertical-align: top;
+	padding: 20px;
+}
+
+/* Left Nav table */
+
+.ht_nav_table {
+	color: #eeeeee;
+	margin-top: 15px;
+	margin-bottom: 20px;
+}
+
+.ht_nav_table_cell {
+	padding: 10px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.ht_nav_table_cell:hover {
+        background: rgb(84, 97, 112);
+	cursor: pointer;
+}
+
+.ht_nav_ico {
+	margin-right: 7px;
+}
+
+/* left logo */
+
+.ht_logo_text {
+	font-size: 26px;
+	font-weight: bold;
+	text-align: center;
+	color: white;
+}
+
+/* Generic boxes */
+
+.ht_content_box {
+	margin-bottom: 10px;
+	margin-right: 15px;
+}
+
+.ht_content_boxtitle {
+	background: rgb(47, 54, 63);
+	font-family: Arial, Helvetica, sans-serif;
+	border: 1px solid rgb(47, 54, 63);
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+	color: white;
+	font-weight: bold;
+	padding: 5px;
+}
+
+.ht_content_boxcontent {
+	padding: 10px;
+	border: 1px solid rgb(47, 54, 63);
+	border-top: none;
+	border-bottom-left-radius: 3px;
+	border-bottom-right-radius: 3px;
+}
+
+/* Build IOC page */
+
+.ht_buildioc_eventSelector {
+	height: 200px;
+}
+
+.ht_buildioc_iocframe {
+	display: none;
+	position: absolute;
+	width: 350px;
+	right: 0;
+	top: 80px;
+	background: rgb(47, 54, 63);
+	padding: 5px;
+	border: 1px solid rgb(47, 54, 63);
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+
+.ht_buildioc_ioctable {
+	width: 100%;
+	font-family: Arial, Helvetica, sans-serif;
+	color: white;
+}
+
+.cond_title {
+	margin-top: 10px;
+	border-bottom: 1px solid #ffffff;
+}
+
+.iocLabel {
+	float: left;
+	border: 1px solid #ffffff;
+	border-right: none;
+	border-radius: 5px;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+	padding: 3px;
+	padding-right: 5px;
+	margin-top: 10px;
+}
+
+.iocLabelNot {
+	color: red;
+	padding-right: 3px;
+}
+
+.iocBox {
+	margin-left: 20px;
+	margin-top: 10px;
+	border: 1px solid #ffffff;
+	border-radius: 5px;
+	border-top-left-radius: 0;
+	padding: 5px;
+}
+
+/* Search results */
+
+.clickable-row:hover {
+	background: #eeeeee;
+	cursor: pointer;
+}
+
+.tableData {
+	border: 1px solid rgb(47, 54, 63);
+	border-radius: 4px;
+}
+
+.tableHeaderRow {
+	background: rgb(47, 54, 63);
+	color: white;
+	font: 12px Arial;
+	font-weight: bold;
+}
+
+.dataTables_filter {
+	margin-bottom: 10px;
+}

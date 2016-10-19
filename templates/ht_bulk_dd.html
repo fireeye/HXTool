@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}Bulk Acquisition - hxTool{% endblock %}
+{% block navlocation %}Bulk Acquisition - Details{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+		var table = $('#bulkTable').DataTable();
+
+		$(".clickable-row").click(function() {
+			window.document.location = $(this).data("href");
+		});
+
+	});
+</script>
+
+<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
+	Bulk Acquisition details	
+</div>
+{% if bulktable %} {{ bulktable|safe }} {% endif %}
+{% endblock %}

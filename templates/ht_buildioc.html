@@ -1,0 +1,276 @@
+{% extends "layout.html" %}
+{% block title %}Build IOC - hxTool{% endblock %}
+{% block navlocation %}Build real-time Indicator{% endblock %}
+{% block content %}
+
+	<script>
+		$(document).ready(function() {
+
+			// Clear field types upon load
+			$('#field_types option').each(function() {
+				$(this).hide();
+			});
+
+			// Change event types
+			$('#event_types').change(function() {
+				var $id = $(this).val();
+				$('#data_type').text("");
+				$('#data').val("");
+
+				$('#field_types option').each(function() {
+					$(this).hide();
+				});
+
+				$('#field_types option').each(function() {
+					if(!$(this).val().search($id)) {
+						$(this).show();
+					}
+				});
+						
+			});
+
+			// Change field types
+			$('#field_types').change(function() {
+				$('#data').val("");
+				var d = ($(this).val());
+				var t = $('#' + d).attr('alt');
+				$('#data_type').text(t);
+			});
+
+
+			// Add new condition
+			$('#button_add').click(function() {
+
+				var neg = 0;
+
+				// Find the index for new condition	
+				var ioc_cond_update = "ioc_" + $("[id^=ioc_]").length;
+
+				if($('#' + ioc_cond_update).text() == "") {
+					$('#' + ioc_cond_update).append("<div class='iocLabel'>This</div>");
+				} else if ($('#check_not').is(':checked')) {
+					$('#' + ioc_cond_update).append("<div class='iocLabel iocLabelNot'>!&</div>");
+					neg = 1;
+				} else {
+					$('#' + ioc_cond_update).append("<div class='iocLabel'>&</div>");
+				}
+	
+				var event_t = ($('#event_types option:selected').val());
+				var field_t = ($('#field_types option:selected').val().split('_').pop());
+				var oper_t = ($('#operator option:selected').val());
+				var data_s = ($('#data').val());
+			
+				$('#' + ioc_cond_update).append("<div class='iocBox'>" + event_t + "/" + field_t + " <i>" + oper_t + "</i> <b>" + data_s + "</b>" + "</div>");
+			
+				if(neg == 0) {
+					var jsondata = '{"token":"' + event_t + '/' + field_t + '","type":"text","operator":"' + oper_t + '","value":"' + data_s + '"},';
+				} else {
+					var jsondata = '{"token":"' + event_t + '/' + field_t + '","type":"text","operator":"' + oper_t + '","value":"' + data_s + '","negate":true},';
+				}
+			
+				var cond_index = $("[id^=ioc_]").length;
+				$('#cond_' + cond_index).val($('#cond_' + cond_index).val() + jsondata);
+				//$('#cond_1_1').val(jsondata);
+			});
+
+			// New presence condition
+			$('#button_condpnew').click(function() {
+				if ( $("#ht_buildioc_iocframe").css('display') == 'none' ){
+					$("#ht_buildioc_iocframe").show();
+				}
+				var condcnt = $("[id^=ioc_]").length + 1;
+				$('<div>').attr({id: 'ioc_' + condcnt,class: 'ioccond'}).appendTo('#ioctd');
+				$('#ioc_' + condcnt).html("<div class='cond_title'>Condition #" + condcnt + " - Presence</div>");
+				$('<input>').attr({type: 'hidden',id: 'cond_' + condcnt,name: 'cond_' + condcnt + '_presence'}).appendTo('#iocform');
+			});
+
+			// New execution condition						
+			$('#button_condenew').click(function() {
+				if ( $("#ht_buildioc_iocframe").css('display') == 'none' ){
+					$("#ht_buildioc_iocframe").show();
+				}
+				var condcnt = $("[id^=ioc_]").length + 1;
+				$('<div>').attr({id: 'ioc_' + condcnt,class: 'ioccond'}).appendTo('#ioctd');
+				$('#ioc_' + condcnt).html("<div class='cond_title'>Condition #" + condcnt + " - Execution</div>");
+				$('<input>').attr({type: 'hidden',id: 'cond_' + condcnt,name: 'cond_' + condcnt + '_execution'}).appendTo('#iocform');
+			});
+
+	                var table = $('#iocTable').DataTable();
+	                $(".clickable-row").click(function() {
+	                        window.document.location = $(this).data("href");
+	                });
+
+
+
+		});
+	</script>
+
+		<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
+		        Add a new indicator
+		</div>
+
+                <table style='background: #ffffff;'>
+                        <tr>
+                                <td style='width: 900px; padding: 10px; padding-left: none; vertical-align: top;'>
+                                        <form style='margin:0;' action='/buildioc' method='POST' id='iocform'>
+
+                                                <div class='ht_content_box' style='float: left; margin-bottom: 15px;'>
+                                                <div class='ht_content_boxtitle'>IOC Settings</div>
+                                                <div class='ht_content_boxcontent'>
+                                                        <span>IOC Name</span>
+                                                        <input type='text' name='iocname' value='my_new_ioc'>
+                                                        <span>IOC Category</span>
+							{% if cats %} {{ cats|safe }} {% endif %}
+                                                </div>
+                                                </div>
+                                                <div style='clear: both;'></div>
+
+                                                <div class='ht_content_box' style='float: left;'>
+                                                <div class='ht_content_boxtitle'>Event Types</div>
+                                                <div class='ht_content_boxcontent'>
+                                                <select id='event_types' name='event_types' class='ht_buildioc_eventSelector' MULTIPLE>
+                                                        <option value='imageLoadEvent'>imageLoadEvent
+                                                        <option value='processEvent'>processEvent
+                                                        <option value='fileWriteEvent'>fileWriteEvent
+                                                        <option value='regKeyEvent'>regKeyEvent
+                                                        <option value='dnsLookupEvent'>dnsLookupEvent
+                                                        <option value='ipv4NetworkEvent'>ipv4NetworkEvent
+                                                        <option value='urlMonitorEvent'>urlMonitorEvent
+                                                        <option value='addressNotificationEvent'>addressNotificationEvent
+                                                </select>
+                                                </div>
+                                                </div>
+
+                                                <div class='ht_content_box'  style='float: left;'>
+                                                <div class='ht_content_boxtitle'>Field Types</div>
+                                                <div class='ht_content_boxcontent'>
+                                                <select id='field_types' name='field_types' class='ht_buildioc_eventSelector' MULTIPLE>
+                                                        <option id='imageLoadEvent_fullPath' alt='string' value='imageLoadEvent_fullPath'>fullPath
+                                                        <option id='imageLoadEvent_devicePath' alt='string' value='imageLoadEvent_devicePath'>devicePath
+                                                        <option id='imageLoadEvent_drive' alt='string' value='imageLoadEvent_drive'>drive
+                                                        <option id='imageLoadEvent_filePath' alt='string' value='imageLoadEvent_filePath'>filePath
+                                                        <option id='imageLoadEvent_fileName' alt='string' value='imageLoadEvent_fileName'>fileName
+                                                        <option id='imageLoadEvent_fileExtension' alt='string' value='imageLoadEvent_fileExtension'>fileExtension
+                                                        <option id='imageLoadEvent_pid' alt='integer' value='imageLoadEvent_pid'>pid
+                                                        <option id='imageLoadEvent_process' alt='string' value='imageLoadEvent_process'>process
+                                                        <option id='imageLoadEvent_parentPid' alt='integer' value='imageLoadEvent_parentPid'>parentPid
+                                                        <option id='imageLoadEvent_username' alt='string' value='imageLoadEvent_username'>username
+                                                        <option id='imageLoadEvent_error' alt='string' value='imageLoadEvent_error'>error
+                                                        <option id='processEvent_eventType' alt='string' value='processEvent_eventType'>eventType
+                                                        <option id='processEvent_pid' alt='integer' value='processEvent_pid'>pid
+                                                        <option id='processEvent_processPath' alt='string' value='processEvent_processPath'>processPath
+                                                        <option id='processEvent_process' alt='string' value='processEvent_process'>process
+                                                        <option id='processEvent_parentPid' alt='integer' value='processEvent_parentPid'>parentPid
+                                                        <option id='processEvent_parentProcessPath' alt='string' value='processEvent_parentProcessPath'>parentProcessPath
+                                                        <option id='processEvent_parentProcess' alt='string' value='processEvent_parentProcess'>parentProcess
+                                                        <option id='processEvent_username' alt='string' value='processEvent_username'>username
+                                                        <option id='processEvent_startTime' alt='string' value='processEvent_startTime'>startTime
+                                                        <option id='processEvent_processCmdLine' alt='string' value='processEvent_processCmdLine'>processCmdLine
+                                                        <option id='processEvent_md5' alt='md5' value='processEvent_md5'>md5
+                                                        <option id='fileWriteEvent_fullPath' alt='string' value='fileWriteEvent_fullPath'>fullPath
+                                                        <option id='fileWriteEvent_devicePath' alt='string' value='fileWriteEvent_devicePath'>devicePath
+                                                        <option id='fileWriteEvent_drive' alt='string' value='fileWriteEvent_drive'>drive
+                                                        <option id='fileWriteEvent_filePath' alt='string' value='fileWriteEvent_filePath'>filePath
+                                                        <option id='fileWriteEvent_fileName' alt='string' value='fileWriteEvent_fileName'>fileName
+                                                        <option id='fileWriteEvent_fileExtension' alt='string' value='fileWriteEvent_fileExtension'>fileExtension
+                                                        <option id='fileWriteEvent_size' alt='integer' value='fileWriteEvent_size'>size
+                                                        <option id='fileWriteEvent_md5' alt='md5' value='fileWriteEvent_md5'>md5
+                                                        <option id='fileWriteEvent_pid' alt='integer' value='fileWriteEvent_pid'>pid
+                                                        <option id='fileWriteEvent_process' alt='string' value='fileWriteEvent_process'>process
+                                                        <option id='fileWriteEvent_writes' alt='integer' value='fileWriteEvent_writes'>writes
+                                                        <option id='fileWriteEvent_numBytesSeenWritten' alt='integer' value='fileWriteEvent_numBytesSeenWritten'>numBytesSeenWritten
+                                                        <option id='fileWriteEvent_lowestFileOffsetSeen' alt='integer' value='fileWriteEvent_lowestFileOffsetSeen'>lowestFileOffsetSeen
+                                                        <option id='fileWriteEvent_dataAtLowestOffset' alt='base64 string' value='fileWriteEvent_dataAtLowestOffset'>dataAtLowestOffset
+                                                        <option id='fileWriteEvent_textAtLowestOffset' alt='base64 string' value='fileWriteEvent_textAtLowestOffset'>textAtLowestOffset
+                                                        <option id='fileWriteEvent_closed' alt='boolean' value='fileWriteEvent_closed'>closed
+                                                        <option id='fileWriteEvent_error' alt='string' value='fileWriteEvent_error'>error
+                                                        <option id='regKeyEvent_path' alt='string' value='regKeyEvent_path'>path
+                                                        <option id='regKeyEvent_hive' alt='string' value='regKeyEvent_hive'>hive
+                                                        <option id='regKeyEvent_keyPath' alt='string' value='regKeyEvent_keyPath'>keyPath
+                                                        <option id='regKeyEvent_eventType' alt='string' value='regKeyEvent_eventType'>eventType
+                                                        <option id='regKeyEvent_valueName' alt='string' value='regKeyEvent_valueName'>valueName
+                                                        <option id='regKeyEvent_valueType' alt='string' value='regKeyEvent_valueType'>valueType
+                                                        <option id='regKeyEvent_value' alt='string' value='regKeyEvent_value'>value
+                                                        <option id='regKeyEvent_text' alt='string' value='regKeyEvent_text'>text
+                                                        <option id='dnsLookupEvent_hostname' alt='string' value='dnsLookupEvent_hostname'>hostname
+                                                        <option id='dnsLookupEvent_pid' alt='string' value='dnsLookupEvent_pid'>pid
+                                                        <option id='dnsLookupEvent_process' alt='string' value='dnsLookupEvent_process'>process
+                                                        <option id='ipv4NetworkEvent_remoteIP' alt='string' value='ipv4NetworkEvent_remoteIP'>remoteIP
+                                                        <option id='ipv4NetworkEvent_remotePort' alt='string' value='ipv4NetworkEvent_remotePort'>remotePort
+                                                        <option id='ipv4NetworkEvent_localIP' alt='string' value='ipv4NetworkEvent_localIP'>localIP
+                                                        <option id='ipv4NetworkEvent_localPort' alt='string' value='ipv4NetworkEvent_localPort'>localPort
+                                                        <option id='ipv4NetworkEvent_protocol' alt='string' value='ipv4NetworkEvent_protocol'>protocol
+                                                        <option id='ipv4NetworkEvent_pid' alt='string' value='ipv4NetworkEvent_pid'>pid
+                                                        <option id='ipv4NetworkEvent_process' alt='string' value='ipv4NetworkEvent_process'>process
+                                                        <option id='urlMonitorEvent_hostname' alt='string' value='urlMonitorEvent_hostname'>hostname
+                                                        <option id='urlMonitorEvent_requestUrl' alt='string' value='urlMonitorEvent_requestUrl'>requestUrl
+                                                        <option id='urlMonitorEvent_urlMethod' alt='string' value='urlMonitorEvent_urlMethod'>urlMethod
+                                                        <option id='urlMonitorEvent_userAgent' alt='string' value='urlMonitorEvent_userAgent'>userAgent
+                                                        <option id='urlMonitorEvent_httpHeader' alt='string' value='urlMonitorEvent_httpHeader'>httpHeader
+                                                        <option id='urlMonitorEvent_remoteIpAddress' alt='string' value='urlMonitorEvent_remoteIpAddress'>remoteIpAddress
+                                                        <option id='urlMonitorEvent_remotePort' alt='string' value='urlMonitorEvent_remotePort'>remotePort
+                                                        <option id='urlMonitorEvent_localPort' alt='string' value='urlMonitorEvent_localPort'>localPort
+                                                        <option id='urlMonitorEvent_pid' alt='string' value='urlMonitorEvent_pid'>pid
+                                                        <option id='urlMonitorEvent_process' alt='string' value='urlMonitorEvent_process'>process
+                                                        <option id='urlMonitorEvent_processPath' alt='string' value='urlMonitorEvent_processPath'>processPath
+                                                        <option id='urlMonitorEvent_username' alt='string' value='urlMonitorEvent_username'>username
+                                                        <option id='urlMonitorEvent_error' alt='string' value='urlMonitorEvent_error'>error
+                                                        <option id='addressNotificationEvent_address' alt='string' value='addressNotificationEvent_address'>address
+                                                </select>
+                                                </div>
+                                                </div>
+
+                                                <div class='ht_content_box' style='float: left;'>
+                                                <div class='ht_content_boxtitle'>Operator and matching data</div>
+                                                <div class='ht_content_boxcontent'>
+                                                <input type='checkbox' id='check_not'>NOT
+                                                <select id='operator'>
+                                                        <option value='contains'>contains
+                                                        <option value='equal'>equal
+                                                        <option value='matches'>matches
+                                                </select>
+
+                                                Enter a <span id='data_type' style='color: green; font-weight: bold;'></span> value<br>
+                                                <input type='text' id='data' style='width: 400px; margin-top: 10px;'>
+                                                </div>
+						<br>
+                                                <input class='iocButton' type='button' id='button_add' value='Add selection to condition'>
+						<br><br><br>
+                                                <input class='iocButton' type='button' id='button_condpnew' value='Add new presence condition'>
+                                                <input class='iocButton' type='button' id='button_condenew' value='Add new execution condition'>
+                                                </div>
+
+                                                <div style='clear: both;'>
+                                                        <input type='hidden' id='datajson' name='datajson' value=''>
+                                                        <input class='iocButton' type='submit' value='Create indicator...'>
+							<br>
+							<br>
+                                                </div>
+
+                                                <div class='ht_content_box' style='margin-top: 10px; display: none; float: left;' id='resultsbox'>
+                                                <div class='ht_content_boxtitle'>HX Output</div>
+                                                <div class='ht_content_boxcontent' id='results'>
+                                                </div>
+                                                </div>
+                                                <div style='clear: both;'>
+                                        </form>
+                                </td>
+                        </tr>
+                </table>
+
+		<div class='ht_buildioc_iocframe' id='ht_buildioc_iocframe' style='z-index: 1;'>
+			<table class='ht_buildioc_ioctable'>
+				<tr>
+					<td id='ioctd'>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
+		        Indicators on the controller
+		</div>
+
+		{% if indicators %} {{ indicators|safe }} {% endif %}
+
+{% endblock %}

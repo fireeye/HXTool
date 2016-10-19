@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block title %}Search & Sweep - hxTool{% endblock %}
+{% block navlocation %}Search and Sweep{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+		var table = $('#searchTable').DataTable();
+
+		$(".clickable-row").click(function() {
+			window.document.location = $(this).data("href");
+		});
+
+	});
+</script>
+
+<form method='POST' action='/search' enctype="multipart/form-data">
+	<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
+		Upload an OpenIOC 1.1 file (UTF-8 Encoding only)
+	</div>
+	<input type='file' id='newioc' name='newioc'><br><br>
+	<input type='submit' value='Find Evil'>
+</form>
+
+<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
+	Searches and sweeps on the controller
+</div>
+{% if searches %} {{ searches|safe }} {% endif %}
+{% endblock %}
