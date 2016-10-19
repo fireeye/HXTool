@@ -1,0 +1,31 @@
+# README #
+
+hxTool is a standalone tool that can be used with FireEye HX endpoint technology. hxTool provides additional features not directly available in the product.
+
+### What is this repository for? ###
+
+* Summary
+hxTool is a web based application that allows users to utilize functionality in the FireEye HX API
+* Version
+1.0-beta
+
+### How do I get set up? ###
+
+* Summary of set up
+To install hxTool unzip or fetch the repo and place the files in a directory. Make sure you have Python 2.7 and the python-flask library installed. After installation run "python hxtool.py" and the server will start listening to tcp port 8080. Access the web user interface via a browser (tested with google chrome)
+* Configuration
+None yet
+* Dependencies
+Python 2.7
+Python Flask library
+
+### Contribution guidelines ###
+
+* None so far, it's just me :)
+
+### Who do I talk to? ###
+
+* Repo owner or admin
+Henrik Olsson, henrik.olsson@fireeye.com
+* Other community or team contact
+Not yet
