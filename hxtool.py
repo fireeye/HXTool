@@ -13,6 +13,11 @@ import base64
 import json
 import io
 import os
+import sqlite3
+from hxtool_db import *
+
+conn = sqlite3.connect('hxtool.db')
+c = conn.cursor()
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -182,8 +187,9 @@ def bulkdownload():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-	if request.method == 'POST':
-		print request.form['ht_ip']
+#	print request.method
+#	print request.form['cname']
+	if (request.method == 'POST'):
 		(resp, message) = restValidateAuth(request.form['ht_ip'], '3000', request.form['ht_user'], request.form['ht_pass'])
 		if resp:
 			session['ht_user'] = request.form['ht_user']
@@ -192,11 +198,23 @@ def login():
 			return redirect("/", code=302)
 		else:
 			# return redirect("/login?fail=1", code=302)
-			print message
+			# print message
 			return render_template('ht_login.html', fail=message)
+#		sqlAddProfileItem(c, conn, request.form['cname'], request.form['chostname'])
+
+#                options = ""
+ #               for profile in sqlGetProfiles(c):
+  #                      options += "<option value='" + profile[2] + "'>" + profile[1] + " - " + profile[2]
+
+#		return render_template('ht_login.html') 
 	else:
 		# return app.send_static_file('ht_login.html')
-		return render_template('ht_login.html')
+		options = ""
+		for profile in sqlGetProfiles(c):
+			options += "<option value='" + profile[2] + "'>" + profile[1] + " - " + profile[2]
+
+		return render_template('ht_login.html', controllers=options)
+
 
 @app.route('/logout')
 def logout():

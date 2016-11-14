@@ -2,16 +2,32 @@
 <head>
 	<title>Please Authenticate</title>
 	<link rel="stylesheet" type="text/css" href="static/ht.css">
+	<script type="text/javascript" src="/static/jquery-1.11.3.min.js"></script>
 </head>
-<body style='background-image: url(static/bg.jpg)'>
+
+<script>
+	$(document).ready(function() {
+		$('#addController').click(function(){ 
+			$('#shader').show();
+			$('#profilePopup').show();
+		});
+
+		$('#controllerCancel').click(function(){
+			$('#profilePopup').hide();
+			$('#shader').hide();
+		});
+	});
+</script>
+
+<body style='background: #eeeeee;'>
 	<div class='ht_auth_center'>
 		<div class='ht_auth_wrap'>
-			<div class='ht_auth_title'><img src='/static/tool-box.svg' style='width: 140px;'></div>
+			<div class='ht_auth_title'><img src='/static/fireeye.svg' style='width: 200px;'></div>
 			<div class='ht_auth_placeholder'>
 				<form method='post'>
-					<div style='font-size: 28px; font-weight: bold; margin-bottom: 20px; text-align: center;'>hxTool Login</div>
+					<div class='tableTitle' style='font-size: 28px; margin-bottom: 20px; text-align: center;'>hxTool Login</div>
 					{% if fail %}
-						<div style='font-size: 10px; text-align: center; color: red; font-weight: bold; margin-bottom: 10px;'>
+						<div class='tableTitle' style='font-size: 10px; text-align: center; color: red; margin-bottom: 10px;'>
 						{{ fail }}
 						</div>
 					{% endif %}
@@ -22,9 +38,9 @@
 					<input style='width: 300px; border: 1px solid #aaaaaa; border-radius: 5px; font-size: 18px; outline: none;' type='password' name='ht_pass' id='ht_pass'>
 					<br><br>
 					<select style='width: 300px; border: 1px solid #aaaaaa; border-radius: 5px; font-size: 18px; outline: none;' name='ht_ip' id='ht_ip'>
-						<option value='192.168.7.202'>HX 3.1 VM - 192.168.7.202
-						<option value='192.168.7.200'>HX 3.0 VM - 192.168.7.200
+						{% if controllers %} {{ controllers|safe }} {% endif %}
 					</select>
+					<a id='addController' class='menuText' href='#'>Add new controller</a>
 					<br><br>
 					
 					<input style='width: 300px; height: 50px;' type='submit' value='Login'>
@@ -33,5 +49,14 @@
 			</div>
 		</div>
 	</div>
+<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
+<div class='profilePopup' id='profilePopup' style='display: none;'>
+	<form method='post'>
+		Controller name: <input type='text' name='cname' id='cname'><br>
+		Controller hostname: <input type='text' name='chostname' id='chostname'><br>
+		<input type='submit' value='Create profile'>
+		<input type='button' value='Cancel' id='controllerCancel'>
+	</form>
+</div>
 </body>
 </html>

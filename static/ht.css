@@ -132,12 +132,13 @@
 }
 
 .ht_auth_title {
-	border: 10px solid #cccccc;
-	border-radius: 25px;
-	width: 140px;
+	border: 2px solid rgb(215, 215, 215);
+	border-radius: 10px;
+	padding: 10px;
+	width: 200px;
 	position: absolute;
-	margin-top: -50px;
-	margin-left: 120px;
+	margin-top: -20px;
+	margin-left: 90px;
 	background: #ffffff;
 }
 
@@ -145,20 +146,47 @@
 	position: absolute;
 	left: 50%;
 	top: 40%;
-	width: 600px; 
-	height: 660px;
-	margin-left: -300px;
+	width: 520px; 
+	height: 600px;
+	margin-left: -260px;
 	margin-top: -300px;
-	background: rgb(68, 67, 70);
-	border: 1px solid rgb(68, 67, 70);
+	background: #79a1be;
+	border: 1px solid #cccccc;
 	border-radius: 10px;
 }
 
 .ht_auth_wrap {
-	margin: 100px;
+	margin: 60px;
 	background: #ffffff;
-	border 1px solid rgb(68, 67, 70);
+	border 1px solid rgb(215, 215, 215);
 	border-radius: 10px;
+}
+
+.profilePopup {
+	border: 20px solid #79a1be;
+	background: #ffffff;
+	border-radius: 5px;
+	padding: 30px;
+	position: absolute;
+	left: 50%;
+	top: 20%;
+	z-index: 10;
+	margin-left: -300px;
+	width: 500px;
+	height: 120px;
+}
+
+.shader {
+	z-index: 5;
+	background: black;
+	opacity: 0.7;
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0; 
+	right: 0;
+	height: 100%;
+	width: 100%;
 }
 
 /* Main layout table */
