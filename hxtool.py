@@ -18,8 +18,22 @@ app = Flask(__name__, static_url_path='/static')
 
 @app.route('/')
 def index():
-	if 'ht_user' in session:
-		return render_template('ht_index.html', session=session)
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+
+		alertsjson = restGetAlerts(session['ht_token'], '10', session['ht_ip'], '3000')
+		alerts = formatDashAlerts(alertsjson, session['ht_token'], session['ht_ip'], '3000')
+	
+		stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}]
+		for alert in alertsjson['data']['entries']:
+			if alert['source'] == "EXD":
+				stats[0]['value'] = stats[0]['value'] + 1
+			if alert['source'] == "IOC":
+				stats[1]['value'] = stats[1]['value'] + 1
+
+		stats[0]['value'] = stats[0]['value'] * 10
+		stats[1]['value'] = stats[1]['value'] * 10
+
+		return render_template('ht_index.html', session=session, alerts=alerts, iocstats=stats)
 	else:
 		return redirect("/login", code=302)
 
@@ -28,7 +42,7 @@ def index():
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
-	if 'ht_user' in session:
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 
 		# If we get a post it's a new sweep
 		if request.method == 'POST':
@@ -45,7 +59,7 @@ def search():
 
 @app.route('/searchresult', methods=['GET'])
 def searchresult():
-        if 'ht_user' in session:
+        if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 		if request.args.get('id'):
 			hostresults = restGetSearchResults(session['ht_token'], request.args.get('id'), session['ht_ip'], '3000')
 			res = formatSearchResults(hostresults)
@@ -59,7 +73,7 @@ def searchresult():
 
 @app.route('/buildioc', methods=['GET', 'POST'])
 def buildioc():
-	if 'ht_user' in session:
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 
 		# New IOC to be created
 		if request.method == 'POST':
@@ -100,21 +114,21 @@ def buildioc():
 
 @app.route('/categories')
 def categories():
-	if 'ht_user' in session:
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 		return render_template('ht_categories.html', session=session)
 	else:
 		return redirect("/login", code=302)
 
 @app.route('/export')
 def exportioc():
-	if 'ht_user' in session:
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 		return render_template('ht_export.html', session=session)
 	else:
 		return redirect("/login", code=302)
 
 @app.route('/import')
 def importioc():
-	if 'ht_user' in session:
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 		return render_template('ht_import.html', session=session)
 	else:
 		return redirect("/login", code=302)
@@ -124,7 +138,7 @@ def importioc():
 
 @app.route('/bulk', methods=['GET', 'POST'])
 def listbulk():
-        if 'ht_user' in session:
+        if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 		if request.method == 'POST':
                         f = request.files['bulkscript']
                         bulkscript = f.read()
@@ -138,7 +152,7 @@ def listbulk():
 
 @app.route('/bulkdetails')
 def bulkdetails():
-        if 'ht_user' in session:
+        if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
                 # acqs = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
                 # bulktable = formatBulkTable(acqs)
 		if request.args.get('id'):
@@ -154,7 +168,7 @@ def bulkdetails():
 
 @app.route('/bulkdownload')
 def bulkdownload():
-        if 'ht_user' in session:
+        if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
                 if request.args.get('id'):
 			urlhead, fname = os.path.split(request.args.get('id'))
 			acq = restDownloadBulkAcq(session['ht_token'], request.args.get('id'), session['ht_ip'], '3000')

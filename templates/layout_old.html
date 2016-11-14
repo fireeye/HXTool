@@ -1,0 +1,53 @@
+<html>
+<head>
+        <title>{% block title %}{% endblock %}</title>
+	<script type="text/javascript" src="/static/jquery-1.11.3.min.js"></script>
+	<script type="text/javascript" src="/static/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="/static/jquery.circliful.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="static/ht.css">
+        <link rel="stylesheet" type="text/css" href="static/jquery.dataTables.min.css">
+</head>
+
+<body style='background-image: url(static/bg.jpg); margin: 0;'>
+
+<script>
+	$(document).ready(function() {
+		$('[id^=navbutton]').click(function() {
+			url = this.id.split("_");
+			window.location.replace("/" + url[1]);
+		});
+	});
+</script>
+
+	<table cellpadding=0 cellspacing=0 class='ht_main_table'> 
+		<tr>
+			<td rowspan=2 class='ht_main_table_left_td'>
+				<img style='width: 140px; margin-top: 15px;' src='/static/tool-box.svg'>
+				<div class='ht_logo_text'>hxTool 1.0</div>
+				<table style='width: 200px;' class='ht_nav_table'>
+					<tr><td id='navbutton_search' class='ht_nav_table_cell'><img class='ht_nav_ico' src='/static/ico/doc_lines_icon&16.png'>Search & Sweep</td></tr>
+					<tr><td id='navbutton_bulk' class='ht_nav_table_cell'><img class='ht_nav_ico' src='/static/ico/doc_lines_icon&16.png'>Acquisition: Bulk</td></tr>
+					<tr><td id='navbutton_buildioc' class='ht_nav_table_cell'><img class='ht_nav_ico' src='/static/ico/doc_lines_icon&16.png'>Build IOC</td></tr>
+					<tr><td id='navbutton_categories' class='ht_nav_table_cell'><img class='ht_nav_ico' src='/static/ico/doc_lines_icon&16.png'>Categories</td></tr>
+					<tr><td id='navbutton_export' class='ht_nav_table_cell'><img class='ht_nav_ico' src='/static/ico/doc_lines_icon&16.png'>Export IOC</td></tr>
+					<tr><td id='navbutton_import' class='ht_nav_table_cell' style='border-bottom: none;'><img class='ht_nav_ico' src='/static/ico/doc_lines_icon&16.png'>Import IOC</td></tr>
+				</table>
+				<div style='color: #ffffff;'>
+				User: {{ session['ht_user'] }}
+				<br>
+				HX: {{ session['ht_ip'] }}
+				</div>
+				<a style='color: #ffffff;' href='/logout'>Logout</a>
+			</td>
+			<td class='ht_main_table_top_td'>
+				{% block navlocation %}{% endblock %}
+			</td>
+		</tr>
+		<tr>
+			<td class='ht_main_table_main_td'>
+				{% block content %}{% endblock %}
+			</td>
+		</tr>
+	</table>
+</body>
+</html>

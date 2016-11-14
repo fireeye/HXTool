@@ -5,7 +5,12 @@
 
 <script>
 	$(document).ready(function() {
-		var table = $('#bulkTable').DataTable();
+                var table = $('#bulkTable').DataTable( {
+                        "info": false,
+                        "pageLength": 20,
+                        "lengthChange": false
+                });
+
 
 		$(".clickable-row").click(function() {
 			window.document.location = $(this).data("href");
@@ -14,7 +19,9 @@
 	});
 </script>
 
-<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
+<br>
+
+<div class='tableTitle'>
 	Bulk Acquisition details	
 </div>
 {% if bulktable %} {{ bulktable|safe }} {% endif %}

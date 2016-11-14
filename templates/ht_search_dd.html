@@ -6,12 +6,19 @@
 <script>
 	$(document).ready(function() {
 		$('#resultsTable').DataTable( {
-			"lengthMenu": [[10, 15, 25, -1], [10, 15, 25, "All"]],
-			"pageLength": 15 
+                        "info": false,
+                        "pageLength": 20,
+                        "lengthChange": false
 		});
 	});
 
 </script>
+
+<br>
+
+<div class='tableTitle'>
+        Search results
+</div>
 
 {% if result %} {{ result|safe }} {% endif %}
 {% endblock %}

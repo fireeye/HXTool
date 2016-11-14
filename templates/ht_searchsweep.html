@@ -5,7 +5,11 @@
 
 <script>
 	$(document).ready(function() {
-		var table = $('#searchTable').DataTable();
+		var table = $('#searchTable').DataTable( {
+			"info": false,
+			"pageLength": 20,
+			"lengthChange": false
+		});
 
 		$(".clickable-row").click(function() {
 			window.document.location = $(this).data("href");
@@ -15,15 +19,20 @@
 </script>
 
 <form method='POST' action='/search' enctype="multipart/form-data">
-	<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
-		Upload an OpenIOC 1.1 file (UTF-8 Encoding only)
+	<div class='tableTitle'>
+		Search based on an OpenIOC file
 	</div>
-	<input type='file' id='newioc' name='newioc'><br><br>
-	<input type='submit' value='Find Evil'>
+	<div class='inputArea'>
+		<input type='file' id='newioc' name='newioc'>
+		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>Please note that the OpenIOC indicator must be in OpenIOC 1.1 format and use UTF-8 encoding</div>
+		<input type='submit' value='Find evil...'>
+	</div>
 </form>
 
-<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
-	Searches and sweeps on the controller
+<br>
+
+<div class='tableTitle'>
+	Searches on the controller
 </div>
 {% if searches %} {{ searches|safe }} {% endif %}
 {% endblock %}

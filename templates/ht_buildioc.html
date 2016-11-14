@@ -95,7 +95,13 @@
 				$('<input>').attr({type: 'hidden',id: 'cond_' + condcnt,name: 'cond_' + condcnt + '_execution'}).appendTo('#iocform');
 			});
 
-	                var table = $('#iocTable').DataTable();
+	                var table = $('#iocTable').DataTable( {
+	                        "info": false,
+	                        "pageLength": 10,
+	                        "lengthChange": false
+	                });
+
+
 	                $(".clickable-row").click(function() {
 	                        window.document.location = $(this).data("href");
 	                });
@@ -105,29 +111,27 @@
 		});
 	</script>
 
-		<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
+		<div class='tableTitle'>
 		        Add a new indicator
 		</div>
 
-                <table style='background: #ffffff;'>
+		<div class='inputArea' style='padding-bottom: 0;'>
+                <table style='font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-weight: 400; color: #444;'>
                         <tr>
-                                <td style='width: 900px; padding: 10px; padding-left: none; vertical-align: top;'>
+                                <td style='width: 900px; vertical-align: top;'>
                                         <form style='margin:0;' action='/buildioc' method='POST' id='iocform'>
 
-                                                <div class='ht_content_box' style='float: left; margin-bottom: 15px;'>
-                                                <div class='ht_content_boxtitle'>IOC Settings</div>
-                                                <div class='ht_content_boxcontent'>
-                                                        <span>IOC Name</span>
-                                                        <input type='text' name='iocname' value='my_new_ioc'>
-                                                        <span>IOC Category</span>
+						<div style='float: left; margin-bottom: 15px;'>
+	                                                <span class='menuText'>Indicator Name </span>
+	                                                <input type='text' name='iocname' value='my_new_ioc'>
+	                                                <span class='menuText'>Indicator Category </span>
 							{% if cats %} {{ cats|safe }} {% endif %}
-                                                </div>
-                                                </div>
-                                                <div style='clear: both;'></div>
+						</div>
+						<div style='clear: both;'></div>
 
-                                                <div class='ht_content_box' style='float: left;'>
-                                                <div class='ht_content_boxtitle'>Event Types</div>
-                                                <div class='ht_content_boxcontent'>
+                                                <div style='float: left; padding: 20px; padding-left: 0; border: 1px solid rgb(215,215,215); border-left: 0;'>
+                                                <div class='menuText'>Event Types</div>
+                                                <div>
                                                 <select id='event_types' name='event_types' class='ht_buildioc_eventSelector' MULTIPLE>
                                                         <option value='imageLoadEvent'>imageLoadEvent
                                                         <option value='processEvent'>processEvent
@@ -141,10 +145,10 @@
                                                 </div>
                                                 </div>
 
-                                                <div class='ht_content_box'  style='float: left;'>
-                                                <div class='ht_content_boxtitle'>Field Types</div>
-                                                <div class='ht_content_boxcontent'>
-                                                <select id='field_types' name='field_types' class='ht_buildioc_eventSelector' MULTIPLE>
+                                                <div style='float: left; padding: 20px; border: 1px solid rgb(215,215,215); border-left: 0;'>
+                                                <div class='menuText'>Field Types</div>
+                                                <div>
+                                                <select id='field_types' name='field_types' style='width: 160px;' class='ht_buildioc_eventSelector' MULTIPLE>
                                                         <option id='imageLoadEvent_fullPath' alt='string' value='imageLoadEvent_fullPath'>fullPath
                                                         <option id='imageLoadEvent_devicePath' alt='string' value='imageLoadEvent_devicePath'>devicePath
                                                         <option id='imageLoadEvent_drive' alt='string' value='imageLoadEvent_drive'>drive
@@ -220,9 +224,9 @@
                                                 </div>
                                                 </div>
 
-                                                <div class='ht_content_box' style='float: left;'>
-                                                <div class='ht_content_boxtitle'>Operator and matching data</div>
-                                                <div class='ht_content_boxcontent'>
+                                                <div style='float: left; padding: 20px; border: 1px solid rgb(215,215,215); border-left: 0; border-right: 0; border-bottom: 0;'>
+                                                <div class='menuText'>Operator and matching data</div>
+                                                <div class='menuText'>
                                                 <input type='checkbox' id='check_not'>NOT
                                                 <select id='operator'>
                                                         <option value='contains'>contains
@@ -234,14 +238,15 @@
                                                 <input type='text' id='data' style='width: 400px; margin-top: 10px;'>
                                                 </div>
 						<br>
-                                                <input class='iocButton' type='button' id='button_add' value='Add selection to condition'>
+                                                <input class='iocButton' type='button' id='button_add' value='Add selection...'>
 						<br><br><br>
-                                                <input class='iocButton' type='button' id='button_condpnew' value='Add new presence condition'>
-                                                <input class='iocButton' type='button' id='button_condenew' value='Add new execution condition'>
+                                                <input class='iocButton' type='button' id='button_condpnew' value='New presence condition'>
+                                                <input class='iocButton' type='button' id='button_condenew' value='New execution condition'>
                                                 </div>
 
                                                 <div style='clear: both;'>
                                                         <input type='hidden' id='datajson' name='datajson' value=''>
+							<br>
                                                         <input class='iocButton' type='submit' value='Create indicator...'>
 							<br>
 							<br>
@@ -257,6 +262,9 @@
                                 </td>
                         </tr>
                 </table>
+		</div>
+
+		<br>
 
 		<div class='ht_buildioc_iocframe' id='ht_buildioc_iocframe' style='z-index: 1;'>
 			<table class='ht_buildioc_ioctable'>
@@ -267,7 +275,9 @@
 			</table>
 		</div>
 
-		<div style='font-weight: bold; border-bottom: 1px solid black; margin-bottom: 10px;'>
+		<br>
+
+		<div class='tableTitle'>
 		        Indicators on the controller
 		</div>
 

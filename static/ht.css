@@ -1,3 +1,118 @@
+/* Common */
+
+.tableTitle {
+        font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+        font-weight: 700;
+        color: #444;
+        font-size: 14px;
+	padding-bottom: 5px;
+}
+
+.graphLabel {
+        font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+        font-weight: 400;
+	font-style: italic;
+        color: #444;
+        font-size: 12px;
+	text-align: center;
+}
+
+.inputArea {
+	color: #444;
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-weight: 400;
+	font-size: 12px;
+	border: 1px solid rgb(215, 215, 215);
+	border-radius: 2px;
+	padding: 20px;
+	padding-left: 20px;
+	background: #f2f2f2;
+}
+
+.menuText {
+        color: #444;
+        font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+	margin-bottom: 5px;
+}
+
+.genericTable {
+        font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+        font-weight: 700;
+        color: #444;
+        font-size: 12px;
+        border-top: 2px solid rgb(215, 215, 215);
+        border-bottom: 2px solid rgb(215, 215, 215);
+        border-spacing: 0;
+        border-collapse: collapse;
+}
+
+.genericTable thead td {
+        border-bottom: 2px solid rgb(215, 215, 215);
+        font-size: 13px;
+        background: none;
+        padding: 10px;
+        border-right: 1px solid rgb(215, 215, 215);
+}
+
+.genericTable thead td:last-child {
+        border-right: none;
+}
+
+
+.genericTable tbody tr {
+        border-bottom: 1px solid rgb(215, 215, 215);
+}
+
+.genericTable tbody tr:last-child {
+        border-bottom: none;
+}
+
+.genericTable tbody td {
+        padding: 10px;
+        font-weight: 400;
+        border-right: 1px solid rgb(215, 215, 215);
+}
+
+.genericTable tbody td:last-child {
+        border-right: none;
+}
+
+
+.dataTables_filter {
+        margin-bottom: 10px;
+	position: absolute;
+	right: 0;
+	margin-top: -30px;
+	margin-right: 25px;
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-weight: 400;
+	color: #444;
+	font-size: 12px;
+}
+
+.paginate_button {
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-weight: 400;
+	color: #444;
+	font-size: 12px;
+	border: 1px solid rgb(215, 215, 215);
+	border-radius: 3px;
+	background: rgb(215, 215, 215);
+	margin-right: 5px;
+	padding: 5px;
+	cursor: pointer;
+	margin-bottom: 40px;
+	position: relative;
+	top: 12px;
+}
+
+.disabled {
+	color: #bfbfbf;
+	background: #f2f2f2;
+}
+
 
 /* Navigation table */
 
@@ -59,45 +174,42 @@
 	background: #ffffff;
 }
 
-.ht_main_table_left_td {
-	text-align: center; 
-	width: 140px; 
-	background: rgb(47, 54, 63);
-	vertical-align: top;
-}
-
 .ht_main_table_top_td {
-	width: 1800px;
-	height: 50px;
-	border-bottom: 1px solid #dddddd;
-	background: #eeeeee;
-	padding-left: 15px;
-	font-size: 24px;
-	font-weight: bold;
+	text-align: center;
+	height: 58px;
+	background: #ffffff;
+	vertical-align: top;
+	border-bottom: 1px solid #cccccc;
 }
 
 .ht_main_table_main_td {
 	vertical-align: top;
-	padding: 20px;
+	padding-left: 25px;
+	padding-right: 25px;
+	padding-top: 20px;
+	background: #ffffff;
 }
 
 /* Left Nav table */
 
 .ht_nav_table {
-	color: #eeeeee;
+	color: rgb(81, 87, 97);
 	margin-top: 15px;
 	margin-bottom: 20px;
 }
 
 .ht_nav_table_cell {
-	padding: 10px;
+	padding: 1px;
+	margin-top: 15px;
+	margin-right: 15px;
+	border-top: 3px solid #ffffff;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 14px;
 	font-weight: bold;
 }
 
 .ht_nav_table_cell:hover {
-        background: rgb(84, 97, 112);
+	color: rgb(139, 148, 162);
 	cursor: pointer;
 }
 
@@ -111,7 +223,7 @@
 	font-size: 26px;
 	font-weight: bold;
 	text-align: center;
-	color: white;
+	color: rgb(81, 87, 97);
 }
 
 /* Generic boxes */
@@ -144,6 +256,12 @@
 
 .ht_buildioc_eventSelector {
 	height: 200px;
+	border: 1px solid rgb(215,215,215);
+	border-collapse: 0;
+	border-radius: 3px;
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-size: 12px;
+	
 }
 
 .ht_buildioc_iocframe {
@@ -215,6 +333,49 @@
 	font-weight: bold;
 }
 
-.dataTables_filter {
-	margin-bottom: 10px;
+
+/* dashBoard */
+
+.dashAlerts {
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-weight: 700;
+	color: #444;
+	font-size: 12px;
+	border-top: 2px solid rgb(215, 215, 215);
+	border-bottom: 2px solid rgb(215, 215, 215);
+	border-spacing: 0;
+	border-collapse: collapse;
 }
+
+.dashAlerts thead td {
+	border-bottom: 2px solid rgb(215, 215, 215);
+	font-size: 13px;
+	background: none;
+	padding: 10px;
+	border-right: 1px solid rgb(215, 215, 215);
+}
+
+.dashAlerts thead td:last-child {
+	border-right: none;
+}
+
+
+.dashAlerts tbody tr {
+	border-bottom: 1px solid rgb(215, 215, 215);
+}
+
+.dashAlerts tbody tr:last-child {
+        border-bottom: none;
+}
+
+.dashAlerts tbody td {
+	padding: 10px;
+	font-weight: 400;
+	border-right: 1px solid rgb(215, 215, 215);
+}
+
+.dashAlerts tbody td:last-child {
+        border-right: none;
+}
+
+
