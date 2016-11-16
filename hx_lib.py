@@ -277,6 +277,32 @@ def restListIndicators(fetoken, hxip, hxport):
 		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
 		return(r)
 
+# Get indicator based on condition
+def restGetIndicatorFromCondition(fetoken, conditionid, hxip, hxport):
+
+        handler = urllib2.HTTPHandler()
+        opener = urllib2.build_opener(handler)
+        urllib2.install_opener(opener)
+
+        data = None
+        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/conditions/' + conditionid + '/indicators', data=data)
+
+        request.add_header('X-FeApi-Token', fetoken)
+        request.add_header('Accept', 'application/json')
+        request.get_method = lambda: 'GET'
+
+        try:
+                response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+                print e.read()
+        except urllib2.URLError as e:
+                print 'Failed to connect to HX API server.'
+                print 'Reason: ', e.reason
+        else:
+                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+                return(r)
+
+
 
 ## Acquisitions
 ###############
@@ -656,4 +682,31 @@ def restIsSessionValid(fetoken, hxip, hxport):
 	except:
 		return False	
 
+########
+# Hosts
+########
+
+def restListHosts(fetoken, hxip, hxport):
+
+        handler = urllib2.HTTPHandler()
+        opener = urllib2.build_opener(handler)
+        urllib2.install_opener(opener)
+
+        data = None
+
+        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/hosts?limit=100000', data=data)
+        request.add_header('X-FeApi-Token', fetoken)
+        request.add_header('Accept', 'application/json')
+        request.get_method = lambda: 'GET'
+
+        try:
+                response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+                print e.read()
+        except urllib2.URLError as e:
+                print 'Failed to connect to HX API server.'
+                print 'Reason: ', e.reason
+        else:
+                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+                return(r)
 

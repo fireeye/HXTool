@@ -191,6 +191,47 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
         x += "<td style='width: 100px;'>Host</td>"
         x += "<td style='width: 100px;'>Domain</td>"
         x += "<td style='width: 100px;'>Operating system</td>"
+	x += "<td style='width: 100px;'>Threat info</td>"
+        x += "<td style='width: 100px;'>Reported at</td>"
+        x += "<td style='width: 100px;'>Matched at</td>"
+        x += "<td style='width: 100px;'>Event type</td>"
+        x += "</tr>"
+        x += "</thead>"
+        x += "<tbody>"
+
+	for entry in alerts['data']['entries'][:10]:
+		x += "<tr>"
+		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
+		x += "<td>" + str(hostinfo['data']['hostname']) + "</td>"
+		x += "<td>" + str(hostinfo['data']['domain']) + "</td>"
+		x += "<td>" + str(hostinfo['data']['os']['product_name']) + " " + str(hostinfo['data']['os']['patch_level']) + " " + str(hostinfo['data']['os']['bitness']) + "</td>"
+		x += "<td>"
+		if str(entry['source']) == "IOC":
+			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
+			for indicator in indicators['data']['entries']:
+				x += "<b>Indicator:</b> " + indicator['name'] + " (" + indicator['category']['name'] + ")<br>"
+		else:
+			x += "<b>Exploit:</b> " + str(len(entry['event_values']['messages'])) + " malicous behaviors"
+		x += "</td>"
+		x += "<td>" + str(entry['reported_at']) + "</td>"
+		x += "<td>" + str(entry['matched_at']) + "</td>"
+		x += "<td>" + str(entry['event_type']) + "</td>"
+		x += "</tr>"
+
+        x += "</tbody>"
+        x += "</table>"
+
+	return(x)
+
+def formatAlertsTable(alerts, fetoken, hxip, hxport):
+
+	x = "<table id='alertsTable' class='genericTable' style='width: 100%;'>"
+        x += "<thead>"
+        x += "<tr>"
+        x += "<td style='width: 100px;'>Host</td>"
+        x += "<td style='width: 100px;'>Domain</td>"
+        x += "<td style='width: 100px;'>Operating system</td>"
+	x += "<td style='width: 100px;'>Threat info</td>"
         x += "<td style='width: 100px;'>Reported at</td>"
         x += "<td style='width: 100px;'>Matched at</td>"
         x += "<td style='width: 100px;'>Source</td>"
@@ -200,18 +241,35 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
         x += "<tbody>"
 
 	for entry in alerts['data']['entries']:
-		x += "<tr>"
+                x += "<tr>"
 		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
 		x += "<td>" + str(hostinfo['data']['hostname']) + "</td>"
 		x += "<td>" + str(hostinfo['data']['domain']) + "</td>"
 		x += "<td>" + str(hostinfo['data']['os']['product_name']) + " " + str(hostinfo['data']['os']['patch_level']) + " " + str(hostinfo['data']['os']['bitness']) + "</td>"
+                x += "<td>"
+                if str(entry['source']) == "IOC":
+                        indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
+                        for indicator in indicators['data']['entries']:
+                                x += "<b>Indicator:</b> " + indicator['name'] + " (" + indicator['category']['name'] + ")<br>"
+                else:
+                        x += "<b>Exploit:</b> " + str(len(entry['event_values']['messages'])) + " malicous behaviors"
+                x += "</td>"
 		x += "<td>" + str(entry['reported_at']) + "</td>"
 		x += "<td>" + str(entry['matched_at']) + "</td>"
 		x += "<td>" + str(entry['source']) + "</td>"
-		x += "<td>" + str(entry['event_type']) + "</td>"
-		x += "</tr>"
+		x += "<td>"
+		if str(entry['source']) == "EXD":
+			x += "(" + str(entry['event_values']['process_id']) + ") " + str(entry['event_values']['process_name']) + "<br>"
+			for behavior in entry['event_values']['messages']:
+				x += behavior + "<br>"
+		else:
+			x += str(entry['event_type'])
+		x += "</td>"
+                x += "</tr>"
 
-        x += "</tbody>"
+	x += "</tbody>"
         x += "</table>"
 
-	return(x)
+        return(x)
+
+

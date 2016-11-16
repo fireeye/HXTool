@@ -5,19 +5,33 @@
 <script>
         $(document).ready(function() {
 
-	Morris.Donut({
-	  element: 'dashAlertsGraph',
-	  data: {% if iocstats %} {{ iocstats|safe }} {% endif %},
-	  backgroundColor: '#5387ac',
-	  labelColor: '#444',
-	  colors: [
-	    '#79a1be',
-	    '#d7d7d7',
-	    '#da1a32'
-	  ],
-	  formatter: function (x) { return x + "%"}
-});
+		Morris.Donut({
+		  element: 'dashAlertsGraph',
+		  data: {% if iocstats %} {{ iocstats|safe }} {% endif %},
+		  backgroundColor: '#5387ac',
+		  labelColor: '#444',
+		  colors: [
+		    '#79a1be',
+		    '#d7d7d7',
+		    '#da1a32'
+		  ],
+		  formatter: function (x) { return x + "%"}
+		});
 
+                Morris.Area({
+                  element: 'dashAlertsTimeline',
+                  data: {% if timeline %} {{ timeline|safe }} {% endif %},
+		  xkey: 'date',
+		  ykeys: ['count'],
+		  labels: ['Count'],
+                  lineColors: [
+                    '#79a1be',
+                    '#d7d7d7',
+                    '#da1a32'
+                  ],
+
+//                  formatter: function (x) { return x + "%"}
+                });
 
         });
 </script>
@@ -35,4 +49,17 @@
 		</td>
 	</tr>
 </table>
+<table class='dashInfoTable'>
+	<tr>
+		<td><span class='dashInfoTableSpan'>{% if contcounter %} {{ contcounter|safe }} {% endif %}</span><br>Hosts contained</td>
+		<td><span class='dashInfoTableSpan'>{% if hostcounter %} {{ hostcounter|safe }} {% endif %}</span><br>Hosts monitored</td>
+		<td><span class='dashInfoTableSpan'>{% if exdcounter %} {{ exdcounter|safe }} {% endif %}</span><br>Hosts with XPLT alerts</td>
+		<td><span class='dashInfoTableSpan'>{% if ioccounter %} {{ ioccounter|safe }} {% endif %}</span><br>Hosts with IOC alerts</td>
+		<td><span class='dashInfoTableSpan'>{% if searchcounter %} {{ searchcounter|safe }} {% endif %}</span><br>Enterprise searches running</td>
+		<td><span class='dashInfoTableSpan'>{% if blkcounter %} {{ blkcounter|safe }} {% endif %}</span><br>Bulk acquisitions running</td>
+	</tr>
+</table>
+
+<div id='dashAlertsTimeline' style='height: 250px;' ></div>
+<div class='graphLabel' style='margin-top: 20px;'>Alert distribution over the past 30 days</div>
 {% endblock %}

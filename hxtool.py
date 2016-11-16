@@ -15,6 +15,7 @@ import io
 import os
 import sqlite3
 from hxtool_db import *
+import datetime
 
 conn = sqlite3.connect('hxtool.db')
 c = conn.cursor()
@@ -25,11 +26,14 @@ app = Flask(__name__, static_url_path='/static')
 def index():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 
-		alertsjson = restGetAlerts(session['ht_token'], '10', session['ht_ip'], '3000')
+		# get the last 1000 alerts
+		alertsjson = restGetAlerts(session['ht_token'], '1000', session['ht_ip'], '3000')
+
+		# Recent alerts
 		alerts = formatDashAlerts(alertsjson, session['ht_token'], session['ht_ip'], '3000')
 	
 		stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}]
-		for alert in alertsjson['data']['entries']:
+		for alert in alertsjson['data']['entries'][:10]:
 			if alert['source'] == "EXD":
 				stats[0]['value'] = stats[0]['value'] + 1
 			if alert['source'] == "IOC":
@@ -38,7 +42,67 @@ def index():
 		stats[0]['value'] = stats[0]['value'] * 10
 		stats[1]['value'] = stats[1]['value'] * 10
 
-		return render_template('ht_index.html', session=session, alerts=alerts, iocstats=stats)
+		# Event timeline last 30 days
+		talert_dates = {}
+
+		base = datetime.datetime.today()
+		date_list = [base - datetime.timedelta(days=x) for x in range(0, 30)]
+		for date in date_list:
+			talert_dates[date.strftime("%Y-%m-%d")] = 0
+
+		ioccounter = 0;
+		exdcounter = 0;
+		for talert in alertsjson['data']['entries']:
+
+			if talert['source'] == "IOC":
+				ioccounter = ioccounter + 1
+			if talert['source'] == "EXD":
+				exdcounter = exdcounter + 1
+
+			date = talert['event_at'][0:10]
+			if date in talert_dates.keys():
+				talert_dates[date] = talert_dates[date] + 1
+
+		talerts_list = []
+		for key in talert_dates:
+			talerts_list.append({"date": str(key), "count": talert_dates[key]})
+
+		# Info table
+		hosts = restListHosts(session['ht_token'], session['ht_ip'], '3000')
+
+		contcounter = 0;
+		hostcounter = 0;
+		searchcounter = 0;
+		for entry in hosts['data']['entries']:
+			hostcounter = hostcounter + 1
+			if entry['containment_state'] != "normal":
+				contcounter = contcounter + 1
+
+		searches = restListSearches(session['ht_token'], session['ht_ip'], '3000')
+		for entry in searches['data']['entries']:
+                        if entry['state'] == "RUNNING":
+                                searchcounter = searchcounter + 1;
+
+		blk = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
+		blkcounter = 0;
+		for entry in blk['data']['entries']:
+			if entry['state'] == "RUNNING":
+				blkcounter = blkcounter + 1;
+
+		return render_template('ht_index.html', session=session, alerts=alerts, iocstats=stats, timeline=talerts_list, contcounter=contcounter, hostcounter=hostcounter, searchcounter=searchcounter, blkcounter=blkcounter, exdcounter=exdcounter, ioccounter=ioccounter)
+	else:
+		return redirect("/login", code=302)
+
+
+####
+#### Alerts
+@app.route('/alerts', methods=['GET', 'POST'])
+def alerts():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+		alerts = restGetAlerts(session['ht_token'], '1000', session['ht_ip'], '3000')
+		alertshtml = formatAlertsTable(alerts, session['ht_token'], session['ht_ip'], '3000')
+		return render_template('ht_alerts.html', session=session, alerts=alertshtml)
+
 	else:
 		return redirect("/login", code=302)
 

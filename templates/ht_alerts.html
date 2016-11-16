@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block title %}Alerts - hxTool{% endblock %}
+{% block navlocation %}Alerts{% endblock %}
+{% block content %}
+<div class='tableTitle'>Alerts</div>
+
+{% if alerts %} {{ alerts|safe }} {% endif %}
+
+{% endblock %}
