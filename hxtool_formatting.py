@@ -1,5 +1,6 @@
 
 from hx_lib import *
+from hxtool_db import *
 
 def formatListSearches(s):
 	x = "<table id='searchTable' class='genericTable' style='width: 100%;'>"
@@ -223,40 +224,50 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
 
 	return(x)
 
-def formatAlertsTable(alerts, fetoken, hxip, hxport):
+def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 
 	x = "<table id='alertsTable' class='genericTable' style='width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>Host</td>"
-        x += "<td style='width: 100px;'>Domain</td>"
-        x += "<td style='width: 100px;'>Operating system</td>"
+	x += "<thead>"
+	x += "<tr>"
+	x += "<td style='width: 60px;'>OS</td>"
+	x += "<td style='width: 100px;'>Host</td>"
+	x += "<td style='width: 100px;'>Domain</td>"
 	x += "<td style='width: 100px;'>Threat info</td>"
-        x += "<td style='width: 100px;'>Reported at</td>"
-        x += "<td style='width: 100px;'>Matched at</td>"
-        x += "<td style='width: 100px;'>Source</td>"
-        x += "<td style='width: 100px;'>Event type</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x += "<td style='width: 100px;'>Reported at</td>"
+	x += "<td style='width: 100px;'>Matched at</td>"
+	# x += "<td style='width: 100px;'>Source</td>"
+	x += "<td style='width: 100px;'>Event type</td>"
+	x += "<td style='width: 70px; text-align: center;'>Annotations</td>"
+	x += "<td style='width: 100px;'>Actions</td>"
+	x += "</tr>"
+	x += "</thead>"
+	x += "<tbody>"
 
+	# print alerts['data']['entries'][0]
+	
 	for entry in alerts['data']['entries']:
-                x += "<tr>"
+		x += "<tr>"
 		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
+		#x += "<td>" + str(hostinfo['data']['os']['product_name']) + " " + str(hostinfo['data']['os']['patch_level']) + " " + str(hostinfo['data']['os']['bitness']) + "</td>"
+		x += "<td>"
+		if str(hostinfo['data']['os']['product_name']).startswith('Windows'):
+			x += "<img style='width: 40px;' src='/static/ico/windows.svg'>"
+		else:
+			x += "<img style='width: 40px;' src='/static/ico/apple.svg'>"
+		x += "</td>"
 		x += "<td>" + str(hostinfo['data']['hostname']) + "</td>"
 		x += "<td>" + str(hostinfo['data']['domain']) + "</td>"
-		x += "<td>" + str(hostinfo['data']['os']['product_name']) + " " + str(hostinfo['data']['os']['patch_level']) + " " + str(hostinfo['data']['os']['bitness']) + "</td>"
                 x += "<td>"
                 if str(entry['source']) == "IOC":
                         indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
                         for indicator in indicators['data']['entries']:
                                 x += "<b>Indicator:</b> " + indicator['name'] + " (" + indicator['category']['name'] + ")<br>"
                 else:
-                        x += "<b>Exploit:</b> " + str(len(entry['event_values']['messages'])) + " malicous behaviors"
+                        x += "<img style='width: 40px;' src='/static/ico/XPLT-Blue.svg'><span style='margin-top: -5px;'>" + str(len(entry['event_values']['messages'])) + " malicous behaviors</span>"
                 x += "</td>"
 		x += "<td>" + str(entry['reported_at']) + "</td>"
 		x += "<td>" + str(entry['matched_at']) + "</td>"
-		x += "<td>" + str(entry['source']) + "</td>"
+		# x += "<td>" + str(entry['source']) + "</td>"
 		x += "<td>"
 		if str(entry['source']) == "EXD":
 			x += "(" + str(entry['event_values']['process_id']) + ") " + str(entry['event_values']['process_name']) + "<br>"
@@ -264,6 +275,18 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport):
 				x += behavior + "<br>"
 		else:
 			x += str(entry['event_type'])
+		x += "</td>"
+		x += "<td style='text-align: center;'>"
+		annotations = sqlGetAnnotationStats(c, conn, str(entry['_id']), profileid)
+		if (annotations[0][1] == 1):
+			x += "<div class='alertStatus alertStatusInv'>Investigating - " + str(annotations[0][0]) + "</div>"
+		elif (annotations[0][1] == 2):
+			x += "<div class='alertStatus alertStatusCom'>Completed - " + str(annotations[0][0]) + "</div>"
+		else:
+			x += "<div class='alertStatus alertStatusNew'>New - " + str(annotations[0][0]) + "</div>"
+		x += "</td>"
+		x += "<td>"
+		x += "<input id='annotate_" + str(entry['_id']) + "' type='button' value='Annotate'>"
 		x += "</td>"
                 x += "</tr>"
 

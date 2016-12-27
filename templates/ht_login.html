@@ -51,9 +51,15 @@
 	</div>
 <div class='shader' id='shader' style='display: none;'>&nbsp;</div>
 <div class='profilePopup' id='profilePopup' style='display: none;'>
-	<form method='post'>
-		Controller name: <input type='text' name='cname' id='cname'><br>
-		Controller hostname: <input type='text' name='chostname' id='chostname'><br>
+	<form method='post' style='font-size: 14px; font-weight: bold;'>
+		<div class='tableTitle' style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 15px;'>Add new login profile</div>
+		Controller name<br>
+		<input type='text' name='cname' id='cname' style='width: 500px; border: 1px solid rgb(215,215,215); border-radius: 5px; font-size: 18px;'><br>
+		<br>
+		Controller hostname<br>
+		<input type='text' name='chostname' id='chostname' style='width: 500px; border: 1px solid rgb(215,215,215); border-radius: 5px; font-size: 18px;'><br>
+		<br>
+		
 		<input type='submit' value='Create profile'>
 		<input type='button' value='Cancel' id='controllerCancel'>
 	</form>

@@ -2,8 +2,53 @@
 {% block title %}Alerts - hxTool{% endblock %}
 {% block navlocation %}Alerts{% endblock %}
 {% block content %}
+
+<script>
+        $(document).ready(function() {
+                var table = $('#alertsTable').DataTable( {
+                        "info": false,
+                        "pageLength": 13,
+                        "lengthChange": false
+                });
+
+		$("input[id^='annotate_']").click(function() {
+			var id = ($(this).attr('id'));
+			var arrId = id.split("_");
+			//alert(arrId[1]);
+
+			$('#annotateId').val(arrId[1]);
+			$('#shader').show();
+			$('#annotatePopup').show(300);
+			
+		});
+
+		$('#annotateCancel').click(function() {
+			$('#annotatePopup').hide();
+			$('#shader').hide();
+		});
+
+        });
+</script>
+
 <div class='tableTitle'>Alerts</div>
 
 {% if alerts %} {{ alerts|safe }} {% endif %}
+
+<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
+<div class='annotatePopup' id='annotatePopup' style='display: none;'>
+        <form method='post'>
+		<div class='tableTitle'>Add event annotation</div>
+		<textarea name='annotateText' id='annotateText' style='margin-bottom: 10px; width: 490px; height: 130px;'></textarea><br>
+		<select name='annotateState' id='annotateState' style='margin-bottom: 20px;'>
+			<option value='1'>Investigating
+			<option value='2'>Completed
+		</select>
+		<br>
+        <input type='hidden' id='annotateId' name='annotateId'>
+        <input type='submit' value='Add Annotation'>
+        <input type='button' value='Cancel' id='annotateCancel'>
+        </form>
+</div>
+
 
 {% endblock %}

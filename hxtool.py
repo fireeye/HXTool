@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 ###########################################################
-# hxTool v1.0                                             #
+# hxTool - 3rd party user-interface for FireEye HX        #
 # Henrik Olsson                                           #
 # henrik.olsson@fireeye.com                               #
 ###########################################################
@@ -94,20 +94,34 @@ def index():
 		return redirect("/login", code=302)
 
 
-####
-#### Alerts
+###################
+### Alerts Page ###
+###################
+
 @app.route('/alerts', methods=['GET', 'POST'])
 def alerts():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+		if request.method == "POST":
+			# We have a new annotation
+			if 'annotateText' in request.form:
+				# Create entry in the alerts table
+				newrowid = sqlAddAlert(c, conn, session['ht_profileid'], request.form['annotateId'])
+				# Add annotation to annotation table
+				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'])
+		else:
+			print "GET REQUEST"
+			
 		alerts = restGetAlerts(session['ht_token'], '1000', session['ht_ip'], '3000')
-		alertshtml = formatAlertsTable(alerts, session['ht_token'], session['ht_ip'], '3000')
+		alertshtml = formatAlertsTable(alerts, session['ht_token'], session['ht_ip'], '3000', session['ht_profileid'], c, conn)
+		
 		return render_template('ht_alerts.html', session=session, alerts=alertshtml)
 
 	else:
 		return redirect("/login", code=302)
 
-####
-#### Search and Sweep
+#########################
+#### Search and Sweep ###
+#########################
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
@@ -137,8 +151,9 @@ def searchresult():
                 return redirect("/login", code=302)
 
 
-####
-#### Build a real-time indicator
+####################################
+#### Build a real-time indicator ###
+####################################
 
 @app.route('/buildioc', methods=['GET', 'POST'])
 def buildioc():
@@ -202,8 +217,9 @@ def importioc():
 	else:
 		return redirect("/login", code=302)
 
-####
-#### Bulk Acqusiitions
+#########################
+### Bulk Acqusiitions ###
+#########################
 
 @app.route('/bulk', methods=['GET', 'POST'])
 def listbulk():
@@ -246,24 +262,44 @@ def bulkdownload():
                 return redirect("/login", code=302)
 
 
-####
-#### Authentication
+#######################
+#### Authentication ###
+#######################
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-#	print request.method
-#	print request.form['cname']
+	#print request.method
+	#print request.form['cname']
+	#print "kaka2"
 	if (request.method == 'POST'):
-		(resp, message) = restValidateAuth(request.form['ht_ip'], '3000', request.form['ht_user'], request.form['ht_pass'])
-		if resp:
-			session['ht_user'] = request.form['ht_user']
-			session['ht_ip'] = request.form['ht_ip']
-			session['ht_token'] = message
-			return redirect("/", code=302)
-		else:
-			# return redirect("/login?fail=1", code=302)
-			# print message
-			return render_template('ht_login.html', fail=message)
+		if 'ht_user' in request.form:
+			print "we have an login attempt..."
+			(profileid, myip) = request.form['ht_ip'].split("__")
+			
+			(resp, message) = restValidateAuth(myip, '3000', request.form['ht_user'], request.form['ht_pass'])
+			if resp:
+				# Set session variables
+				session['ht_user'] = request.form['ht_user']
+				session['ht_ip'] = myip
+				session['ht_token'] = message
+				session['ht_profileid'] = profileid
+				return redirect("/", code=302)
+			else:
+				# return redirect("/login?fail=1", code=302)
+				# print message
+				return render_template('ht_login.html', fail=message)
+			
+		elif 'cname' in request.form:
+			message = "New profile created"
+			
+			sqlAddProfileItem(c, conn, request.form['cname'], request.form['chostname'])
+			
+			options = ""
+			for profile in sqlGetProfiles(c):
+				options += "<option value='" + str(profile[0]) + "__" + profile[2] + "'>" + profile[1] + " - " + profile[2]
+
+			return render_template('ht_login.html', fail=message, controllers=options)
+
 #		sqlAddProfileItem(c, conn, request.form['cname'], request.form['chostname'])
 
 #                options = ""
@@ -273,9 +309,11 @@ def login():
 #		return render_template('ht_login.html') 
 	else:
 		# return app.send_static_file('ht_login.html')
+		print "GET REQUEST"
+		sqlCreateTables(c)
 		options = ""
 		for profile in sqlGetProfiles(c):
-			options += "<option value='" + profile[2] + "'>" + profile[1] + " - " + profile[2]
+			options += "<option value='" + str(profile[0]) + "__" + profile[2] + "'>" + profile[1] + " - " + profile[2]
 
 		return render_template('ht_login.html', controllers=options)
 

@@ -170,8 +170,9 @@
 	border-radius: 10px;
 }
 
+
 .profilePopup {
-	border: 20px solid #79a1be;
+	border: 2px solid rgb(215, 215, 215);
 	background: #ffffff;
 	border-radius: 5px;
 	padding: 30px;
@@ -181,12 +182,29 @@
 	z-index: 10;
 	margin-left: -300px;
 	width: 500px;
-	height: 120px;
+	height: 180px;
+	box-shadow: 5px 5px 5px rgb(215, 215, 215);
 }
+
+.annotatePopup {
+    border: 2px solid rgb(215, 215, 215);
+    background: #ffffff;
+    border-radius: 5px;
+    padding: 30px;
+    position: absolute;
+    left: 50%;
+    top: 20%;
+    z-index: 10;
+    margin-left: -300px;
+    width: 500px;
+    height: 200px;
+	box-shadow: 5px 5px 5px rgb(215, 215, 215);
+}
+
 
 .shader {
 	z-index: 5;
-	background: black;
+	background: #ffffff;
 	opacity: 0.7;
 	position: absolute;
 	left: 0;
@@ -443,4 +461,30 @@
         color: #444;
         font-size: 24px;
 
+}
+
+.alertStatus {
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-weight: 700;
+	font-size: 14px;
+	padding: 8px;
+	width: 120px;
+	margin-left:auto;
+	margin-right:auto;
+	box-shadow: 5px 5px 5px rgb(215,215,215);
+	border-radius: 2px;
+	background: rgb(0, 78, 116);
+	border: 1px solid rgb(0, 78, 116);
+}
+
+.alertStatusInv {
+	color: yellow;
+}
+
+.alertStatusCom {
+	color: lightgreen;
+}
+
+.alertStatusNew {
+	color: white;
 }
