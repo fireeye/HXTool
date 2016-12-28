@@ -108,13 +108,23 @@ def alerts():
 				newrowid = sqlAddAlert(c, conn, session['ht_profileid'], request.form['annotateId'])
 				# Add annotation to annotation table
 				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'])
+		
+		if 'acount' in request.args:
+			acount = request.args['acount']
 		else:
-			print "GET REQUEST"
-			
-		alerts = restGetAlerts(session['ht_token'], '1000', session['ht_ip'], '3000')
+			acount = 50
+		
+		acountselect = ""
+		for i in [10, 50, 100, 250, 500, 1000]:
+			if (i == int(acount)):
+				acountselect += "<option value='/alerts?acount=" + str(i) + "' selected='selected'>Last " + str(i) + " Alerts"
+			else:
+				acountselect += "<option value='/alerts?acount=" + str(i) + "'>Last " + str(i) + " Alerts"
+		
+		alerts = restGetAlerts(session['ht_token'], str(acount), session['ht_ip'], '3000')
 		alertshtml = formatAlertsTable(alerts, session['ht_token'], session['ht_ip'], '3000', session['ht_profileid'], c, conn)
 		
-		return render_template('ht_alerts.html', session=session, alerts=alertshtml)
+		return render_template('ht_alerts.html', session=session, alerts=alertshtml, acountselect=acountselect)
 
 	else:
 		return redirect("/login", code=302)

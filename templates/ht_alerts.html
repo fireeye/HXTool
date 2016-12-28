@@ -25,7 +25,13 @@
         });
 </script>
 
-<div class='tableTitle'>Alerts</div>
+<div class='tableTitle' style='float: left;'>Alerts</div>
+<div style='float: right;'>
+	<select name='acount' id='acount' style='margin-top: -5px;' onchange="if (this.value) window.location.href=this.value">
+		{% if acountselect %} {{ acountselect|safe }} {% endif %}
+	</select>
+</div>
+<div style='clear: both;'></div>
 
 {% if alerts %} {{ alerts|safe }} {% endif %}
 

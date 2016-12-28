@@ -617,7 +617,7 @@ def restGetAlerts(fetoken, count, hxip, hxport):
 
         data = None
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/alerts?limit=' + count, data=data)
+        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/alerts?sort=reported_at+desc&limit=' + count, data=data)
         request.add_header('X-FeApi-Token', fetoken)
         request.add_header('Accept', 'application/json')
         request.get_method = lambda: 'GET'
