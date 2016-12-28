@@ -1,11 +1,12 @@
 <html>
 <head>
-        <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}{% endblock %}</title>
 	<script type="text/javascript" src="/static/jquery-1.11.3.min.js"></script>
 	<script type="text/javascript" src="/static/jquery.dataTables.min.js"></script>
 	<script type="text/javascript" src="/static/raphael-min.js"></script>
 	<script type="text/javascript" src="/static/morris.min.js"></script>
-        <link rel="stylesheet" type="text/css" href="static/ht.css">
+    <link rel="stylesheet" type="text/css" href="static/ht.css">
+	<link href="/static/favicon.ico" rel="icon" type="image/x-icon" />
 </head>
 
 <body>
@@ -15,6 +16,9 @@
 		$('[id^=navbutton]').click(function() {
 			url = this.id.split("_");
 			window.location.replace("/" + url[1]);
+		});
+		$("#navcategory_indicator").click(function() {
+			$("#dropdown-content-indicators").show();
 		});
 	});
 </script>
@@ -28,11 +32,15 @@
 				<div id='navbutton_alerts' style='float: left;' class='ht_nav_table_cell'>Alerts</div>
 				<div id='navbutton_search' style='float: left;' class='ht_nav_table_cell'>Search & Sweep</div>
 				<div id='navbutton_bulk' style='float: left;' class='ht_nav_table_cell'>Acquisition: Bulk</div>
-				<div id='navbutton_buildioc' style='float: left;' class='ht_nav_table_cell'>Build IOC</div>
-				<div id='navbutton_categories' style='float: left;' class='ht_nav_table_cell'>Categories</div>
-				<div id='navbutton_export' style='float: left;' class='ht_nav_table_cell'>Export IOC</div>
-				<div id='navbutton_import' style='float: left;' class='ht_nav_table_cell' style='border-bottom: none;'>Import IOC</div>
-
+				<div id='navcategory_indicator' style='float: left; position: relative;' class='ht_nav_table_cell'>Indicators
+					<div id='dropdown-content-indicators' class='dropdown-content'>
+						<div id='navbutton_buildioc' style='' class='ht_nav_table_cell_sub'>Build IOC</div>
+						<div id='navbutton_categories' style='' class='ht_nav_table_cell_sub'>Categories</div>
+						<div id='navbutton_export' style='' class='ht_nav_table_cell_sub'>Export</div>
+						<div id='navbutton_import' style='' class='ht_nav_table_cell_sub' style='border-bottom: none;'>Import</div>
+					</div>
+				</div>
+								
 				<div style='color: rgb(81, 87, 97); text-align: right; float: right;'>
 				<b>User:</b> {{ session['ht_user'] }}
 				&nbsp;&nbsp;

@@ -5,27 +5,22 @@
 
 <script>
         $(document).ready(function() {
-                var table = $('#alertsTable').DataTable( {
-                        "info": false,
-                        "pageLength": 13,
-                        "lengthChange": false
-                });
+                
+			$("input[id^='annotate_']").click(function() {
+				var id = ($(this).attr('id'));
+				var arrId = id.split("_");
+				//alert(arrId[1]);
 
-		$("input[id^='annotate_']").click(function() {
-			var id = ($(this).attr('id'));
-			var arrId = id.split("_");
-			//alert(arrId[1]);
+				$('#annotateId').val(arrId[1]);
+				$('#shader').show();
+				$('#annotatePopup').show(300);
+				
+			});
 
-			$('#annotateId').val(arrId[1]);
-			$('#shader').show();
-			$('#annotatePopup').show(300);
-			
-		});
-
-		$('#annotateCancel').click(function() {
-			$('#annotatePopup').hide();
-			$('#shader').hide();
-		});
+			$('#annotateCancel').click(function() {
+				$('#annotatePopup').hide();
+				$('#shader').hide();
+			});
 
         });
 </script>
