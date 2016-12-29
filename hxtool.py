@@ -16,6 +16,7 @@ import os
 import sqlite3
 from hxtool_db import *
 import datetime
+import StringIO
 
 conn = sqlite3.connect('hxtool.db')
 c = conn.cursor()
@@ -168,7 +169,7 @@ def searchresult():
 @app.route('/buildioc', methods=['GET', 'POST'])
 def buildioc():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-
+		
 		# New IOC to be created
 		if request.method == 'POST':
 #			print request.form['iocname']
@@ -200,9 +201,62 @@ def buildioc():
 
 		categories = restListIndicatorCategories(session['ht_token'], session['ht_ip'], '3000')
 		cats = formatCategoriesSelect(categories)
+		return render_template('ht_buildioc.html', session=session, cats=cats)
+	else:
+		return redirect("/login", code=302)
+
+#########################
+### Manage Indicators ###
+#########################
+
+@app.route('/indicators', methods=['GET', 'POST'])
+def indicators():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+
+		if request.method == 'POST':
+			
+			iocs = []
+			for postvalue in request.form:
+				if postvalue.startswith('ioc___'):
+					sval = postvalue.split("___")
+					iocname = sval[1]
+					ioccategory = sval[2]
+					iocs.append({'uuid':request.form.get(postvalue), 'name':iocname, 'category':ioccategory})
+			
+			ioclist = {}
+			for ioc in iocs:
+				#Data structure for the conditions
+				ioclist[ioc['uuid']] = {}
+				ioclist[ioc['uuid']]['execution'] = []
+				ioclist[ioc['uuid']]['presence'] = []
+				ioclist[ioc['uuid']]['name'] = ioc['name']
+				ioclist[ioc['uuid']]['category'] = ioc['category']
+
+				#Grab execution indicators
+				cond_ex = restGetCondition(session['ht_token'], 'execution', ioc['category'], ioc['uuid'], session['ht_ip'], '3000')
+				for item in cond_ex['data']['entries']:
+					ioclist[ioc['uuid']]['execution'].append(item['tests'])
+
+				#Grab presence indicators
+				cond_pre = restGetCondition(session['ht_token'], 'presence', ioc['category'], ioc['uuid'], session['ht_ip'], '3000')
+				for item in cond_pre['data']['entries']:
+					ioclist[ioc['uuid']]['presence'].append(item['tests'])
+						
+			ioclist_json = json.dumps(ioclist)
+			
+			if len(iocs) == 1:
+				iocfname = iocs[0]['name'] + ".ioc"
+			else:
+				iocfname = "multiple_indicators.ioc"
+			
+			strIO = StringIO.StringIO()
+			strIO.write(ioclist)
+			strIO.seek(0)
+			return send_file(strIO, attachment_filename=iocfname, as_attachment=True)
+	
 		iocs = restListIndicators(session['ht_token'], session['ht_ip'], '3000')
 		indicators = formatIOCResults(iocs)
-		return render_template('ht_buildioc.html', session=session, cats=cats, indicators=indicators)
+		return render_template('ht_indicators.html', session=session, indicators=indicators)
 	else:
 		return redirect("/login", code=302)
 

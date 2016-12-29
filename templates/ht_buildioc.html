@@ -95,19 +95,6 @@
 				$('<input>').attr({type: 'hidden',id: 'cond_' + condcnt,name: 'cond_' + condcnt + '_execution'}).appendTo('#iocform');
 			});
 
-	                var table = $('#iocTable').DataTable( {
-	                        "info": false,
-	                        "pageLength": 10,
-	                        "lengthChange": false
-	                });
-
-
-	                $(".clickable-row").click(function() {
-	                        window.document.location = $(this).data("href");
-	                });
-
-
-
 		});
 	</script>
 
@@ -274,13 +261,5 @@
 				</tr>
 			</table>
 		</div>
-
-		<br>
-
-		<div class='tableTitle'>
-		        Indicators on the controller
-		</div>
-
-		{% if indicators %} {{ indicators|safe }} {% endif %}
 
 {% endblock %}

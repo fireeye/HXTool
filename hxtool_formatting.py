@@ -150,20 +150,22 @@ def formatBulkHostsTable(hoststable):
 def formatIOCResults(iocs):
 
 	x = "<table id='iocTable' class='genericTable' style='width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td>Name</td>"
-        x += "<td style='width: 100px;'>Active since</td>"
-        x += "<td style='width: 100px;'>Created by</td>"
-        x += "<td style='width: 100px;'>Category</td>"
-        x += "<td style='width: 100px;'>Active conditions</td>"
-        x += "<td style='width: 100px;'>Hosts with alerts</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
-
+	x += "<thead>"
+	x += "<tr>"
+	x += "<td style='width: 40px;'>&nbsp;</td>"
+	x += "<td>Name</td>"
+	x += "<td style='width: 100px;'>Active since</td>"
+	x += "<td style='width: 150px;'>Created by</td>"
+	x += "<td style='width: 140px;'>Category</td>"
+	x += "<td style='width: 170px;'>Active conditions</td>"
+	x += "<td style='width: 170px;'>Hosts with alerts</td>"
+	x += "</tr>"
+	x += "</thead>"
+	x += "<tbody>"
+	
 	for entry in iocs['data']['entries']:
 		x += "<tr>"
+		x += "<td><input type='checkbox' name='ioc___" + str(entry['display_name']) + "___" + str(entry['category']['name']) + "' value='" + str(entry['uri_name']) + "'></td>"
 		x += "<td>" + str(entry['name']) + "</td>"
 		x += "<td>" + str(entry['active_since']) + "</td>"
 		x += "<td>" + str(entry['create_actor']['username']) + "</td>"
@@ -172,9 +174,9 @@ def formatIOCResults(iocs):
 		x += "<td>" + str(entry['stats']['alerted_agents']) + "</td>"
 		x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
-        return (x)
+	x += "</tbody>"
+	x += "</table>"
+	return (x)
 
 def formatCategoriesSelect(cats):
 
@@ -229,14 +231,14 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 	x = "<table id='alertsTable' class='genericTable' style='width: 100%;'>"
 	x += "<thead>"
 	x += "<tr>"
-	x += "<td style='width: 60px;'>OS</td>"
+	x += "<td style='width: 50px;'>OS</td>"
 	x += "<td style='width: 100px;'>Host</td>"
-	x += "<td style='width: 100px;'>Domain</td>"
-	x += "<td style='width: 100px;'>Threat info</td>"
-	x += "<td style='width: 100px;'>Reported at</td>"
-	x += "<td style='width: 100px;'>Matched at</td>"
-	# x += "<td style='width: 100px;'>Source</td>"
-	x += "<td style='width: 100px;'>Event type</td>"
+	x += "<td style='width: 120px;'>Domain</td>"
+	x += "<td style='width: 100px;'>Alerted</td>"
+	x += "<td style='width: 150px;'>Reported at</td>"
+	x += "<td style='width: 150px;'>Matched at</td>"
+	x += "<td style='width: 140px;'>Event badge</td>"
+	x += "<td style=''>Event type</td>"
 	x += "<td style='width: 70px; text-align: center;'>Annotations</td>"
 	x += "<td style='width: 100px;'>Actions</td>"
 	x += "</tr>"
@@ -247,35 +249,63 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 	
 	for entry in alerts['data']['entries']:
 		x += "<tr>"
+	
 		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
 		#x += "<td>" + str(hostinfo['data']['os']['product_name']) + " " + str(hostinfo['data']['os']['patch_level']) + " " + str(hostinfo['data']['os']['bitness']) + "</td>"
+		
+		# OS
 		x += "<td>"
 		if str(hostinfo['data']['os']['product_name']).startswith('Windows'):
 			x += "<img style='width: 40px;' src='/static/ico/windows.svg'>"
 		else:
 			x += "<img style='width: 40px;' src='/static/ico/apple.svg'>"
 		x += "</td>"
+		
+		# Host
 		x += "<td>" + str(hostinfo['data']['hostname']) + "</td>"
+		
+		# Domain
 		x += "<td>" + str(hostinfo['data']['domain']) + "</td>"
-                x += "<td>"
-                if str(entry['source']) == "IOC":
-                        indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
-                        for indicator in indicators['data']['entries']:
-                                x += "<b>Indicator:</b> " + indicator['name'] + " (" + indicator['category']['name'] + ")<br>"
-                else:
-                        x += "<img style='width: 40px;' src='/static/ico/XPLT-Blue.svg'><span style='margin-top: -5px;'>" + str(len(entry['event_values']['messages'])) + " malicous behaviors</span>"
-                x += "</td>"
+		
+		# Alerted
+		import datetime
+		t = gt(entry['reported_at'])
+		x += "<td>" + prettyTime(t) + "</td>"
+
+		# Reported at
 		x += "<td>" + str(entry['reported_at']) + "</td>"
+		
+		# Matched at
 		x += "<td>" + str(entry['matched_at']) + "</td>"
-		# x += "<td>" + str(entry['source']) + "</td>"
+		
+		# Event badge
 		x += "<td>"
-		if str(entry['source']) == "EXD":
-			x += "(" + str(entry['event_values']['process_id']) + ") " + str(entry['event_values']['process_name']) + "<br>"
+		if (entry['source'] == "EXD"):
+			x += "<img style='width: 40px;' src='/static/ico/XPLT-Blue.svg'>"
+		elif (entry['source'] == "IOC"):
+			x += "<img style='width: 40px;' src='/static/ico/PRS-Blue.svg'> or <img style='width: 40px;' src='/static/ico/EXC-Blue.svg'>"
+		else:
+			x += "Unknown"
+		x += "</td>"
+		
+		# Event type
+		x += "<td>"
+		if str(entry['source']) == "EXD":	
+			x += "<u>Exploit behavior in: (" + str(entry['event_values']['process_id']) + ") " + str(entry['event_values']['process_name']) + " - (" + str(len(entry['event_values']['messages'])) + ")</u><br>"
+			x += "<div style='margin-left: 20px; margin-top: 5px;'>"
 			for behavior in entry['event_values']['messages']:
 				x += behavior + "<br>"
+			x += "</div>"
 		else:
+			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
+			for indicator in indicators['data']['entries']:
+				x += "<u>Indicator hit: " + indicator['name'] + " (" + indicator['category']['name'] + ")</u><br>"
+			x += "<div style='margin-left: 20px; margin-top: 5px;'>"
 			x += str(entry['event_type'])
+			x += "</div>"
 		x += "</td>"
+		
+		# Annotation status
 		x += "<td style='text-align: center;'>"
 		annotations = sqlGetAnnotationStats(c, conn, str(entry['_id']), profileid)
 		if (annotations[0][1] == 1):
@@ -285,10 +315,12 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		else:
 			x += "<div class='alertStatus alertStatusNew'>New - " + str(annotations[0][0]) + "</div>"
 		x += "</td>"
+		
+		# Actions
 		x += "<td>"
 		x += "<input id='annotate_" + str(entry['_id']) + "' type='button' value='Annotate'>"
 		x += "</td>"
-                x += "</tr>"
+		x += "</tr>"
 
 	x += "</tbody>"
         x += "</table>"
