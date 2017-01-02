@@ -154,7 +154,7 @@ def formatIOCResults(iocs):
 	x += "<tr>"
 	x += "<td style='width: 40px;'>&nbsp;</td>"
 	x += "<td>Name</td>"
-	x += "<td style='width: 100px;'>Active since</td>"
+	x += "<td style='width: 180px;'>Active since</td>"
 	x += "<td style='width: 150px;'>Created by</td>"
 	x += "<td style='width: 140px;'>Category</td>"
 	x += "<td style='width: 170px;'>Active conditions</td>"
@@ -164,7 +164,7 @@ def formatIOCResults(iocs):
 	x += "<tbody>"
 	
 	for entry in iocs['data']['entries']:
-		x += "<tr>"
+		x += "<tr class='clickable-row' data-value='" + str(entry['category']['name']) + "___" + str(entry['uri_name']) + "'>"
 		x += "<td><input type='checkbox' name='ioc___" + str(entry['display_name']) + "___" + str(entry['category']['name']) + "' value='" + str(entry['uri_name']) + "'></td>"
 		x += "<td>" + str(entry['name']) + "</td>"
 		x += "<td>" + str(entry['active_since']) + "</td>"
@@ -178,6 +178,48 @@ def formatIOCResults(iocs):
 	x += "</table>"
 	return (x)
 
+
+def formatConditions(cond_pre, cond_ex):
+	
+	x = ""
+	x += "<div class='tableTitle'>Presence conditions</div>"
+	
+	x += "<div style='margin-bottom: 10px; margin-top: -18px;' class='clt'>"
+	x += "<ul>"
+	x += "<li>or"
+	x += "<ul>"
+	for entry in cond_pre['data']['entries']:
+		x += "<li>and"
+		x += "<ul>"
+		for test in entry['tests']:
+			x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+		x += "</ul>"
+		x += "</li>"
+	
+	x += "</ul>"
+	x += "</li>"
+	x += "</div>"
+	
+	x += "<div class='tableTitle'>Execution conditions</div>"
+	
+	x += "<div style='margin-bottom: 10px; margin-top: -18px;' class='clt'>"
+	x += "<ul>"
+	x += "<li>or"
+	x += "<ul>"
+	for entry in cond_ex['data']['entries']:
+		x += "<li>and"
+		x += "<ul>"
+		for test in entry['tests']:
+			x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+		x += "</ul>"
+		x += "</li>"
+	
+	x += "</ul>"
+	x += "</li>"
+	x += "</div>"
+		
+	return (x)
+	
 def formatCategoriesSelect(cats):
 
 	x = "<select name='cats' id='cats'>"

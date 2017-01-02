@@ -260,6 +260,23 @@ def indicators():
 	else:
 		return redirect("/login", code=302)
 
+@app.route('/indicatorcondition')
+def indicatorcondition():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+
+		uuid = request.args.get('uuid')
+		category = request.args.get('category')
+	
+		cond_pre = restGetCondition(session['ht_token'], 'presence', category, uuid, session['ht_ip'], '3000')
+		cond_ex = restGetCondition(session['ht_token'], 'execution', category, uuid, session['ht_ip'], '3000')
+		
+		conditions = formatConditions(cond_pre, cond_ex)
+	
+		return render_template('ht_indicatorcondition.html', session=session, conditions=conditions)
+	else:
+		return redirect("/login", code=302)
+		
+
 @app.route('/categories')
 def categories():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
