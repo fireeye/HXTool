@@ -49,10 +49,10 @@
 				if($('#' + ioc_cond_update).text() == "") {
 					$('#' + ioc_cond_update).append("<div class='iocLabel'>This</div>");
 				} else if ($('#check_not').is(':checked')) {
-					$('#' + ioc_cond_update).append("<div class='iocLabel iocLabelNot'>!&</div>");
+					$('#' + ioc_cond_update).append("<div class='iocLabel iocLabelNot'>and not</div>");
 					neg = 1;
 				} else {
-					$('#' + ioc_cond_update).append("<div class='iocLabel'>&</div>");
+					$('#' + ioc_cond_update).append("<div class='iocLabel'>and</div>");
 				}
 	
 				var event_t = ($('#event_types option:selected').val());
@@ -104,17 +104,19 @@
 		        Add a new indicator
 		</div>
 
-		<div class='inputArea' style='padding-bottom: 0;'>
+		<div class='inputArea' style='padding-bottom: 0; width: 900px;'>
                 <table style='font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-weight: 400; color: #444;'>
                         <tr>
                                 <td style='width: 900px; vertical-align: top;'>
                                         <form style='margin:0;' action='/buildioc' method='POST' id='iocform'>
 
 						<div style='float: left; margin-bottom: 15px;'>
-	                                                <span class='menuText'>Indicator Name </span>
-	                                                <input type='text' name='iocname' value='my_new_ioc'>
-	                                                <span class='menuText'>Indicator Category </span>
-							{% if cats %} {{ cats|safe }} {% endif %}
+							<span class='menuText'>Indicator Name </span>
+	                        <input type='text' name='iocname' value='my_new_ioc'>
+						</div>
+						<div style='float: right; margin-bottom: 15px;'>
+							<span class='menuText'>Indicator Category </span>
+							{% if cats %} {{ cats|safe }} {% endif %}						
 						</div>
 						<div style='clear: both;'></div>
 
@@ -213,7 +215,7 @@
                                                 </div>
                                                 </div>
 
-                                                <div style='float: left; padding: 20px; border: 1px solid rgb(215,215,215); border-left: 0; border-right: 0; border-bottom: 0;'>
+                                                <div style='float: left; padding: 20px; padding-right: 0; width: 490px; border: 1px solid rgb(215,215,215); border-left: 0; border-right: 0; border-bottom: 0;'>
                                                 <div class='menuText'>Operator and matching data</div>
                                                 <div class='menuText'>
                                                 <input type='checkbox' id='check_not'>NOT

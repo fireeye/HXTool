@@ -215,6 +215,7 @@ def indicators():
 
 		if request.method == 'POST':
 			
+			# Export selected indicators
 			iocs = []
 			for postvalue in request.form:
 				if postvalue.startswith('ioc___'):
@@ -250,7 +251,7 @@ def indicators():
 				iocfname = "multiple_indicators.ioc"
 			
 			strIO = StringIO.StringIO()
-			strIO.write(ioclist)
+			strIO.write(ioclist_json)
 			strIO.seek(0)
 			return send_file(strIO, attachment_filename=iocfname, as_attachment=True)
 	
@@ -291,10 +292,30 @@ def exportioc():
 	else:
 		return redirect("/login", code=302)
 
-@app.route('/import')
+@app.route('/import', methods=['POST'])
 def importioc():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-		return render_template('ht_import.html', session=session)
+		
+		if request.method == 'POST':
+		
+			fc = request.files['iocfile']				
+			iocs = json.loads(fc.read())
+			
+			for iockey in iocs:
+				iocuri = restAddIndicator('apia', iocs[iockey]['name'], iocs[iockey]['category'], session['ht_token'], session['ht_ip'], '3000')
+
+				for p_cond in iocs[iockey]['presence']:
+					data = json.dumps(p_cond)
+					data = """{"tests":""" + data + """}"""
+					res = restAddCondition(iocuri, "presence", data, iocs[iockey]['category'], session['ht_token'], session['ht_ip'], '3000')
+
+				for e_cond in iocs[iockey]['execution']:
+					data = json.dumps(e_cond)
+					data = """{"tests":""" + data + """}"""
+					res = restAddCondition(iocuri, "execution", data, iocs[iockey]['category'], session['ht_token'], session['ht_ip'], '3000')
+			
+		
+		return redirect("/indicators", code=302)
 	else:
 		return redirect("/login", code=302)
 

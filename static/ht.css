@@ -201,6 +201,21 @@
 	box-shadow: 5px 5px 5px rgb(215, 215, 215);
 }
 
+.importPopup {
+    border: 2px solid rgb(215, 215, 215);
+    background: #ffffff;
+    border-radius: 5px;
+    padding: 30px;
+    position: absolute;
+    left: 50%;
+    top: 20%;
+    z-index: 10;
+    margin-left: -300px;
+    width: 500px;
+    height: 170px;
+	box-shadow: 5px 5px 5px rgb(215, 215, 215);
+}
+
 
 .shader {
 	z-index: 5;
@@ -335,12 +350,13 @@
 .ht_buildioc_iocframe {
 	display: none;
 	position: absolute;
-	width: 350px;
+	width: 700px;
 	right: 0;
 	top: 80px;
-	background: rgb(47, 54, 63);
 	padding: 5px;
-	border: 1px solid rgb(47, 54, 63);
+	background: #f2f2f2;
+	border: 1px solid rgb(215,215,215);
+	border-right: 0;
 	border-top-left-radius: 5px;
 	border-bottom-left-radius: 5px;
 }
@@ -348,24 +364,26 @@
 .ht_buildioc_ioctable {
 	width: 100%;
 	font-family: Arial, Helvetica, sans-serif;
-	color: white;
+	color: black;
 }
 
 .cond_title {
 	margin-top: 10px;
-	border-bottom: 1px solid #ffffff;
+	padding: 10px;
+	font-weight: 700;
+	font-size: 14px;
+	border-top: 2px solid rgb(215,215,215);
+	border-bottom: 2px solid rgb(215,215,215);
 }
 
 .iocLabel {
 	float: left;
-	border: 1px solid #ffffff;
-	border-right: none;
-	border-radius: 5px;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
+	border-bottom: 1px solid rgb(215,215,215);
+	border-right: 1px solid rgb(215,215,215);
 	padding: 3px;
 	padding-right: 5px;
-	margin-top: 10px;
+	margin-top: 14px;
+	font-weight: 700;
 }
 
 .iocLabelNot {
@@ -374,11 +392,9 @@
 }
 
 .iocBox {
-	margin-left: 20px;
+	margin-left: 37px;
 	margin-top: 10px;
-	border: 1px solid #ffffff;
-	border-radius: 5px;
-	border-top-left-radius: 0;
+	border-bottom: 1px solid rgb(215,215,215);
 	padding: 5px;
 }
 
@@ -481,7 +497,7 @@
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-weight: 700;
 	font-size: 14px;
-	padding: 8px;
+	padding: 4px;
 	width: 120px;
 	margin-left:auto;
 	margin-right:auto;

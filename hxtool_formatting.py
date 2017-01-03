@@ -290,7 +290,18 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 	# print alerts['data']['entries'][0]
 	
 	for entry in alerts['data']['entries']:
-		x += "<tr>"
+	
+		# Get annotations
+		annotations = sqlGetAnnotationStats(c, conn, str(entry['_id']), profileid)
+		
+		if (annotations[0][1] == 1):
+			bgcolor = "#fffce0"
+		elif (annotations[0][1] == 2):
+			bgcolor = "#e0ffe3"
+		else:
+			bgcolor = "#ffffff"
+	
+		x += "<tr style='background: " + bgcolor + "'>"
 	
 		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
 		#x += "<td>" + str(hostinfo['data']['os']['product_name']) + " " + str(hostinfo['data']['os']['patch_level']) + " " + str(hostinfo['data']['os']['bitness']) + "</td>"
@@ -349,7 +360,7 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		
 		# Annotation status
 		x += "<td style='text-align: center;'>"
-		annotations = sqlGetAnnotationStats(c, conn, str(entry['_id']), profileid)
+		
 		if (annotations[0][1] == 1):
 			x += "<div class='alertStatus alertStatusInv'>Investigating - " + str(annotations[0][0]) + "</div>"
 		elif (annotations[0][1] == 2):
