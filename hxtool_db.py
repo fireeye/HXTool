@@ -12,7 +12,7 @@ def sqlCreateAlertsTable(c):
 	c.execute('CREATE TABLE IF NOT EXISTS alerts(id INTEGER PRIMARY KEY AUTOINCREMENT, profileid INTEGER, hxalertid INTEGER)')
 
 def sqlCreateAnnotationTable(c):
-	c.execute('CREATE TABLE IF NOT EXISTS annotation(id INTEGER PRIMARY KEY AUTOINCREMENT, alertid INTEGER, text TEXT, state INTEGER, ctime datetime default current_timestamp)')
+	c.execute('CREATE TABLE IF NOT EXISTS annotation(id INTEGER PRIMARY KEY AUTOINCREMENT, alertid INTEGER, text TEXT, state INTEGER, ctime datetime default current_timestamp, cuser TEXT)')
 
 	
 # Profiles
@@ -31,12 +31,12 @@ def sqlAddAlert(c, conn, profileid, hxalertid):
 	return(c.lastrowid)
 
 # Annotation
-def sqlAddAnnotation(c, conn, alertid, text, state):
-	c.execute("INSERT INTO annotation (alertid, text, state) VALUES (?, ?, ?)", (alertid, text, state))
+def sqlAddAnnotation(c, conn, alertid, text, state, user):
+	c.execute("INSERT INTO annotation (alertid, text, state, cuser) VALUES (?, ?, ?, ?)", (alertid, text, state, user))
 	conn.commit()
 
 def sqlGetAnnotations(c, conn, alertid, profileid):
-	c.execute("SELECT annotation.text, annotation.state, annotation.ctime from annotation, alerts where alerts.id = annotation.alertid and alerts.hxalertid = ? and alerts.profileid = ?", (alertid, profileid))
+	c.execute("SELECT annotation.text, annotation.state, annotation.ctime, annotation.cuser from annotation, alerts where alerts.id = annotation.alertid and alerts.hxalertid = ? and alerts.profileid = ?", (alertid, profileid))
 	return(c.fetchall())
 	
 def sqlGetAnnotationStats(c, conn, alertid, profileid):

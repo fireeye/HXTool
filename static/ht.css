@@ -241,9 +241,9 @@
     left: 50%;
     top: 20%;
     z-index: 10;
-    margin-left: -300px;
+    margin-left: -600px;
 	margin-top: -250px;
-    width: 600px;
+    width: 1200px;
     height: 500px;
 	box-shadow: 5px 5px 5px rgb(215, 215, 215);
 }
@@ -532,22 +532,25 @@
 	width: 120px;
 	margin-left:auto;
 	margin-right:auto;
-	box-shadow: 5px 5px 5px rgb(215,215,215);
-	border-radius: 2px;
-	background: rgb(0, 78, 116);
-	border: 1px solid rgb(0, 78, 116);
+	border-radius: 5px;
+	background: rgb(230, 230, 230);
+	border: 1px solid rgb(215, 215, 215);
+}
+
+.alertStatus:hover {
+	cursor: pointer;
 }
 
 .alertStatusInv {
-	color: yellow;
+	color: #666666;
 }
 
 .alertStatusCom {
-	color: lightgreen;
+	color: #666666;
 }
 
 .alertStatusNew {
-	color: white;
+	color: #666666;
 }
 
 .dropdown-content {

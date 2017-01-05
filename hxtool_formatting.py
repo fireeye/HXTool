@@ -420,7 +420,9 @@ def formatAnnotationTable(an):
 	x = "<table id='annotateDisplayTable' class='genericTable' style='width: 100%;'>"
 	x += "<thead>"
 	x += "<tr>"
-	x += "<td style='width: 85%;'>Comment</td>"
+	x += "<td style='width: 15%;'>Timestamp</td>"
+	x += "<td style='width: 15%;'>User</td>"
+	x += "<td style='width: 55%;'>Comment</td>"
 	x += "<td style='width: 15%;'>Status</td>"
 	x += "</tr>"
 	x += "</thead>"
@@ -428,8 +430,13 @@ def formatAnnotationTable(an):
 
 
 	for item in an:
+	
+		atext = "<br />".join(item[0].split("\n"))
+	
 		x += "<tr>"
-		x += "<td>" + str(item[0]) + "</td>"
+		x += "<td>" + str(item[2]) + "</td>"
+		x += "<td>" + str(item[3]) + "</td>"
+		x += "<td>" + atext + "</td>"
 		x += "<td>"
 		
 		if item[1] == 1:

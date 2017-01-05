@@ -18,6 +18,10 @@ from hxtool_db import *
 import datetime
 import StringIO
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 conn = sqlite3.connect('hxtool.db')
 c = conn.cursor()
 
@@ -142,7 +146,7 @@ def alerts():
 				# Create entry in the alerts table
 				newrowid = sqlAddAlert(c, conn, session['ht_profileid'], request.form['annotateId'])
 				# Add annotation to annotation table
-				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'])
+				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'], session['ht_user'])
 		
 		if 'acount' in request.args:
 			acount = request.args['acount']
