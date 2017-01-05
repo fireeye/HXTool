@@ -192,7 +192,10 @@ def formatConditions(cond_pre, cond_ex):
 		x += "<li>and"
 		x += "<ul>"
 		for test in entry['tests']:
-			x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+			if 'negate' in test:
+				x += "<li style=''>" + test['token'] + " <i><span style='color: red; font-weight: 700;'>not</span> " + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+			else:
+				x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
 		x += "</ul>"
 		x += "</li>"
 	
@@ -228,6 +231,43 @@ def formatCategoriesSelect(cats):
 	x += "</select>"
 	return(x)
 
+def formatCategories(cats):
+
+	x = "<table id='categoryTable' class='categoryTable' style='width: 100%;'>"
+	x += "<thead>"
+	x += "<tr>"
+	x += "<td style='width: 100px;'>Name</td>"
+	x += "<td style='width: 100px;'>Retention policy</td>"
+	x += "<td style='width: 100px;'>Edit policy</td>"
+	x += "<td style='width: 100px;'>Source Alerts enabled</td>"
+	x += "<td style='width: 100px;'>Signature enabled</td>"
+	x += "</tr>"
+	x += "</thead>"
+	x += "<tbody>"
+	
+	for entry in cats['data']['entries']:
+		x += "<tr>"
+		x += "<td>" + str(entry['name']) + "</td>"
+		x += "<td>" + str(entry['retention_policy']) + "</td>"
+		x += "<td>" + str(entry['ui_edit_policy']) + "</td>"
+		x += "<td>" + str(entry['ui_source_alerts_enabled']) + "</td>"
+		x += "<td>" + str(entry['ui_signature_enabled']) + "</td>"
+		x += "</tr>"
+		
+	x += "</tbody>"
+	x += "</table>"
+	
+	return(x)
+	
+def formatHostsets(hs):
+	
+	x = ""
+	
+	for entry in hs['data']['entries']:
+		x += "<option value='" + str(entry['_id']) + "'>" + entry['name']
+	
+	return(x)
+	
 def formatDashAlerts(alerts, fetoken, hxip, hxport):
 
 	x = "<table id='dashAlerts' class='dashAlerts' style='width: 100%;'>"
@@ -239,12 +279,12 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
 	x += "<td style='width: 100px;'>Threat info</td>"
         x += "<td style='width: 100px;'>Reported at</td>"
         x += "<td style='width: 100px;'>Matched at</td>"
-        x += "<td style='width: 100px;'>Event type</td>"
         x += "</tr>"
         x += "</thead>"
         x += "<tbody>"
 
-	for entry in alerts['data']['entries'][:10]:
+	#for entry in alerts['data']['entries'][:10]:
+	for entry in alerts[:10]:
 		x += "<tr>"
 		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
 		x += "<td>" + str(hostinfo['data']['hostname']) + "</td>"
@@ -260,7 +300,6 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
 		x += "</td>"
 		x += "<td>" + str(entry['reported_at']) + "</td>"
 		x += "<td>" + str(entry['matched_at']) + "</td>"
-		x += "<td>" + str(entry['event_type']) + "</td>"
 		x += "</tr>"
 
         x += "</tbody>"
@@ -276,10 +315,10 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 	x += "<td style='width: 50px;'>OS</td>"
 	x += "<td style='width: 100px;'>Host</td>"
 	x += "<td style='width: 120px;'>Domain</td>"
-	x += "<td style='width: 100px;'>Alerted</td>"
+	x += "<td style='width: 100px; text-align: center;'>Alerted</td>"
 	x += "<td style='width: 150px;'>Reported at</td>"
 	x += "<td style='width: 150px;'>Matched at</td>"
-	x += "<td style='width: 140px;'>Event badge</td>"
+	x += "<td style='width: 100px; text-align: center;'>Containment</td>"
 	x += "<td style=''>Event type</td>"
 	x += "<td style='width: 70px; text-align: center;'>Annotations</td>"
 	x += "<td style='width: 100px;'>Actions</td>"
@@ -290,6 +329,7 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 	# print alerts['data']['entries'][0]
 	
 	for entry in alerts['data']['entries']:
+	
 	
 		# Get annotations
 		annotations = sqlGetAnnotationStats(c, conn, str(entry['_id']), profileid)
@@ -323,7 +363,7 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		# Alerted
 		import datetime
 		t = gt(entry['reported_at'])
-		x += "<td>" + prettyTime(t) + "</td>"
+		x += "<td style='text-align: center; font-weight: 700;'>" + prettyTime(t) + "</td>"
 
 		# Reported at
 		x += "<td>" + str(entry['reported_at']) + "</td>"
@@ -331,14 +371,9 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		# Matched at
 		x += "<td>" + str(entry['matched_at']) + "</td>"
 		
-		# Event badge
-		x += "<td>"
-		if (entry['source'] == "EXD"):
-			x += "<img style='width: 40px;' src='/static/ico/XPLT-Blue.svg'>"
-		elif (entry['source'] == "IOC"):
-			x += "<img style='width: 40px;' src='/static/ico/PRS-Blue.svg'> or <img style='width: 40px;' src='/static/ico/EXC-Blue.svg'>"
-		else:
-			x += "Unknown"
+		# Containment state
+		x += "<td style='text-align: center;'>"
+		x += str(entry['agent']['containment_state'])
 		x += "</td>"
 		
 		# Event type
@@ -362,11 +397,11 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		x += "<td style='text-align: center;'>"
 		
 		if (annotations[0][1] == 1):
-			x += "<div class='alertStatus alertStatusInv'>Investigating - " + str(annotations[0][0]) + "</div>"
+			x += "<div id='adisp_" + str(entry['_id']) + "' class='alertStatus alertStatusInv'>Investigating - " + str(annotations[0][0]) + "</div>"
 		elif (annotations[0][1] == 2):
-			x += "<div class='alertStatus alertStatusCom'>Completed - " + str(annotations[0][0]) + "</div>"
+			x += "<div id='adisp_" + str(entry['_id']) + "' class='alertStatus alertStatusCom'>Completed - " + str(annotations[0][0]) + "</div>"
 		else:
-			x += "<div class='alertStatus alertStatusNew'>New - " + str(annotations[0][0]) + "</div>"
+			x += "<div id='adisp_" + str(entry['_id']) + "' class='alertStatus alertStatusNew'>New - " + str(annotations[0][0]) + "</div>"
 		x += "</td>"
 		
 		# Actions
@@ -376,8 +411,39 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		x += "</tr>"
 
 	x += "</tbody>"
-        x += "</table>"
+	x += "</table>"
 
         return(x)
 
+def formatAnnotationTable(an):
+
+	x = "<table id='annotateDisplayTable' class='genericTable' style='width: 100%;'>"
+	x += "<thead>"
+	x += "<tr>"
+	x += "<td style='width: 85%;'>Comment</td>"
+	x += "<td style='width: 15%;'>Status</td>"
+	x += "</tr>"
+	x += "</thead>"
+	x += "<tbody>"
+
+
+	for item in an:
+		x += "<tr>"
+		x += "<td>" + str(item[0]) + "</td>"
+		x += "<td>"
+		
+		if item[1] == 1:
+			x += "Investigating"
+		elif item[1] == 2:
+			x += "Completed"
+		else:
+			x += "Unknown"
+			
+		x += "</td>"
+		x += "</tr>"
+		
+	x += "</tbody>"
+	x += "</table>"
+		
+	return (x)
 

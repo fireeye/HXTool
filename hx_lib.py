@@ -633,6 +633,38 @@ def restGetAlerts(fetoken, count, hxip, hxport):
                 r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
                 return(r)
 
+				
+# NOTE: this function does not return data in the usual way, the response is a list of alerts
+def restGetAlertsTime(fetoken, startdate, enddate, hxip, hxport):
+
+		handler = urllib2.HTTPHandler()
+		opener = urllib2.build_opener(handler)
+		urllib2.install_opener(opener)
+
+		data = """{"event_at":{"min":""" + "\"" + startdate + """T00:00:00.000Z","max":""" + "\"" + enddate + """T23:59:59.999Z"}}"""
+        
+		request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/alerts/filter', data=data)
+		request.add_header('X-FeApi-Token', fetoken)
+		request.add_header('Accept', 'application/json')
+		request.add_header('Content-type', 'application/json')
+		request.get_method = lambda: 'POST'
+
+		try:
+			response = urllib2.urlopen(request)
+		except urllib2.HTTPError as e:
+			print e.read()
+		except urllib2.URLError as e:
+			print 'Failed to connect to HX API server.'
+			print 'Reason: ', e.reason
+		else:
+			r = [];
+			for line in response.read().decode(response.info().getparam('charset') or 'utf-8').split('\n'):
+				if line.startswith('{'):
+					r.append(json.loads(line))
+
+			return(r)
+				
+				
 ##############
 # Query host
 ##############
@@ -710,6 +742,31 @@ def restListHosts(fetoken, hxip, hxport):
                 r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
                 return(r)
 
+				
+def restListHostsets(fetoken, hxip, hxport):
+
+        handler = urllib2.HTTPHandler()
+        opener = urllib2.build_opener(handler)
+        urllib2.install_opener(opener)
+
+        data = None
+
+        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/host_sets?limit=100000', data=data)
+        request.add_header('X-FeApi-Token', fetoken)
+        request.add_header('Accept', 'application/json')
+        request.get_method = lambda: 'GET'
+
+        try:
+                response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+                print e.read()
+        except urllib2.URLError as e:
+                print 'Failed to connect to HX API server.'
+                print 'Reason: ', e.reason
+        else:
+			r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+			return(r)
+				
 ####
 # Generic functions
 ####

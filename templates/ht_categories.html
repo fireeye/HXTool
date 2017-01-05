@@ -2,5 +2,47 @@
 {% block title %}Categories - hxTool{% endblock %}
 {% block navlocation %}Manage Categories{% endblock %}
 {% block content %}
-Categories
+
+<script>
+		$(document).ready(function() {
+		
+			$('#createCategory').click(function(){ 
+				$('#shader').show();
+				$('#createCategoryPopup').show();
+			});
+	
+			$('#createCategoryCancel').click(function(){
+				$('#createCategoryPopup').hide();
+				$('#shader').hide();
+			});		
+		
+		});
+</script>
+
+<form style='margin: 0;' method='post'>
+<input type='button' value='Create new category...' name='createCategory' id='createCategory'>
+<br><br>
+
+<div class='tableTitle'>
+	Indicator categories
+</div>
+
+{% if categories %} {{ categories|safe }} {% endif %}
+
+
+<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
+<div class='createCategoryPopup' id='createCategoryPopup' style='display: none;'>
+	<form method='post' style='font-size: 14px; font-weight: bold;'>
+		<div class='tableTitle' style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 15px;'>Create new category</div>
+		<div class='descr'>- Create a new category for real-time indicators</div>
+		<br>
+		<div>Category name</div>
+		<input type='text' name='catname' id='catname' style='width: 400px;'><br>
+		<br>
+		<input type='submit' value='Create'>
+		<input type='button' value='Cancel' id='createCategoryCancel'>
+	</form>
+</div>
+
+
 {% endblock %}

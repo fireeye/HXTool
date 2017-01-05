@@ -27,12 +27,11 @@
 	        <input type='file' id='bulkscript' name='bulkscript'>
 		Host set: 
 		<select name='bulkhostset' id='bulkhostset'>
-			<option value='1010'>All Hosts Henrik
-			<option value='1000'>All Hosts
-			<option value='1001'>zombie
-			<option value='1006'>new group
+			{% if hostsets %} {{ hostsets|safe }} {% endif %}
 		</select>
-		<br><br>
+		<br>
+		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>A bulk acquisition is similar to a normal forensic acquisition in HX but is targeting a list of hosts instead of individual hosts. You need to provide a compatible acquisition script and select a target host-set.</div>
+		<br>
 	        <input type='submit' value='Start Bulk Acquisition...'>
 	</div>
 </form>
@@ -44,4 +43,5 @@
 </div>
 
 {% if bulktable %} {{ bulktable|safe }} {% endif %}
+
 {% endblock %}

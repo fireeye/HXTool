@@ -49,7 +49,7 @@
 				if($('#' + ioc_cond_update).text() == "") {
 					$('#' + ioc_cond_update).append("<div class='iocLabel'>This</div>");
 				} else if ($('#check_not').is(':checked')) {
-					$('#' + ioc_cond_update).append("<div class='iocLabel iocLabelNot'>and not</div>");
+					$('#' + ioc_cond_update).append("<div class='iocLabel iocLabelNot'>and</div>");
 					neg = 1;
 				} else {
 					$('#' + ioc_cond_update).append("<div class='iocLabel'>and</div>");
@@ -62,11 +62,13 @@
 				var field_ty = ($('#field_types option:selected').attr('alt'))
 				//alert(field_ty);
 			
-				$('#' + ioc_cond_update).append("<div class='iocBox'>" + event_t + "/" + field_t + " <i>" + oper_t + "</i> <b>" + data_s + "</b>" + "</div>");
+				//$('#' + ioc_cond_update).append("<div class='iocBox'>" + event_t + "/" + field_t + " <i>" + oper_t + "</i> <b>" + data_s + "</b>" + "</div>");
 			
 				if(neg == 0) {
+					$('#' + ioc_cond_update).append("<div class='iocBox'>" + event_t + "/" + field_t + " <i>" + oper_t + "</i> <b>" + data_s + "</b>" + "</div>");
 					var jsondata = '{"token":"' + event_t + '/' + field_t + '","type":"' + field_ty + '","operator":"' + oper_t + '","value":"' + data_s + '"},';
 				} else {
+					$('#' + ioc_cond_update).append("<div class='iocBox'>" + event_t + "/" + field_t + " <i><span style='color: red; font-weight: 700;'>not</span> " + oper_t + "</i> <b>" + data_s + "</b>" + "</div>");
 					var jsondata = '{"token":"' + event_t + '/' + field_t + '","type":"' + field_ty + '","operator":"' + oper_t + '","value":"' + data_s + '","negate":true},';
 				}
 			
@@ -103,8 +105,7 @@
 		<div class='tableTitle'>
 		        Add a new indicator
 		</div>
-
-		<div class='inputArea' style='padding-bottom: 0; width: 900px;'>
+		<div class='inputArea' style='padding-bottom: 0; width: 920px;'>
                 <table style='font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-weight: 400; color: #444;'>
                         <tr>
                                 <td style='width: 900px; vertical-align: top;'>

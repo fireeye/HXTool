@@ -27,33 +27,67 @@ app = Flask(__name__, static_url_path='/static')
 def index():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 
+		if 'time' in request.args:
+			if request.args.get('time') == "today":
+				starttime = datetime.datetime.now()
+			elif request.args.get('time') == "week":
+				starttime = datetime.datetime.now() - datetime.timedelta(days=7)
+			elif request.args.get('time') == "2week":
+				starttime = datetime.datetime.now() - datetime.timedelta(days=14)
+			elif request.args.get('time') == "30days":
+				starttime = datetime.datetime.now() - datetime.timedelta(days=30)
+			elif request.args.get('time') == "60days":
+				starttime = datetime.datetime.now() - datetime.timedelta(days=60)
+			elif request.args.get('time') == "90days":
+				starttime = datetime.datetime.now() - datetime.timedelta(days=90)
+			elif request.args.get('time') == "182days":
+				starttime = datetime.datetime.now() - datetime.timedelta(days=182)
+			elif request.args.get('time') == "365days":
+				starttime = datetime.datetime.now() - datetime.timedelta(days=365)
+			else:
+				starttime = datetime.datetime.now() - datetime.timedelta(days=30)
+		else:
+			starttime = datetime.datetime.now() - datetime.timedelta(days=30)
+	
+		base = datetime.datetime.today()
+		#starttime = datetime.datetime.strptime('2016-12-27', '%Y-%m-%d')
+	
 		# get the last 1000 alerts
-		alertsjson = restGetAlerts(session['ht_token'], '1000', session['ht_ip'], '3000')
+		#alertsjson = restGetAlerts(session['ht_token'], '1000', session['ht_ip'], '3000')
+		alertsjson = restGetAlertsTime(session['ht_token'], starttime.strftime("%Y-%m-%d"), base.strftime("%Y-%m-%d"), session['ht_ip'], '3000')
 
+		nr_of_alerts = len(alertsjson)
+		
 		# Recent alerts
 		alerts = formatDashAlerts(alertsjson, session['ht_token'], session['ht_ip'], '3000')
-	
-		stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}]
-		for alert in alertsjson['data']['entries'][:10]:
-			if alert['source'] == "EXD":
-				stats[0]['value'] = stats[0]['value'] + 1
-			if alert['source'] == "IOC":
-				stats[1]['value'] = stats[1]['value'] + 1
 
-		stats[0]['value'] = stats[0]['value'] * 10
-		stats[1]['value'] = stats[1]['value'] * 10
+		if nr_of_alerts > 0:
+			stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}]
+			#for alert in alertsjson['data']['entries'][:10]:
+			for alert in alertsjson[:10]:
+				if alert['source'] == "EXD":
+					stats[0]['value'] = stats[0]['value'] + 1
+				if alert['source'] == "IOC":
+					stats[1]['value'] = stats[1]['value'] + 1
+			
+			stats[0]['value'] = round((stats[0]['value'] / float(nr_of_alerts)) * 100)
+			stats[1]['value'] = round((stats[1]['value'] / float(nr_of_alerts)) * 100)
+		else:
+			stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}]
 
 		# Event timeline last 30 days
 		talert_dates = {}
-
-		base = datetime.datetime.today()
-		date_list = [base - datetime.timedelta(days=x) for x in range(0, 30)]
+		
+		delta = (base - starttime)
+		
+		date_list = [base - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
 		for date in date_list:
 			talert_dates[date.strftime("%Y-%m-%d")] = 0
 
 		ioccounter = 0;
 		exdcounter = 0;
-		for talert in alertsjson['data']['entries']:
+		#for talert in alertsjson['data']['entries']:
+		for talert in alertsjson:
 
 			if talert['source'] == "IOC":
 				ioccounter = ioccounter + 1
@@ -130,6 +164,20 @@ def alerts():
 	else:
 		return redirect("/login", code=302)
 
+		
+@app.route('/annotatedisplay', methods=['GET'])
+def annotatedisplay():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+		if 'alertid' in request.args:
+			an = sqlGetAnnotations(c, conn, request.args.get('alertid'), session['ht_profileid'])
+			annotatetable = formatAnnotationTable(an)
+	
+		return render_template('ht_annotatedisplay.html', session=session, annotatetable=annotatetable)
+	else:
+		return redirect("/login", code=302)
+
+
+
 #########################
 #### Search and Sweep ###
 #########################
@@ -175,7 +223,7 @@ def buildioc():
 #			print request.form['iocname']
 #			print request.form['cats']
 
-			iocuri = restAddIndicator('apia', request.form['iocname'], request.form['cats'], session['ht_token'], session['ht_ip'], '3000')
+			iocuri = restAddIndicator(session['ht_user'], request.form['iocname'], request.form['cats'], session['ht_token'], session['ht_ip'], '3000')
 
 			condEx = []
 			condPre = []
@@ -278,17 +326,19 @@ def indicatorcondition():
 		return redirect("/login", code=302)
 		
 
-@app.route('/categories')
+@app.route('/categories', methods=['GET', 'POST'])
 def categories():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-		return render_template('ht_categories.html', session=session)
-	else:
-		return redirect("/login", code=302)
 
-@app.route('/export')
-def exportioc():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-		return render_template('ht_export.html', session=session)
+		if request.method == 'POST':
+			catname = request.form.get('catname')
+			restCreateCategory(session['ht_token'], str(catname), session['ht_ip'], '3000')
+	
+	
+		cats = restListIndicatorCategories(session['ht_token'], session['ht_ip'], '3000')
+		categories = formatCategories(cats)
+		
+		return render_template('ht_categories.html', session=session, categories=categories)
 	else:
 		return redirect("/login", code=302)
 
@@ -302,7 +352,7 @@ def importioc():
 			iocs = json.loads(fc.read())
 			
 			for iockey in iocs:
-				iocuri = restAddIndicator('apia', iocs[iockey]['name'], iocs[iockey]['category'], session['ht_token'], session['ht_ip'], '3000')
+				iocuri = restAddIndicator(session['ht_user'], iocs[iockey]['name'], iocs[iockey]['category'], session['ht_token'], session['ht_ip'], '3000')
 
 				for p_cond in iocs[iockey]['presence']:
 					data = json.dumps(p_cond)
@@ -326,16 +376,20 @@ def importioc():
 @app.route('/bulk', methods=['GET', 'POST'])
 def listbulk():
         if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-		if request.method == 'POST':
-                        f = request.files['bulkscript']
-                        bulkscript = f.read()
-			newbulk = restNewBulkAcq(session['ht_token'], bulkscript, request.form['bulkhostset'], session['ht_ip'], '3000')
+			if request.method == 'POST':
+				f = request.files['bulkscript']
+				bulkscript = f.read()
+				newbulk = restNewBulkAcq(session['ht_token'], bulkscript, request.form['bulkhostset'], session['ht_ip'], '3000')
 
-		acqs = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
-		bulktable = formatBulkTable(acqs)
-                return render_template('ht_bulk.html', session=session, bulktable=bulktable)
+			acqs = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
+			bulktable = formatBulkTable(acqs)
+			
+			hs = restListHostsets(session['ht_token'], session['ht_ip'], '3000')
+			hostsets = formatHostsets(hs)
+			
+			return render_template('ht_bulk.html', session=session, bulktable=bulktable, hostsets=hostsets)
         else:
-                return redirect("/login", code=302)
+			return redirect("/login", code=302)
 
 @app.route('/bulkdetails')
 def bulkdetails():

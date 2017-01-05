@@ -13,12 +13,26 @@
 
 				$('#annotateId').val(arrId[1]);
 				$('#shader').show();
-				$('#annotatePopup').show(300);
+				$('#annotatePopup').show(200);
 				
 			});
 
 			$('#annotateCancel').click(function() {
-				$('#annotatePopup').hide();
+				$('#annotatePopup').hide(200);
+				$('#shader').hide();
+			});
+
+			$("div[id^='adisp_']").click(function() {
+				var id = ($(this).attr('id'));
+				var arrId = id.split("_");
+				
+				$('#annotateDisplayContent').load("/annotatedisplay?alertid=" + arrId[1]);
+				$('#shader').show();
+				$('#annotateDisplayPopup').show(200);
+			});
+			
+			$('#annotateDisplayCancel').click(function() {
+				$('#annotateDisplayPopup').hide(200);
 				$('#shader').hide();
 			});
 
@@ -51,5 +65,10 @@
         </form>
 </div>
 
+<div class='annotateDisplayPopup' id='annotateDisplayPopup' style='display: none;'>
+	<div id='annotateDisplayContent'></div>
+	<br>
+	<input type='button' value='Close' id='annotateDisplayCancel'>
+</div>
 
 {% endblock %}

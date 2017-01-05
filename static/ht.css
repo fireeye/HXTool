@@ -195,9 +195,10 @@
     left: 50%;
     top: 20%;
     z-index: 10;
-    margin-left: -300px;
+    margin-left: -250px;
+	margin-top: -110px;
     width: 500px;
-    height: 200px;
+    height: 220px;
 	box-shadow: 5px 5px 5px rgb(215, 215, 215);
 }
 
@@ -216,6 +217,36 @@
 	box-shadow: 5px 5px 5px rgb(215, 215, 215);
 }
 
+.createCategoryPopup {
+    border: 2px solid rgb(215, 215, 215);
+    background: #ffffff;
+    border-radius: 5px;
+    padding: 30px;
+    position: absolute;
+    left: 50%;
+    top: 20%;
+    z-index: 10;
+    margin-left: -200px;
+    width: 400px;
+    height: 170px;
+	box-shadow: 5px 5px 5px rgb(215, 215, 215);
+}
+
+.annotateDisplayPopup {
+    border: 2px solid rgb(215, 215, 215);
+    background: #ffffff;
+    border-radius: 5px;
+    padding: 30px;
+    position: absolute;
+    left: 50%;
+    top: 20%;
+    z-index: 10;
+    margin-left: -300px;
+	margin-top: -250px;
+    width: 600px;
+    height: 500px;
+	box-shadow: 5px 5px 5px rgb(215, 215, 215);
+}
 
 .shader {
 	z-index: 5;
@@ -569,3 +600,67 @@
     height: 8px;
 }
 
+.logoutIcon {
+	width: 32px; 
+	height: 32px; 
+	border: 1px solid #515761;
+	border-radius: 50%; 
+	margin-top: 15px; 
+	margin-right: 10px; 
+	margin-left: 15px;
+	box-sizing: border-box;
+}
+
+.logoutIcon:hover {
+	cursor: pointer;
+	border: 2px solid rgb(215,215,215);
+}
+
+.descr {
+	font-style: italic;
+}
+
+
+/* Category table */
+
+.categoryTable {
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-weight: 700;
+	color: #444;
+	font-size: 12px;
+	border-top: 2px solid rgb(215, 215, 215);
+	border-bottom: 2px solid rgb(215, 215, 215);
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+
+.categoryTable thead td {
+	border-bottom: 2px solid rgb(215, 215, 215);
+	font-size: 13px;
+	background: none;
+	padding: 10px;
+	border-right: 1px solid rgb(215, 215, 215);
+}
+
+.categoryTable thead td:last-child {
+	border-right: none;
+}
+
+
+.categoryTable tbody tr {
+	border-bottom: 1px solid rgb(215, 215, 215);
+}
+
+.categoryTable tbody tr:last-child {
+        border-bottom: none;
+}
+
+.categoryTable tbody td {
+	padding: 10px;
+	font-weight: 400;
+	border-right: 1px solid rgb(215, 215, 215);
+}
+
+.categoryTable tbody td:last-child {
+        border-right: none;
+}
