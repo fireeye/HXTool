@@ -9,7 +9,6 @@
 			$("input[id^='annotate_']").click(function() {
 				var id = ($(this).attr('id'));
 				var arrId = id.split("_");
-				//alert(arrId[1]);
 
 				$('#annotateId').val(arrId[1]);
 				$('#shader').show();

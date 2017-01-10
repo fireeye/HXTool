@@ -283,7 +283,6 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
         x += "</thead>"
         x += "<tbody>"
 
-	#for entry in alerts['data']['entries'][:10]:
 	for entry in alerts[:10]:
 		x += "<tr>"
 		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
@@ -326,7 +325,6 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 	x += "</thead>"
 	x += "<tbody>"
 
-	# print alerts['data']['entries'][0]
 	
 	for entry in alerts['data']['entries']:
 	
@@ -344,7 +342,6 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		x += "<tr style='background: " + bgcolor + "'>"
 	
 		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
-		#x += "<td>" + str(hostinfo['data']['os']['product_name']) + " " + str(hostinfo['data']['os']['patch_level']) + " " + str(hostinfo['data']['os']['bitness']) + "</td>"
 		
 		# OS
 		x += "<td>"

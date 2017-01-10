@@ -54,10 +54,7 @@ def index():
 			starttime = datetime.datetime.now() - datetime.timedelta(days=30)
 	
 		base = datetime.datetime.today()
-		#starttime = datetime.datetime.strptime('2016-12-27', '%Y-%m-%d')
 	
-		# get the last 1000 alerts
-		#alertsjson = restGetAlerts(session['ht_token'], '1000', session['ht_ip'], '3000')
 		alertsjson = restGetAlertsTime(session['ht_token'], starttime.strftime("%Y-%m-%d"), base.strftime("%Y-%m-%d"), session['ht_ip'], '3000')
 
 		nr_of_alerts = len(alertsjson)
@@ -67,7 +64,6 @@ def index():
 
 		if nr_of_alerts > 0:
 			stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}]
-			#for alert in alertsjson['data']['entries'][:10]:
 			for alert in alertsjson[:10]:
 				if alert['source'] == "EXD":
 					stats[0]['value'] = stats[0]['value'] + 1
@@ -90,7 +86,7 @@ def index():
 
 		ioccounter = 0;
 		exdcounter = 0;
-		#for talert in alertsjson['data']['entries']:
+
 		for talert in alertsjson:
 
 			if talert['source'] == "IOC":
@@ -224,8 +220,6 @@ def buildioc():
 		
 		# New IOC to be created
 		if request.method == 'POST':
-#			print request.form['iocname']
-#			print request.form['cats']
 
 			iocuri = restAddIndicator(session['ht_user'], request.form['iocname'], request.form['cats'], session['ht_token'], session['ht_ip'], '3000')
 
@@ -398,10 +392,7 @@ def listbulk():
 @app.route('/bulkdetails')
 def bulkdetails():
         if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-                # acqs = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
-                # bulktable = formatBulkTable(acqs)
 		if request.args.get('id'):
-			# bulktable = request.args.get('id')
 
 			hosts = restListBulkDetails(session['ht_token'], request.args.get('id'), session['ht_ip'], '3000')
 			bulktable = formatBulkHostsTable(hosts)
@@ -428,12 +419,9 @@ def bulkdownload():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-	#print request.method
-	#print request.form['cname']
-	#print "kaka2"
+	
 	if (request.method == 'POST'):
 		if 'ht_user' in request.form:
-			print "we have an login attempt..."
 			(profileid, myip) = request.form['ht_ip'].split("__")
 			
 			(resp, message) = restValidateAuth(myip, '3000', request.form['ht_user'], request.form['ht_pass'])
@@ -445,8 +433,6 @@ def login():
 				session['ht_profileid'] = profileid
 				return redirect("/", code=302)
 			else:
-				# return redirect("/login?fail=1", code=302)
-				# print message
 				return render_template('ht_login.html', fail=message)
 			
 		elif 'cname' in request.form:
@@ -460,16 +446,7 @@ def login():
 
 			return render_template('ht_login.html', fail=message, controllers=options)
 
-#		sqlAddProfileItem(c, conn, request.form['cname'], request.form['chostname'])
-
-#                options = ""
- #               for profile in sqlGetProfiles(c):
-  #                      options += "<option value='" + profile[2] + "'>" + profile[1] + " - " + profile[2]
-
-#		return render_template('ht_login.html') 
 	else:
-		# return app.send_static_file('ht_login.html')
-		print "GET REQUEST"
 		sqlCreateTables(c)
 		options = ""
 		for profile in sqlGetProfiles(c):
