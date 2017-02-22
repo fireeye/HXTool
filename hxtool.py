@@ -17,6 +17,9 @@ import sqlite3
 from hxtool_db import *
 import datetime
 import StringIO
+import threading
+import time
+#from OpenSSL import SSL
 
 import sys
 reload(sys)
@@ -412,7 +415,37 @@ def bulkdownload():
         else:
                 return redirect("/login", code=302)
 
+				
+############
+### Reports ###
+############
 
+@app.route('/reports')
+def reports():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+		return render_template('ht_reports.html', session=session)
+	else:
+		return redirect("/login", code=302)
+
+@app.route('/reportgen')
+def reportgen():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+		if request.args.get('id'):
+			if request.args.get('id') == "1":
+				print "hello"
+				reportFrom = request.args.get('startDate')
+				reportTo = request.args.get('stopDate')
+				alertsjson = restGetAlertsTime(session['ht_token'], reportFrom, reportTo, session['ht_ip'], '3000')
+				
+				if request.args.get('type') == "csv":
+					reportdata = str(formatAlertsCsv(alertsjson, session['ht_token'], session['ht_ip'], '3000'))
+					fname = 'report.csv'
+		
+			return send_file(io.BytesIO(reportdata), attachment_filename=fname, as_attachment=True)
+		else:
+			return redirect("/login", code=302)
+
+		
 #######################
 #### Authentication ###
 #######################
@@ -460,7 +493,38 @@ def logout():
 	session.pop('ht_user', None)
 	return redirect("/", code=302)
 
-app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
 
+#############################
+### Thread: background processing ####
+#############################
+class worker(object):
+
+	def __init__(self, interval=30):
+	
+		self.interval = interval
+	
+		thread = threading.Thread(target=self.run, args=())
+		thread.daemon = True
+		thread.start()
+		
+	def run(self):
+		while True:
+			print "## Worker thread is alive and kicking"
+			time.sleep(self.interval)
+
+###########
+### Main ####
+###########			
+
+app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
+		
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080)
+
+	# Start background processing thread
+	workerthread = worker()
+	
+	# Configure SSL
+	context = ('hxtool.crt', 'hxtool.key')
+	
+	# Start main Flask process
+	app.run(host='0.0.0.0', port=8080, ssl_context=context)

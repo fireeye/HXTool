@@ -451,3 +451,22 @@ def formatAnnotationTable(an):
 		
 	return (x)
 
+def formatAlertsCsv(alertsjson, fetoken, hxip, hxport):
+
+	x = "reported_at;matched_at;event_at;hostname;domain;source;productname;event_type;event_id\r\n"
+	
+	for entry in alertsjson:
+		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
+		x += entry['reported_at'] + ";"
+		x += entry['matched_at'] + ";"
+		x += entry['event_at'] + ";"
+		x += hostinfo['data']['hostname'] + ";"
+		x += hostinfo['data']['domain'] + ";"
+		x += str(entry['source']) + ";"
+		x += hostinfo['data']['os']['product_name'] + " " + hostinfo['data']['os']['patch_level'] + " " + hostinfo['data']['os']['bitness'] + ";"
+		x += str(entry['event_type']) + ";"
+		x += str(entry['event_id'])
+		x += "\r\n"
+
+	return (x)
+	

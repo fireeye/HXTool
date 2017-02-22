@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block title %}Indicators - hxTool{% endblock %}
+{% block navlocation %}Manage Indicators{% endblock %}
+{% block content %}
+
+<script>
+		$(document).ready(function() {
+			var table = $('#iocTable').DataTable( {
+				"info": false,
+				"pageLength": 15,
+				"lengthChange": false
+		});
+		
+		$('#iocTable').on('click', '.clickable-row', function() {
+				var items = $(this).data('value').split("___");
+				var category = items[0];
+				var uuid = items[1];
+				
+				$('#indcond').load("/indicatorcondition?uuid=" + uuid + "&category=" + category);
+		});
+		
+		$('#importIndicator').click(function(){ 
+			$('#shader').show();
+			$('#importPopup').show();
+		});
+
+		$('#importCancel').click(function(){
+			$('#importPopup').hide();
+			$('#shader').hide();
+		});
+	});
+</script>
+
+<form style='margin: 0;' method='post'>
+
+<input type='submit' value='Export Selected'>
+<input type='button' value='Import indicators...' name='importIndicator' id='importIndicator'>
+<br><br>
+
+<table style='margin: 0; width: 100%;'>
+	<div class='tableTitle'>
+			Indicators on the controller
+	</div>
+
+	<td style='vertical-align: top;'>
+	{% if indicators %} {{ indicators|safe }} {% endif %}
+	</td>
+	<td style='width: 30%; vertical-align: top;'>
+		<div style='border-top: 2px solid rgb(215,215,215); border-bottom: 2px solid rgb(215,215,215); padding: 10px; font: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 13px; font-weight: 700;'>
+			Indicator conditions
+		</div>
+		<div id='indcond' style='padding: 10px; padding-top: none;'></div>
+	</td>
+</table>
+</form>
+
+<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
+<div class='importPopup' id='importPopup' style='display: none;'>
+	<form method='post' action='/import' enctype='multipart/form-data' style='font-size: 14px; font-weight: bold;'>
+		<div class='tableTitle' style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 15px;'>Import indicators from file</div>
+		<br>
+		<input type='file' name='iocfile' id='iocfile'><br>
+		<br>
+		<div style='font-style: italic; margin-bottom: 20px; font-weight: 400;'>- Please note that you need to import a file in the hxTool format. OpenIOC/STIX and other formats are not yet supported</div>
+		<input type='submit' value='Import indicators'>
+		<input type='button' value='Cancel' id='importCancel'>
+	</form>
+</div>
+
+
+
+{% endblock %}
