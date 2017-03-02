@@ -127,7 +127,7 @@ def index():
 			if entry['state'] == "RUNNING":
 				blkcounter = blkcounter + 1;
 
-		return render_template('ht_index.html', session=session, alerts=alerts, iocstats=stats, timeline=talerts_list, contcounter=contcounter, hostcounter=hostcounter, searchcounter=searchcounter, blkcounter=blkcounter, exdcounter=exdcounter, ioccounter=ioccounter)
+		return render_template('ht_index.html', session=session, alerts=alerts, iocstats=stats, timeline=talerts_list, contcounter=str(contcounter), hostcounter=str(hostcounter), searchcounter=str(searchcounter), blkcounter=str(blkcounter), exdcounter=str(exdcounter), ioccounter=str(ioccounter))
 	else:
 		return redirect("/login", code=302)
 
@@ -194,11 +194,15 @@ def search():
 			f = request.files['newioc']
 			rawioc = f.read()
 			b64ioc = base64.b64encode(rawioc)
-			out = restSubmitSweep(session['ht_token'], session['ht_ip'], '3000', b64ioc)
+			out = restSubmitSweep(session['ht_token'], session['ht_ip'], '3000', b64ioc, request.form['sweephostset'])
 
 		s = restListSearches(session['ht_token'], session['ht_ip'], '3000')
 		searches = formatListSearches(s)
-		return render_template('ht_searchsweep.html', session=session, searches=searches)
+		
+		hs = restListHostsets(session['ht_token'], session['ht_ip'], '3000')
+		hostsets = formatHostsets(hs)
+		
+		return render_template('ht_searchsweep.html', session=session, searches=searches, hostsets=hostsets)
 	else:
 		return redirect("/login", code=302)
 
@@ -212,6 +216,21 @@ def searchresult():
         else:
                 return redirect("/login", code=302)
 
+				
+@app.route('/searchaction', methods=['GET'])
+def searchaction():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+
+		if request.args.get('action') == "stop":
+			res = restCancelJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/searches/', session['ht_ip'], '3000')
+			return redirect("/search", code=302)
+			
+		if request.args.get('action') == "remove":
+			res = restDeleteJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/searches/', session['ht_ip'], '3000')
+			return redirect("/search", code=302)	
+		
+	else:
+		return redirect("/login", code=302)
 
 ####################################
 #### Build a real-time indicator ###
@@ -416,6 +435,21 @@ def bulkdownload():
                 return redirect("/login", code=302)
 
 				
+@app.route('/bulkaction', methods=['GET'])
+def bulkaction():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+
+		if request.args.get('action') == "stop":
+			res = restCancelJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/acqs/bulk/', session['ht_ip'], '3000')
+			return redirect("/bulk", code=302)
+			
+		if request.args.get('action') == "remove":
+			res = restDeleteJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/acqs/bulk/', session['ht_ip'], '3000')
+			return redirect("/bulk", code=302)	
+		
+	else:
+		return redirect("/login", code=302)
+				
 ############
 ### Reports ###
 ############
@@ -432,7 +466,6 @@ def reportgen():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 		if request.args.get('id'):
 			if request.args.get('id') == "1":
-				print "hello"
 				reportFrom = request.args.get('startDate')
 				reportTo = request.args.get('stopDate')
 				alertsjson = restGetAlertsTime(session['ht_token'], reportFrom, reportTo, session['ht_ip'], '3000')
@@ -440,7 +473,12 @@ def reportgen():
 				if request.args.get('type') == "csv":
 					reportdata = str(formatAlertsCsv(alertsjson, session['ht_token'], session['ht_ip'], '3000'))
 					fname = 'report.csv'
-		
+					
+			if request.args.get('id') == "2":
+				reportFrom = request.args.get('startDate')
+				reportTo = request.args.get('stopDate')		
+				# add code here for report type 2
+			
 			return send_file(io.BytesIO(reportdata), attachment_filename=fname, as_attachment=True)
 		else:
 			return redirect("/login", code=302)

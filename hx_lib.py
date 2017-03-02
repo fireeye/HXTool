@@ -498,7 +498,75 @@ def restNewBulkAcq(fetoken, script, hostset, hxip, hxport):
                 r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
 		return(r)
 
+		
+# List normal acquisitions
+def restListAcquisitions(fetoken, hxip, hxport):
 
+        handler = urllib2.HTTPHandler()
+        opener = urllib2.build_opener(handler)
+        urllib2.install_opener(opener)
+
+	data = None
+
+	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs', data=data)
+	request.add_header('X-FeApi-Token', fetoken)
+	request.add_header('Accept', 'application/json')
+	request.add_header('Content-Type', 'application/json')
+	request.get_method = lambda: 'GET'
+
+        try:
+                response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+                print e.read()
+        except urllib2.URLError as e:
+                print 'Failed to connect to HX API server.'
+                print 'Reason: ', e.reason
+        else:
+                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+                return(r)
+
+# List file acquisitions
+def restListFileaq(fetoken, hxip, hxport):
+
+        data = None
+
+        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/files?limit=10000', data=data)
+        request.add_header('X-FeApi-Token', fetoken)
+        request.add_header('Accept', 'application/json')
+        request.get_method = lambda: 'GET'
+
+        try:
+                response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+                print e.read()
+        except urllib2.URLError as e:
+                print 'Failed to connect to HX API server.'
+                print 'Reason: ', e.reason
+        else:
+                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+                return(r)
+
+def restListTriages(fetoken, hxip, hxport):
+
+        data = None
+
+        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/triages?limit=10000', data=data)
+        request.add_header('X-FeApi-Token', fetoken)
+        request.add_header('Accept', 'application/json')
+        request.get_method = lambda: 'GET'
+
+        try:
+                response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+                print e.read()
+        except urllib2.URLError as e:
+                print 'Failed to connect to HX API server.'
+                print 'Reason: ', e.reason
+        else:
+                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+                return(r)
+
+				
 #######################
 ## Enterprise Search ##
 #######################
@@ -527,14 +595,14 @@ def restListSearches(fetoken, hxip, hxport):
                 return(r)
 
 
-def restSubmitSweep(fetoken, hxip, hxport, b64ioc):
+def restSubmitSweep(fetoken, hxip, hxport, b64ioc, hostset):
 
         handler = urllib2.HTTPHandler()
         opener = urllib2.build_opener(handler)
         urllib2.install_opener(opener)
 
-	data = """{"indicator":""" + "\"" + b64ioc + "\"" + ""","host_set":{"_id":1010}}"""
-
+	data = """{"indicator":""" + "\"" + b64ioc + "\"" + ""","host_set":{"_id":""" + hostset + """}}"""
+	
         request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/searches', data=data)
         request.add_header('X-FeApi-Token', fetoken)
         request.add_header('Accept', 'application/json')
@@ -552,7 +620,56 @@ def restSubmitSweep(fetoken, hxip, hxport, b64ioc):
                 r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
                 return(r)
 
+def restCancelJob(fetoken, id, path, hxip, hxport):
 
+        handler = urllib2.HTTPHandler()
+        opener = urllib2.build_opener(handler)
+        urllib2.install_opener(opener)
+
+        data = None
+
+        request = urllib2.Request('https://' + hxip + ':' + hxport + path + id + '/actions/stop', data=data)
+        request.add_header('X-FeApi-Token', fetoken)
+        request.add_header('Accept', 'application/json')
+        request.add_header('Content-Type', 'application/json')
+        request.get_method = lambda: 'POST'
+
+        try:
+            response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+            print e.read()
+        except urllib2.URLError as e:
+            print 'Failed to connect to HX API server.'
+            print 'Reason: ', e.reason
+        else:
+            r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+            return(r)
+
+def restDeleteJob(fetoken, id, path, hxip, hxport):
+
+        handler = urllib2.HTTPHandler()
+        opener = urllib2.build_opener(handler)
+        urllib2.install_opener(opener)
+
+        data = None
+
+        request = urllib2.Request('https://' + hxip + ':' + hxport + path + id, data=data)
+        request.add_header('X-FeApi-Token', fetoken)
+        request.add_header('Accept', 'application/json')
+        #request.add_header('Content-Type', 'application/json')
+        request.get_method = lambda: 'DELETE'
+
+        try:
+            response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+            print e.read()
+        except urllib2.URLError as e:
+            print 'Failed to connect to HX API server.'
+            print 'Reason: ', e.reason
+        else:
+            #r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+            return()			
+			
 def restGetSearchHosts(fetoken, searchid, hxip, hxport):
 
         handler = urllib2.HTTPHandler()

@@ -10,6 +10,11 @@
 			var reportTo = $('#reportTo').val();
 			location.href="/reportgen?startDate="+reportFrom+"&stopDate="+reportTo+"&id=1&type=csv";
 		});
+		$('#report2csv').click(function(){
+			var reportFrom = $('#reportFrom').val();
+			var reportTo = $('#reportTo').val();
+			location.href="/reportgen?startDate="+reportFrom+"&stopDate="+reportTo+"&id=2&type=csv";
+		});
 	});
 </script>
 
@@ -44,7 +49,7 @@
 		</tr>
 		<tr>
 			<td>All acquisitions for time period</td>
-			<td><input type='submit' value='Report2'></td>
+			<td><input id='report2csv' type='button' value='Generate CSV'></td>
 		</tr>		
 	</tbody>
 </table>

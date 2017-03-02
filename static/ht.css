@@ -16,6 +16,20 @@
 	padding-bottom: 5px;
 }
 
+.tableActionButton {
+	text-decoration: none;
+	background: rgb(121, 161, 190);
+	font-weight: bold;
+	color: #ffffff;
+	border: #eeeeee;
+	border-radius: 5px;
+	padding: 4px;
+	padding-left: 10px;
+	padding-right: 10px;
+	margin-right: 10px;
+	box-shadow: 3px 3px 3px rgb(215, 215, 215);
+}
+
 .graphLabel {
         font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
         font-weight: 400;

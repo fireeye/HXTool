@@ -7,7 +7,7 @@
 	$(document).ready(function() {
 		var table = $('#searchTable').DataTable( {
 			"info": false,
-			"pageLength": 10,
+			"pageLength": 15,
 			"lengthChange": false
 		});
 
@@ -24,6 +24,10 @@
 	</div>
 	<div class='inputArea'>
 		<input type='file' id='newioc' name='newioc'>
+		Host set: 
+		<select name='sweephostset' id='sweephostset'>
+			{% if hostsets %} {{ hostsets|safe }} {% endif %}
+		</select>
 		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>Please note that the OpenIOC indicator must be in OpenIOC 1.1 format and use UTF-8 encoding</div>
 		<input type='submit' value='Find evil...'>
 	</div>

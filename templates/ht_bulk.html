@@ -7,12 +7,12 @@
 	$(document).ready(function() {
                 var table = $('#bulkTable').DataTable( {
                         "info": false,
-                        "pageLength": 10,
+                        "pageLength": 15,
                         "lengthChange": false
                 });
-
-
-		$(".clickable-row").click(function() {
+				
+				
+		$('#bulkTable').on('click', '.clickable-row', function() {
 			window.document.location = $(this).data("href");
 		});
 

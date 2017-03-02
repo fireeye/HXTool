@@ -17,6 +17,7 @@ def formatListSearches(s):
 	x += "<td># Failed</td>"
 	x += "<td># Matched</td>"
 	x += "<td># Not matched</td>"
+	x += "<td>Actions</td>"
 	x += "</tr>"
 	x += "</thead>"
 	x += "<tbody>"
@@ -34,6 +35,10 @@ def formatListSearches(s):
 		x += "<td>" + str(entry['stats']['running_state']['FAILED']) + "</td>"
 		x += "<td>" + str(entry['stats']['search_state']['MATCHED']) + "</td>"
 		x += "<td>" + str(entry['stats']['search_state']['NOT_MATCHED']) + "</td>"
+		x += "<td>" 
+		x += "<a class='tableActionButton' href='/searchaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
+		x += "<a class='tableActionButton' href='/searchaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
+		x += "</td>"
 		x += "</tr>"
 
 	x += "</tbody>"
@@ -86,6 +91,7 @@ def formatBulkTable(bulktable):
         x += "<td>Refresh</td>"
         x += "<td>Cancelled</td>"
         x += "<td>% Complete</td>"
+        x += "<td>Actions</td>"
         x += "</tr>"
         x += "</thead>"
         x += "<tbody>"
@@ -93,7 +99,10 @@ def formatBulkTable(bulktable):
 	for entry in bulktable['data']['entries']:
 
 		total_size = entry['stats']['running_state']['NEW'] + entry['stats']['running_state']['QUEUED'] + entry['stats']['running_state']['FAILED'] + entry['stats']['running_state']['ABORTED'] + entry['stats']['running_state']['DELETED'] + entry['stats']['running_state']['REFRESH'] + entry['stats']['running_state']['CANCELLED'] + entry['stats']['running_state']['COMPLETE']
-		completerate = (entry['stats']['running_state']['COMPLETE'] / float(total_size)) * 100
+		if total_size == 0:
+			completerate = float(0.0)
+		else:
+			completerate = (entry['stats']['running_state']['COMPLETE'] / float(total_size)) * 100
 
 		x += "<tr class='clickable-row' data-href='/bulkdetails?id=" + str(entry['_id']) + "'>"
 		x += "<td>" + str(entry['_id']) + "</td>"
@@ -108,6 +117,11 @@ def formatBulkTable(bulktable):
 		x += "<td>" + str(entry['stats']['running_state']['REFRESH']) + "</td>"
 		x += "<td>" + str(entry['stats']['running_state']['CANCELLED']) + "</td>"
 		x += "<td>" + str(completerate) + " %</td>"
+		x += "<td>" 
+		x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
+		x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
+		x += "</td>"
+		
 		x += "</tr>"
 
         x += "</tbody>"
