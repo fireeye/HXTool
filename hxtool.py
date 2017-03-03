@@ -6,6 +6,8 @@
 # henrik.olsson@fireeye.com                               #
 ###########################################################
 
+import logging
+from logging.handlers import RotatingFileHandler
 from flask import Flask, request, session, redirect, render_template, send_file
 from hx_lib import *
 from hxtool_formatting import *
@@ -34,6 +36,8 @@ app = Flask(__name__, static_url_path='/static')
 def index():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 
+		app.logger.info('User access: Dashboard')
+	
 		if 'time' in request.args:
 			if request.args.get('time') == "today":
 				starttime = datetime.datetime.now()
@@ -153,7 +157,7 @@ def alerts():
 			acount = 50
 		
 		acountselect = ""
-		for i in [10, 50, 100, 250, 500, 1000]:
+		for i in [10, 20, 30, 50, 100, 250, 500, 1000]:
 			if (i == int(acount)):
 				acountselect += "<option value='/alerts?acount=" + str(i) + "' selected='selected'>Last " + str(i) + " Alerts"
 			else:
@@ -559,10 +563,10 @@ app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
 if __name__ == "__main__":
 
 	# Start background processing thread
-	workerthread = worker()
+	#workerthread = worker()
 	
 	# Configure SSL
 	context = ('hxtool.crt', 'hxtool.key')
-	
-	# Start main Flask process
+		
+	# Start main Flask process	
 	app.run(host='0.0.0.0', port=8080, ssl_context=context)

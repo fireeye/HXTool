@@ -152,7 +152,7 @@ def formatBulkHostsTable(hoststable):
 		x += "<td>" + str(entry['state']) + "</td>"
 		x += "<td>"
 		if str(entry['state']) == "COMPLETE":
-			x += "<a href='/bulkdownload?id=" + str(entry['result']['url']) + "'>Download acquisition</a>"
+			x += "<a class='tableActionButton' href='/bulkdownload?id=" + str(entry['result']['url']) + "'>Download acquisition</a>"
 		x += "</td>"
 		x += "</tr>"
 
@@ -325,7 +325,7 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 	x = "<table id='alertsTable' class='genericTable' style='width: 100%;'>"
 	x += "<thead>"
 	x += "<tr>"
-	x += "<td style='width: 50px;'>OS</td>"
+	x += "<td style='width: 40px;'>OS</td>"
 	x += "<td style='width: 100px;'>Host</td>"
 	x += "<td style='width: 120px;'>Domain</td>"
 	x += "<td style='width: 100px; text-align: center;'>Alerted</td>"
@@ -333,7 +333,8 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 	x += "<td style='width: 150px;'>Matched at</td>"
 	x += "<td style='width: 100px; text-align: center;'>Containment</td>"
 	x += "<td style=''>Event type</td>"
-	x += "<td style='width: 70px; text-align: center;'>Annotations</td>"
+	x += "<td style='width: 70px; text-align: center;'>State</td>"
+	x += "<td style='width: 80px; text-align: center;'>Annotations</td>"
 	x += "<td style='width: 100px;'>Actions</td>"
 	x += "</tr>"
 	x += "</thead>"
@@ -341,8 +342,7 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 
 	
 	for entry in alerts['data']['entries']:
-	
-	
+		
 		# Get annotations
 		annotations = sqlGetAnnotationStats(c, conn, str(entry['_id']), profileid)
 		
@@ -353,16 +353,16 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		else:
 			bgcolor = "#ffffff"
 	
-		x += "<tr style='background: " + bgcolor + "'>"
+		x += "<tr>"
 	
 		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
 		
 		# OS
 		x += "<td>"
 		if str(hostinfo['data']['os']['product_name']).startswith('Windows'):
-			x += "<img style='width: 40px;' src='/static/ico/windows.svg'>"
+			x += "<img style='width: 30px;' src='/static/ico/windows.svg'>"
 		else:
-			x += "<img style='width: 40px;' src='/static/ico/apple.svg'>"
+			x += "<img style='width: 30px;' src='/static/ico/apple.svg'>"
 		x += "</td>"
 		
 		# Host
@@ -389,35 +389,48 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		
 		# Event type
 		x += "<td>"
+		x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>&#x25BC;</a>"
 		if str(entry['source']) == "EXD":	
-			x += "<u>Exploit behavior in: (" + str(entry['event_values']['process_id']) + ") " + str(entry['event_values']['process_name']) + " - (" + str(len(entry['event_values']['messages'])) + ")</u><br>"
-			x += "<div style='margin-left: 20px; margin-top: 5px;'>"
+			x += "Exploit behavior in application: (" + str(entry['event_values']['process_id']) + ") " + str(entry['event_values']['process_name']) + " - (" + str(len(entry['event_values']['messages'])) + ")"
+			x += "<div class='alertDetailsDisplayPopupEXD' id='alertdetails_" + str(entry['_id']) + "'>"
 			for behavior in entry['event_values']['messages']:
 				x += behavior + "<br>"
+			x += "<br>"
+			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
 			x += "</div>"
 		else:
 			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
 			for indicator in indicators['data']['entries']:
-				x += "<u>Indicator hit: " + indicator['name'] + " (" + indicator['category']['name'] + ")</u><br>"
-			x += "<div style='margin-left: 20px; margin-top: 5px;'>"
-			x += str(entry['event_type'])
+				x += "Intel hit - IOC: " + indicator['name'] + " (" + indicator['category']['name'] + ")"
+			x += "<div class='alertDetailsDisplayPopup' id='alertdetails_" + str(entry['_id']) + "'>"
+			x += "<div class='tableTitle'>Indicator type: " + str(entry['event_type']) + "</div>"
+			x += "<table class='genericTable' style='margin-bottom: 15px;'>"
+			for hitkey, hitdata in entry['event_values'].iteritems():
+				x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
+				# x += str(hitkey) + ":" + str(hitdata) + "<br>"
+			x += "</table>"
+			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
 			x += "</div>"
+		
 		x += "</td>"
 		
+		# State
+		if (annotations[0][1] == 1):
+			x += "<td style='text-align: center; background: " + bgcolor + ";'>Investigating</td>"
+		elif (annotations[0][1] == 2):
+			x += "<td style='text-align: center; background: " + bgcolor + ";'>Completed</td>"
+		else:
+			x += "<td style='text-align: center; background: " + bgcolor + ";'>New</td>"
+			
 		# Annotation status
 		x += "<td style='text-align: center;'>"
-		
-		if (annotations[0][1] == 1):
-			x += "<div id='adisp_" + str(entry['_id']) + "' class='alertStatus alertStatusInv'>Investigating - " + str(annotations[0][0]) + "</div>"
-		elif (annotations[0][1] == 2):
-			x += "<div id='adisp_" + str(entry['_id']) + "' class='alertStatus alertStatusCom'>Completed - " + str(annotations[0][0]) + "</div>"
-		else:
-			x += "<div id='adisp_" + str(entry['_id']) + "' class='alertStatus alertStatusNew'>New - " + str(annotations[0][0]) + "</div>"
+			
+		x += "<a href='#' id='adisp_" + str(entry['_id']) + "' class='tableActionButton'>show - " + str(annotations[0][0]) + "</a>"
 		x += "</td>"
 		
 		# Actions
 		x += "<td>"
-		x += "<input id='annotate_" + str(entry['_id']) + "' type='button' value='Annotate'>"
+		x += "<input class='tableActionButton' id='annotate_" + str(entry['_id']) + "' type='button' value='Annotate'>"
 		x += "</td>"
 		x += "</tr>"
 
