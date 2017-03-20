@@ -1,10 +1,13 @@
 #!/usr/bin/python
 
-###########################################################
-# hxTool - 3rd party user-interface for FireEye HX        #
-# Henrik Olsson                                           #
-# henrik.olsson@fireeye.com                               #
-###########################################################
+##################################################
+# hxTool - 3rd party user-interface for FireEye HX 
+#
+# Henrik Olsson
+# henrik.olsson@fireeye.com
+#
+# For license information see the 'LICENSE' file
+##################################################
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -21,8 +24,6 @@ import datetime
 import StringIO
 import threading
 import time
-#from OpenSSL import SSL
-
 import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -31,6 +32,9 @@ conn = sqlite3.connect('hxtool.db')
 c = conn.cursor()
 
 app = Flask(__name__, static_url_path='/static')
+
+# Dashboard page
+################
 
 @app.route('/')
 def index():
@@ -136,8 +140,7 @@ def index():
 		return redirect("/login", code=302)
 
 
-###################
-### Alerts Page ###
+### Alerts Page
 ###################
 
 @app.route('/alerts', methods=['GET', 'POST'])
@@ -185,8 +188,7 @@ def annotatedisplay():
 
 
 
-#########################
-#### Search and Sweep ###
+#### Search and Sweep
 #########################
 
 @app.route('/search', methods=['GET', 'POST'])
@@ -236,8 +238,8 @@ def searchaction():
 	else:
 		return redirect("/login", code=302)
 
-####################################
-#### Build a real-time indicator ###
+
+#### Build a real-time indicator
 ####################################
 
 @app.route('/buildioc', methods=['GET', 'POST'])
@@ -277,8 +279,8 @@ def buildioc():
 	else:
 		return redirect("/login", code=302)
 
-#########################
-### Manage Indicators ###
+
+### Manage Indicators
 #########################
 
 @app.route('/indicators', methods=['GET', 'POST'])
@@ -393,8 +395,8 @@ def importioc():
 	else:
 		return redirect("/login", code=302)
 
-#########################
-### Bulk Acqusiitions ###
+
+### Bulk Acqusiitions
 #########################
 
 @app.route('/bulk', methods=['GET', 'POST'])
@@ -453,9 +455,9 @@ def bulkaction():
 		
 	else:
 		return redirect("/login", code=302)
+
 				
-############
-### Reports ###
+### Reports
 ############
 
 @app.route('/reports')
@@ -488,8 +490,7 @@ def reportgen():
 			return redirect("/login", code=302)
 
 		
-#######################
-#### Authentication ###
+#### Authentication
 #######################
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -536,9 +537,9 @@ def logout():
 	return redirect("/", code=302)
 
 
-#############################
-### Thread: background processing ####
-#############################
+### Thread: background processing 
+#################################
+
 class worker(object):
 
 	def __init__(self, interval=30):
@@ -562,7 +563,7 @@ app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
 		
 if __name__ == "__main__":
 
-	# Start background processing thread
+	# Start background processing thread (future functionality disabled for now)
 	#workerthread = worker()
 	
 	# Configure SSL

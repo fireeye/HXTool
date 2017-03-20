@@ -9,85 +9,109 @@ import json
 import ssl
 
 if hasattr(ssl, '_create_unverified_context'):
-        ssl._create_default_https_context = ssl._create_unverified_context
+	ssl._create_default_https_context = ssl._create_unverified_context
+
+###################
+## Authentication
+###################
 
 # Authenticate and return X-FeApi-Token
 def restAuth(hxip, hxport, hxuser, hxpass):
 
-        upstring = base64.b64encode(hxuser + ':' + hxpass)
+	upstring = base64.b64encode(hxuser + ':' + hxpass)
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
-        data = None
+	handler = urllib2.HTTPHandler()
+	opener = urllib2.build_opener(handler)
+	urllib2.install_opener(opener)
+	data = None
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/token', data=data)
-        request.add_header('Accept', 'application/json')
-        request.add_header('Authorization', 'Basic ' + upstring)
-        request.get_method = lambda: 'GET'
+	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/token', data=data)
+	request.add_header('Accept', 'application/json')
+	request.add_header('Authorization', 'Basic ' + upstring)
+	request.get_method = lambda: 'GET'
 
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                fetoken = (response.info().getheader('X-FeApi-Token'))
-                return(fetoken)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		fetoken = (response.info().getheader('X-FeApi-Token'))
+		return(fetoken)
 
 def restValidateAuth(hxip, hxport, hxuser, hxpass):
 
-        upstring = base64.b64encode(hxuser + ':' + hxpass)
+	upstring = base64.b64encode(hxuser + ':' + hxpass)
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
-        data = None
+	handler = urllib2.HTTPHandler()
+	opener = urllib2.build_opener(handler)
+	urllib2.install_opener(opener)
+	data = None
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/token', data=data)
-        request.add_header('Accept', 'application/json')
-        request.add_header('Authorization', 'Basic ' + upstring)
-        request.get_method = lambda: 'GET'
+	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/token', data=data)
+	request.add_header('Accept', 'application/json')
+	request.add_header('Authorization', 'Basic ' + upstring)
+	request.get_method = lambda: 'GET'
 
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                msg = e.read()
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		msg = e.read()
 		return(False, msg)
-        except urllib2.URLError as e:
+	except urllib2.URLError as e:
 		msg = e.reason
 		return(False, msg)
-        else:
-                fetoken = (response.info().getheader('X-FeApi-Token'))
-                return(True, fetoken)
+	else:
+		fetoken = (response.info().getheader('X-FeApi-Token'))
+		return(True, fetoken)
 
 
 # Logout
 def restLogout(fetoken, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
-        data = None
+	handler = urllib2.HTTPHandler()
+	opener = urllib2.build_opener(handler)
+	urllib2.install_opener(opener)
+	data = None
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/token', data=data)
-        request.add_header('Accept', 'application/json')
+	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/token', data=data)
+	request.add_header('Accept', 'application/json')
 	request.add_header('X-FeApi-Token',fetoken)
-        request.get_method = lambda: 'DELETE'
+	request.get_method = lambda: 'DELETE'
 
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                return()
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		return()
 
+def restIsSessionValid(fetoken, hxip, hxport):
 
+	handler = urllib2.HTTPHandler()
+	opener = urllib2.build_opener(handler)
+	urllib2.install_opener(opener)
+
+	data = None
+
+	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/version', data=data)
+	request.add_header('X-FeApi-Token', fetoken)
+	request.add_header('Accept', 'application/json')
+	request.get_method = lambda: 'GET'
+
+	try:
+		response = urllib2.urlopen(request)
+		return True
+	except:
+		return False	
+
+		
+################
 ## Resolve hosts
 ################
 
@@ -811,25 +835,6 @@ def restGetHostSummary(fetoken, hostid, hxip, hxport):
                 return(r)
 
 
-
-def restIsSessionValid(fetoken, hxip, hxport):
-
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
-
-        data = None
-
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/version', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
-
-	try:
-		response = urllib2.urlopen(request)
-		return True
-	except:
-		return False	
 
 ########
 # Hosts
