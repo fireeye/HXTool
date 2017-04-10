@@ -18,7 +18,7 @@
 			window.location.replace("/" + url[1]);
 		});
 		$("#navcategory_indicator").click(function() {
-			$("#dropdown-content-indicators").show();
+			$("#dropdown-content-indicators").show(200);
 		});
 	});
 </script>
@@ -32,7 +32,7 @@
 				<div id='navbutton_alerts?acount=20' style='float: left;' class='ht_nav_table_cell'>Alerts</div>
 				<div id='navbutton_search' style='float: left;' class='ht_nav_table_cell'>Search & Sweep</div>
 				<div id='navbutton_bulk' style='float: left;' class='ht_nav_table_cell'>Acquisition: Bulk</div>
-				<!-- <div id='navbutton_reports' style='float: left;' class='ht_nav_table_cell'>Reports</div> -->
+				<div id='navbutton_stacking' style='float: left;' class='ht_nav_table_cell'>Data Stacking</div>
 				<div id='navcategory_indicator' style='float: left; position: relative;' class='ht_nav_table_cell'>Indicators
 					<div id='dropdown-content-indicators' class='dropdown-content'>
 						<div id='navbutton_buildioc' style='' class='ht_nav_table_cell_sub'>Build</div>
@@ -43,6 +43,8 @@
 								
 				<div style='color: rgb(81, 87, 97); text-align: right; float: right;'>
 				
+				<a class='ht_nav_a' href='/settings'>Settings</a>
+				&nbsp;|&nbsp;
 				<b>User:</b> {{ session['ht_user'] }}
 				&nbsp;&nbsp;
 				<b>Controller:</b> {{ session['ht_ip'] }}

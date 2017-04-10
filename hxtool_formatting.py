@@ -74,7 +74,7 @@ def formatSearchResults(hostresults):
         return (x)
 
 
-def formatBulkTable(bulktable):
+def formatBulkTable(c, conn, bulktable, profileid):
 
         x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>"
         x += "<thead>"
@@ -118,8 +118,12 @@ def formatBulkTable(bulktable):
 		x += "<td>" + str(entry['stats']['running_state']['CANCELLED']) + "</td>"
 		x += "<td>" + str(completerate) + " %</td>"
 		x += "<td>" 
-		x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
-		x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
+		out = sqlGetStackJobsForBulkId(c, conn, profileid, entry['_id'])
+		if (len(out) > 0):
+			x += "Stacking job"
+		else:
+			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
+			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
 		x += "</td>"
 		
 		x += "</tr>"
@@ -497,3 +501,106 @@ def formatAlertsCsv(alertsjson, fetoken, hxip, hxport):
 
 	return (x)
 	
+
+def formatProfCredsInfo(c, conn, profileid):
+
+	x = ""
+	
+	data = sqlGetProfCredTable(c, conn, profileid)
+	
+	if len(data) > 0:
+		x += "Background processing credentials are set <a href='/settings?unsetprofcreds=" + profileid + "'>Unset</a>"
+	else:
+		x += "<form method='POST'>"
+		x += "<div>Username</div>"
+		x += "<input name='bguser' type='text'>"
+		x += "<div>Password</div>"
+		x += "<input name='bgpass' type='text'>"
+		x += "<br><input style='margin-top: 15px;' class='tableActionButton' type='submit' value='set'>"
+		x += "</form>"
+	
+	return(x)
+	
+def formatStackTable(c, conn, profileid, hs):
+
+	x = ""
+	
+	data = sqlGetStackJobsProfile(c, conn, profileid)
+	
+	x += "<table id='stacktable' class='genericTable' style='width: 100%;'>"
+	x += "<thead>"
+	x += "<tr>"
+	x += "<td>ID</td>"
+	x += "<td>Created</td>"
+	x += "<td>Last updated</td>"
+	x += "<td>Type</td>"
+	x += "<td>State</td>"
+	x += "<td>Profile ID</td>"
+	x += "<td>HX Bulk ID</td>"
+	x += "<td>Hostset</td>"
+	x += "<td>Completion rate</td>"
+	x += "<td>Actions</td>"
+	x += "</tr>"
+	x += "</thead>"
+	x += "<tbody>"
+	
+	for entry in data:
+		x += "<tr>"
+		x += "<td>" + str(entry[0]) + "</td>"
+		x += "<td>" + str(entry[1]) + "</td>"
+		x += "<td>" + str(entry[2]) + "</td>"
+		x += "<td>" + str(entry[3]) + "</td>"
+		x += "<td>" + str(entry[4]) + "</td>"
+		x += "<td>" + str(entry[5]) + "</td>"
+		x += "<td>" + str(entry[6]) + "</td>"
+		
+		for hsentry in hs['data']['entries']:
+			if hsentry['_id'] == entry[7]:
+				hsname = hsentry['name']
+				hstype = hsentry['type']
+				
+		x += "<td>" + hsname + " - (" + hstype + ")" + "</td>"
+		x += "<td>" + str(entry[8]) + "%</td>"
+		x += "<td>"
+		x += "<a href='/stacking?stop=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
+		x += "<a href='/stacking?remove=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
+		x += "<a href='/stackinganalyze?id=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>analyze</a>"
+		x += "</td>"
+		x += "</tr>"
+	
+	x += "</tbody>"
+	x += "</table>"
+
+	return(x)
+
+def formatServiceMD5StackData(stacktable):
+
+	x = ""
+
+	x += "<table id='svcmd5' class='genericTable' style='width: 100%;'>"
+	x += "<thead>"
+	x += "<tr>"
+	x += "<td>Count</td>"
+	x += "<td>Name</td>"
+	x += "<td>Path</td>"
+	x += "<td>Path MD5</td>"
+	x += "<td>Service DLL</td>"
+	x += "<td>Service DLL MD5</td>"
+	x += "</tr>"
+	x += "</thead>"
+	x += "<tbody>"
+	
+	for entry in stacktable:
+		x += "<tr>"
+		x += "<td>" + str(entry[0]) + "</td>"
+		x += "<td>" + str(entry[1]) + "</td>"
+		x += "<td>" + str(entry[2]) + "</td>"
+		x += "<td>" + str(entry[3]) + "</td>"
+		x += "<td>" + str(entry[4]) + "</td>"
+		x += "<td>" + str(entry[5]) + "</td>"
+		x += "</tr>"
+
+	x += "</tbody>"
+	x += "</table>"
+	
+	return(x)

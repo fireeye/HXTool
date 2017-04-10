@@ -422,7 +422,7 @@ def restListBulkDetails(fetoken, bulkid, hxip, hxport):
         urllib2.install_opener(opener)
 
 	data = None
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/bulk/' +  bulkid + '/hosts', data=data)
+	request = urllib2.Request('https://' + str(hxip) + ':' + hxport + '/hx/api/v2/acqs/bulk/' +  str(bulkid) + '/hosts?limit=100000', data=data)
 
 	request.add_header('X-FeApi-Token', fetoken)
 	request.add_header('Accept', 'application/json')
@@ -448,7 +448,9 @@ def restGetBulkDetails(fetoken, bulkid, hxip, hxport):
         opener = urllib2.build_opener(handler)
         urllib2.install_opener(opener)
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/bulk/' +  bulkid, data=data)
+        data = None
+
+        request = urllib2.Request('https://' + str(hxip) + ':' + hxport + '/hx/api/v2/acqs/bulk/' +  str(bulkid), data=data)
 
 	request.add_header('X-FeApi-Token', fetoken)
         request.add_header('Accept', 'application/json')
@@ -503,7 +505,7 @@ def restNewBulkAcq(fetoken, script, hostset, hxip, hxport):
         sc = base64.b64encode(script)
         sc = "\"" + sc + "\""
 
-        data = """{"host_set":{"_id":""" + hostset +  """},"script":{"b64":""" + sc + """}}"""
+        data = """{"host_set":{"_id":""" + str(hostset) +  """},"script":{"b64":""" + sc + """}}"""
 
         request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/bulk', data=data)
         request.add_header('X-FeApi-Token', fetoken)
@@ -652,7 +654,7 @@ def restCancelJob(fetoken, id, path, hxip, hxport):
 
         data = None
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + path + id + '/actions/stop', data=data)
+        request = urllib2.Request('https://' + str(hxip) + ':' + hxport + path + str(id) + '/actions/stop', data=data)
         request.add_header('X-FeApi-Token', fetoken)
         request.add_header('Accept', 'application/json')
         request.add_header('Content-Type', 'application/json')
@@ -677,7 +679,7 @@ def restDeleteJob(fetoken, id, path, hxip, hxport):
 
         data = None
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + path + id, data=data)
+        request = urllib2.Request('https://' + str(hxip) + ':' + hxport + path + str(id), data=data)
         request.add_header('X-FeApi-Token', fetoken)
         request.add_header('Accept', 'application/json')
         #request.add_header('Content-Type', 'application/json')

@@ -389,6 +389,19 @@
 	margin-right: 7px;
 }
 
+.ht_nav_a {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	font-weight: 700;
+	text-decoration: none;
+	color: rgb(81, 87, 97);
+}
+
+.ht_nav_a:hover {
+	color: rgb(139, 148, 162);
+	cursor: pointer;
+}
+
 /* left logo */
 
 .ht_logo_text {

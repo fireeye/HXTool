@@ -24,12 +24,15 @@ import datetime
 import StringIO
 import threading
 import time
+from hxtool_process import *
 import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
 
 conn = sqlite3.connect('hxtool.db')
 c = conn.cursor()
+
+sqlCreateTables(c)
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -408,7 +411,7 @@ def listbulk():
 				newbulk = restNewBulkAcq(session['ht_token'], bulkscript, request.form['bulkhostset'], session['ht_ip'], '3000')
 
 			acqs = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
-			bulktable = formatBulkTable(acqs)
+			bulktable = formatBulkTable(c, conn, acqs, session['ht_profileid'])
 			
 			hs = restListHostsets(session['ht_token'], session['ht_ip'], '3000')
 			hostsets = formatHostsets(hs)
@@ -489,7 +492,66 @@ def reportgen():
 		else:
 			return redirect("/login", code=302)
 
+### Stacking
+##########
+@app.route('/stacking', methods=['GET', 'POST'])
+def stacking():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+			
+			if request.args.get('stop'):
+				sqlChangeStackJobState(c, conn, request.args.get('stop'), session['ht_profileid'], "STOPPING")
+				return redirect("/stacking", code=302)
+
+			if request.args.get('remove'):
+				sqlChangeStackJobState(c, conn, request.args.get('remove'), session['ht_profileid'], "REMOVING")
+				return redirect("/stacking", code=302)
+
+				
+			if request.method == 'POST':
+				out = sqlAddStackJob(c, conn, session['ht_profileid'], request.form['stacktype'], request.form['stackhostset'])
+			
+			hs = restListHostsets(session['ht_token'], session['ht_ip'], '3000')
+			hostsets = formatHostsets(hs)
+			
+			stacktable = formatStackTable(c, conn, session['ht_profileid'], hs)
+			
+			return render_template('ht_stacking.html', stacktable=stacktable, hostsets=hostsets)
+	else:
+			return redirect("/login", code=302)
+
+@app.route('/stackinganalyze', methods=['GET', 'POST'])
+def stackinganalyze():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 		
+		stackid = request.args.get('id')
+		
+		stackdata = sqlGetServiceMD5StackData(c, conn, stackid)
+		stacktable = formatServiceMD5StackData(stackdata)
+		
+		return render_template('ht_stacking_analyze_svcmd5.html', stacktable=stacktable)
+	else:
+		return redirect("/login", code=302)
+		
+			
+### Settings
+############
+			
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+			if (request.method == 'POST'):
+				out = sqlInsertProfCredsInfo(c, conn, session['ht_profileid'], request.form['bguser'], request.form['bgpass'])
+			
+			if request.args.get('unsetprofcreds'):
+				out = sqlDeleteProfCredsInfo(c, conn, session['ht_profileid'])
+				return redirect("/settings", code=302)
+			
+			bgcreds = formatProfCredsInfo(c, conn, session['ht_profileid'])
+			
+			return render_template('ht_settings.html', bgcreds=bgcreds)
+	else:
+			return redirect("/login", code=302)
+
 #### Authentication
 #######################
 
@@ -523,7 +585,6 @@ def login():
 			return render_template('ht_login.html', fail=message, controllers=options)
 
 	else:
-		sqlCreateTables(c)
 		options = ""
 		for profile in sqlGetProfiles(c):
 			options += "<option value='" + str(profile[0]) + "__" + profile[2] + "'>" + profile[1] + " - " + profile[2]
@@ -542,17 +603,21 @@ def logout():
 
 class worker(object):
 
-	def __init__(self, interval=30):
+	def __init__(self, interval=10):
 	
 		self.interval = interval
-	
+
 		thread = threading.Thread(target=self.run, args=())
 		thread.daemon = True
 		thread.start()
 		
 	def run(self):
+		time.sleep(1)
 		while True:
-			print "## Worker thread is alive and kicking"
+		
+			conn = sqlite3.connect('hxtool.db')
+			c = conn.cursor()
+			backgroundProcessor(c, conn)
 			time.sleep(self.interval)
 
 ###########
@@ -564,7 +629,7 @@ app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
 if __name__ == "__main__":
 
 	# Start background processing thread (future functionality disabled for now)
-	#workerthread = worker()
+	workerthread = worker()
 	
 	# Configure SSL
 	context = ('hxtool.crt', 'hxtool.key')
