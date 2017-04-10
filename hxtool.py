@@ -571,7 +571,10 @@ def login():
 				session['ht_profileid'] = profileid
 				return redirect("/", code=302)
 			else:
-				return render_template('ht_login.html', fail=message)
+				options = ""
+				for profile in sqlGetProfiles(c):
+					options += "<option value='" + str(profile[0]) + "__" + profile[2] + "'>" + profile[1] + " - " + profile[2]
+				return render_template('ht_login.html', fail=message, controllers=options)
 			
 		elif 'cname' in request.form:
 			message = "New profile created"

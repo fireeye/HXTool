@@ -22,30 +22,35 @@
 <body style='background: #eeeeee;'>
 	<div class='ht_auth_center'>
 		<div class='ht_auth_wrap'>
-			<div class='ht_auth_title'><img src='/static/fireeye.svg' style='width: 200px;'></div>
 			<div class='ht_auth_placeholder'>
 				<form method='post'>
-					<div class='tableTitle' style='font-size: 28px; margin-bottom: 20px; text-align: center;'>hxTool Login</div>
+				
+					<div class='ht_auth_title'><img src='/static/fireeye.svg' style='width: 200px;'></div>
+					
+					<div class='tableTitle' style='font-size: 28px; margin-bottom: 18px; text-align: center;'>HXTool&trade; v2.0</div>
 					{% if fail %}
 						<div class='tableTitle' style='font-size: 10px; text-align: center; color: red; margin-bottom: 10px;'>
 						{{ fail }}
 						</div>
 					{% endif %}
-					<div class='ht_input_title'>Username</div>
-					<input style='width: 300px; border: 1px solid #aaaaaa; border-radius: 5px; font-size: 18px; outline: none;' type='text' name='ht_user' id='ht_user'>
+					<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>USERNAME</div>
+					<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' name='ht_user' id='ht_user'>
 					<br><br>
-					<div class='ht_input_title'>Password</div>
-					<input style='width: 300px; border: 1px solid #aaaaaa; border-radius: 5px; font-size: 18px; outline: none;' type='password' name='ht_pass' id='ht_pass'>
+					<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>PASSWORD</div>
+					<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='password' name='ht_pass' id='ht_pass'>
 					<br><br>
-					<div class='ht_input_title'>Controller</div>
-					<select style='width: 300px; border: 1px solid #aaaaaa; border-radius: 5px; font-size: 18px; outline: none;' name='ht_ip' id='ht_ip'>
+					<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>CONTROLLER PROFILE</div>
+					<select style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' name='ht_ip' id='ht_ip'>
 						{% if controllers %} {{ controllers|safe }} {% endif %}
 					</select>
-					<a id='addController' class='menuText' href='#'>Add new controller</a>
+					<br>
+					<div style='padding-top: 10px;'>
+						<a id='addController' class='tableActionButton' href='#'>Add new controller</a>
+					</div>
 					<br><br>
 					
-					<input style='width: 300px; height: 50px;' type='submit' value='Login'>
-					<div style='font-size: 12px; text-align: center; margin-top: 20px;'>Use HX API Credentials to login</div>
+					<input style='width: 100%; height: 50px;' type='submit' value='Login'>
+					<div style='font-size: 12px; text-align: center; margin-top: 20px;'>Use HX API Credentials to login<br><br>Copyright &copy; 2017 by FireEye, Inc. All rights reserved</div>
 				</form>
 			</div>
 		</div>

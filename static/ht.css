@@ -154,40 +154,40 @@
 }
 
 .ht_auth_placeholder {
-	margin: 10px;
-	padding: 30px;
-	padding-top: 100px;
+	margin: 15px;
+	padding: 40px;
+	#padding-top: 70px;
+	padding-top: 20px;
+	padding-bottom: 20px;
 }
 
 .ht_auth_title {
-	border: 2px solid rgb(215, 215, 215);
-	border-radius: 10px;
-	padding: 10px;
 	width: 200px;
-	position: absolute;
-	margin-top: -20px;
-	margin-left: 90px;
 	background: #ffffff;
+	margin-left: auto;
+	margin-right: auto;
+	display: block;
+	margin-bottom: 25px;
 }
 
 .ht_auth_center {
-	position: absolute;
+	position: relative;
 	left: 50%;
 	top: 40%;
-	width: 520px; 
-	height: 600px;
-	margin-left: -260px;
+	width: 620px;
+	margin-left: -310px;
 	margin-top: -300px;
 	background: #79a1be;
 	border: 1px solid #cccccc;
-	border-radius: 10px;
+	border-radius: 15px;
+	box-shadow: 8px 8px 5px rgb(215,215,215);
 }
 
 .ht_auth_wrap {
-	margin: 60px;
+	margin: 30px;
 	background: #ffffff;
 	border 1px solid rgb(215, 215, 215);
-	border-radius: 10px;
+	border-radius: 15px;
 }
 
 

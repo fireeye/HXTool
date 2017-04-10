@@ -581,6 +581,7 @@ def formatServiceMD5StackData(stacktable):
 	x += "<thead>"
 	x += "<tr>"
 	x += "<td>Count</td>"
+	x += "<td>Hostname</td>"
 	x += "<td>Name</td>"
 	x += "<td>Path</td>"
 	x += "<td>Path MD5</td>"
@@ -593,6 +594,11 @@ def formatServiceMD5StackData(stacktable):
 	for entry in stacktable:
 		x += "<tr>"
 		x += "<td>" + str(entry[0]) + "</td>"
+		# Name of endpoint
+		if (entry[0] == 1):
+			x += "<td>" + str(entry[6]) + "</td>"
+		else:
+			x += "<td>Multiple</td>"
 		x += "<td>" + str(entry[1]) + "</td>"
 		x += "<td>" + str(entry[2]) + "</td>"
 		x += "<td>" + str(entry[3]) + "</td>"

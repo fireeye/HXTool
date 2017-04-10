@@ -66,7 +66,7 @@ def sqlGetProfiles(c):
 	return(c.fetchall())
 
 def sqlGetProfCredTable(c, conn, profileid):
-	c.execute('SELECT id, hxuser, hxpass from profcreds where profileid = (?)', (profileid))
+	c.execute('SELECT id, hxuser, hxpass from profcreds where profileid = (?)', (str(profileid)))
 	return(c.fetchall())
 
 	
@@ -80,7 +80,7 @@ def sqlInsertProfCredsInfo(c, conn, profileid, bguser, bgpass):
 def sqlDeleteProfCredsInfo(c, conn, profileid):
 	c.execute("DELETE FROM profcreds where profileid = (?)", (profileid))
 	conn.commit()
-	
+
 	
 # Alerts and annotations
 ################
@@ -101,7 +101,7 @@ def sqlGetAnnotations(c, conn, alertid, profileid):
 def sqlGetAnnotationStats(c, conn, alertid, profileid):
 	c.execute("SELECT count(annotation.text), max(annotation.state) from annotation, alerts where alerts.id = annotation.alertid and alerts.hxalertid = ? and alerts.profileid = ?", (alertid, profileid))
 	return(c.fetchall())
-
+	
 # Stacking related queries
 #################
 
@@ -170,5 +170,5 @@ def sqlDeleteStackServiceMD5(c, conn, stackid):
 	conn.commit()
 	
 def sqlGetServiceMD5StackData(c, conn, stackid):
-	c.execute("SELECT count(*) as count, name, path, pathmd5sum, serviceDLL, serviceDLLmd5sum from svcmd5 where stackid = (?) group by name, path, pathmd5sum, serviceDLL, serviceDLLmd5sum order by count desc", (stackid))
+	c.execute("SELECT count(*) as count, name, path, pathmd5sum, serviceDLL, serviceDLLmd5sum, hostname from svcmd5 where stackid = (?) group by name, path, pathmd5sum, serviceDLL, serviceDLLmd5sum order by count desc", (stackid))
 	return(c.fetchall())
