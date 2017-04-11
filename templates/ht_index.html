@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}hxTool{% endblock %}
+{% block title %}HXTool - Dashboard{% endblock %}
 {% block content %}
 
 <script>
@@ -65,6 +65,7 @@
 		<td><span class='dashInfoTableSpan'>{% if hostcounter %} {{ hostcounter|safe }} {% endif %}</span><br>Hosts monitored</td>
 		<td><span class='dashInfoTableSpan'>{% if exdcounter %} {{ exdcounter|safe }} {% endif %}</span><br>Hosts with XPLT alerts</td>
 		<td><span class='dashInfoTableSpan'>{% if ioccounter %} {{ ioccounter|safe }} {% endif %}</span><br>Hosts with IOC alerts</td>
+		<td><span class='dashInfoTableSpan'>{% if malcounter %} {{ malcounter|safe }} {% endif %}</span><br>Hosts with MAL alerts</td>
 		<td><span class='dashInfoTableSpan'>{% if searchcounter %} {{ searchcounter|safe }} {% endif %}</span><br>Enterprise searches running</td>
 		<td><span class='dashInfoTableSpan'>{% if blkcounter %} {{ blkcounter|safe }} {% endif %}</span><br>Bulk acquisitions running</td>
 	</tr>

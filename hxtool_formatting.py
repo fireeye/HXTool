@@ -394,6 +394,7 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		# Event type
 		x += "<td>"
 		x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>&#x25BC;</a>"
+		
 		if str(entry['source']) == "EXD":	
 			x += "Exploit behavior in application: (" + str(entry['event_values']['process_id']) + ") " + str(entry['event_values']['process_name']) + " - (" + str(len(entry['event_values']['messages'])) + ")"
 			x += "<div class='alertDetailsDisplayPopupEXD' id='alertdetails_" + str(entry['_id']) + "'>"
@@ -402,10 +403,13 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 			x += "<br>"
 			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
 			x += "</div>"
+		elif (str(entry['source']) == "MAL"):
+			x += "Malware alert"
 		else:
 			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
 			for indicator in indicators['data']['entries']:
 				x += "Intel hit - IOC: " + indicator['name'] + " (" + indicator['category']['name'] + ")"
+				
 			x += "<div class='alertDetailsDisplayPopup' id='alertdetails_" + str(entry['_id']) + "'>"
 			x += "<div class='tableTitle'>Indicator type: " + str(entry['event_type']) + "</div>"
 			x += "<table class='genericTable' style='margin-bottom: 15px;'>"

@@ -98,20 +98,32 @@ def index():
 		for date in date_list:
 			talert_dates[date.strftime("%Y-%m-%d")] = 0
 
-		ioccounter = 0;
-		exdcounter = 0;
-
+		ioclist = []
+		exdlist = []
+		mallist = []
+		
 		for talert in alertsjson:
 
 			if talert['source'] == "IOC":
-				ioccounter = ioccounter + 1
+				if not talert['agent']['_id'] in ioclist:
+					ioclist.append(talert['agent']['_id'])
+				
 			if talert['source'] == "EXD":
-				exdcounter = exdcounter + 1
-
+				if not talert['agent']['_id'] in exdlist:
+					exdlist.append(talert['agent']['_id'])
+			
+			if talert['source'] == "MAL":
+				if not talert['agent']['_id'] in mallist:
+					mallist.append(talert['agent']['_id'])			
+			
 			date = talert['event_at'][0:10]
 			if date in talert_dates.keys():
 				talert_dates[date] = talert_dates[date] + 1
 
+		ioccounter = len(ioclist)
+		exdcounter = len(exdlist)
+		malcounter = len(mallist)
+		
 		talerts_list = []
 		for key in talert_dates:
 			talerts_list.append({"date": str(key), "count": talert_dates[key]})
@@ -138,7 +150,7 @@ def index():
 			if entry['state'] == "RUNNING":
 				blkcounter = blkcounter + 1;
 
-		return render_template('ht_index.html', session=session, alerts=alerts, iocstats=stats, timeline=talerts_list, contcounter=str(contcounter), hostcounter=str(hostcounter), searchcounter=str(searchcounter), blkcounter=str(blkcounter), exdcounter=str(exdcounter), ioccounter=str(ioccounter))
+		return render_template('ht_index.html', session=session, alerts=alerts, iocstats=stats, timeline=talerts_list, contcounter=str(contcounter), hostcounter=str(hostcounter), malcounter=str(malcounter), searchcounter=str(searchcounter), blkcounter=str(blkcounter), exdcounter=str(exdcounter), ioccounter=str(ioccounter))
 	else:
 		return redirect("/login", code=302)
 

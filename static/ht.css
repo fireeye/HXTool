@@ -357,13 +357,15 @@
 }
 
 .ht_nav_table_cell {
-	padding: 1px;
-	margin-top: 15px;
-	margin-right: 25px;
-	border-top: 3px solid #ffffff;
+	padding-top: 6px;
+	padding-bottom: 6px;
+	margin-top: 17px;
+	padding-right: 10px;
+	padding-left: 10px;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 14px;
 	font-weight: bold;
+	border-right: 1px solid #dddddd;
 }
 
 .ht_nav_table_cell:hover {
@@ -743,3 +745,5 @@
 .categoryTable tbody td:last-child {
         border-right: none;
 }
+
+
