@@ -746,4 +746,23 @@
         border-right: none;
 }
 
+.jobDashTD {
+	padding: 10px;
+	padding-top: 10px;
+	height: 300px;
+	vertical-align: top;
+}
+
+.jobDashTitle {
+	text-align: center;
+	margin-bottom: 10px;
+	width: 160px;
+	font-size: 15px;
+	font-weight: bold;
+	background: rgb(121, 161, 190);
+	border-radius: 5px;
+	color: white;
+	padding: 4px;
+	box-shadow: 3px 3px 3px rgb(215, 215, 215);
+}
 

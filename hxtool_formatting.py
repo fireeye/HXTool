@@ -45,6 +45,52 @@ def formatListSearches(s):
 	x += "</table>"
 	return (x)
 
+def formatListSearchesJobDash(s):
+	
+	x = "<table id='searchTable' class='genericTable' style='width: 100%;'>"
+	x += "<thead>"
+	x += "<tr>"
+	x += "<td>input type</td>"
+	x += "<td>created at</td>"
+	x += "<td>host-set</td>"
+	x += "<td>state</td>"
+	x += "<td>hosts</td>"
+	x += "<td>complete</td>"
+	
+	
+	x += "<td>matched</td>"
+	x += "<td>nomatch</td>"
+	x += "<td>actions</td>"
+	x += "</tr>"
+	x += "</thead>"
+	x += "<tbody>"
+
+	for entry in s['data']['entries']:
+	
+		if not (entry['state'] == "RUNNING"):
+			continue
+	
+		x += "<tr>"
+		
+		x += "<td>" + entry['input_type'] + "</td>"
+		x += "<td>" + entry['create_time'] + "</td>"
+		x += "<td>" + entry['host_set']['name'] + "</td>"
+		x += "<td>" + entry['state'] + "</td>"
+		x += "<td>" + str(entry['stats']['hosts']) + "</td>"
+		x += "<td>" + str(entry['stats']['running_state']['COMPLETE']) + "</td>"
+		
+		
+		x += "<td>" + str(entry['stats']['search_state']['MATCHED']) + "</td>"
+		x += "<td>" + str(entry['stats']['search_state']['NOT_MATCHED']) + "</td>"
+		x += "<td>" 
+		x += "<a class='tableActionButton' href='/searchaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
+		x += "<a class='tableActionButton' href='/searchaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
+		x += "</td>"
+		x += "</tr>"
+
+	x += "</tbody>"
+	x += "</table>"
+	return (x)
 
 def formatSearchResults(hostresults):
 
@@ -52,7 +98,7 @@ def formatSearchResults(hostresults):
         x += "<thead>"
         x += "<tr>"
         x += "<td style='width: 100px;'>host</td>"
-	x += "<td style='width: 100px;'>type</td>"
+	x += "<td style='width: 180px;'>type</td>"
 	x += "<td>data</td>"
         x += "</tr>"
         x += "</thead>"
@@ -61,7 +107,10 @@ def formatSearchResults(hostresults):
 	for entry in hostresults['data']['entries']:
 		for result in entry['results']:
 			x += "<tr>"
-			x += "<td>" + entry['host']['hostname'] + "</td>"
+			if 'hostname' in entry['host']:
+				x += "<td>" + entry['host']['hostname'] + "</td>"
+			else:
+				x += "<td>" + entry['host']['_id'] + "</td>"
 			x += "<td>" + result['type'] + "</td>"
 			x += "<td>"
 			for data in result['data']:
@@ -132,6 +181,57 @@ def formatBulkTable(c, conn, bulktable, profileid):
         x += "</table>"
         return (x)
 
+# Renders the bulk table on the Jobs dashboard
+def formatBulkTableJobDash(c, conn, bulktable, profileid):
+
+        x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>"
+        x += "<thead>"
+        x += "<tr>"
+        x += "<td style='width: 100px;'>id</td>"
+        x += "<td style='width: 100px;'>state</td>"
+        x += "<td>host set</td>"
+        x += "<td>Queued</td>"
+        x += "<td>Complete</td>"
+        x += "<td>% Complete</td>"
+        x += "<td>Actions</td>"
+        x += "</tr>"
+        x += "</thead>"
+        x += "<tbody>"
+
+	for entry in bulktable['data']['entries']:
+	
+		if not (entry['state'] == "RUNNING"):
+			continue
+
+		total_size = entry['stats']['running_state']['NEW'] + entry['stats']['running_state']['QUEUED'] + entry['stats']['running_state']['FAILED'] + entry['stats']['running_state']['ABORTED'] + entry['stats']['running_state']['DELETED'] + entry['stats']['running_state']['REFRESH'] + entry['stats']['running_state']['CANCELLED'] + entry['stats']['running_state']['COMPLETE']
+		if total_size == 0:
+			completerate = float(0.0)
+		else:
+			completerate = (entry['stats']['running_state']['COMPLETE'] / float(total_size)) * 100
+
+		x += "<tr>"
+		x += "<td>" + str(entry['_id']) + "</td>"
+		x += "<td>" + str(entry['state']) + "</td>"
+		x += "<td>" + str(entry['host_set']['name']) + "</td>"
+		x += "<td>" + str(entry['stats']['running_state']['QUEUED']) + "</td>"
+		x += "<td>" + str(entry['stats']['running_state']['COMPLETE']) + "</td>"
+		x += "<td>" + str(completerate) + " %</td>"
+		x += "<td>" 
+		out = sqlGetStackJobsForBulkId(c, conn, profileid, entry['_id'])
+		if (len(out) > 0):
+			x += "Stacking job"
+		else:
+			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
+			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
+		x += "</td>"
+		
+		x += "</tr>"
+
+        x += "</tbody>"
+        x += "</table>"
+        return (x)
+		
+		
 def formatBulkHostsTable(hoststable):
 
         x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>"
@@ -312,6 +412,8 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
 			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
 			for indicator in indicators['data']['entries']:
 				x += "<b>Indicator:</b> " + indicator['name'] + " (" + indicator['category']['name'] + ")<br>"
+		elif str(entry['source']) == "MAL":
+			x += "<b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][0].upper() + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][1:] + ": </b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (" + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
 		else:
 			x += "<b>Exploit:</b> " + str(len(entry['event_values']['messages'])) + " malicous behaviors"
 		x += "</td>"
@@ -395,7 +497,7 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		x += "<td>"
 		x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>&#x25BC;</a>"
 		
-		if str(entry['source']) == "EXD":	
+		if str(entry['source']) == "EXD":
 			x += "Exploit behavior in application: (" + str(entry['event_values']['process_id']) + ") " + str(entry['event_values']['process_name']) + " - (" + str(len(entry['event_values']['messages'])) + ")"
 			x += "<div class='alertDetailsDisplayPopupEXD' id='alertdetails_" + str(entry['_id']) + "'>"
 			for behavior in entry['event_values']['messages']:

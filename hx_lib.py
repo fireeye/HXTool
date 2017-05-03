@@ -396,7 +396,7 @@ def restListBulkAcquisitions(fetoken, hxip, hxport):
 
 	data = None
 
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/bulk', data=data)
+	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/bulk?limit=1000', data=data)
 	request.add_header('X-FeApi-Token', fetoken)
 	request.add_header('Accept', 'application/json')
 	request.add_header('Content-Type', 'application/json')
@@ -477,6 +477,7 @@ def restDownloadBulkAcq(fetoken, url, hxip, hxport):
         urllib2.install_opener(opener)
 
 	data = None
+	
 	request = urllib2.Request('https://' + hxip + ':' + hxport + url, data=data)
 	request.add_header('X-FeApi-Token', fetoken)
 	request.add_header('Accept', 'application/octet-stream')
@@ -751,6 +752,26 @@ def restGetSearchResults(fetoken, searchid, hxip, hxport):
 # Alerts #
 ##########
 
+def restGetAlertID(fetoken, alertid, hxip, hxport):
+
+	data = None
+	
+	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/alerts/' + alertid, data=data)
+	request.add_header('X-FeApi-Token', fetoken)
+	request.add_header('Accept', 'application/json')
+	request.get_method = lambda: 'GET'
+	
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
+
 def restGetAlerts(fetoken, count, hxip, hxport):
 
 
@@ -786,7 +807,7 @@ def restGetAlertsTime(fetoken, startdate, enddate, hxip, hxport):
 
 		data = """{"event_at":{"min":""" + "\"" + startdate + """T00:00:00.000Z","max":""" + "\"" + enddate + """T23:59:59.999Z"}}"""
         
-		request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/alerts/filter', data=data)
+		request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/alerts/filter', data=data)
 		request.add_header('X-FeApi-Token', fetoken)
 		request.add_header('Accept', 'application/json')
 		request.add_header('Content-type', 'application/json')

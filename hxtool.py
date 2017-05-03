@@ -70,24 +70,27 @@ def index():
 		base = datetime.datetime.today()
 	
 		alertsjson = restGetAlertsTime(session['ht_token'], starttime.strftime("%Y-%m-%d"), base.strftime("%Y-%m-%d"), session['ht_ip'], '3000')
-
+		
 		nr_of_alerts = len(alertsjson)
 		
 		# Recent alerts
 		alerts = formatDashAlerts(alertsjson, session['ht_token'], session['ht_ip'], '3000')
 
 		if nr_of_alerts > 0:
-			stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}]
+			stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}, {'value': 0, 'label': 'Malware'}]
 			for alert in alertsjson[:10]:
 				if alert['source'] == "EXD":
 					stats[0]['value'] = stats[0]['value'] + 1
 				if alert['source'] == "IOC":
 					stats[1]['value'] = stats[1]['value'] + 1
+				if alert['source'] == "MAL":
+					stats[2]['value'] = stats[2]['value'] + 1
 			
 			stats[0]['value'] = round((stats[0]['value'] / float(nr_of_alerts)) * 100)
 			stats[1]['value'] = round((stats[1]['value'] / float(nr_of_alerts)) * 100)
+			stats[2]['value'] = round((stats[2]['value'] / float(nr_of_alerts)) * 100)
 		else:
-			stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}]
+			stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}, {'value': 0, 'label': 'Malware'}]
 
 		# Event timeline last 30 days
 		talert_dates = {}
@@ -151,6 +154,25 @@ def index():
 				blkcounter = blkcounter + 1;
 
 		return render_template('ht_index.html', session=session, alerts=alerts, iocstats=stats, timeline=talerts_list, contcounter=str(contcounter), hostcounter=str(hostcounter), malcounter=str(malcounter), searchcounter=str(searchcounter), blkcounter=str(blkcounter), exdcounter=str(exdcounter), ioccounter=str(ioccounter))
+	else:
+		return redirect("/login", code=302)
+
+
+### Jobdash
+##########
+
+@app.route('/jobdash', methods=['GET', 'POST'])
+def jobdash():
+	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+	
+		blk = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
+		jobsBulk = formatBulkTableJobDash(c, conn, blk, session['ht_profileid'])
+
+		s = restListSearches(session['ht_token'], session['ht_ip'], '3000')
+		jobsEs = formatListSearchesJobDash(s)
+		
+		
+		return render_template('ht_jobdash.html', session=session, jobsBulk=jobsBulk, jobsEs=jobsEs)
 	else:
 		return redirect("/login", code=302)
 
@@ -339,7 +361,7 @@ def indicators():
 			else:
 				iocfname = "multiple_indicators.ioc"
 			
-			strIO = StringIO.StringIO()
+			strIO = StringIO()
 			strIO.write(ioclist_json)
 			strIO.seek(0)
 			return send_file(strIO, attachment_filename=iocfname, as_attachment=True)

@@ -172,3 +172,4 @@ def sqlDeleteStackServiceMD5(c, conn, stackid):
 def sqlGetServiceMD5StackData(c, conn, stackid):
 	c.execute("SELECT count(*) as count, name, path, pathmd5sum, serviceDLL, serviceDLLmd5sum, hostname from svcmd5 where stackid = (?) group by name, path, pathmd5sum, serviceDLL, serviceDLLmd5sum order by count desc", (stackid))
 	return(c.fetchall())
+	
