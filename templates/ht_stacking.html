@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Data Stacking{% endblock %}
+{% block navlocation %}Data Stacking{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+                var table = $('#stackTable').DataTable( {
+                        "info": false,
+                        "pageLength": 15,
+                        "lengthChange": false
+                });
+				
+				
+		$('#stackTable').on('click', '.clickable-row', function() {
+			window.document.location = $(this).data("href");
+		});
+
+	});
+</script>
+
+<form method='POST' action='/stacking'>
+        <div class='tableTitle'>
+                Data Stacking
+        </div>
+	<div class='inputArea'>
+	        <select name='stacktype' id='stacktype'>
+				<option value='services-md5'>Services MD5
+			</select>
+		Host set: 
+		<select name='stackhostset' id='stackhostset'>
+			{% if hostsets %} {{ hostsets|safe }} {% endif %}
+		</select>
+		<br>
+		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>This feature allows you to acquire artifacts from all the endpoints of a host set and do frequency analysis on captured data to find potential deviations among your endpoints</div>
+		<br>
+	        <input type='submit' value='Start stacking data'>
+	</div>
+</form>
+
+<br>
+
+<div class='tableTitle'>
+	Data stacking jobs on this controller
+</div>
+
+{% if stacktable %} {{ stacktable|safe }} {% endif %}
+
+{% endblock %}

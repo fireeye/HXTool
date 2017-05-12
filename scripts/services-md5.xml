@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="e68e512f-0000-4000-8000-000000000000" chaining="implicit">
+  <settings/>
+  <commands>
+    <command xsi:type="ExecuteModuleCommand" id="e68e512f-0000-4000-8000-000000000007">
+      <module name="w32services" version="1.4.36.0" />
+      <config xsi:type="ParameterListModuleConfig">
+        <parameters>
+            <param name="Prevent Hibernation">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="MD5">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="SHA1">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+            <param name="SHA256">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+            <param name="Verify Digital Signatures">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+            <param name="Preserve Times">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+            <param name="raw mode">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+        </parameters>
+      </config>
+      <filters />
+    </command>
+  </commands>
+</script>

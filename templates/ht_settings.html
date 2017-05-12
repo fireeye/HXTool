@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Settings{% endblock %}
+{% block navlocation %}Settings{% endblock %}
+{% block content %}
+
+<div class='tableTitle'>
+	Background processing credentials
+</div>
+<div class='inputArea'>
+<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>Enter HX API credentials to use for background processing. This feature is used to post-process acquisitions as they come in (when you are not logged into HXTool). Please note that these credentials are stored in the SQL database unencrypted</div>
+{% if bgcreds %} {{ bgcreds|safe }} {% endif %}
+</div>
+
+{% endblock %}
