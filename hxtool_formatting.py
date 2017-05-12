@@ -173,6 +173,11 @@ def formatBulkTable(c, conn, bulktable, profileid):
 		else:
 			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
 			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
+			bulkdl = sqlGetBulkDownloadStatus(c, conn, profileid, str(entry['_id']))
+			if (len(bulkdl) == 0):
+				x += "<a class='tableActionButton' href='/bulkaction?action=download&id=" + str(entry['_id']) + "'>download</a>"
+			else:
+				x += "<a class='tableActionButton' href='/bulkaction?action=stopdownload&id=" + str(entry['_id']) + "'>stop download</a>"
 		x += "</td>"
 		
 		x += "</tr>"
@@ -414,8 +419,10 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
 				x += "<b>Indicator:</b> " + indicator['name'] + " (" + indicator['category']['name'] + ")<br>"
 		elif str(entry['source']) == "MAL":
 			x += "<b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][0].upper() + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][1:] + ": </b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (" + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
-		else:
+		elif str(entry['source']) == "EXD":
 			x += "<b>Exploit:</b> " + str(len(entry['event_values']['messages'])) + " malicous behaviors"
+		else:
+			x += "Unknown alert"
 		x += "</td>"
 		x += "<td>" + str(entry['reported_at']) + "</td>"
 		x += "<td>" + str(entry['matched_at']) + "</td>"
@@ -506,8 +513,9 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
 			x += "</div>"
 		elif (str(entry['source']) == "MAL"):
-			x += "Malware alert"
-		else:
+			x += "Malware alert (TODO)"
+			# x += "<b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][0].upper() + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][1:] + ": </b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (" + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
+		elif (str(entry['source']) == "IOC"):
 			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
 			for indicator in indicators['data']['entries']:
 				x += "Intel hit - IOC: " + indicator['name'] + " (" + indicator['category']['name'] + ")"
@@ -521,6 +529,8 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 			x += "</table>"
 			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
 			x += "</div>"
+		else:
+			x += "Unknown alert"
 		
 		x += "</td>"
 		
@@ -621,7 +631,7 @@ def formatProfCredsInfo(c, conn, profileid):
 		x += "<div>Username</div>"
 		x += "<input name='bguser' type='text'>"
 		x += "<div>Password</div>"
-		x += "<input name='bgpass' type='text'>"
+		x += "<input name='bgpass' type='password'>"
 		x += "<br><input style='margin-top: 15px;' class='tableActionButton' type='submit' value='set'>"
 		x += "</form>"
 	

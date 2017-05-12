@@ -9,6 +9,7 @@ def sqlCreateTables(c):
 	sqlCreateProfileCredTable(c)
 	sqlCreateStackTable(c)
 	sqlCreateStackServiceMD5Table(c)
+	sqlCreateBulkDownloadTable(c)
 
 
 # Table creation functions
@@ -37,6 +38,11 @@ def sqlCreateStackTable(c):
 # Stacking results table for Services MD5 hash
 def sqlCreateStackServiceMD5Table(c):
 	c.execute('CREATE TABLE IF NOT EXISTS svcmd5(id INTEGER PRIMARY KEY AUTOINCREMENT, stackid INTEGER, hostname TEXT, name TEXT, descriptiveName TEXT, description TEXT, mode TEXT, path TEXT, pathmd5sum TEXT, arguments TEXT, status TEXT, pid INTEGER, type TEXT, serviceDLL TEXT, serviceDLLmd5sum TEXT, startedAs TEXT)')
+
+# Table to monitor bulk downloads
+def sqlCreateBulkDownloadTable(c):
+	c.execute('CREATE TABLE IF NOT EXISTS bulkdl(id INTEGER PRIMARY KEY AUTOINCREMENT, profileid INTEGER, bulkid INTEGER, hosts INTEGER, hostscomplete INTEGER)')
+	
 	
 # SQL based authentication
 def restAuthProfile(c, conn, profileid):
@@ -46,13 +52,14 @@ def restAuthProfile(c, conn, profileid):
 		hxuser = cred[0]
 		hxpass = cred[1]
 	
-	c.execute("SELECT hostname FROM profiles where id = (?)", (str(profileid)))
+	c.execute("SELECT hostname, name FROM profiles where id = (?)", (str(profileid)))
 	prof = c.fetchall()
 	for pro in prof:
 		hxip = pro[0]
+		hxname = pro[1]
 	
 	token = restAuth(hxip, "3000", hxuser, hxpass)
-	return(token, hxip)
+	return(token, hxip, hxname)
 
 # Profiles related queries
 ################
@@ -172,4 +179,22 @@ def sqlDeleteStackServiceMD5(c, conn, stackid):
 def sqlGetServiceMD5StackData(c, conn, stackid):
 	c.execute("SELECT count(*) as count, name, path, pathmd5sum, serviceDLL, serviceDLLmd5sum, hostname from svcmd5 where stackid = (?) group by name, path, pathmd5sum, serviceDLL, serviceDLLmd5sum order by count desc", (stackid))
 	return(c.fetchall())
+
+## Bulk download
+
+def sqlGetBulkDownloads(c, conn):
+	c.execute("SELECT profileid, bulkid, hosts, hostscomplete FROM bulkdl")
+	return(c.fetchall())
+
+def sqlGetBulkDownloadStatus(c, conn, profileid, bulkid):
+	c.execute("SELECT profileid, bulkid, hosts, hostscomplete FROM bulkdl WHERE profileid = (?) AND bulkid = (?)", (profileid, bulkid))
+	return(c.fetchall())
+	
+def sqlAddBulkDownload(c, conn, profileid, bulkid):
+	c.execute("INSERT INTO bulkdl (profileid, bulkid, hosts, hostscomplete) VALUES (?, ?, ?, ?)", (profileid, bulkid, 0, 0))
+	conn.commit()
+	
+def sqlRemoveBulkDownload(c, conn, profileid, bulkid):
+	c.execute("DELETE FROM bulkdl WHERE profileid = (?) AND bulkid = (?)", (profileid, bulkid))
+	conn.commit()
 	

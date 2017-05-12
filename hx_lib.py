@@ -208,10 +208,20 @@ def restAddCondition(iocURI, ioctype, data, cat, fetoken, hxip, hxport):
         return(res)
 
 # Add a new indicator
-def restAddIndicator(cuser, name, category, fetoken, hxip, hxport):
+def restAddIndicator(cuser, name, category, platform, fetoken, hxip, hxport):
 
-        data = "{\"create_text\":\"" + cuser + "\",\"display_name\":\"" + name + "\"}"
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/indicators/' + category, data=data)
+        if platform == "win":
+            myplatform = ["win"]
+        elif platform == "osx":
+            myplatform = ["osx"]
+        elif platform == "all":
+            myplatform = ["win", "osx"]
+        else:
+            myplatform = ["win", "osx"]
+			
+        data = json.dumps({"create_text" : cuser, "display_name" : name, "platforms" : myplatform})
+		
+        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/indicators/' + category, data=data)
         request.add_header('X-FeApi-Token', fetoken)
         request.add_header('Accept', 'application/json')
         request.add_header('Content-Type', 'application/json')
@@ -826,7 +836,9 @@ def restGetAlertsTime(fetoken, startdate, enddate, hxip, hxport):
 				if line.startswith('{'):
 					r.append(json.loads(line))
 
-			return(r)
+			from operator import itemgetter
+			newlist = sorted(r, key=itemgetter('reported_at'), reverse=True)
+			return(newlist)
 				
 				
 ##############

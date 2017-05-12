@@ -63,9 +63,9 @@ def index():
 			elif request.args.get('time') == "365days":
 				starttime = datetime.datetime.now() - datetime.timedelta(days=365)
 			else:
-				starttime = datetime.datetime.now() - datetime.timedelta(days=30)
+				starttime = datetime.datetime.now() - datetime.timedelta(days=7)
 		else:
-			starttime = datetime.datetime.now() - datetime.timedelta(days=30)
+			starttime = datetime.datetime.now() - datetime.timedelta(days=7)
 	
 		base = datetime.datetime.today()
 	
@@ -78,7 +78,7 @@ def index():
 
 		if nr_of_alerts > 0:
 			stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}, {'value': 0, 'label': 'Malware'}]
-			for alert in alertsjson[:10]:
+			for alert in alertsjson:
 				if alert['source'] == "EXD":
 					stats[0]['value'] = stats[0]['value'] + 1
 				if alert['source'] == "IOC":
@@ -286,7 +286,7 @@ def buildioc():
 		# New IOC to be created
 		if request.method == 'POST':
 
-			iocuri = restAddIndicator(session['ht_user'], request.form['iocname'], request.form['cats'], session['ht_token'], session['ht_ip'], '3000')
+			iocuri = restAddIndicator(session['ht_user'], request.form['iocname'], request.form['cats'], request.form['platform'], session['ht_token'], session['ht_ip'], '3000')
 
 			condEx = []
 			condPre = []
@@ -489,7 +489,12 @@ def bulkaction():
 		if request.args.get('action') == "remove":
 			res = restDeleteJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/acqs/bulk/', session['ht_ip'], '3000')
 			return redirect("/bulk", code=302)	
-		
+		if request.args.get('action') == "download":
+			res = sqlAddBulkDownload(c, conn, session['ht_profileid'], request.args.get('id'))
+			return redirect("/bulk", code=302)
+		if request.args.get('action') == "stopdownload":
+			res = sqlRemoveBulkDownload(c, conn, session['ht_profileid'], request.args.get('id'))
+			return redirect("/bulk", code=302)
 	else:
 		return redirect("/login", code=302)
 
@@ -654,7 +659,8 @@ class worker(object):
 		
 			conn = sqlite3.connect('hxtool.db')
 			c = conn.cursor()
-			backgroundProcessor(c, conn)
+			backgroundStackProcessor(c, conn)
+			backgroundBulkProcessor(c, conn)
 			time.sleep(self.interval)
 
 ###########
