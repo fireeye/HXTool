@@ -139,20 +139,19 @@ def formatBulkTable(c, conn, bulktable, profileid):
         x += "<td>Deleted</td>"
         x += "<td>Refresh</td>"
         x += "<td>Cancelled</td>"
-        x += "<td>% Complete</td>"
-        x += "<td>Actions</td>"
+        x += "<td style='width: 160px;'>Complete rate</td>"
+        x += "<td style='width: 160px;'>Download rate</td>"
+        x += "<td style='width: 260px;'>Actions</td>"
         x += "</tr>"
         x += "</thead>"
         x += "<tbody>"
 
 	for entry in bulktable['data']['entries']:
 
-		total_size = entry['stats']['running_state']['NEW'] + entry['stats']['running_state']['QUEUED'] + entry['stats']['running_state']['FAILED'] + entry['stats']['running_state']['ABORTED'] + entry['stats']['running_state']['DELETED'] + entry['stats']['running_state']['REFRESH'] + entry['stats']['running_state']['CANCELLED'] + entry['stats']['running_state']['COMPLETE']
-		if total_size == 0:
-			completerate = float(0.0)
-		else:
-			completerate = (entry['stats']['running_state']['COMPLETE'] / float(total_size)) * 100
 
+		out = sqlGetStackJobsForBulkId(c, conn, profileid, entry['_id'])
+		bulkdl = sqlGetBulkDownloadStatus(c, conn, profileid, entry['_id'])
+		
 		x += "<tr class='clickable-row' data-href='/bulkdetails?id=" + str(entry['_id']) + "'>"
 		x += "<td>" + str(entry['_id']) + "</td>"
 		x += "<td>" + str(entry['state']) + "</td>"
@@ -165,9 +164,38 @@ def formatBulkTable(c, conn, bulktable, profileid):
 		x += "<td>" + str(entry['stats']['running_state']['DELETED']) + "</td>"
 		x += "<td>" + str(entry['stats']['running_state']['REFRESH']) + "</td>"
 		x += "<td>" + str(entry['stats']['running_state']['CANCELLED']) + "</td>"
-		x += "<td>" + str(completerate) + " %</td>"
+		x += "<td>"
+
+		total_size = entry['stats']['running_state']['NEW'] + entry['stats']['running_state']['QUEUED'] + entry['stats']['running_state']['FAILED'] + entry['stats']['running_state']['ABORTED'] + entry['stats']['running_state']['DELETED'] + entry['stats']['running_state']['REFRESH'] + entry['stats']['running_state']['CANCELLED'] + entry['stats']['running_state']['COMPLETE']
+		if total_size == 0:
+			completerate = 0
+		else:
+			completerate = int(float(entry['stats']['running_state']['COMPLETE']) / float(total_size) * 100)
+		
+		if completerate > 100:
+			completerate = 100
+		
+		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry['_id']) + "' data-percent='" + str(completerate) + "'></div></div>"
+		x += "</td>"
+		
+		if (len(bulkdl) > 0):
+			if (bulkdl[0][3] != 0 or bulkdl[0][2] != 0):
+				
+				dlprogress = float(bulkdl[0][3]) / float(bulkdl[0][2]) * 100
+							
+				if dlprogress > 100:
+					dlprogress = 100
+					
+			else:
+				dlprogress = 0
+			x += "<td>"
+			x += "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + str(entry['_id']) + "' data-percent='" + str(dlprogress) + "'></div></div>"
+			x += "</td>"
+		else:
+			x += "<td>N/A</td>"
+			
 		x += "<td>" 
-		out = sqlGetStackJobsForBulkId(c, conn, profileid, entry['_id'])
+		
 		if (len(out) > 0):
 			x += "Stacking job"
 		else:
@@ -398,7 +426,7 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
         x += "<tr>"
         x += "<td style='width: 100px;'>Host</td>"
         x += "<td style='width: 100px;'>Domain</td>"
-        x += "<td style='width: 100px;'>Operating system</td>"
+        x += "<td style='width: 150px;'>Operating system</td>"
 	x += "<td style='width: 100px;'>Threat info</td>"
         x += "<td style='width: 100px;'>Reported at</td>"
         x += "<td style='width: 100px;'>Matched at</td>"
@@ -435,17 +463,18 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
 
 def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 
-	x = "<table id='alertsTable' class='genericTable' style='width: 100%;'>"
+	x = "<table id='alertsTable' class='genericTable genericTableAlerts' style='width: 100%;'>"
 	x += "<thead>"
 	x += "<tr>"
-	x += "<td style='width: 40px;'>OS</td>"
+	x += "<td style='width: 30px; text-align: center;'>OS</td>"
 	x += "<td style='width: 100px;'>Host</td>"
 	x += "<td style='width: 120px;'>Domain</td>"
 	x += "<td style='width: 100px; text-align: center;'>Alerted</td>"
 	x += "<td style='width: 150px;'>Reported at</td>"
 	x += "<td style='width: 150px;'>Matched at</td>"
 	x += "<td style='width: 100px; text-align: center;'>Containment</td>"
-	x += "<td style=''>Event type</td>"
+	x += "<td style='width: 60px; text-align: center;'>Threat</td>"
+	x += "<td style=''>Threat name</td>"
 	x += "<td style='width: 70px; text-align: center;'>State</td>"
 	x += "<td style='width: 80px; text-align: center;'>Annotations</td>"
 	x += "<td style='width: 100px;'>Actions</td>"
@@ -471,12 +500,12 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
 		
 		# OS
-		x += "<td>"
+		x += "<td><center>"
 		if str(hostinfo['data']['os']['product_name']).startswith('Windows'):
-			x += "<img style='width: 30px;' src='/static/ico/windows.svg'>"
+			x += "<img style='width: 20px;' src='/static/ico/windows.svg'>"
 		else:
-			x += "<img style='width: 30px;' src='/static/ico/apple.svg'>"
-		x += "</td>"
+			x += "<img style='width: 20px;' src='/static/ico/apple.svg'>"
+		x += "</center></td>"
 		
 		# Host
 		x += "<td>" + str(hostinfo['data']['hostname']) + "</td>"
@@ -501,24 +530,49 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		x += "</td>"
 		
 		# Event type
+		x += "<td style='text-align: center;'>"
+		if str(entry['source']) == "EXD":
+			x += "<div class='tableActionIcon'>EXD</div>"
+		elif (str(entry['source']) == "MAL"):
+			x += "<div class='tableActionIcon'>MAL</div>"
+		elif (str(entry['source']) == "IOC"):
+			x += "<div class='tableActionIcon'>IOC</div>"
+		else:
+			x +="N/A"
+		x += "</td>"
+		
+		# Event name
 		x += "<td>"
-		x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>&#x25BC;</a>"
+		#x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>&#x25BC;</a>"
 		
 		if str(entry['source']) == "EXD":
-			x += "Exploit behavior in application: (" + str(entry['event_values']['process_id']) + ") " + str(entry['event_values']['process_name']) + " - (" + str(len(entry['event_values']['messages'])) + ")"
+			x += str(entry['event_values']['process_name']) + " (pid: " + str(entry['event_values']['process_id']) + ") (count: " + str(len(entry['event_values']['messages'])) + ")"
 			x += "<div class='alertDetailsDisplayPopupEXD' id='alertdetails_" + str(entry['_id']) + "'>"
 			for behavior in entry['event_values']['messages']:
 				x += behavior + "<br>"
 			x += "<br>"
 			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
 			x += "</div>"
+			x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>Details</a>"
 		elif (str(entry['source']) == "MAL"):
-			x += "Malware alert (TODO)"
-			# x += "<b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][0].upper() + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][1:] + ": </b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (" + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
+			x += "<div class='alertDetailsDisplayPopup' id='alertdetails_" + str(entry['_id']) + "'>"
+			x += "<div class='tableTitle'>Malware alert: " + entry['event_values']['detections']['detection'][0]['infection']['infection-type'] + "</div>"
+			x += "<table class='genericTable' style='width: 100%; margin-bottom: 15px;'>"
+			for hitkey, hitdata in entry['event_values']['detections']['detection'][0]['infection'].iteritems():
+				x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
+			for hitkey, hitdata in entry['event_values']['detections']['detection'][0]['infected-object']['file-object'].iteritems():
+				x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
+			x += "</table>"
+			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
+			x += "</div>"
+			
+			x += entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " ( severity: " + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
+			x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>Details</a>"
+			
 		elif (str(entry['source']) == "IOC"):
 			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
 			for indicator in indicators['data']['entries']:
-				x += "Intel hit - IOC: " + indicator['name'] + " (" + indicator['category']['name'] + ")"
+				x += indicator['name'] + " ( category: " + indicator['category']['name'] + ")"
 				
 			x += "<div class='alertDetailsDisplayPopup' id='alertdetails_" + str(entry['_id']) + "'>"
 			x += "<div class='tableTitle'>Indicator type: " + str(entry['event_type']) + "</div>"
@@ -529,9 +583,11 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 			x += "</table>"
 			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
 			x += "</div>"
+			x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>Details</a>"
 		else:
 			x += "Unknown alert"
 		
+		x += "<a target='_blank' class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='https://" + hxip + ":" + hxport + "/hx/hosts/" + entry['agent']['_id'] + "/alerts/" + str(entry['_id']) + "'>HX</a>"
 		x += "</td>"
 		
 		# State
@@ -545,7 +601,7 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		# Annotation status
 		x += "<td style='text-align: center;'>"
 			
-		x += "<a href='#' id='adisp_" + str(entry['_id']) + "' class='tableActionButton'>show - " + str(annotations[0][0]) + "</a>"
+		x += "<a href='#' id='adisp_" + str(entry['_id']) + "' class='tableActionButton'>show (" + str(annotations[0][0]) + ")</a>"
 		x += "</td>"
 		
 		# Actions
@@ -654,8 +710,8 @@ def formatStackTable(c, conn, profileid, hs):
 	x += "<td>Profile ID</td>"
 	x += "<td>HX Bulk ID</td>"
 	x += "<td>Hostset</td>"
-	x += "<td>Completion rate</td>"
-	x += "<td>Actions</td>"
+	x += "<td style='width: 160px;'>Completion rate</td>"
+	x += "<td style='width: 260px;'>Actions</td>"
 	x += "</tr>"
 	x += "</thead>"
 	x += "<tbody>"
@@ -670,13 +726,20 @@ def formatStackTable(c, conn, profileid, hs):
 		x += "<td>" + str(entry[5]) + "</td>"
 		x += "<td>" + str(entry[6]) + "</td>"
 		
+		# Host set
 		for hsentry in hs['data']['entries']:
 			if hsentry['_id'] == entry[7]:
 				hsname = hsentry['name']
 				hstype = hsentry['type']
 				
 		x += "<td>" + hsname + " - (" + hstype + ")" + "</td>"
-		x += "<td>" + str(entry[8]) + "%</td>"
+		
+		# Completion rate
+		x += "<td>"
+		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry[0]) + "' data-percent='" + str(entry[8]) + "'></div></div>"
+		x += "</td>"
+		
+		# Actions
 		x += "<td>"
 		x += "<a href='/stacking?stop=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
 		x += "<a href='/stacking?remove=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"

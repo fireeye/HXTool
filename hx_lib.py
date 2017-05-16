@@ -12,6 +12,33 @@ if hasattr(ssl, '_create_unverified_context'):
 	ssl._create_default_https_context = ssl._create_unverified_context
 
 ###################
+## Generic functions
+###################
+	
+def restGetUrl(url, fetoken, hxip, hxport):
+	
+	handler = urllib2.HTTPHandler()
+	opener = urllib2.build_opener(handler)
+	urllib2.install_opener(opener)
+	data = None
+	
+	request = urllib2.Request('https://' + hxip + ':' + hxport + url, data=data)
+	request.add_header('Accept', 'application/json')
+	request.get_method = lambda: 'GET'
+
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
+	
+	
+###################
 ## Authentication
 ###################
 
@@ -784,14 +811,13 @@ def restGetAlertID(fetoken, alertid, hxip, hxport):
 
 def restGetAlerts(fetoken, count, hxip, hxport):
 
-
         handler = urllib2.HTTPHandler()
         opener = urllib2.build_opener(handler)
         urllib2.install_opener(opener)
 
         data = None
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/alerts?sort=reported_at+desc&limit=' + count, data=data)
+        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/alerts?sort=reported_at+desc&limit=' + count, data=data)
         request.add_header('X-FeApi-Token', fetoken)
         request.add_header('Accept', 'application/json')
         request.get_method = lambda: 'GET'

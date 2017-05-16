@@ -184,6 +184,9 @@ def backgroundBulkProcessor(c, conn):
 
 		rjson = json.loads(r.text)
 
+		if hosts == 0:
+			hc = sqlUpdateBulkDownloadHosts(c, conn, len(rjson['data']['entries']), profileid, bulkid)
+		
 		hiter = 0
 		for host in rjson['data']['entries']:
 
@@ -210,7 +213,9 @@ def backgroundBulkProcessor(c, conn):
 				with open(fulloutputpath, 'wb') as f:
 					for chunk in rd.iter_content(1024):
 						f.write(chunk)
-			
+						
+				hd = sqlUpdateBulkDownloadHostsComplete(c, conn, profileid, bulkid)
+				
 			# If cap is reached break out and reloop
 			if hiter == 500:
 				break

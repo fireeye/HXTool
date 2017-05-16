@@ -197,4 +197,11 @@ def sqlAddBulkDownload(c, conn, profileid, bulkid):
 def sqlRemoveBulkDownload(c, conn, profileid, bulkid):
 	c.execute("DELETE FROM bulkdl WHERE profileid = (?) AND bulkid = (?)", (profileid, bulkid))
 	conn.commit()
+
+def sqlUpdateBulkDownloadHosts(c, conn, allhosts, profileid, bulkid):
+	c.execute("UPDATE bulkdl SET hosts = (?) WHERE profileid = (?) AND bulkid = (?)", (allhosts, profileid, bulkid))
+	conn.commit()
 	
+def sqlUpdateBulkDownloadHostsComplete(c, conn, profileid, bulkid):
+	c.execute("UPDATE bulkdl SET hostscomplete = hostscomplete + 1 WHERE profileid = (?) AND bulkid = (?)", (profileid, bulkid))
+	conn.commit()	

@@ -16,6 +16,10 @@
 			window.document.location = $(this).data("href");
 		});
 
+		$("div[id^='crate_']").each(function() {
+			$(this).progress()
+		});
+
 	});
 </script>
 
