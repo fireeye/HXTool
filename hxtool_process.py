@@ -38,8 +38,8 @@ def parseXmlServiceMD5Data(sourcedata):
 	
 	return(acqdata)
 		
-def backgroundStackProcessor(c, conn):
-
+def backgroundStackProcessor(c, conn, myConf):
+	
 	###
 	### Control bulk acquisitions for stacking job
 	##############################
@@ -126,15 +126,16 @@ def backgroundStackProcessor(c, conn):
 			# calculate completion rate
 			total_size = entry['data']['stats']['running_state']['NEW'] + entry['data']['stats']['running_state']['QUEUED'] + entry['data']['stats']['running_state']['FAILED'] + entry['data']['stats']['running_state']['ABORTED'] + entry['data']['stats']['running_state']['DELETED'] + entry['data']['stats']['running_state']['REFRESH'] + entry['data']['stats']['running_state']['CANCELLED'] + entry['data']['stats']['running_state']['COMPLETE']
 			if total_size == 0:
-				completerate = float(0.0)
+				completerate = 0
 			else:
-				completerate = (entry['data']['stats']['running_state']['COMPLETE'] / float(total_size)) * 100
+				completerate = int(float(entry['data']['stats']['running_state']['COMPLETE']) / float(total_size) * 100)
 			
 			out = sqlUpdateStackJobProgress(c, conn, stackid, completerate)
 			
 			# query bulk acquisition results
 			res = restListBulkDetails(mytoken, bulkid, hxip, "3000")
 			
+			iter = 0
 			for entry in res['data']['entries']:
 				if entry['state'] == "COMPLETE":
 					if not sqlQueryStackServiceMD5(c, conn, stackid, entry['host']['hostname']):
@@ -149,10 +150,15 @@ def backgroundStackProcessor(c, conn):
 						payload_parsed = parseXmlServiceMD5Data(payload_xml)
 					
 						dbresult = sqlAddStackServiceMD5(c, conn, stackid, entry['host']['hostname'], payload_parsed)
+						iter = iter + 1
+				
+				# If cap is reached break out and reloop
+				if iter == myConf['backgroundProcessor']['stack_jobs_per_poll']:
+					break
 					
 			resp = restLogout(mytoken, hxip, "3000")
 
-def backgroundBulkProcessor(c, conn):
+def backgroundBulkProcessor(c, conn, myConf):
 
 	### Function to check and download bulk acquisitions
 	####################################
@@ -217,8 +223,9 @@ def backgroundBulkProcessor(c, conn):
 				hd = sqlUpdateBulkDownloadHostsComplete(c, conn, profileid, bulkid)
 				
 			# If cap is reached break out and reloop
-			if hiter == 500:
+			if hiter == myConf['backgroundProcessor']['downloads_per_poll']:
 				break
+				
 		resp = restLogout(mytoken, hxip, "3000")
 		
 		

@@ -307,16 +307,16 @@ def formatIOCResults(iocs):
 	x += "<td>Name</td>"
 	x += "<td style='width: 180px;'>Active since</td>"
 	x += "<td style='width: 150px;'>Created by</td>"
-	x += "<td style='width: 140px;'>Category</td>"
-	x += "<td style='width: 170px;'>Active conditions</td>"
-	x += "<td style='width: 170px;'>Hosts with alerts</td>"
+	x += "<td style='width: 200px;'>Category</td>"
+	x += "<td style='width: 140px;'>Active conditions</td>"
+	x += "<td style='width: 140px;'>Hosts with alerts</td>"
 	x += "</tr>"
 	x += "</thead>"
 	x += "<tbody>"
 	
 	for entry in iocs['data']['entries']:
-		x += "<tr class='clickable-row' data-value='" + str(entry['category']['name']) + "___" + str(entry['uri_name']) + "'>"
-		x += "<td><input type='checkbox' name='ioc___" + str(entry['display_name']) + "___" + str(entry['category']['name']) + "' value='" + str(entry['uri_name']) + "'></td>"
+		x += "<tr class='clickable-row' data-value='" + str(entry['category']['uri_name']) + "___" + str(entry['uri_name']) + "'>"
+		x += "<td><input type='checkbox' name='ioc___" + str(entry['display_name']) + "___" + str(entry['category']['uri_name']) + "' value='" + str(entry['uri_name']) + "'></td>"
 		x += "<td>" + str(entry['name']) + "</td>"
 		x += "<td>" + str(entry['active_since']) + "</td>"
 		x += "<td>" + str(entry['create_actor']['username']) + "</td>"
@@ -566,13 +566,13 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
 			x += "</div>"
 			
-			x += entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " ( severity: " + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
+			x += entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (severity: " + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
 			x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>Details</a>"
 			
 		elif (str(entry['source']) == "IOC"):
 			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
 			for indicator in indicators['data']['entries']:
-				x += indicator['name'] + " ( category: " + indicator['category']['name'] + ")"
+				x += indicator['name'] + " (category: " + indicator['category']['name'] + ")"
 				
 			x += "<div class='alertDetailsDisplayPopup' id='alertdetails_" + str(entry['_id']) + "'>"
 			x += "<div class='tableTitle'>Indicator type: " + str(entry['event_type']) + "</div>"

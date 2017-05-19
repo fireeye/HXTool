@@ -354,7 +354,7 @@ def indicators():
 				for item in cond_pre['data']['entries']:
 					ioclist[ioc['uuid']]['presence'].append(item['tests'])
 						
-			ioclist_json = json.dumps(ioclist)
+			ioclist_json = json.dumps(ioclist, indent=4)
 			
 			if len(iocs) == 1:
 				iocfname = iocs[0]['name'] + ".ioc"
@@ -645,7 +645,11 @@ def logout():
 
 class worker(object):
 
-	def __init__(self, interval=10):
+	# Read the configuration
+	with open('conf.json') as conf_file:
+		myConf = json.load(conf_file)
+
+	def __init__(self, interval=myConf['backgroundProcessor']['poll_interval']):
 	
 		self.interval = interval
 
@@ -659,8 +663,8 @@ class worker(object):
 		
 			conn = sqlite3.connect('hxtool.db')
 			c = conn.cursor()
-			backgroundStackProcessor(c, conn)
-			backgroundBulkProcessor(c, conn)
+			backgroundStackProcessor(c, conn, myConf)
+			backgroundBulkProcessor(c, conn, myConf)
 			time.sleep(self.interval)
 
 ###########
@@ -671,11 +675,15 @@ app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
 		
 if __name__ == "__main__":
 
+	# Read the configuration
+	with open('conf.json') as conf_file:
+		myConf = json.load(conf_file)
+
 	# Start background processing thread (future functionality disabled for now)
 	workerthread = worker()
 	
-	# Configure SSL
-	context = ('hxtool.crt', 'hxtool.key')
-		
-	# Start main Flask process	
-	app.run(host='0.0.0.0', port=8080, ssl_context=context)
+	if myConf['network']['ssl'] == "enabled":
+		context = (myConf['ssl']['cert'], myConf['ssl']['key'])
+		app.run(host=myConf['network']['listen_on'], port=myConf['network']['port'], ssl_context=context)
+	else:
+		app.run(host=myConf['network']['listen_on'], port=myConf['network']['port'])
