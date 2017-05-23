@@ -1,6 +1,7 @@
 
 from hx_lib import *
 from hxtool_db import *
+import time
 
 def formatListSearches(s):
 	x = "<table id='searchTable' class='genericTable' style='width: 100%;'>"
@@ -308,19 +309,30 @@ def formatIOCResults(iocs):
 	x += "<td style='width: 180px;'>Active since</td>"
 	x += "<td style='width: 150px;'>Created by</td>"
 	x += "<td style='width: 200px;'>Category</td>"
-	x += "<td style='width: 140px;'>Active conditions</td>"
-	x += "<td style='width: 140px;'>Hosts with alerts</td>"
+	x += "<td style='width: 80px;'>Platforms</td>"
+	x += "<td style='width: 100px;'>Conditions</td>"
+	x += "<td style='width: 120px;'>Hosts w/ alerts</td>"
 	x += "</tr>"
 	x += "</thead>"
 	x += "<tbody>"
 	
 	for entry in iocs['data']['entries']:
+		
+		p = ""
+		for platform in entry['platforms']:
+			p += platform + ","
+		p = p[:-1]
+		
 		x += "<tr class='clickable-row' data-value='" + str(entry['category']['uri_name']) + "___" + str(entry['uri_name']) + "'>"
-		x += "<td><input type='checkbox' name='ioc___" + str(entry['display_name']) + "___" + str(entry['category']['uri_name']) + "' value='" + str(entry['uri_name']) + "'></td>"
+		x += "<td><input type='checkbox' name='ioc___" + str(entry['display_name']) + "___" + str(entry['category']['uri_name']) + "___" + str(p) + "' value='" + str(entry['uri_name']) + "'></td>"
 		x += "<td>" + str(entry['name']) + "</td>"
 		x += "<td>" + str(entry['active_since']) + "</td>"
 		x += "<td>" + str(entry['create_actor']['username']) + "</td>"
 		x += "<td>" + str(entry['category']['name']) + "</td>"
+		x += "<td>"
+		for platform in entry['platforms']:
+			x += str(platform) + "<br>"
+		x += "</td>"
 		x += "<td>" + str(entry['stats']['active_conditions']) + "</td>"
 		x += "<td>" + str(entry['stats']['alerted_agents']) + "</td>"
 		x += "</tr>"
@@ -333,44 +345,46 @@ def formatIOCResults(iocs):
 def formatConditions(cond_pre, cond_ex):
 	
 	x = ""
-	x += "<div class='tableTitle'>Presence conditions</div>"
-	
-	x += "<div style='margin-bottom: 10px; margin-top: -18px;' class='clt'>"
-	x += "<ul>"
-	x += "<li>or"
-	x += "<ul>"
-	for entry in cond_pre['data']['entries']:
-		x += "<li>and"
+	if len(cond_pre['data']['entries']) > 0:
+		x += "<div class='tableTitle'>Presence conditions</div>"
+
+		x += "<div style='margin-bottom: 10px; margin-top: -18px;' class='clt'>"
 		x += "<ul>"
-		for test in entry['tests']:
-			if 'negate' in test:
-				x += "<li style=''>" + test['token'] + " <i><span style='color: red; font-weight: 700;'>not</span> " + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
-			else:
+		x += "<li>or"
+		x += "<ul>"
+		for entry in cond_pre['data']['entries']:
+			x += "<li>and"
+			x += "<ul>"
+			for test in entry['tests']:
+				if 'negate' in test:
+					x += "<li style=''>" + test['token'] + " <i><span style='color: red; font-weight: 700;'>not</span> " + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+				else:
+					x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+			x += "</ul>"
+			x += "</li>"
+		
+		x += "</ul>"
+		x += "</li>"
+		x += "</div>"
+	
+	if len(cond_ex['data']['entries']) > 0:
+		x += "<div class='tableTitle'>Execution conditions</div>"
+		
+		x += "<div style='margin-bottom: 10px; margin-top: -18px;' class='clt'>"
+		x += "<ul>"
+		x += "<li>or"
+		x += "<ul>"
+		for entry in cond_ex['data']['entries']:
+			x += "<li>and"
+			x += "<ul>"
+			for test in entry['tests']:
 				x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+			x += "</ul>"
+			x += "</li>"
+		
 		x += "</ul>"
 		x += "</li>"
-	
-	x += "</ul>"
-	x += "</li>"
-	x += "</div>"
-	
-	x += "<div class='tableTitle'>Execution conditions</div>"
-	
-	x += "<div style='margin-bottom: 10px; margin-top: -18px;' class='clt'>"
-	x += "<ul>"
-	x += "<li>or"
-	x += "<ul>"
-	for entry in cond_ex['data']['entries']:
-		x += "<li>and"
-		x += "<ul>"
-		for test in entry['tests']:
-			x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
-		x += "</ul>"
-		x += "</li>"
-	
-	x += "</ul>"
-	x += "</li>"
-	x += "</div>"
+		x += "</div>"
 		
 	return (x)
 	
@@ -546,6 +560,7 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		#x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>&#x25BC;</a>"
 		
 		if str(entry['source']) == "EXD":
+			
 			x += str(entry['event_values']['process_name']) + " (pid: " + str(entry['event_values']['process_id']) + ") (count: " + str(len(entry['event_values']['messages'])) + ")"
 			x += "<div class='alertDetailsDisplayPopupEXD' id='alertdetails_" + str(entry['_id']) + "'>"
 			for behavior in entry['event_values']['messages']:

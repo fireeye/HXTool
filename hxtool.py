@@ -42,8 +42,6 @@ app = Flask(__name__, static_url_path='/static')
 @app.route('/')
 def index():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-
-		app.logger.info('User access: Dashboard')
 	
 		if 'time' in request.args:
 			if request.args.get('time') == "today":
@@ -164,7 +162,7 @@ def index():
 @app.route('/jobdash', methods=['GET', 'POST'])
 def jobdash():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-	
+		
 		blk = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
 		jobsBulk = formatBulkTableJobDash(c, conn, blk, session['ht_profileid'])
 
@@ -183,6 +181,7 @@ def jobdash():
 @app.route('/alerts', methods=['GET', 'POST'])
 def alerts():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+		
 		if request.method == "POST":
 			# We have a new annotation
 			if 'annotateText' in request.form:
@@ -190,6 +189,7 @@ def alerts():
 				newrowid = sqlAddAlert(c, conn, session['ht_profileid'], request.form['annotateId'])
 				# Add annotation to annotation table
 				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'], session['ht_user'])
+				app.logger.info('New annotation - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 		
 		if 'acount' in request.args:
 			acount = request.args['acount']
@@ -215,6 +215,7 @@ def alerts():
 @app.route('/annotatedisplay', methods=['GET'])
 def annotatedisplay():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+		
 		if 'alertid' in request.args:
 			an = sqlGetAnnotations(c, conn, request.args.get('alertid'), session['ht_profileid'])
 			annotatetable = formatAnnotationTable(an)
@@ -225,19 +226,20 @@ def annotatedisplay():
 
 
 
-#### Search and Sweep
+#### Enterprise Search
 #########################
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-
+	
 		# If we get a post it's a new sweep
 		if request.method == 'POST':
 			f = request.files['newioc']
 			rawioc = f.read()
 			b64ioc = base64.b64encode(rawioc)
 			out = restSubmitSweep(session['ht_token'], session['ht_ip'], '3000', b64ioc, request.form['sweephostset'])
+			app.logger.info('New Enterprise Search - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 
 		s = restListSearches(session['ht_token'], session['ht_ip'], '3000')
 		searches = formatListSearches(s)
@@ -252,10 +254,11 @@ def search():
 @app.route('/searchresult', methods=['GET'])
 def searchresult():
         if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-		if request.args.get('id'):
-			hostresults = restGetSearchResults(session['ht_token'], request.args.get('id'), session['ht_ip'], '3000')
-			res = formatSearchResults(hostresults)
-	                return render_template('ht_search_dd.html', session=session, result=res)
+		
+			if request.args.get('id'):
+				hostresults = restGetSearchResults(session['ht_token'], request.args.get('id'), session['ht_ip'], '3000')
+				res = formatSearchResults(hostresults)
+				return render_template('ht_search_dd.html', session=session, result=res)
         else:
                 return redirect("/login", code=302)
 
@@ -263,13 +266,15 @@ def searchresult():
 @app.route('/searchaction', methods=['GET'])
 def searchaction():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-
+	
 		if request.args.get('action') == "stop":
 			res = restCancelJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/searches/', session['ht_ip'], '3000')
+			app.logger.info('User access: Enterprise Search action STOP - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 			return redirect("/search", code=302)
 			
 		if request.args.get('action') == "remove":
 			res = restDeleteJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/searches/', session['ht_ip'], '3000')
+			app.logger.info('User access: Enterprise Search action REMOVE - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 			return redirect("/search", code=302)	
 		
 	else:
@@ -285,9 +290,15 @@ def buildioc():
 		
 		# New IOC to be created
 		if request.method == 'POST':
-
-			iocuri = restAddIndicator(session['ht_user'], request.form['iocname'], request.form['cats'], request.form['platform'], session['ht_token'], session['ht_ip'], '3000')
-
+		
+			if request.form['platform'] == "all":
+				myplatforms = ['win', 'osx']
+			else:
+				myplatforms = request.form['platform'].split(",")
+				
+			iocuri = restAddIndicator(session['ht_user'], request.form['iocname'], request.form['cats'], myplatforms, session['ht_token'], session['ht_ip'], '3000')
+			app.logger.info('New indicator created - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			
 			condEx = []
 			condPre = []
 
@@ -323,7 +334,7 @@ def buildioc():
 @app.route('/indicators', methods=['GET', 'POST'])
 def indicators():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-
+	
 		if request.method == 'POST':
 			
 			# Export selected indicators
@@ -333,7 +344,8 @@ def indicators():
 					sval = postvalue.split("___")
 					iocname = sval[1]
 					ioccategory = sval[2]
-					iocs.append({'uuid':request.form.get(postvalue), 'name':iocname, 'category':ioccategory})
+					platforms = sval[3]
+					iocs.append({'uuid':request.form.get(postvalue), 'name':iocname, 'category':ioccategory, 'platforms':platforms})
 			
 			ioclist = {}
 			for ioc in iocs:
@@ -343,6 +355,7 @@ def indicators():
 				ioclist[ioc['uuid']]['presence'] = []
 				ioclist[ioc['uuid']]['name'] = ioc['name']
 				ioclist[ioc['uuid']]['category'] = ioc['category']
+				ioclist[ioc['uuid']]['platforms'] = ioc['platforms']
 
 				#Grab execution indicators
 				cond_ex = restGetCondition(session['ht_token'], 'execution', ioc['category'], ioc['uuid'], session['ht_ip'], '3000')
@@ -364,6 +377,7 @@ def indicators():
 			strIO = StringIO()
 			strIO.write(ioclist_json)
 			strIO.seek(0)
+			app.logger.info('Indicator(s) exported - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 			return send_file(strIO, attachment_filename=iocfname, as_attachment=True)
 	
 		iocs = restListIndicators(session['ht_token'], session['ht_ip'], '3000')
@@ -375,7 +389,7 @@ def indicators():
 @app.route('/indicatorcondition')
 def indicatorcondition():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-
+	
 		uuid = request.args.get('uuid')
 		category = request.args.get('category')
 	
@@ -392,10 +406,11 @@ def indicatorcondition():
 @app.route('/categories', methods=['GET', 'POST'])
 def categories():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-
+	
 		if request.method == 'POST':
 			catname = request.form.get('catname')
 			restCreateCategory(session['ht_token'], str(catname), session['ht_ip'], '3000')
+			app.logger.info('New indicator category created - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 	
 	
 		cats = restListIndicatorCategories(session['ht_token'], session['ht_ip'], '3000')
@@ -415,7 +430,8 @@ def importioc():
 			iocs = json.loads(fc.read())
 			
 			for iockey in iocs:
-				iocuri = restAddIndicator(session['ht_user'], iocs[iockey]['name'], iocs[iockey]['category'], session['ht_token'], session['ht_ip'], '3000')
+				myplatforms = iocs[iockey]['platforms'].split(",")
+				iocuri = restAddIndicator(session['ht_user'], iocs[iockey]['name'], iocs[iockey]['category'], myplatforms, session['ht_token'], session['ht_ip'], '3000')
 
 				for p_cond in iocs[iockey]['presence']:
 					data = json.dumps(p_cond)
@@ -427,6 +443,7 @@ def importioc():
 					data = """{"tests":""" + data + """}"""
 					res = restAddCondition(iocuri, "execution", data, iocs[iockey]['category'], session['ht_token'], session['ht_ip'], '3000')
 			
+			app.logger.info('New indicator imported - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 		
 		return redirect("/indicators", code=302)
 	else:
@@ -439,10 +456,12 @@ def importioc():
 @app.route('/bulk', methods=['GET', 'POST'])
 def listbulk():
         if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+		
 			if request.method == 'POST':
 				f = request.files['bulkscript']
 				bulkscript = f.read()
 				newbulk = restNewBulkAcq(session['ht_token'], bulkscript, request.form['bulkhostset'], session['ht_ip'], '3000')
+				app.logger.info('New bulk acquisition - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 
 			acqs = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
 			bulktable = formatBulkTable(c, conn, acqs, session['ht_profileid'])
@@ -457,12 +476,13 @@ def listbulk():
 @app.route('/bulkdetails')
 def bulkdetails():
         if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-		if request.args.get('id'):
 
-			hosts = restListBulkDetails(session['ht_token'], request.args.get('id'), session['ht_ip'], '3000')
-			bulktable = formatBulkHostsTable(hosts)
+			if request.args.get('id'):
 
-	                return render_template('ht_bulk_dd.html', session=session, bulktable=bulktable)
+				hosts = restListBulkDetails(session['ht_token'], request.args.get('id'), session['ht_ip'], '3000')
+				bulktable = formatBulkHostsTable(hosts)
+
+				return render_template('ht_bulk_dd.html', session=session, bulktable=bulktable)
         else:
                 return redirect("/login", code=302)
 
@@ -470,10 +490,12 @@ def bulkdetails():
 @app.route('/bulkdownload')
 def bulkdownload():
         if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-                if request.args.get('id'):
-			urlhead, fname = os.path.split(request.args.get('id'))
-			acq = restDownloadBulkAcq(session['ht_token'], request.args.get('id'), session['ht_ip'], '3000')
-			return send_file(io.BytesIO(acq), attachment_filename=fname, as_attachment=True)
+		
+			if request.args.get('id'):
+				urlhead, fname = os.path.split(request.args.get('id'))
+				acq = restDownloadBulkAcq(session['ht_token'], request.args.get('id'), session['ht_ip'], '3000')
+				app.logger.info('Bulk acquisition download - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+				return send_file(io.BytesIO(acq), attachment_filename=fname, as_attachment=True)
         else:
                 return redirect("/login", code=302)
 
@@ -481,19 +503,25 @@ def bulkdownload():
 @app.route('/bulkaction', methods=['GET'])
 def bulkaction():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-
+	
 		if request.args.get('action') == "stop":
 			res = restCancelJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/acqs/bulk/', session['ht_ip'], '3000')
+			app.logger.info('Bulk acquisition action STOP - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 			return redirect("/bulk", code=302)
 			
 		if request.args.get('action') == "remove":
 			res = restDeleteJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/acqs/bulk/', session['ht_ip'], '3000')
+			app.logger.info('Bulk acquisition action REMOVE - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 			return redirect("/bulk", code=302)	
+			
 		if request.args.get('action') == "download":
 			res = sqlAddBulkDownload(c, conn, session['ht_profileid'], request.args.get('id'))
+			app.logger.info('Bulk acquisition action DOWNLOAD - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 			return redirect("/bulk", code=302)
+			
 		if request.args.get('action') == "stopdownload":
 			res = sqlRemoveBulkDownload(c, conn, session['ht_profileid'], request.args.get('id'))
+			app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 			return redirect("/bulk", code=302)
 	else:
 		return redirect("/login", code=302)
@@ -539,15 +567,18 @@ def stacking():
 			
 			if request.args.get('stop'):
 				sqlChangeStackJobState(c, conn, request.args.get('stop'), session['ht_profileid'], "STOPPING")
+				app.logger.info('Data stacking action STOP - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 				return redirect("/stacking", code=302)
 
 			if request.args.get('remove'):
 				sqlChangeStackJobState(c, conn, request.args.get('remove'), session['ht_profileid'], "REMOVING")
+				app.logger.info('Data stacking action REMOVE - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 				return redirect("/stacking", code=302)
 
 				
 			if request.method == 'POST':
 				out = sqlAddStackJob(c, conn, session['ht_profileid'], request.form['stacktype'], request.form['stackhostset'])
+				app.logger.info('New data stacking job - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 			
 			hs = restListHostsets(session['ht_token'], session['ht_ip'], '3000')
 			hostsets = formatHostsets(hs)
@@ -580,9 +611,11 @@ def settings():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 			if (request.method == 'POST'):
 				out = sqlInsertProfCredsInfo(c, conn, session['ht_profileid'], request.form['bguser'], request.form['bgpass'])
+				app.logger.info("Background Processing credentials set profileid: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
 			
 			if request.args.get('unsetprofcreds'):
 				out = sqlDeleteProfCredsInfo(c, conn, session['ht_profileid'])
+				app.logger.info("Background Processing credentials unset profileid: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
 				return redirect("/settings", code=302)
 			
 			bgcreds = formatProfCredsInfo(c, conn, session['ht_profileid'])
@@ -608,6 +641,7 @@ def login():
 				session['ht_ip'] = myip
 				session['ht_token'] = message
 				session['ht_profileid'] = profileid
+				app.logger.info("Successful Authentication - User: " + session['ht_user'] + "@" + session['ht_ip'])
 				return redirect("/", code=302)
 			else:
 				options = ""
@@ -619,6 +653,7 @@ def login():
 			message = "New profile created"
 			
 			sqlAddProfileItem(c, conn, request.form['cname'], request.form['chostname'])
+			app.logger.info("New controller profile added")
 			
 			options = ""
 			for profile in sqlGetProfiles(c):
@@ -636,37 +671,42 @@ def login():
 
 @app.route('/logout')
 def logout():
+	app.logger.info('User logged out:' + session['ht_user'] + "@" + session['ht_ip'])
 	session.pop('ht_user', None)
 	return redirect("/", code=302)
 
 
 ### Thread: background processing 
 #################################
-
-class worker(object):
-
+		
+def bgprocess():
+	
+	time.sleep(1)
+	app.logger.info('Background processor thread started')
+	# SQLITE3
+	conn = sqlite3.connect('hxtool.db')
+	c = conn.cursor()
+	
 	# Read the configuration
 	with open('conf.json') as conf_file:
 		myConf = json.load(conf_file)
 
-	def __init__(self, interval=myConf['backgroundProcessor']['poll_interval']):
+	while True:
+		backgroundStackProcessor(c, conn, myConf, app)
+		backgroundBulkProcessor(c, conn, myConf, app)
+		time.sleep(myConf['backgroundProcessor']['poll_interval'])
+		
+def threadmonitor():
+
+	time.sleep(1)
+	app.logger.info('Thread monitor started')
 	
-		self.interval = interval
-
-		thread = threading.Thread(target=self.run, args=())
-		thread.daemon = True
-		thread.start()
+	while True:
+		if not thread.isAlive():
+			app.logger.info('Background processor thread is not running, attempting to restart...')
+			thread.start()
+		time.sleep(15)
 		
-	def run(self):
-		time.sleep(1)
-		while True:
-		
-			conn = sqlite3.connect('hxtool.db')
-			c = conn.cursor()
-			backgroundStackProcessor(c, conn, myConf)
-			backgroundBulkProcessor(c, conn, myConf)
-			time.sleep(self.interval)
-
 ###########
 ### Main ####
 ###########			
@@ -675,12 +715,51 @@ app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
 		
 if __name__ == "__main__":
 
+	# Logging
+	handler = RotatingFileHandler('log/access.log', maxBytes=50000, backupCount=5)
+	handler.setLevel(logging.INFO)
+	
+	ht_handler = RotatingFileHandler('log/hxtool.log', maxBytes=50000, backupCount=5)
+	ht_handler.setLevel(logging.INFO)
+	
+	c_handler = logging.StreamHandler(sys.stdout)
+	c_handler.setLevel(logging.INFO)
+	
+	# WSGI Server logging
+	logger = logging.getLogger('werkzeug')
+	logger.setLevel(logging.INFO)
+	logger.addHandler(handler)
+	
+	# Flask logging
+	app.logger.setLevel(logging.INFO)
+	app.logger.addHandler(ht_handler)
+	app.logger.addHandler(c_handler)
+	
+	# Set formatter
+	formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
+	handler.setFormatter(formatter)
+	ht_handler.setFormatter(formatter)
+	c_handler.setFormatter(formatter)
+
+	# Start
+	app.logger.info('Application starting')
+		
 	# Read the configuration
 	with open('conf.json') as conf_file:
+		app.logger.info('Reading configuration file conf.json')
 		myConf = json.load(conf_file)
 
-	# Start background processing thread (future functionality disabled for now)
-	workerthread = worker()
+	# Start background processing thread
+	thread = threading.Thread(target=bgprocess, name='BackgroundProcessor', args=())
+	thread.daemon = True
+	thread.start()
+	app.logger.info('Background Processor thread starting')
+	
+	# Start threadmonitor
+	mthread = threading.Thread(target=threadmonitor, name='ThreadMonitor', args=())
+	mthread.daemon = True
+	mthread.start()
+	app.logger.info('Thread monitor starting')
 	
 	if myConf['network']['ssl'] == "enabled":
 		context = (myConf['ssl']['cert'], myConf['ssl']['key'])

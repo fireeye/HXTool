@@ -38,7 +38,7 @@ def parseXmlServiceMD5Data(sourcedata):
 	
 	return(acqdata)
 		
-def backgroundStackProcessor(c, conn, myConf):
+def backgroundStackProcessor(c, conn, myConf, app):
 	
 	###
 	### Control bulk acquisitions for stacking job
@@ -63,8 +63,8 @@ def backgroundStackProcessor(c, conn, myConf):
 		# User created a new stack job, create a new bulk acquisition
 		if state == "SCHEDULED":
 			
-			print "## backgroundProcessor: Starting bulk job: " + jobtype
-			
+			app.logger.info("Stacking: Starting bulk acquisition - " + jobtype)
+						
 			(mytoken, hxip, hxname) = restAuthProfile(c, conn, profileid)
 			
 			# Get the acquisition script
@@ -82,7 +82,7 @@ def backgroundStackProcessor(c, conn, myConf):
 		# User requested the stack job to stop, stop it on the controller and change state
 		if state == "STOPPING":
 			
-			print "## backgroundProcessor: Stopping bulk job: " + jobtype
+			app.logger.info("Stacking: Stopping bulk acquisition - " + jobtype)
 			
 			(mytoken, hxip, hxname) = restAuthProfile(c, conn, profileid)
 			
@@ -94,7 +94,7 @@ def backgroundStackProcessor(c, conn, myConf):
 		# User requested the stack job to be removed, delete it on the controller and remove it from stacktable
 		if state == "REMOVING":
 		
-			print "## backgroundProcessor: Removing bulk job: " + jobtype
+			app.logger.info("Stacking: Removing bulk acquisition - " + jobtype)
 			
 			(mytoken, hxip, hxname) = restAuthProfile(c, conn, profileid)
 
@@ -112,7 +112,7 @@ def backgroundStackProcessor(c, conn, myConf):
 			res = restGetBulkDetails(mytoken, bulkid, hxip, "3000")
 			
 			if res['data']['state'] == "RUNNING":
-				print "## backgroundProcessor: job is running on the controller update the state"
+				app.logger.info("Stacking: Bulk acquisition is running on the controller, update the state - " + res['data']['state'])
 				out = sqlUpdateStackJobState(c, conn, stackid, "RUNNING")
 
 			resp = restLogout(mytoken, hxip, "3000")
@@ -140,7 +140,7 @@ def backgroundStackProcessor(c, conn, myConf):
 				if entry['state'] == "COMPLETE":
 					if not sqlQueryStackServiceMD5(c, conn, stackid, entry['host']['hostname']):
 					
-						print "## backgroundProcessor: Found completed acquisition job: " + entry['host']['hostname']
+						app.logger.info("Stacking: Found completed bulk acquisition - " + str(entry['host']['hostname']))
 					
 						acq = restDownloadBulkAcq(mytoken, entry['result']['url'], hxip, '3000')
 					
@@ -150,6 +150,9 @@ def backgroundStackProcessor(c, conn, myConf):
 						payload_parsed = parseXmlServiceMD5Data(payload_xml)
 					
 						dbresult = sqlAddStackServiceMD5(c, conn, stackid, entry['host']['hostname'], payload_parsed)
+						
+						app.logger.info("Stacking: Completed post-processing - " + str(entry['host']['hostname']))
+						
 						iter = iter + 1
 				
 				# If cap is reached break out and reloop
@@ -158,7 +161,7 @@ def backgroundStackProcessor(c, conn, myConf):
 					
 			resp = restLogout(mytoken, hxip, "3000")
 
-def backgroundBulkProcessor(c, conn, myConf):
+def backgroundBulkProcessor(c, conn, myConf, app):
 
 	### Function to check and download bulk acquisitions
 	####################################
@@ -215,7 +218,7 @@ def backgroundBulkProcessor(c, conn, myConf):
 					
 				fulloutputpath = os.path.join(directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip")
 
-				print "BulkDownloader - Writing file: " + directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip"
+				app.logger.info("Bulk Downloader: Writing file - " + directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip")
 				with open(fulloutputpath, 'wb') as f:
 					for chunk in rd.iter_content(1024):
 						f.write(chunk)

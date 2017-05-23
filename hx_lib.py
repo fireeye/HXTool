@@ -194,7 +194,7 @@ def restListIndicatorCategories(fetoken, hxip, hxport):
 def restListIndicators(fetoken, hxip, hxport):
 
 	data = None
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/indicators?limit=10000', data=data)
+	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/indicators?limit=10000', data=data)
 	request.add_header('X-FeApi-Token', fetoken)
 	request.add_header('Accept', 'application/json')
 	request.get_method = lambda: 'GET'
@@ -235,18 +235,9 @@ def restAddCondition(iocURI, ioctype, data, cat, fetoken, hxip, hxport):
         return(res)
 
 # Add a new indicator
-def restAddIndicator(cuser, name, category, platform, fetoken, hxip, hxport):
-
-        if platform == "win":
-            myplatform = ["win"]
-        elif platform == "osx":
-            myplatform = ["osx"]
-        elif platform == "all":
-            myplatform = ["win", "osx"]
-        else:
-            myplatform = ["win", "osx"]
+def restAddIndicator(cuser, name, category, platforms, fetoken, hxip, hxport):
 			
-        data = json.dumps({"create_text" : cuser, "display_name" : name, "platforms" : myplatform})
+        data = json.dumps({"create_text" : cuser, "display_name" : name, "platforms" : platforms})
 		
         request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/indicators/' + category, data=data)
         request.add_header('X-FeApi-Token', fetoken)
@@ -321,7 +312,7 @@ def restListIndicators(fetoken, hxip, hxport):
 	urllib2.install_opener(opener)
 
 	data = None
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/indicators?limit=10000', data=data)
+	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/indicators?limit=10000', data=data)
 
 	request.add_header('X-FeApi-Token', fetoken)
 	request.add_header('Accept', 'application/json')
@@ -958,7 +949,7 @@ def prettyTime(time=False):
 
 	from datetime import datetime
 	
-	now = datetime.now()
+	now = datetime.utcnow()
 	if type(time) is int:
 		diff = now - datetime.fromtimestamp(time)
 	elif isinstance(time,datetime):
