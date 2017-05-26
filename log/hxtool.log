@@ -1,474 +1,382 @@
-[2017-05-23 10:56:50,065] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 10:56:50,065] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 10:57:55,500] {hxtool.py:709} ERROR - Application starting
-[2017-05-23 10:57:55,500] {hxtool.py:709} ERROR - Application starting
-[2017-05-23 10:57:55,507] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 10:57:55,507] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 10:58:39,964] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 10:58:39,964] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 10:58:49,026] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 10:58:49] "GET /alerts?acount=30 HTTP/1.1" 200 -
-[2017-05-23 10:58:49,026] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 10:58:49] "GET /alerts?acount=30 HTTP/1.1" 200 -
-[2017-05-23 10:58:49,111] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 10:58:49] "GET /static/ht.css HTTP/1.1" 200 -
-[2017-05-23 10:58:49,111] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 10:58:49] "GET /static/ht.css HTTP/1.1" 200 -
-[2017-05-23 10:58:49,128] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 10:58:49] "GET /static/ico/windows.svg HTTP/1.1" 200 -
-[2017-05-23 10:58:49,128] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 10:58:49] "GET /static/ico/windows.svg HTTP/1.1" 200 -
-[2017-05-23 11:00:46,205] {hxtool.py:711} ERROR - testtest
-[2017-05-23 11:00:46,205] {hxtool.py:711} ERROR - testtest
-[2017-05-23 11:00:46,212] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:00:46,212] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:03:46,376] {hxtool.py:711} ERROR - testtest
-[2017-05-23 11:03:46,383] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:03:46,383] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:04:21,075] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:05:25,300] {hxtool.py:713} ERROR - testtest
-[2017-05-23 11:05:25,300] {hxtool.py:713} ERROR - testtest
-[2017-05-23 11:06:00,577] {hxtool.py:713} ERROR - testtest
-[2017-05-23 11:07:16,023] {hxtool.py:714} ERROR - testtest
-[2017-05-23 11:07:16,023] {hxtool.py:714} ERROR - testtest
-[2017-05-23 11:07:35,616] {hxtool.py:716} ERROR - testtest
-[2017-05-23 11:07:35,616] {hxtool.py:716} ERROR - testtest
-[2017-05-23 11:08:09,709] {hxtool.py:712} ERROR - testtest
-[2017-05-23 11:08:09,709] {hxtool.py:712} ERROR - testtest
-[2017-05-23 11:08:09,716] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:08:09,716] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:08:40,680] {hxtool.py:711} ERROR - testtest
-[2017-05-23 11:08:40,687] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:08:40,687] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-testtest
- * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-testtest
- * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-testtest
- * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-testtest
- * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:14:38,861] {hxtool.py:719} ERROR - testtest
-[2017-05-23 11:14:38,868] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:14:51,411] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 11:14:51] "GET /search HTTP/1.1" 200 -
-[2017-05-23 11:14:51,532] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 11:14:51] "GET /static/ht.css HTTP/1.1" 200 -
-[2017-05-23 11:14:51,549] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 11:14:51] "GET /static/jquery-1.11.3.min.js HTTP/1.1" 200 -
-[2017-05-23 11:14:51,567] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 11:14:51] "GET /static/jquery.dataTables.min.js HTTP/1.1" 200 -
-[2017-05-23 11:14:51,588] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 11:14:51] "GET /static/raphael-min.js HTTP/1.1" 200 -
-[2017-05-23 11:14:51,613] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 11:14:51] "GET /static/morris.min.js HTTP/1.1" 200 -
-[2017-05-23 11:14:51,631] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 11:14:51] "GET /static/progress.js HTTP/1.1" 200 -
-[2017-05-23 11:14:51,685] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 11:14:51] "GET /static/ico/power.jpg HTTP/1.1" 200 -
-[2017-05-23 11:14:51,702] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO - 192.168.7.1 - - [23/May/2017 11:14:51] "GET /static/fireeye.svg HTTP/1.1" 200 -
-[2017-05-23 11:15:34,225] {hxtool.py:720} INFO - Application starting
-[2017-05-23 11:15:34,226] {hxtool.py:721} ERROR - testtest
-[2017-05-23 11:15:34,232] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:17:36,817] {hxtool.py:706} INFO - Application starting
-[2017-05-23 11:17:36,818] {hxtool.py:710} INFO - Reading configuration file conf.json
-[2017-05-23 11:17:36,818] {hxtool.py:717} INFO - Background Processor thread starting
-[2017-05-23 11:17:36,818] {hxtool.py:723} INFO - Thread monitor starting
-[2017-05-23 11:17:36,825] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-[2017-05-23 11:19:07,620] {hxtool.py:709} INFO - Application starting
-[2017-05-23 11:19:07,620] {hxtool.py:713} INFO - Reading configuration file conf.json
-[2017-05-23 11:19:07,621] {hxtool.py:720} INFO - Background Processor thread starting
-[2017-05-23 11:19:07,621] {hxtool.py:726} INFO - Thread monitor starting
-[2017-05-23 11:19:07,627] {/usr/local/lib/python2.7/dist-packages/werkzeug/_internal.py:87} INFO -  * Running on https://0.0.0.0:8080/ (Press CTRL+C to quit)
-Application starting
-Reading configuration file conf.json
-Background Processor thread starting
-Thread monitor starting
-[2017-05-23 11:21:45,242] {hxtool.py:717} INFO - Application starting
-[2017-05-23 11:21:45,242] {hxtool.py:721} INFO - Reading configuration file conf.json
-[2017-05-23 11:21:45,243] {hxtool.py:728} INFO - Background Processor thread starting
-[2017-05-23 11:21:45,243] {hxtool.py:734} INFO - Thread monitor starting
-[2017-05-23 11:21:48,333] {hxtool.py:717} INFO - Application starting
-[2017-05-23 11:21:48,333] {hxtool.py:721} INFO - Reading configuration file conf.json
-[2017-05-23 11:21:48,333] {hxtool.py:728} INFO - Background Processor thread starting
-[2017-05-23 11:21:48,333] {hxtool.py:734} INFO - Thread monitor starting
-[2017-05-23 11:25:09,357] {hxtool.py:718} INFO - Application starting
-[2017-05-23 11:25:09,358] {hxtool.py:722} INFO - Reading configuration file conf.json
-[2017-05-23 11:25:09,358] {hxtool.py:729} INFO - Background Processor thread starting
-[2017-05-23 11:25:09,358] {hxtool.py:735} INFO - Thread monitor starting
-[2017-05-23 11:28:17,234] {hxtool.py:723} INFO - Application starting
-[2017-05-23 11:28:17,234] {hxtool.py:727} INFO - Reading configuration file conf.json
-[2017-05-23 11:28:17,235] {hxtool.py:734} INFO - Background Processor thread starting
-[2017-05-23 11:28:17,236] {hxtool.py:740} INFO - Thread monitor starting
-[2017-05-23 11:28:58,962] {hxtool.py:722} INFO - Application starting
-[2017-05-23 11:28:58,962] {hxtool.py:726} INFO - Reading configuration file conf.json
-[2017-05-23 11:28:58,963] {hxtool.py:733} INFO - Background Processor thread starting
-[2017-05-23 11:28:58,963] {hxtool.py:739} INFO - Thread monitor starting
-[2017-05-23 11:30:33,987] {hxtool.py:722} INFO - Application starting
-[2017-05-23 11:30:33,988] {hxtool.py:726} INFO - Reading configuration file conf.json
-[2017-05-23 11:30:33,988] {hxtool.py:733} INFO - Background Processor thread starting
-[2017-05-23 11:30:33,988] {hxtool.py:739} INFO - Thread monitor starting
-[2017-05-23 11:30:34,990] {hxtool.py:679} INFO - Thread monitor started
-[2017-05-23 11:31:53,855] {hxtool.py:722} INFO - Application starting
-[2017-05-23 11:31:53,855] {hxtool.py:726} INFO - Reading configuration file conf.json
-[2017-05-23 11:31:53,856] {hxtool.py:733} INFO - Background Processor thread starting
-[2017-05-23 11:31:53,856] {hxtool.py:739} INFO - Thread monitor starting
-[2017-05-23 11:31:54,858] {hxtool.py:662} INFO - Background processor thread started
-[2017-05-23 11:31:54,858] {hxtool.py:679} INFO - Thread monitor started
-[2017-05-23 11:34:25,892] {hxtool.py:722} INFO - Application starting
-[2017-05-23 11:34:25,893] {hxtool.py:726} INFO - Reading configuration file conf.json
-[2017-05-23 11:34:25,893] {hxtool.py:733} INFO - Background Processor thread starting
-[2017-05-23 11:34:25,893] {hxtool.py:739} INFO - Thread monitor starting
-[2017-05-23 11:34:26,895] {hxtool.py:679} INFO - Thread monitor started
-[2017-05-23 11:34:26,895] {hxtool.py:662} INFO - Background processor thread started
-[2017-05-23 11:34:37,219] {hxtool.py:595} INFO - Background Processing credentials unset profileid: 1 by user: apia
-[2017-05-23 11:34:43,787] {hxtool.py:591} INFO - Background Processing credentials set profileid: 1 by user: apia
-[2017-05-23 11:34:50,326] {hxtool.py:651} INFO - User logged out:apia
-[2017-05-23 11:35:01,496] {hxtool.py:621} INFO - Successful Authentication - profile: : 1 by user: apia
-[2017-05-23 11:35:01,559] {hxtool.py:46} INFO - User access: Dashboard
-[2017-05-23 11:36:20,028] {hxtool.py:722} INFO - Application starting
-[2017-05-23 11:36:20,028] {hxtool.py:726} INFO - Reading configuration file conf.json
-[2017-05-23 11:36:20,028] {hxtool.py:733} INFO - Background Processor thread starting
-[2017-05-23 11:36:20,029] {hxtool.py:739} INFO - Thread monitor starting
-[2017-05-23 11:36:21,030] {hxtool.py:662} INFO - Background processor thread started
-[2017-05-23 11:36:21,031] {hxtool.py:679} INFO - Thread monitor started
-[2017-05-23 11:36:22,944] {hxtool.py:46} INFO - User access: Dashboard - User: apia
-[2017-05-23 11:39:40,073] {hxtool.py:732} INFO - Application starting
-[2017-05-23 11:39:40,074] {hxtool.py:736} INFO - Reading configuration file conf.json
-[2017-05-23 11:39:40,074] {hxtool.py:743} INFO - Background Processor thread starting
-[2017-05-23 11:39:40,074] {hxtool.py:749} INFO - Thread monitor starting
-[2017-05-23 11:39:41,075] {hxtool.py:689} INFO - Thread monitor started
-[2017-05-23 11:39:41,075] {hxtool.py:672} INFO - Background processor thread started
-[2017-05-23 11:39:43,600] {hxtool.py:243} INFO - User access: Enterprise Search - User: apia
-[2017-05-23 11:39:57,696] {hxtool.py:243} INFO - User access: Enterprise Search - User: apia
-[2017-05-23 11:40:16,100] {hxtool.py:732} INFO - Application starting
-[2017-05-23 11:40:16,100] {hxtool.py:736} INFO - Reading configuration file conf.json
-[2017-05-23 11:40:16,101] {hxtool.py:743} INFO - Background Processor thread starting
-[2017-05-23 11:40:16,102] {hxtool.py:749} INFO - Thread monitor starting
-[2017-05-23 11:40:17,103] {hxtool.py:672} INFO - Background processor thread started
-[2017-05-23 11:40:17,104] {hxtool.py:689} INFO - Thread monitor started
-[2017-05-23 11:40:24,578] {hxtool.py:732} INFO - Application starting
-[2017-05-23 11:40:24,578] {hxtool.py:736} INFO - Reading configuration file conf.json
-[2017-05-23 11:40:24,578] {hxtool.py:743} INFO - Background Processor thread starting
-[2017-05-23 11:40:24,579] {hxtool.py:749} INFO - Thread monitor starting
-[2017-05-23 11:40:24,886] {hxtool.py:46} INFO - User access: Dashboard - User: apia
-[2017-05-23 11:40:25,580] {hxtool.py:672} INFO - Background processor thread started
-[2017-05-23 11:40:25,580] {hxtool.py:689} INFO - Thread monitor started
-[2017-05-23 11:40:57,568] {hxtool.py:243} INFO - User access: Enterprise Search - User: apia
-[2017-05-23 11:46:23,770] {hxtool.py:762} INFO - Application starting
-[2017-05-23 11:46:23,770] {hxtool.py:766} INFO - Reading configuration file conf.json
-[2017-05-23 11:46:23,771] {hxtool.py:773} INFO - Background Processor thread starting
-[2017-05-23 11:46:23,771] {hxtool.py:779} INFO - Thread monitor starting
-[2017-05-23 11:46:24,773] {hxtool.py:702} INFO - Background processor thread started
-[2017-05-23 11:46:24,773] {hxtool.py:719} INFO - Thread monitor started
-[2017-05-23 11:46:27,962] {hxtool.py:46} INFO - User access: Dashboard - User: apia
-[2017-05-23 11:46:31,240] {hxtool.py:168} INFO - User access: Jobs - User: apia
-[2017-05-23 11:46:32,110] {hxtool.py:189} INFO - User access: Alerts - User: apia
-[2017-05-23 11:46:35,994] {hxtool.py:243} INFO - User access: Enterprise Search - User: apia
-[2017-05-23 11:46:36,818] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia
-[2017-05-23 11:46:37,421] {hxtool.py:584} INFO - User access: Data stacking - User: apia
-[2017-05-23 11:46:38,843] {hxtool.py:301} INFO - User access: Build new indicator - User: apia
-[2017-05-23 11:46:40,450] {hxtool.py:349} INFO - User access: Manage indicators - User: apia
-[2017-05-23 11:46:41,802] {hxtool.py:424} INFO - User access: Indicator categories - User: apia
-[2017-05-23 11:47:17,262] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia
-[2017-05-23 11:47:19,130] {hxtool.py:168} INFO - User access: Jobs - User: apia
-[2017-05-23 11:47:20,187] {hxtool.py:189} INFO - User access: Alerts - User: apia
-[2017-05-23 11:47:22,372] {hxtool.py:243} INFO - User access: Enterprise Search - User: apia
-[2017-05-23 11:47:47,596] {hxtool.py:762} INFO - Application starting
-[2017-05-23 11:47:47,596] {hxtool.py:766} INFO - Reading configuration file conf.json
-[2017-05-23 11:47:47,597] {hxtool.py:773} INFO - Background Processor thread starting
-[2017-05-23 11:47:47,597] {hxtool.py:779} INFO - Thread monitor starting
-[2017-05-23 11:47:48,599] {hxtool.py:702} INFO - Background processor thread started
-[2017-05-23 11:47:48,599] {hxtool.py:719} INFO - Thread monitor started
-[2017-05-23 11:47:50,505] {hxtool.py:46} INFO - User access: Dashboard - User: apia@192.168.110.200
-[2017-05-23 11:51:15,353] {hxtool.py:762} INFO - Application starting
-[2017-05-23 11:51:15,353] {hxtool.py:766} INFO - Reading configuration file conf.json
-[2017-05-23 11:51:15,354] {hxtool.py:773} INFO - Background Processor thread starting
-[2017-05-23 11:51:15,354] {hxtool.py:779} INFO - Thread monitor starting
-[2017-05-23 11:51:16,355] {hxtool.py:702} INFO - Background processor thread started
-[2017-05-23 11:51:16,356] {hxtool.py:719} INFO - Thread monitor started
-[2017-05-23 11:51:19,262] {hxtool.py:46} INFO - User access: Dashboard - User: apia@192.168.110.200
-[2017-05-23 11:51:22,214] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:51:23,053] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:51:24,848] {hxtool.py:497} INFO - User access: Bulk acquisition details - User: apia@192.168.110.200
-[2017-05-23 11:51:26,337] {hxtool.py:513} INFO - User access: Bulk acquisition download - User: apia@192.168.110.200
-[2017-05-23 11:51:27,445] {hxtool.py:243} INFO - User access: Enterprise Search - User: apia@192.168.110.200
-[2017-05-23 11:51:28,777] {hxtool.py:266} INFO - User access: Display Enterprise Search results - User: apia@192.168.110.200
-[2017-05-23 11:51:29,768] {hxtool.py:189} INFO - User access: Alerts - User: apia@192.168.110.200
-[2017-05-23 11:51:53,925] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:51:55,738] {hxtool.py:349} INFO - User access: Manage indicators - User: apia@192.168.110.200
-[2017-05-23 11:51:57,079] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:51:57,857] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:51:58,690] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:51:58,826] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:51:59,444] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:52:00,630] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:52:01,156] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:52:01,746] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:52:02,783] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:52:03,596] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:52:07,383] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:52:08,572] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:52:12,890] {hxtool.py:424} INFO - User access: Indicator categories - User: apia@192.168.110.200
-[2017-05-23 11:52:15,871] {hxtool.py:635} INFO - Background Processing credentials unset profileid: 1 by user: apia@192.168.110.200
-[2017-05-23 11:52:22,044] {hxtool.py:631} INFO - Background Processing credentials set profileid: 1 by user: apia@192.168.110.200
-[2017-05-23 11:52:31,825] {hxtool.py:301} INFO - User access: Build new indicator - User: apia@192.168.110.200
-[2017-05-23 11:52:34,592] {hxtool.py:691} INFO - User logged out:apia@192.168.110.200
-[2017-05-23 11:52:53,839] {hxtool.py:673} INFO - New controller profile added
-[2017-05-23 11:53:05,621] {hxtool.py:661} INFO - Successful Authentication - User: apia@192.168.110.200
-[2017-05-23 11:53:05,683] {hxtool.py:46} INFO - User access: Dashboard - User: apia@192.168.110.200
-[2017-05-23 11:53:12,933] {hxtool.py:168} INFO - User access: Jobs - User: apia@192.168.110.200
-[2017-05-23 11:53:14,120] {hxtool.py:189} INFO - User access: Alerts - User: apia@192.168.110.200
-[2017-05-23 11:53:17,115] {hxtool.py:243} INFO - User access: Enterprise Search - User: apia@192.168.110.200
-[2017-05-23 11:53:20,075] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:53:22,275] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:25,293] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:29,020] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:43,429] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:44,304] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:45,000] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:45,610] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:46,225] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:46,972] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:47,448] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:47,927] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:48,805] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:49,855] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:50,518] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:52,611] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:53:54,238] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:53:56,091] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:53:58,914] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:12,535] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:13,295] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:13,829] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:14,411] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:15,155] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:15,718] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:16,221] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:17,337] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:18,204] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:18,785] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:20,296] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:21,049] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:21,598] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:22,091] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:22,594] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:31,061] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:31,719] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:32,423] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:54:34,476] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:35,648] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:54:36,647] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:39,580] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:54:49,892] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:51,313] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:54:52,230] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:54:55,160] {hxtool.py:301} INFO - User access: Build new indicator - User: apia@192.168.110.200
-[2017-05-23 11:54:57,190] {hxtool.py:349} INFO - User access: Manage indicators - User: apia@192.168.110.200
-[2017-05-23 11:54:58,624] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:54:58,759] {hxtool.py:405} INFO - User access: Display indicator condition - User: apia@192.168.110.200
-[2017-05-23 11:55:00,141] {hxtool.py:691} INFO - User logged out:apia@192.168.110.200
-[2017-05-23 11:55:04,681] {hxtool.py:661} INFO - Successful Authentication - User: apia@192.168.110.200
-[2017-05-23 11:55:04,763] {hxtool.py:46} INFO - User access: Dashboard - User: apia@192.168.110.200
-[2017-05-23 11:55:08,415] {hxtool.py:691} INFO - User logged out:apia@192.168.110.200
-[2017-05-23 11:55:16,910] {hxtool.py:661} INFO - Successful Authentication - User: apia@192.168.110.200
-[2017-05-23 11:55:16,973] {hxtool.py:46} INFO - User access: Dashboard - User: apia@192.168.110.200
-[2017-05-23 11:55:25,539] {hxtool.py:631} INFO - Background Processing credentials set profileid: 2 by user: apia@192.168.110.200
-[2017-05-23 11:55:32,530] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:55:48,317] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:55:49,076] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:55:50,557] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:55:52,682] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:55:53,752] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:55:59,464] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:56:01,954] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:03,988] {hxtool.py:611} INFO - User access: Stacking analyze results - User: apia@192.168.110.200
-[2017-05-23 11:56:06,147] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:25,079] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:30,321] {hxtool.py:691} INFO - User logged out:apia@192.168.110.200
-[2017-05-23 11:56:34,626] {hxtool.py:661} INFO - Successful Authentication - User: apia@192.168.110.200
-[2017-05-23 11:56:34,690] {hxtool.py:46} INFO - User access: Dashboard - User: apia@192.168.110.200
-[2017-05-23 11:56:37,534] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:39,269] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:56:42,927] {hxtool.py:691} INFO - User logged out:apia@192.168.110.200
-[2017-05-23 11:56:49,200] {hxtool.py:661} INFO - Successful Authentication - User: apia@192.168.110.200
-[2017-05-23 11:56:49,289] {hxtool.py:46} INFO - User access: Dashboard - User: apia@192.168.110.200
-[2017-05-23 11:56:51,434] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:53,157] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:53,226] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:54,211] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:54,283] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:55,197] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:55,262] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:56,490] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:56:56,550] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:57:03,730] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:57:05,006] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:57:07,455] {hxtool.py:243} INFO - User access: Enterprise Search - User: apia@192.168.110.200
-[2017-05-23 11:57:08,593] {hxtool.py:189} INFO - User access: Alerts - User: apia@192.168.110.200
-[2017-05-23 11:58:45,256] {hxtool.py:762} INFO - Application starting
-[2017-05-23 11:58:45,256] {hxtool.py:766} INFO - Reading configuration file conf.json
-[2017-05-23 11:58:45,257] {hxtool.py:773} INFO - Background Processor thread starting
-[2017-05-23 11:58:45,257] {hxtool.py:779} INFO - Thread monitor starting
-[2017-05-23 11:58:46,258] {hxtool.py:702} INFO - Background processor thread started
-[2017-05-23 11:58:46,260] {hxtool.py:719} INFO - Thread monitor started
-[2017-05-23 11:58:51,917] {hxtool.py:168} INFO - User access: Jobs - User: apia@192.168.110.200
-[2017-05-23 11:58:53,734] {hxtool.py:46} INFO - User access: Dashboard - User: apia@192.168.110.200
-[2017-05-23 11:58:59,458] {hxtool.py:189} INFO - User access: Alerts - User: apia@192.168.110.200
-[2017-05-23 11:59:07,210] {hxtool.py:762} INFO - Application starting
-[2017-05-23 11:59:07,211] {hxtool.py:766} INFO - Reading configuration file conf.json
-[2017-05-23 11:59:07,211] {hxtool.py:773} INFO - Background Processor thread starting
-[2017-05-23 11:59:07,211] {hxtool.py:779} INFO - Thread monitor starting
-[2017-05-23 11:59:07,482] {hxtool.py:243} INFO - User access: Enterprise Search - User: apia@192.168.110.200
-[2017-05-23 11:59:08,212] {hxtool.py:702} INFO - Background processor thread started
-[2017-05-23 11:59:08,213] {hxtool.py:719} INFO - Thread monitor started
-[2017-05-23 11:59:11,025] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 11:59:11,983] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:59:13,952] {hxtool.py:349} INFO - User access: Manage indicators - User: apia@192.168.110.200
-[2017-05-23 11:59:18,071] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 11:59:21,342] {hxtool.py:691} INFO - User logged out:apia@192.168.110.200
-[2017-05-23 11:59:25,582] {hxtool.py:661} INFO - Successful Authentication - User: apia@192.168.110.200
-[2017-05-23 11:59:25,646] {hxtool.py:46} INFO - User access: Dashboard - User: apia@192.168.110.200
-[2017-05-23 11:59:28,833] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:01:19,389] {hxtool.py:762} INFO - Application starting
-[2017-05-23 12:01:19,389] {hxtool.py:766} INFO - Reading configuration file conf.json
-[2017-05-23 12:01:19,390] {hxtool.py:773} INFO - Background Processor thread starting
-[2017-05-23 12:01:19,390] {hxtool.py:779} INFO - Thread monitor starting
-[2017-05-23 12:01:20,391] {hxtool.py:702} INFO - Background processor thread started
-[2017-05-23 12:01:20,392] {hxtool.py:719} INFO - Thread monitor started
-[2017-05-23 12:01:23,255] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:01:26,271] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:01:33,272] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:01:34,450] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:01:35,119] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:01:35,404] {hxtool.py:723} INFO - Background processor thread is not running, attempting to restart...
-[2017-05-23 12:05:37,829] {hxtool.py:762} INFO - Application starting
-[2017-05-23 12:05:37,829] {hxtool.py:766} INFO - Reading configuration file conf.json
-[2017-05-23 12:05:37,830] {hxtool.py:773} INFO - Background Processor thread starting
-[2017-05-23 12:05:37,830] {hxtool.py:779} INFO - Thread monitor starting
-[2017-05-23 12:05:38,831] {hxtool.py:702} INFO - Background processor thread started
-[2017-05-23 12:05:38,832] {hxtool.py:719} INFO - Thread monitor started
-[2017-05-23 12:05:38,832] {/opt/hx-hxTool/hxtool_process.py:67} INFO - Stacking: Starting bulk acquisition: services-md5
-[2017-05-23 12:08:58,780] {hxtool.py:762} INFO - Application starting
-[2017-05-23 12:08:58,780] {hxtool.py:766} INFO - Reading configuration file conf.json
-[2017-05-23 12:08:58,781] {hxtool.py:773} INFO - Background Processor thread starting
-[2017-05-23 12:08:58,781] {hxtool.py:779} INFO - Thread monitor starting
-[2017-05-23 12:08:59,782] {hxtool.py:702} INFO - Background processor thread started
-[2017-05-23 12:08:59,783] {hxtool.py:719} INFO - Thread monitor started
-[2017-05-23 12:09:16,867] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:09:18,787] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:09:20,110] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:09:21,067] {/opt/hx-hxTool/hxtool_process.py:67} INFO - Stacking Processor: Starting bulk acquisition - services-md5
-[2017-05-23 12:09:22,108] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:09:26,569] {/opt/hx-hxTool/hxtool_process.py:116} INFO - Stacking Processor: Bulk acquisition is running on the controller, update the state - RUNNING
-[2017-05-23 12:09:29,975] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:09:48,195] {/opt/hx-hxTool/hxtool_process.py:144} INFO - Stacking Processor: Found completed bulk acquisition - XAGENT24
-[2017-05-23 12:09:58,476] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:10:00,155] {hxtool.py:527} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:10:00,224] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:10:05,551] {/opt/hx-hxTool/hxtool_process.py:222} INFO - Bulk Downloader: Writing file - bulkdownload/HX1500V_63/XAGENT24_G8s3hSq0llebvGkUTILkzY.zip
-[2017-05-23 12:11:28,802] {hxtool.py:762} INFO - Application starting
-[2017-05-23 12:11:28,803] {hxtool.py:766} INFO - Reading configuration file conf.json
-[2017-05-23 12:11:28,803] {hxtool.py:773} INFO - Background Processor thread starting
-[2017-05-23 12:11:28,804] {hxtool.py:779} INFO - Thread monitor starting
-[2017-05-23 12:11:29,804] {hxtool.py:702} INFO - Background processor thread started
-[2017-05-23 12:11:29,805] {hxtool.py:719} INFO - Thread monitor started
-[2017-05-23 12:11:36,925] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:11:39,337] {hxtool.py:243} INFO - User access: Enterprise Search - User: apia@192.168.110.200
-[2017-05-23 12:11:40,091] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:11:41,940] {hxtool.py:527} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:11:42,011] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:11:43,509] {hxtool.py:527} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:11:43,600] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:11:53,725] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:11:56,439] {hxtool.py:527} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:11:56,502] {hxtool.py:476} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:11:58,237] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:12:00,406] {hxtool.py:584} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:12:02,908] {/opt/hx-hxTool/hxtool_process.py:66} INFO - Stacking Processor: Starting bulk acquisition - services-md5
-[2017-05-23 12:12:09,343] {/opt/hx-hxTool/hxtool_process.py:115} INFO - Stacking Processor: Bulk acquisition is running on the controller, update the state - RUNNING
-[2017-05-23 12:12:09,605] {/opt/hx-hxTool/hxtool_process.py:221} INFO - Bulk Downloader: Writing file - bulkdownload/HX1500V_64/XAGENT24_G8s3hSq0llebvGkUTILkzY.zip
-[2017-05-23 12:12:31,959] {/opt/hx-hxTool/hxtool_process.py:143} INFO - Stacking Processor: Found completed bulk acquisition - XAGENT24
-[2017-05-23 12:12:32,048] {/opt/hx-hxTool/hxtool_process.py:154} INFO - Stacking Processor: Completed post-processing - XAGENT24
-[2017-05-23 12:15:01,875] {MainThread:hxtool.py:762} INFO - Application starting
-[2017-05-23 12:15:01,875] {MainThread:hxtool.py:766} INFO - Reading configuration file conf.json
-[2017-05-23 12:15:01,876] {MainThread:hxtool.py:773} INFO - Background Processor thread starting
-[2017-05-23 12:15:01,876] {MainThread:hxtool.py:779} INFO - Thread monitor starting
-[2017-05-23 12:15:02,877] {Thread-1:hxtool.py:702} INFO - Background processor thread started
-[2017-05-23 12:15:02,878] {Thread-2:hxtool.py:719} INFO - Thread monitor started
-[2017-05-23 12:16:53,440] {MainThread} INFO - Application starting
-[2017-05-23 12:16:53,440] {MainThread} INFO - Reading configuration file conf.json
-[2017-05-23 12:16:53,440] {MainThread} INFO - Background Processor thread starting
-[2017-05-23 12:16:53,441] {MainThread} INFO - Thread monitor starting
-[2017-05-23 12:16:54,441] {Thread-1} INFO - Background processor thread started
-[2017-05-23 12:16:54,442] {Thread-2} INFO - Thread monitor started
-[2017-05-23 12:19:12,089] {MainThread} INFO - Application starting
-[2017-05-23 12:19:12,090] {MainThread} INFO - Reading configuration file conf.json
-[2017-05-23 12:19:12,090] {MainThread} INFO - Background Processor thread starting
-[2017-05-23 12:19:12,090] {MainThread} INFO - Thread monitor starting
-[2017-05-23 12:19:13,092] {BackgroundProcessor} INFO - Background processor thread started
-[2017-05-23 12:19:13,092] {Thread-1} INFO - Thread monitor started
-[2017-05-23 12:19:46,669] {MainThread} INFO - Application starting
-[2017-05-23 12:19:46,669] {MainThread} INFO - Reading configuration file conf.json
-[2017-05-23 12:19:46,670] {MainThread} INFO - Background Processor thread starting
-[2017-05-23 12:19:46,670] {MainThread} INFO - Thread monitor starting
-[2017-05-23 12:19:47,671] {BackgroundProcessor} INFO - Background processor thread started
-[2017-05-23 12:19:47,672] {ThreadMonitor} INFO - Thread monitor started
-[2017-05-23 12:20:06,476] {MainThread} INFO - User access: Enterprise Search - User: apia@192.168.110.200
-[2017-05-23 12:20:07,907] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:20:20,310] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:20:23,700] {MainThread} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:20:23,782] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:20:24,610] {MainThread} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:20:24,689] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:20:26,745] {MainThread} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:20:26,838] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:20:27,887] {MainThread} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:20:27,994] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:20:29,276] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:20:31,578] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:20:31,649] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:20:32,200] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:20:32,274] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:20:32,827] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:20:32,893] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:20:32,983] {BackgroundProcessor} INFO - Stacking Processor: Removing bulk acquisition - services-md5
-[2017-05-23 12:20:33,092] {BackgroundProcessor} INFO - Stacking Processor: Removing bulk acquisition - services-md5
-[2017-05-23 12:20:33,208] {BackgroundProcessor} INFO - Stacking Processor: Removing bulk acquisition - services-md5
-[2017-05-23 12:20:41,894] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:20:44,075] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:20:44,602] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:20:45,733] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:20:48,336] {BackgroundProcessor} INFO - Stacking Processor: Starting bulk acquisition - services-md5
-[2017-05-23 12:20:48,495] {BackgroundProcessor} INFO - Stacking Processor: Starting bulk acquisition - services-md5
-[2017-05-23 12:20:49,832] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:20:51,426] {MainThread} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:20:51,504] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:20:53,704] {BackgroundProcessor} INFO - Stacking Processor: Bulk acquisition is running on the controller, update the state - RUNNING
-[2017-05-23 12:20:53,803] {BackgroundProcessor} INFO - Stacking Processor: Bulk acquisition is running on the controller, update the state - RUNNING
-[2017-05-23 12:21:10,075] {BackgroundProcessor} INFO - Stacking Processor: Found completed bulk acquisition - XAGENT24
-[2017-05-23 12:21:10,155] {BackgroundProcessor} INFO - Stacking Processor: Completed post-processing - XAGENT24
-[2017-05-23 12:21:10,282] {BackgroundProcessor} INFO - Bulk Downloader: Writing file - bulkdownload/HX1500V_68/XAGENT24_G8s3hSq0llebvGkUTILkzY.zip
-[2017-05-23 12:21:15,547] {BackgroundProcessor} INFO - Stacking Processor: Found completed bulk acquisition - XAGENT24
-[2017-05-23 12:21:15,638] {BackgroundProcessor} INFO - Stacking Processor: Completed post-processing - XAGENT24
-[2017-05-23 12:22:07,875] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:22:10,938] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:22:11,001] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:22:11,870] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:22:11,945] {MainThread} INFO - User access: Data stacking - User: apia@192.168.110.200
-[2017-05-23 12:22:13,435] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:22:15,159] {BackgroundProcessor} INFO - Stacking Processor: Removing bulk acquisition - services-md5
-[2017-05-23 12:22:15,302] {BackgroundProcessor} INFO - Stacking Processor: Removing bulk acquisition - services-md5
-[2017-05-23 12:22:15,466] {MainThread} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:22:15,550] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:22:20,175] {MainThread} INFO - User access: Bulk acquisition action - User: apia@192.168.110.200
-[2017-05-23 12:22:20,270] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:22:22,035] {MainThread} INFO - User access: Bulk acquisitions - User: apia@192.168.110.200
-[2017-05-23 12:33:34,371] {MainThread} INFO - Application starting
-[2017-05-23 12:33:34,372] {MainThread} INFO - Reading configuration file conf.json
-[2017-05-23 12:33:34,372] {MainThread} INFO - Background Processor thread starting
-[2017-05-23 12:33:34,372] {MainThread} INFO - Thread monitor starting
-[2017-05-23 12:33:35,373] {BackgroundProcessor} INFO - Background processor thread started
-[2017-05-23 12:33:35,374] {ThreadMonitor} INFO - Thread monitor started
-[2017-05-23 12:33:49,498] {MainThread} INFO - New annotation - User: apia@192.168.110.200
-[2017-05-23 12:34:01,628] {MainThread} INFO - New Enterprise Search - User: apia@192.168.110.200
-[2017-05-23 12:34:14,322] {MainThread} INFO - New bulk acquisition - User: apia@192.168.110.200
-[2017-05-23 12:34:22,449] {MainThread} INFO - Bulk acquisition download - User: apia@192.168.110.200
-[2017-05-23 12:34:29,194] {MainThread} INFO - New data stacking job - User: apia@192.168.110.200
-[2017-05-23 12:34:30,425] {BackgroundProcessor} INFO - Stacking: Starting bulk acquisition - services-md5
-[2017-05-23 12:34:35,640] {BackgroundProcessor} INFO - Stacking: Bulk acquisition is running on the controller, update the state - RUNNING
-[2017-05-23 12:34:35,795] {MainThread} INFO - Bulk acquisition action DOWNLOAD - User: apia@192.168.110.200
-[2017-05-23 12:34:40,904] {BackgroundProcessor} INFO - Bulk Downloader: Writing file - bulkdownload/HX1500V_70/XAGENT24_G8s3hSq0llebvGkUTILkzY.zip
-[2017-05-23 12:34:51,286] {BackgroundProcessor} INFO - Stacking: Found completed bulk acquisition - XAGENT24
-[2017-05-23 12:34:51,381] {BackgroundProcessor} INFO - Stacking: Completed post-processing - XAGENT24
-[2017-05-23 12:34:59,963] {MainThread} INFO - New indicator created - User: apia@192.168.110.200
-[2017-05-23 12:35:10,418] {MainThread} INFO - Indicator(s) exported - User: apia@192.168.110.200
-[2017-05-23 12:35:23,002] {MainThread} INFO - New indicator imported - User: apia@192.168.110.200
-[2017-05-23 12:35:39,023] {MainThread} INFO - New indicator category created - User: apia@192.168.110.200
+[2017-05-24 10:38:20,156] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-24 10:38:20,157] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-24 10:38:32,880] {Thread-11} INFO - New Enterprise Search - User: apia@192.168.110.200
+[2017-05-24 10:40:28,025] {Thread-15} INFO - New Enterprise Search - User: apia@192.168.110.200
+[2017-05-24 10:44:35,917] {Thread-19} INFO - New Enterprise Search - User: apia@192.168.110.200
+[2017-05-24 10:45:11,656] {MainThread} INFO - Application starting
+[2017-05-24 10:45:11,656] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-24 10:45:11,657] {MainThread} INFO - Background Processor thread starting
+[2017-05-24 10:45:11,657] {MainThread} INFO - Thread monitor starting
+[2017-05-24 10:45:12,658] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-24 10:45:12,660] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-24 10:45:17,397] {Thread-2} INFO - New Enterprise Search - User: apia@192.168.110.200
+[2017-05-24 10:48:17,094] {Thread-38} ERROR - Exception on /searchresult [GET]
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1988, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1641, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1544, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1639, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1625, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "hxtool.py", line 268, in searchresult
+    res = formatSearchResults(hostresults)
+  File "/opt/hx-hxTool/hxtool_formatting.py", line 116, in formatSearchResults
+    for entry in hostresults['data']['entries']:
+TypeError: 'NoneType' object has no attribute '__getitem__'
+[2017-05-24 11:04:15,589] {Thread-53} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-24 11:13:08,507] {MainThread} INFO - Application starting
+[2017-05-24 11:13:08,507] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-24 11:13:08,507] {MainThread} INFO - Background Processor thread starting
+[2017-05-24 11:13:08,507] {MainThread} INFO - Thread monitor starting
+[2017-05-24 11:13:09,508] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-24 11:13:09,508] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-24 11:58:36,479] {Thread-96} INFO - User logged out:apia@192.168.110.200
+[2017-05-24 14:47:18,598] {ThreadMonitor} INFO - Background processor thread is not running, attempting to restart...
+[2017-05-24 15:20:11,036] {Thread-104} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-24 15:21:23,235] {MainThread} INFO - Application starting
+[2017-05-24 15:21:23,235] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-24 15:21:23,236] {MainThread} INFO - Background Processor thread starting
+[2017-05-24 15:21:23,236] {MainThread} INFO - Thread monitor starting
+[2017-05-24 15:21:24,237] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-24 15:21:24,237] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-24 15:23:15,180] {Thread-20} INFO - New bulk acquisition - User: apia@192.168.110.200
+[2017-05-24 15:23:16,881] {Thread-24} INFO - Bulk acquisition action DOWNLOAD - User: apia@192.168.110.200
+[2017-05-24 15:23:44,139] {BackgroundProcessor} INFO - Bulk Downloader: Writing file - bulkdownload/HX1500V_82/XAGENT24_G8s3hSq0llebvGkUTILkzY.zip
+[2017-05-24 15:23:44,243] {BackgroundProcessor} INFO - Bulk Downloader: Writing file - bulkdownload/HX1500V_82/WIN-XAGENT3_GJ2gPRleoPjcUXLc78jpKq.zip
+[2017-05-24 15:24:24,390] {Thread-74} INFO - Indicator(s) exported - User: apia@192.168.110.200
+[2017-05-24 15:25:33,946] {Thread-88} INFO - New data stacking job - User: apia@192.168.110.200
+[2017-05-24 15:25:38,871] {BackgroundProcessor} INFO - Stacking: Starting bulk acquisition - services-md5
+[2017-05-24 15:25:44,679] {BackgroundProcessor} INFO - Stacking: Bulk acquisition is running on the controller, update the state - RUNNING
+[2017-05-24 15:26:14,284] {BackgroundProcessor} INFO - Stacking: Found completed bulk acquisition - XAGENT24
+[2017-05-24 15:26:14,380] {BackgroundProcessor} INFO - Stacking: Completed post-processing - XAGENT24
+[2017-05-24 15:26:20,321] {BackgroundProcessor} INFO - Stacking: Found completed bulk acquisition - WIN-XAGENT3
+[2017-05-24 15:26:20,404] {BackgroundProcessor} INFO - Stacking: Completed post-processing - WIN-XAGENT3
+[2017-05-24 15:53:40,743] {ThreadMonitor} INFO - Background processor thread is not running, attempting to restart...
+[2017-05-24 16:22:05,542] {Thread-126} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-24 16:22:43,969] {MainThread} INFO - Application starting
+[2017-05-24 16:22:43,969] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-24 16:22:43,970] {MainThread} INFO - Background Processor thread starting
+[2017-05-24 16:22:43,971] {MainThread} INFO - Thread monitor starting
+[2017-05-24 16:22:44,971] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-24 16:22:44,972] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-24 16:23:24,810] {MainThread} INFO - Application starting
+[2017-05-24 16:23:24,810] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-24 16:23:24,810] {MainThread} INFO - Background Processor thread starting
+[2017-05-24 16:23:24,810] {MainThread} INFO - Thread monitor starting
+[2017-05-24 16:23:25,812] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-24 16:23:25,812] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-24 16:24:00,275] {MainThread} INFO - Application starting
+[2017-05-24 16:24:00,275] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-24 16:24:00,276] {MainThread} INFO - Background Processor thread starting
+[2017-05-24 16:24:00,276] {MainThread} INFO - Thread monitor starting
+[2017-05-24 16:24:01,277] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-24 16:24:01,278] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-24 16:25:35,802] {Thread-24} INFO - User logged out:apia@192.168.110.200
+[2017-05-24 16:40:20,585] {MainThread} INFO - Application starting
+[2017-05-24 16:40:20,585] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-24 16:40:20,586] {MainThread} INFO - Background Processor thread starting
+[2017-05-24 16:40:20,586] {MainThread} INFO - Thread monitor starting
+[2017-05-24 16:40:21,587] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-24 16:40:21,587] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-24 16:46:22,800] {MainThread} INFO - Application starting
+[2017-05-24 16:46:22,800] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-24 16:46:22,800] {MainThread} INFO - Background Processor thread starting
+[2017-05-24 16:46:22,801] {MainThread} INFO - Thread monitor starting
+[2017-05-24 16:46:23,802] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-24 16:46:23,802] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-24 16:46:28,950] {Thread-9} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-24 16:49:10,519] {Thread-45} INFO - New annotation - User: apia@192.168.110.200
+[2017-05-24 16:49:28,030] {Thread-49} INFO - New annotation - User: apia@192.168.110.200
+[2017-05-24 16:49:40,013] {Thread-53} ERROR - Exception on /annotatedisplay [GET]
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1988, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1641, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1544, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1639, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1625, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "hxtool.py", line 226, in annotatedisplay
+    an = sqlGetAnnotations(c, conn, request.args.get('alertid'), session['ht_profileid'])
+  File "/opt/hx-hxTool/hxtool_db.py", line 105, in sqlGetAnnotations
+    c.execute("SELECT annotation.text, annotation.state, annotation.ctime, annotation.cuser from annotation, alerts where alerts.id = annotation.alertid and alerts.hxalertid = ? and alerts.profileid = ?", (alertid, profileid))
+ProgrammingError: SQLite objects created in a thread can only be used in that same thread.The object was created in thread id 139990184740672 and this is thread id 139990029825792
+[2017-05-24 16:49:42,881] {Thread-55} ERROR - Exception on /annotatedisplay [GET]
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1988, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1641, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1544, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1639, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1625, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "hxtool.py", line 226, in annotatedisplay
+    an = sqlGetAnnotations(c, conn, request.args.get('alertid'), session['ht_profileid'])
+  File "/opt/hx-hxTool/hxtool_db.py", line 105, in sqlGetAnnotations
+    c.execute("SELECT annotation.text, annotation.state, annotation.ctime, annotation.cuser from annotation, alerts where alerts.id = annotation.alertid and alerts.hxalertid = ? and alerts.profileid = ?", (alertid, profileid))
+ProgrammingError: SQLite objects created in a thread can only be used in that same thread.The object was created in thread id 139990184740672 and this is thread id 139990029825792
+[2017-05-24 16:49:45,540] {Thread-57} ERROR - Exception on /annotatedisplay [GET]
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1988, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1641, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1544, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1639, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1625, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "hxtool.py", line 226, in annotatedisplay
+    an = sqlGetAnnotations(c, conn, request.args.get('alertid'), session['ht_profileid'])
+  File "/opt/hx-hxTool/hxtool_db.py", line 105, in sqlGetAnnotations
+    c.execute("SELECT annotation.text, annotation.state, annotation.ctime, annotation.cuser from annotation, alerts where alerts.id = annotation.alertid and alerts.hxalertid = ? and alerts.profileid = ?", (alertid, profileid))
+ProgrammingError: SQLite objects created in a thread can only be used in that same thread.The object was created in thread id 139990184740672 and this is thread id 139990029825792
+[2017-05-24 16:49:48,137] {Thread-59} ERROR - Exception on /annotatedisplay [GET]
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1988, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1641, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1544, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1639, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1625, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "hxtool.py", line 226, in annotatedisplay
+    an = sqlGetAnnotations(c, conn, request.args.get('alertid'), session['ht_profileid'])
+  File "/opt/hx-hxTool/hxtool_db.py", line 105, in sqlGetAnnotations
+    c.execute("SELECT annotation.text, annotation.state, annotation.ctime, annotation.cuser from annotation, alerts where alerts.id = annotation.alertid and alerts.hxalertid = ? and alerts.profileid = ?", (alertid, profileid))
+ProgrammingError: SQLite objects created in a thread can only be used in that same thread.The object was created in thread id 139990184740672 and this is thread id 139990029825792
+[2017-05-24 16:52:38,405] {Thread-87} INFO - New Enterprise Search - User: apia@192.168.110.200
+[2017-05-24 16:52:46,424] {Thread-91} ERROR - Exception on /searchresult [GET]
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1988, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1641, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1544, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1639, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1625, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "hxtool.py", line 266, in searchresult
+    hostresults = restGetSearchResults(session['ht_token'], request.args.get('id'), session['ht_ip'], '3000')
+  File "/opt/hx-hxTool/hx_lib.py", line 776, in restGetSearchResults
+    r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+  File "/usr/lib/python2.7/json/__init__.py", line 338, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python2.7/json/decoder.py", line 366, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python2.7/json/decoder.py", line 384, in raw_decode
+    raise ValueError("No JSON object could be decoded")
+ValueError: No JSON object could be decoded
+[2017-05-24 16:57:29,264] {Thread-132} INFO - New bulk acquisition - User: apia@192.168.110.200
+[2017-05-24 16:57:33,322] {Thread-136} INFO - Bulk acquisition action DOWNLOAD - User: apia@192.168.110.200
+[2017-05-24 16:58:02,587] {BackgroundProcessor} INFO - Bulk Downloader: Writing file - bulkdownload/HX1500V_85/XAGENT24_G8s3hSq0llebvGkUTILkzY.zip
+[2017-05-24 16:58:02,701] {BackgroundProcessor} INFO - Bulk Downloader: Writing file - bulkdownload/HX1500V_85/WIN-XAGENT3_GJ2gPRleoPjcUXLc78jpKq.zip
+[2017-05-24 16:58:38,995] {Thread-154} INFO - Bulk acquisition download - User: apia@192.168.110.200
+[2017-05-24 17:00:06,793] {Thread-164} INFO - Bulk acquisition download - User: apia@192.168.110.200
+[2017-05-24 17:02:38,268] {Thread-174} INFO - Bulk acquisition download - User: apia@192.168.110.200
+[2017-05-24 17:04:00,615] {Thread-180} INFO - New data stacking job - User: apia@192.168.110.200
+[2017-05-24 17:04:05,697] {BackgroundProcessor} INFO - Stacking: Starting bulk acquisition - services-md5
+[2017-05-24 17:04:11,795] {BackgroundProcessor} INFO - Stacking: Bulk acquisition is running on the controller, update the state - RUNNING
+[2017-05-24 17:04:24,184] {BackgroundProcessor} INFO - Stacking: Found completed bulk acquisition - XAGENT24
+[2017-05-24 17:04:24,290] {BackgroundProcessor} INFO - Stacking: Completed post-processing - XAGENT24
+[2017-05-24 17:04:24,291] {BackgroundProcessor} INFO - Stacking: Found completed bulk acquisition - WIN-XAGENT3
+[2017-05-24 17:04:24,391] {BackgroundProcessor} INFO - Stacking: Completed post-processing - WIN-XAGENT3
+[2017-05-24 17:09:03,968] {Thread-216} INFO - New indicator created - User: apia@192.168.110.200
+[2017-05-24 17:09:51,759] {Thread-230} INFO - Indicator(s) exported - User: apia@192.168.110.200
+[2017-05-24 17:10:02,240] {Thread-238} INFO - Indicator(s) exported - User: apia@192.168.110.200
+[2017-05-24 17:12:02,229] {Thread-252} INFO - Background Processing credentials unset profileid: 1 by user: apia@192.168.110.200
+[2017-05-24 17:12:14,484] {Thread-258} INFO - Background Processing credentials set profileid: 1 by user: apia@192.168.110.200
+[2017-05-24 23:08:54,840] {ThreadMonitor} INFO - Background processor thread is not running, attempting to restart...
+[2017-05-25 09:23:36,907] {Thread-276} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-25 09:28:29,512] {Thread-300} INFO - New data stacking job - User: apia@192.168.110.200
+[2017-05-25 09:29:28,568] {MainThread} INFO - Application starting
+[2017-05-25 09:29:28,569] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-25 09:29:28,569] {MainThread} INFO - Background Processor thread starting
+[2017-05-25 09:29:28,569] {MainThread} INFO - Thread monitor starting
+[2017-05-25 09:29:29,570] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-25 09:29:29,571] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-25 09:29:30,209] {BackgroundProcessor} INFO - Stacking: Starting bulk acquisition - services-md5
+[2017-05-25 09:29:36,771] {BackgroundProcessor} INFO - Stacking: Bulk acquisition is running on the controller, update the state - RUNNING
+[2017-05-25 09:29:56,123] {BackgroundProcessor} INFO - Stacking: Found completed bulk acquisition - XAGENT24
+[2017-05-25 09:29:56,233] {BackgroundProcessor} INFO - Stacking: Completed post-processing - XAGENT24
+[2017-05-25 09:30:09,413] {BackgroundProcessor} INFO - Stacking: Found completed bulk acquisition - WIN-XAGENT3
+[2017-05-25 09:30:09,519] {BackgroundProcessor} INFO - Stacking: Completed post-processing - WIN-XAGENT3
+[2017-05-25 09:33:28,091] {MainThread} INFO - Application starting
+[2017-05-25 09:33:28,092] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-25 09:33:28,092] {MainThread} INFO - Background Processor thread starting
+[2017-05-25 09:33:28,092] {MainThread} INFO - Thread monitor starting
+[2017-05-25 09:33:29,094] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-25 09:33:29,094] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-25 09:42:50,917] {MainThread} INFO - Application starting
+[2017-05-25 09:42:50,917] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-25 09:42:50,918] {MainThread} INFO - Background Processor thread starting
+[2017-05-25 09:42:50,918] {MainThread} INFO - Thread monitor starting
+[2017-05-25 09:42:51,918] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-25 09:42:51,919] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-25 10:01:33,006] {MainThread} INFO - Application starting
+[2017-05-25 10:01:33,006] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-25 10:01:33,007] {MainThread} INFO - Background Processor thread starting
+[2017-05-25 10:01:33,007] {MainThread} INFO - Thread monitor starting
+[2017-05-25 10:01:34,008] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-25 10:01:34,009] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-25 10:03:02,821] {MainThread} INFO - Application starting
+[2017-05-25 10:03:02,821] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-25 10:03:02,821] {MainThread} INFO - Background Processor thread starting
+[2017-05-25 10:03:02,822] {MainThread} INFO - Thread monitor starting
+[2017-05-25 10:03:03,823] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-25 10:03:03,823] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-25 10:17:01,191] {Thread-8} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-25 12:17:09,340] {Thread-80} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-25 16:51:44,525] {MainThread} INFO - Application starting
+[2017-05-25 16:51:44,525] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-25 16:51:44,526] {MainThread} INFO - Background Processor thread starting
+[2017-05-25 16:51:44,530] {MainThread} INFO - Thread monitor starting
+[2017-05-25 16:51:45,527] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-25 16:51:45,531] {ThreadMonitor} INFO - Thread monitor started
+[2017-05-26 08:30:58,354] {Thread-12} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-26 08:31:09,866] {Thread-36} INFO - Bulk acquisition action REMOVE - User: apia@192.168.110.200
+[2017-05-26 08:31:14,009] {Thread-46} INFO - Data stacking action REMOVE - User: apia@192.168.110.200
+[2017-05-26 08:31:14,640] {Thread-52} INFO - Data stacking action REMOVE - User: apia@192.168.110.200
+[2017-05-26 08:31:15,307] {BackgroundProcessor} INFO - Stacking: Removing bulk acquisition - services-md5
+[2017-05-26 08:31:15,531] {BackgroundProcessor} INFO - Stacking: Removing bulk acquisition - services-md5
+[2017-05-26 08:31:15,962] {Thread-58} INFO - Data stacking action REMOVE - User: apia@192.168.110.200
+[2017-05-26 08:31:21,727] {BackgroundProcessor} INFO - Stacking: Removing bulk acquisition - services-md5
+[2017-05-26 08:32:47,399] {Thread-80} INFO - Data stacking action REMOVE - User: apia@192.168.110.200
+[2017-05-26 08:32:52,848] {BackgroundProcessor} INFO - Stacking: Removing bulk acquisition - services-md5
+[2017-05-26 08:43:30,274] {MainThread} INFO - Application starting
+[2017-05-26 08:43:30,274] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:43:30,274] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:43:30,275] {MainThread} INFO - Background Processor thread starting
+[2017-05-26 08:43:31,276] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-26 08:44:13,878] {MainThread} INFO - Application starting
+[2017-05-26 08:44:13,878] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:44:13,879] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:44:13,879] {MainThread} INFO - Background Processor thread starting
+[2017-05-26 08:44:14,881] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-26 08:45:13,554] {MainThread} INFO - Application starting
+[2017-05-26 08:45:13,554] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:45:13,554] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:46:25,152] {MainThread} INFO - Application starting
+[2017-05-26 08:46:25,153] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:46:25,153] {MainThread} INFO - Configuration file is OK conf.json
+[2017-05-26 08:46:25,153] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:46:25,153] {MainThread} INFO - Background Processor thread starting
+[2017-05-26 08:46:26,155] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-26 08:47:47,596] {MainThread} INFO - Application starting
+[2017-05-26 08:47:47,596] {MainThread} INFO - Checking configuration file conf.json
+[2017-05-26 08:47:47,596] {MainThread} INFO - Configuration file is OK conf.json
+[2017-05-26 08:47:47,596] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:47:47,597] {MainThread} INFO - Background Processor thread starting
+[2017-05-26 08:47:48,598] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-26 08:48:31,841] {MainThread} INFO - Application starting
+[2017-05-26 08:48:31,842] {MainThread} INFO - Checking configuration file conf.json
+[2017-05-26 08:48:31,842] {MainThread} INFO - Configuration file is OK conf.json
+[2017-05-26 08:48:31,842] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:48:31,842] {MainThread} INFO - Background Processor thread starting
+[2017-05-26 08:48:32,843] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-26 08:48:32,844] {BackgroundProcessor} INFO - Checking configuration file conf.json
+[2017-05-26 08:48:32,844] {BackgroundProcessor} INFO - Configuration file is OK conf.json
+[2017-05-26 08:48:32,844] {BackgroundProcessor} INFO - Reading configuration file conf.json
+[2017-05-26 08:50:52,066] {MainThread} INFO - Application starting
+[2017-05-26 08:50:52,066] {MainThread} INFO - Checking configuration file conf.json
+[2017-05-26 08:50:52,066] {MainThread} INFO - Configuration file is OK conf.json
+[2017-05-26 08:50:52,067] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:50:52,067] {MainThread} INFO - Background Processor thread starting
+[2017-05-26 08:50:53,069] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-26 08:50:53,069] {BackgroundProcessor} INFO - Checking configuration file conf.json
+[2017-05-26 08:50:53,069] {BackgroundProcessor} INFO - Configuration file is OK conf.json
+[2017-05-26 08:50:53,069] {BackgroundProcessor} INFO - Reading configuration file conf.json
+[2017-05-26 08:51:22,420] {MainThread} INFO - Application starting
+[2017-05-26 08:51:22,421] {MainThread} INFO - Checking configuration file conf.json
+[2017-05-26 08:51:22,421] {MainThread} INFO - Configuration file is OK conf.json
+[2017-05-26 08:51:22,421] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:51:22,422] {MainThread} INFO - Background Processor thread starting
+[2017-05-26 08:51:23,423] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-26 08:51:23,423] {BackgroundProcessor} INFO - Checking configuration file conf.json
+[2017-05-26 08:51:23,424] {BackgroundProcessor} INFO - Configuration file is OK conf.json
+[2017-05-26 08:51:23,424] {BackgroundProcessor} INFO - Reading configuration file conf.json
+[2017-05-26 08:51:53,558] {MainThread} INFO - Application starting
+[2017-05-26 08:51:53,558] {MainThread} INFO - Checking configuration file conf.json
+[2017-05-26 08:51:53,558] {MainThread} INFO - Configuration file is OK conf.json
+[2017-05-26 08:51:53,558] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 08:51:53,559] {MainThread} INFO - Background Processor thread starting
+[2017-05-26 08:51:54,560] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-26 08:51:54,561] {BackgroundProcessor} INFO - Checking configuration file conf.json
+[2017-05-26 08:51:54,561] {BackgroundProcessor} INFO - Configuration file is OK conf.json
+[2017-05-26 08:51:54,561] {BackgroundProcessor} INFO - Reading configuration file conf.json
+[2017-05-26 08:55:30,533] {Thread-41} INFO - User logged out:apia@192.168.110.200
+[2017-05-26 09:11:55,217] {MainThread} INFO - Application starting
+[2017-05-26 09:11:55,218] {MainThread} INFO - Checking configuration file conf.json
+[2017-05-26 09:11:55,218] {MainThread} INFO - Configuration file is OK conf.json
+[2017-05-26 09:11:55,218] {MainThread} INFO - Reading configuration file conf.json
+[2017-05-26 09:11:55,219] {MainThread} INFO - Background Processor thread starting
+[2017-05-26 09:11:56,220] {BackgroundProcessor} INFO - Background processor thread started
+[2017-05-26 09:11:56,220] {BackgroundProcessor} INFO - Checking configuration file conf.json
+[2017-05-26 09:11:56,221] {BackgroundProcessor} INFO - Configuration file is OK conf.json
+[2017-05-26 09:11:56,221] {BackgroundProcessor} INFO - Reading configuration file conf.json
+[2017-05-26 09:14:01,097] {Thread-2} INFO - New controller profile added
+[2017-05-26 09:15:24,278] {Thread-6} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-26 09:20:31,071] {Thread-32} INFO - New annotation - User: apia@192.168.110.200
+[2017-05-26 09:20:48,976] {Thread-52} INFO - New annotation - User: apia@192.168.110.200
+[2017-05-26 09:23:36,710] {Thread-62} INFO - New Enterprise Search - User: apia@192.168.110.200
+[2017-05-26 09:27:36,357] {Thread-74} INFO - New bulk acquisition - User: apia@192.168.110.200
+[2017-05-26 09:28:53,872] {Thread-90} INFO - Bulk acquisition download - User: apia@192.168.110.200
+[2017-05-26 09:29:15,458] {Thread-96} INFO - Bulk acquisition action DOWNLOAD - User: apia@192.168.110.200
+[2017-05-26 09:29:18,636] {BackgroundProcessor} INFO - Bulk Downloader: Writing file - bulkdownload/HX1500V_91/XAGENT24_G8s3hSq0llebvGkUTILkzY.zip
+[2017-05-26 09:29:18,755] {BackgroundProcessor} INFO - Bulk Downloader: Writing file - bulkdownload/HX1500V_91/WIN-XAGENT3_GJ2gPRleoPjcUXLc78jpKq.zip
+[2017-05-26 09:30:45,510] {Thread-106} INFO - Bulk acquisition action STOP DOWNLOAD - User: apia@192.168.110.200
+[2017-05-26 09:30:58,955] {Thread-112} INFO - Bulk acquisition action STOP - User: apia@192.168.110.200
+[2017-05-26 09:31:16,773] {Thread-118} INFO - Bulk acquisition action REMOVE - User: apia@192.168.110.200
+[2017-05-26 09:33:34,136] {Thread-128} INFO - New data stacking job - User: apia@192.168.110.200
+[2017-05-26 09:33:36,995] {BackgroundProcessor} INFO - Stacking: Starting bulk acquisition - services-md5
+[2017-05-26 09:33:43,016] {BackgroundProcessor} INFO - Stacking: Bulk acquisition is running on the controller, update the state - RUNNING
+[2017-05-26 09:34:13,573] {BackgroundProcessor} INFO - Stacking: Found completed bulk acquisition - WIN-XAGENT3
+[2017-05-26 09:34:13,665] {BackgroundProcessor} INFO - Stacking: Completed post-processing - WIN-XAGENT3
+[2017-05-26 09:34:19,603] {BackgroundProcessor} INFO - Stacking: Found completed bulk acquisition - XAGENT24
+[2017-05-26 09:34:19,709] {BackgroundProcessor} INFO - Stacking: Completed post-processing - XAGENT24
+[2017-05-26 09:38:19,054] {Thread-164} INFO - Background Processing credentials unset profileid: 1 by user: apia@192.168.110.200
+[2017-05-26 09:38:35,737] {Thread-170} INFO - Background Processing credentials set profileid: 1 by user: apia@192.168.110.200
+[2017-05-26 09:40:51,899] {Thread-198} INFO - Indicator(s) exported - User: apia@192.168.110.200
+[2017-05-26 09:41:50,033] {Thread-206} INFO - Indicator(s) exported - User: apia@192.168.110.200
+[2017-05-26 09:42:48,704] {Thread-212} INFO - New indicator category created - User: apia@192.168.110.200
+[2017-05-26 09:45:33,134] {Thread-220} INFO - New indicator created - User: apia@192.168.110.200
+[2017-05-26 10:18:24,075] {Thread-236} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-26 10:18:48,404] {Thread-246} INFO - New indicator created - User: apia@192.168.110.200
+[2017-05-26 10:18:49,046] {Thread-246} ERROR - Exception on /buildioc [POST]
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1988, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1641, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1544, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1639, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/usr/local/lib/python2.7/dist-packages/flask/app.py", line 1625, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "hxtool.py", line 330, in buildioc
+    res = restAddCondition(iocuri, "execution", data, request.form['cats'], session['ht_token'], session['ht_ip'], '3000')
+  File "/opt/hx-hxTool/hx_lib.py", line 235, in restAddCondition
+    return(res)
+UnboundLocalError: local variable 'res' referenced before assignment
+[2017-05-26 10:24:27,243] {Thread-276} INFO - Bulk acquisition download - User: apia@192.168.110.200
+[2017-05-26 10:47:55,872] {Thread-284} INFO - Successful Authentication - User: apia@192.168.110.200
+[2017-05-26 11:18:42,891] {Thread-342} INFO - Background Processing credentials unset profileid: 1 by user: apia@192.168.110.200
+[2017-05-26 11:19:06,012] {Thread-348} INFO - Background Processing credentials set profileid: 1 by user: apia@192.168.110.200
+[2017-05-26 11:47:06,097] {Thread-358} INFO - Successful Authentication - User: apia@192.168.110.200

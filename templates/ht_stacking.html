@@ -27,17 +27,19 @@
         <div class='tableTitle'>
                 Data Stacking
         </div>
+		
 	<div class='inputArea'>
+		Stack type: 
 	        <select name='stacktype' id='stacktype'>
-				<option value='services-md5'>Services MD5
+				<option value='services-md5'>Microsoft Windows: Services MD5
 			</select>
 		Host set: 
 		<select name='stackhostset' id='stackhostset'>
 			{% if hostsets %} {{ hostsets|safe }} {% endif %}
 		</select>
 		<br>
-		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>This feature allows you to acquire artifacts from all the endpoints of a host set and do frequency analysis on captured data to find potential deviations among your endpoints</div>
-		<br>
+		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>This feature allows you to acquire artifacts from all the endpoints of a host set and do frequency analysis on captured data to find potential deviations among your endpoints.<br>This feature is not available unless you have set the background processing credentials on the "<a href='/settings'>settings</a>" page.<br><br><b>Please Note:</b> This initial release of stacking only supports Microsoft Windows platforms, make sure your host-set does not contain any MacOS or Linux endpoints.</div>
+		
 	        <input type='submit' value='Start stacking data'>
 	</div>
 </form>

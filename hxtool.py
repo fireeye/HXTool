@@ -162,7 +162,10 @@ def index():
 @app.route('/jobdash', methods=['GET', 'POST'])
 def jobdash():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-		
+
+		conn = sqlite3.connect('hxtool.db')
+		c = conn.cursor()
+	
 		blk = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
 		jobsBulk = formatBulkTableJobDash(c, conn, blk, session['ht_profileid'])
 
@@ -181,7 +184,10 @@ def jobdash():
 @app.route('/alerts', methods=['GET', 'POST'])
 def alerts():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
-		
+	
+		conn = sqlite3.connect('hxtool.db')
+		c = conn.cursor()
+			
 		if request.method == "POST":
 			# We have a new annotation
 			if 'annotateText' in request.form:
@@ -215,6 +221,9 @@ def alerts():
 @app.route('/annotatedisplay', methods=['GET'])
 def annotatedisplay():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+		
+		conn = sqlite3.connect('hxtool.db')
+		c = conn.cursor()
 		
 		if 'alertid' in request.args:
 			an = sqlGetAnnotations(c, conn, request.args.get('alertid'), session['ht_profileid'])
@@ -463,6 +472,8 @@ def listbulk():
 				newbulk = restNewBulkAcq(session['ht_token'], bulkscript, request.form['bulkhostset'], session['ht_ip'], '3000')
 				app.logger.info('New bulk acquisition - User: ' + session['ht_user'] + "@" + session['ht_ip'])
 
+			conn = sqlite3.connect('hxtool.db')
+			c = conn.cursor()
 			acqs = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], '3000')
 			bulktable = formatBulkTable(c, conn, acqs, session['ht_profileid'])
 			
@@ -503,6 +514,9 @@ def bulkdownload():
 @app.route('/bulkaction', methods=['GET'])
 def bulkaction():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+	
+		conn = sqlite3.connect('hxtool.db')
+		c = conn.cursor()
 	
 		if request.args.get('action') == "stop":
 			res = restCancelJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/acqs/bulk/', session['ht_ip'], '3000')
@@ -564,6 +578,9 @@ def reportgen():
 @app.route('/stacking', methods=['GET', 'POST'])
 def stacking():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+
+			conn = sqlite3.connect('hxtool.db')
+			c = conn.cursor()			
 			
 			if request.args.get('stop'):
 				sqlChangeStackJobState(c, conn, request.args.get('stop'), session['ht_profileid'], "STOPPING")
@@ -593,6 +610,9 @@ def stacking():
 def stackinganalyze():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
 		
+		conn = sqlite3.connect('hxtool.db')
+		c = conn.cursor()
+		
 		stackid = request.args.get('id')
 		
 		stackdata = sqlGetServiceMD5StackData(c, conn, stackid)
@@ -609,6 +629,10 @@ def stackinganalyze():
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], '3000'):
+	
+			conn = sqlite3.connect('hxtool.db')
+			c = conn.cursor()
+	
 			if (request.method == 'POST'):
 				out = sqlInsertProfCredsInfo(c, conn, session['ht_profileid'], request.form['bguser'], request.form['bgpass'])
 				app.logger.info("Background Processing credentials set profileid: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
@@ -629,6 +653,9 @@ def settings():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+
+	conn = sqlite3.connect('hxtool.db')
+	c = conn.cursor()
 	
 	if (request.method == 'POST'):
 		if 'ht_user' in request.form:
@@ -687,25 +714,24 @@ def bgprocess():
 	conn = sqlite3.connect('hxtool.db')
 	c = conn.cursor()
 	
-	# Read the configuration
-	with open('conf.json') as conf_file:
-		myConf = json.load(conf_file)
+	if checkValidConfig('conf.json', app):
+		with open('conf.json') as conf_file:
+			app.logger.info('Reading configuration file conf.json')
+			myConf = json.load(conf_file)
 
 	while True:
-		backgroundStackProcessor(c, conn, myConf, app)
-		backgroundBulkProcessor(c, conn, myConf, app)
+		try:
+			backgroundStackProcessor(c, conn, myConf, app)
+		except BaseException as e:
+			print('{!r}; StackProcessor error'.format(e))
+		
+		try:
+			backgroundBulkProcessor(c, conn, myConf, app)
+		except BaseException as e:
+			print('{!r}; BulkProcessor error'.format(e))
+			
 		time.sleep(myConf['backgroundProcessor']['poll_interval'])
 		
-def threadmonitor():
-
-	time.sleep(1)
-	app.logger.info('Thread monitor started')
-	
-	while True:
-		if not thread.isAlive():
-			app.logger.info('Background processor thread is not running, attempting to restart...')
-			thread.start()
-		time.sleep(15)
 		
 ###########
 ### Main ####
@@ -743,11 +769,11 @@ if __name__ == "__main__":
 
 	# Start
 	app.logger.info('Application starting')
-		
-	# Read the configuration
-	with open('conf.json') as conf_file:
-		app.logger.info('Reading configuration file conf.json')
-		myConf = json.load(conf_file)
+
+	if checkValidConfig('conf.json', app):
+		with open('conf.json') as conf_file:
+			app.logger.info('Reading configuration file conf.json')
+			myConf = json.load(conf_file)
 
 	# Start background processing thread
 	thread = threading.Thread(target=bgprocess, name='BackgroundProcessor', args=())
@@ -755,14 +781,8 @@ if __name__ == "__main__":
 	thread.start()
 	app.logger.info('Background Processor thread starting')
 	
-	# Start threadmonitor
-	mthread = threading.Thread(target=threadmonitor, name='ThreadMonitor', args=())
-	mthread.daemon = True
-	mthread.start()
-	app.logger.info('Thread monitor starting')
-	
 	if myConf['network']['ssl'] == "enabled":
 		context = (myConf['ssl']['cert'], myConf['ssl']['key'])
-		app.run(host=myConf['network']['listen_on'], port=myConf['network']['port'], ssl_context=context)
+		app.run(host=myConf['network']['listen_on'], port=myConf['network']['port'], ssl_context=context, threaded=True)
 	else:
 		app.run(host=myConf['network']['listen_on'], port=myConf['network']['port'])

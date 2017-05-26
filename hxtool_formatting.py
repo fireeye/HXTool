@@ -18,7 +18,8 @@ def formatListSearches(s):
 	x += "<td># Failed</td>"
 	x += "<td># Matched</td>"
 	x += "<td># Not matched</td>"
-	x += "<td>Actions</td>"
+	x += "<td style='width: 160px;'>Complete rate</td>"
+	x += "<td style='width: 160px;'>Actions</td>"
 	x += "</tr>"
 	x += "</thead>"
 	x += "<tbody>"
@@ -36,6 +37,13 @@ def formatListSearches(s):
 		x += "<td>" + str(entry['stats']['running_state']['FAILED']) + "</td>"
 		x += "<td>" + str(entry['stats']['search_state']['MATCHED']) + "</td>"
 		x += "<td>" + str(entry['stats']['search_state']['NOT_MATCHED']) + "</td>"
+		x += "<td>"
+		if entry['stats']['hosts'] > 0:
+			completerate = (float(entry['stats']['running_state']['COMPLETE']) / float(entry['stats']['hosts'])) * 100
+		else:
+			completerate = 0
+		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry['_id']) + "' data-percent='" + str(int(round(completerate))) + "'></div></div>"
+		x += "</td>"
 		x += "<td>" 
 		x += "<a class='tableActionButton' href='/searchaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
 		x += "<a class='tableActionButton' href='/searchaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
@@ -176,7 +184,7 @@ def formatBulkTable(c, conn, bulktable, profileid):
 		if completerate > 100:
 			completerate = 100
 		
-		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry['_id']) + "' data-percent='" + str(completerate) + "'></div></div>"
+		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry['_id']) + "' data-percent='" + str(int(round(completerate))) + "'></div></div>"
 		x += "</td>"
 		
 		if (len(bulkdl) > 0):
@@ -190,7 +198,7 @@ def formatBulkTable(c, conn, bulktable, profileid):
 			else:
 				dlprogress = 0
 			x += "<td>"
-			x += "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + str(entry['_id']) + "' data-percent='" + str(dlprogress) + "'></div></div>"
+			x += "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + str(entry['_id']) + "' data-percent='" + str(int(round(dlprogress))) + "'></div></div>"
 			x += "</td>"
 		else:
 			x += "<td>N/A</td>"
@@ -804,3 +812,20 @@ def formatServiceMD5StackData(stacktable):
 	x += "</table>"
 	
 	return(x)
+	
+def checkValidConfig(conf, app):
+
+	with open(conf) as conf_file:
+		app.logger.info('Checking configuration file ' + str(conf))
+		
+		try:
+			myConf = json.load(conf_file)
+		except ValueError, e:
+			app.logger.info('Configuration file not in JSON format ' + str(conf))
+			return False
+		else:
+			if  not {"network", "backgroundProcessor", "ssl"} <= set(myConf):
+				return False
+			else:
+				app.logger.info('Configuration file is OK ' + str(conf))
+				return True

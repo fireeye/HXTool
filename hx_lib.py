@@ -759,7 +759,7 @@ def restGetSearchResults(fetoken, searchid, hxip, hxport):
 
         data = None
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/searches/' + searchid + '/results', data=data)
+        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/searches/' + searchid + "/results", data=data)
         request.add_header('X-FeApi-Token', fetoken)
         request.add_header('Accept', 'application/json')
         request.get_method = lambda: 'GET'
