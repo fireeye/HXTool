@@ -9,7 +9,6 @@ class hxtool_config:
 		with open(config_file, 'r') as config_file_handle:
 			self._config = json.load(config_file_handle)
 			app_logger.info('Checking configuration file {0}'.format(config_file))
-			print self._config.keys()
 			if not ['network', 'backgroundProcessor', 'ssl'] <= self._config.keys():
 				raise ValueError('Configuration file is missing key elements!')
 			else:

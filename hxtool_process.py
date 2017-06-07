@@ -65,63 +65,63 @@ def backgroundStackProcessor(c, conn, myConf, app):
 			
 			app.logger.info("Stacking: Starting bulk acquisition - " + jobtype)
 						
-			(mytoken, hxip, hxname) = restAuthProfile(c, conn, profileid)
+			(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
 			
 			# Get the acquisition script
 			if job[1] == "services-md5":
 				bulkscript = open('scripts/services-md5.xml', 'r').read()
 			
 			# Post the new acquisition to the controller
-			newbulk = restNewBulkAcq(mytoken, bulkscript, hostset, hxip, '3000')
+			newbulk = restNewBulkAcq(mytoken, bulkscript, hostset, hxip, hxport)
 			bulkid = newbulk['data']['_id']
 			
 			out = sqlUpdateStackJobSubmitted(c, conn, stackid, bulkid)
 			
-			resp = restLogout(mytoken, hxip, "3000")
+			resp = restLogout(mytoken, hxip, hxport)
 		
 		# User requested the stack job to stop, stop it on the controller and change state
 		if state == "STOPPING":
 			
 			app.logger.info("Stacking: Stopping bulk acquisition - " + jobtype)
 			
-			(mytoken, hxip, hxname) = restAuthProfile(c, conn, profileid)
+			(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
 			
-			res = restCancelJob(mytoken, bulkid, '/hx/api/v2/acqs/bulk/', hxip, '3000')
+			res = restCancelJob(mytoken, bulkid, '/hx/api/v2/acqs/bulk/', hxip, hxport)
 			out = sqlUpdateStackJobState(c, conn, stackid, "STOPPED")
 			
-			resp = restLogout(mytoken, hxip, "3000")
+			resp = restLogout(mytoken, hxip, hxport)
 		
 		# User requested the stack job to be removed, delete it on the controller and remove it from stacktable
 		if state == "REMOVING":
 		
 			app.logger.info("Stacking: Removing bulk acquisition - " + jobtype)
 			
-			(mytoken, hxip, hxname) = restAuthProfile(c, conn, profileid)
+			(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
 
-			res = restDeleteJob(mytoken, bulkid, '/hx/api/v2/acqs/bulk/', hxip, '3000')
+			res = restDeleteJob(mytoken, bulkid, '/hx/api/v2/acqs/bulk/', hxip, hxport)
 			sqlDeleteStackServiceMD5(c, conn, stackid)
 			sqlDeleteStackJob(c, conn, profileid, stackid)
 			
-			resp = restLogout(mytoken, hxip, "3000")
+			resp = restLogout(mytoken, hxip, hxport)
 		
 		# The bulk acquisition has been posted to the controller, poll it and check if its running and update the state
 		if state == "SUBMITTED":
 			
-			(mytoken, hxip, hxname) = restAuthProfile(c, conn, profileid)
+			(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
 			
-			res = restGetBulkDetails(mytoken, bulkid, hxip, "3000")
+			res = restGetBulkDetails(mytoken, bulkid, hxip, hxport)
 			
 			if res['data']['state'] == "RUNNING":
 				app.logger.info("Stacking: Bulk acquisition is running on the controller, update the state - " + res['data']['state'])
 				out = sqlUpdateStackJobState(c, conn, stackid, "RUNNING")
 
-			resp = restLogout(mytoken, hxip, "3000")
+			resp = restLogout(mytoken, hxip, hxport)
 			
 		# The bulk acquisition is running on the controller, continously poll for new results and update the stats
 		if state == "RUNNING":
-			(mytoken, hxip, hxname) = restAuthProfile(c, conn, profileid)
+			(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
 			
-			entry = restGetBulkDetails(mytoken, bulkid, hxip, "3000")
+			entry = restGetBulkDetails(mytoken, bulkid, hxip, hxport)
 			
 			# calculate completion rate
 			total_size = entry['data']['stats']['running_state']['NEW'] + entry['data']['stats']['running_state']['QUEUED'] + entry['data']['stats']['running_state']['FAILED'] + entry['data']['stats']['running_state']['ABORTED'] + entry['data']['stats']['running_state']['DELETED'] + entry['data']['stats']['running_state']['REFRESH'] + entry['data']['stats']['running_state']['CANCELLED'] + entry['data']['stats']['running_state']['COMPLETE']
@@ -133,7 +133,7 @@ def backgroundStackProcessor(c, conn, myConf, app):
 			out = sqlUpdateStackJobProgress(c, conn, stackid, completerate)
 			
 			# query bulk acquisition results
-			res = restListBulkDetails(mytoken, bulkid, hxip, "3000")
+			res = restListBulkDetails(mytoken, bulkid, hxip, hxport)
 			
 			iter = 0
 			for entry in res['data']['entries']:
@@ -142,7 +142,7 @@ def backgroundStackProcessor(c, conn, myConf, app):
 					
 						app.logger.info("Stacking: Found completed bulk acquisition - " + str(entry['host']['hostname']))
 					
-						acq = restDownloadBulkAcq(mytoken, entry['result']['url'], hxip, '3000')
+						acq = restDownloadBulkAcq(mytoken, entry['result']['url'], hxip, hxport)
 					
 						# Post-process acquisition results
 						payload_data = findPayloadServiceMD5(acq)
@@ -159,7 +159,7 @@ def backgroundStackProcessor(c, conn, myConf, app):
 				if iter == myConf['backgroundProcessor']['stack_jobs_per_poll']:
 					break
 					
-			resp = restLogout(mytoken, hxip, "3000")
+			resp = restLogout(mytoken, hxip, hxport)
 
 def backgroundBulkProcessor(c, conn, myConf, app):
 
@@ -179,12 +179,12 @@ def backgroundBulkProcessor(c, conn, myConf, app):
 		if len(sqlGetProfCredTable(c, conn, profileid)) == 0:
 			continue
 		
-		(mytoken, hxip, hxname) = restAuthProfile(c, conn, profileid)
+		(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
 		
 		json_request_headers = {'X-FeApi-Token': mytoken, 'Accept': 'application/json'}
 		zip_request_headers = {'X-FeApi-Token': mytoken, 'Accept': 'application/octet-stream'}
 		
-		bulk_url = 'https://{:s}:{:s}{:s}{:s}{:s}{:s}'.format(str(hxip), "3000", "/hx/api/v2/acqs/bulk/", str(bulkid), '/hosts?limit=', hxtotal_agents)
+		bulk_url = 'https://{:s}:{:s}{:s}{:s}{:s}{:s}'.format(str(hxip), hxport, "/hx/api/v2/acqs/bulk/", str(bulkid), '/hosts?limit=', hxtotal_agents)
 
 		r = requests.get(bulk_url, headers = json_request_headers, stream = True, verify = False)
 
@@ -209,7 +209,7 @@ def backgroundBulkProcessor(c, conn, myConf, app):
 				hiter = hiter + 1
 				
 				# download the zip
-				get_dataurl = 'https://{:s}:{:s}{:s}'.format(hxip, "3000", host['url']) + ".zip"
+				get_dataurl = 'https://{:s}:{:s}{:s}'.format(hxip, hxport, host['url']) + ".zip"
 				rd = requests.get(get_dataurl, headers = zip_request_headers, stream = True, verify = False)
 
 				# write data to disk
@@ -229,7 +229,7 @@ def backgroundBulkProcessor(c, conn, myConf, app):
 			if hiter == myConf['backgroundProcessor']['downloads_per_poll']:
 				break
 				
-		resp = restLogout(mytoken, hxip, "3000")
+		resp = restLogout(mytoken, hxip, hxport)
 		
 		
 		
