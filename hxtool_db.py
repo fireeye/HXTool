@@ -58,7 +58,7 @@ def restAuthProfile(c, conn, profileid):
 		hxip = pro[0]
 		hxname = pro[1]
 	
-	token = restAuth(hxip, "3000", hxuser, hxpass)
+	(auth_success, token) = restValidateAuth(hxip, "3000", hxuser, hxpass)
 	return(token, hxip, hxname)
 
 # Profiles related queries

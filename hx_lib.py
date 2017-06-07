@@ -4,27 +4,48 @@
 ##########################
 
 import urllib2
+import urllib
 import base64
 import json
 import ssl
 
-if hasattr(ssl, '_create_unverified_context'):
-	ssl._create_default_https_context = ssl._create_unverified_context
 
 ###################
 ## Generic functions
 ###################
-	
-def restGetUrl(url, fetoken, hxip, hxport):
-	
-	handler = urllib2.HTTPHandler()
-	opener = urllib2.build_opener(handler)
+
+def restBuildRequest(hxip, hxport, url, method = 'GET', data = None, fetoken = None, content_type = 'application/json', accept = 'application/json', headers = None, cookies = None):
+
+	if hasattr(ssl, '_create_unverified_context'):
+		ssl._create_default_https_context = ssl._create_unverified_context
+
+	opener = urllib2.build_opener(urllib2.HTTPSHandler)
 	urllib2.install_opener(opener)
-	data = None
+
+	if headers:
+		request = urllib2.Request("https://{0}:{1}{2}".format(hxip, hxport, url), data = data, headers = headers)
+	else:
+		request = urllib2.Request("https://{0}:{1}{2}".format(hxip, hxport, url), data = data)
 	
-	request = urllib2.Request('https://' + hxip + ':' + hxport + url, data=data)
-	request.add_header('Accept', 'application/json')
-	request.get_method = lambda: 'GET'
+	# XFIRE_HMAC_SESSION cookie for use with Crossfire. First login to CrossFire from a browser and copy this cookie value
+	# Should be moved to config(conf.json)
+	#cookies = {'XFIRE_HMAC_SESSION' : '<change me!>'}
+	
+	request.get_method = lambda: method
+	request.add_header('Accept', accept)
+	request.add_header('User-Agent', 'Mozilla/5.0 (Windows NT; rv:53.0) Gecko/20100101 Firefox/53.0')
+	if method != 'GET' or method != 'DELETE':
+		request.add_header('Content-Type', content_type)
+	if fetoken:
+		request.add_header('X-FeApi-Token', fetoken)
+	if cookies and len(cookies) > 0:
+		request.add_header('Cookie', ';'.join('='.join(_) for _ in cookies.items()) + ';')
+	
+	return request
+
+def restGetUrl(url, fetoken, hxip, hxport):
+
+	request = restBuildRequest(hxip, hxport, url, fetoken = fetoken)
 
 	try:
 		response = urllib2.urlopen(request)
@@ -35,52 +56,20 @@ def restGetUrl(url, fetoken, hxip, hxport):
 		print 'Reason: ', e.reason
 	else:
 		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-		return(r)
 	
-	
+	return(r)
+
+
 ###################
 ## Authentication
 ###################
 
 # Authenticate and return X-FeApi-Token
-def restAuth(hxip, hxport, hxuser, hxpass):
-
-	upstring = base64.b64encode(hxuser + ':' + hxpass)
-
-	handler = urllib2.HTTPHandler()
-	opener = urllib2.build_opener(handler)
-	urllib2.install_opener(opener)
-	data = None
-
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/token', data=data)
-	request.add_header('Accept', 'application/json')
-	request.add_header('Authorization', 'Basic ' + upstring)
-	request.get_method = lambda: 'GET'
-
-	try:
-		response = urllib2.urlopen(request)
-	except urllib2.HTTPError as e:
-		print e.read()
-	except urllib2.URLError as e:
-		print 'Failed to connect to HX API server.'
-		print 'Reason: ', e.reason
-	else:
-		fetoken = (response.info().getheader('X-FeApi-Token'))
-		return(fetoken)
-
 def restValidateAuth(hxip, hxport, hxuser, hxpass):
 
 	upstring = base64.b64encode(hxuser + ':' + hxpass)
 
-	handler = urllib2.HTTPHandler()
-	opener = urllib2.build_opener(handler)
-	urllib2.install_opener(opener)
-	data = None
-
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/token', data=data)
-	request.add_header('Accept', 'application/json')
-	request.add_header('Authorization', 'Basic ' + upstring)
-	request.get_method = lambda: 'GET'
+	request = restBuildRequest(hxip, hxport, '/hx/api/v1/token', headers = {'Authorization' : 'Basic {0}'.format(upstring)})
 
 	try:
 		response = urllib2.urlopen(request)
@@ -98,15 +87,7 @@ def restValidateAuth(hxip, hxport, hxuser, hxpass):
 # Logout
 def restLogout(fetoken, hxip, hxport):
 
-	handler = urllib2.HTTPHandler()
-	opener = urllib2.build_opener(handler)
-	urllib2.install_opener(opener)
-	data = None
-
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/token', data=data)
-	request.add_header('Accept', 'application/json')
-	request.add_header('X-FeApi-Token',fetoken)
-	request.get_method = lambda: 'DELETE'
+	request = restBuildRequest(hxip, hxport, '/hx/api/v1/token', method = 'DELETE', fetoken = fetoken)
 
 	try:
 		response = urllib2.urlopen(request)
@@ -120,50 +101,33 @@ def restLogout(fetoken, hxip, hxport):
 
 def restIsSessionValid(fetoken, hxip, hxport):
 
-	handler = urllib2.HTTPHandler()
-	opener = urllib2.build_opener(handler)
-	urllib2.install_opener(opener)
-
-	data = None
-
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/version', data=data)
-	request.add_header('X-FeApi-Token', fetoken)
-	request.add_header('Accept', 'application/json')
-	request.get_method = lambda: 'GET'
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/version', fetoken = fetoken)
 
 	try:
 		response = urllib2.urlopen(request)
 		return True
 	except:
-		return False	
+		return False
 
-		
+
 ################
 ## Resolve hosts
 ################
 
 def restFindHostbyString(string, fetoken, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
-        data = """{}"""
+	request = restBuildRequest(hxip, hxport, '/hx/api/v1/hosts?search={0}'.format(urllib.urlencode(string)), fetoken = fetoken, data = '{}')
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/hosts?search=' + string, data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 
 ## Indicators
@@ -172,32 +136,23 @@ def restFindHostbyString(string, fetoken, hxip, hxport):
 # List indicator categories
 def restListIndicatorCategories(fetoken, hxip, hxport):
 
-        data = None
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/indicator_categories', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
+	request = restBuildRequest(hxip, hxport, '/hx/api/v1/indicator_categories', fetoken = fetoken)
 
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                categories = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-
-        return(categories)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		categories = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(categories)
 
 # List all IOCs
 def restListIndicators(fetoken, hxip, hxport):
 
-	data = None
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/indicators?limit=10000', data=data)
-	request.add_header('X-FeApi-Token', fetoken)
-	request.add_header('Accept', 'application/json')
-	request.get_method = lambda: 'GET'
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/indicators?limit=10000', fetoken = fetoken)
 
 	try:
 		response = urllib2.urlopen(request)
@@ -208,115 +163,79 @@ def restListIndicators(fetoken, hxip, hxport):
 		print 'Reason: ', e.reason
 	else:
 		iocs = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-
-	return(iocs)
+		return(iocs)
 
 
 # Add a new condition
 def restAddCondition(iocURI, ioctype, data, cat, fetoken, hxip, hxport):
-        ioctype_path = "/conditions/" + ioctype
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/indicators/' + cat + '/' + iocURI + ioctype_path, data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.add_header('Content-Type', 'application/json')
-        request.get_method = lambda: 'POST'
+	request = restBuildRequest(hxip, hxport, '/hx/api/v1/indicators/{0}/{1}/conditions/{2}'.format(cat, iocURI, ioctype), method = 'POST', data = data, fetoken = fetoken)
 
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                res = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-
-        return(res)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		res = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(res)
 
 # Add a new indicator
 def restAddIndicator(cuser, name, category, platforms, fetoken, hxip, hxport):
-			
-        data = json.dumps({"create_text" : cuser, "display_name" : name, "platforms" : platforms})
-		
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/indicators/' + category, data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.add_header('Content-Type', 'application/json')
-        request.get_method = lambda: 'POST'
 
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                iocURI = r['data']['uri_name']
+	data = json.dumps({"create_text" : cuser, "display_name" : name, "platforms" : platforms})
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/indicators/{0}'.format(category), method = 'POST', data = data, fetoken = fetoken)
 
-        return(iocURI)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		iocURI = r['data']['uri_name']
+		return(iocURI)
 
 # Submit a new category
 def restCreateCategory(fetoken, catname, hxip, hxport):
 
-        data = """{}"""
+	request = restBuildRequest(hxip, hxport, '/hx/api/v1/indicator_categories/{0}'.format(catname), method = 'PUT', data = '{}', fetoken = fetoken, headers = {'If-None-Match', '*'})
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/indicator_categories/' + catname, data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.add_header('Content-Type', 'application/json')
-        request.add_header('If-None-Match', '*')
-        request.get_method = lambda: 'PUT'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                res = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-
-        return(res)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		res = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(res)
 
 # Grab conditions from an indicator
 def restGetCondition(fetoken, ioctype, category, iocuri, hxip, hxport):
 
-	data = None
+	request = restBuildRequest(hxip, hxport, '/hx/api/v1/indicators/{0}/{1}/conditions/{2}?limit=10000'.format(category, iocuri, ioctype), fetoken = fetoken)
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/indicators/' + category + '/' + iocuri + '/conditions/' + ioctype + '?limit=10000', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                resp_cond = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-
-	return(resp_cond)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		resp_cond = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(resp_cond)
 
 # List all indicators
 def restListIndicators(fetoken, hxip, hxport):
 
-	handler = urllib2.HTTPHandler()
-	opener = urllib2.build_opener(handler)
-	urllib2.install_opener(opener)
-
-	data = None
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/indicators?limit=10000', data=data)
-
-	request.add_header('X-FeApi-Token', fetoken)
-	request.add_header('Accept', 'application/json')
-	request.get_method = lambda: 'GET'
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/indicators?limit=10000', fetoken = fetoken)
 
 	try:
 		response = urllib2.urlopen(request)
@@ -332,27 +251,18 @@ def restListIndicators(fetoken, hxip, hxport):
 # Get indicator based on condition
 def restGetIndicatorFromCondition(fetoken, conditionid, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/conditions/{0}/indicators'.format(conditionid), fetoken = fetoken)
 
-        data = None
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/conditions/' + conditionid + '/indicators', data=data)
-
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 
 
@@ -362,155 +272,105 @@ def restGetIndicatorFromCondition(fetoken, conditionid, hxip, hxport):
 # Acquire triage
 def restAcquireTriage(agentId, fetoken, hxip, hxport, timestamp = False):
 
-        if timestamp:
-                data = "{\"req_timestamp\": \"" + timestamp + "\"}"
-        else:
-                data = """{}"""
+	data = '{}'
+	if timestamp:
+		data = json.dumps({'req_timestamp' : timestamp})
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/hosts/' + agentId + '/triages', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.add_header('Content-Type', 'application/json')
-        request.get_method = lambda: 'POST'
+	request = restBuildRequest(hxip, hxport, '/hx/api/v1/hosts/{0}/triages'.format(agentId), data = data, fetoken = fetoken)
 
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 # Acquire file
 def restAcquireFile(agentId, fetoken, path, filename, mode, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	handler = urllib2.HTTPHandler()
+	opener = urllib2.build_opener(handler)
+	urllib2.install_opener(opener)
 
-        newpath = path.replace('\\','\\\\')
+	newpath = path.replace('\\','\\\\')
+	
+	if (mode == "RAW"):
+		data = "{\"req_path\":\"" + newpath + "\",\"req_filename\":\"" + filename + "\"}"
+	else:
+		data = "{\"req_path\":\"" + newpath + "\",\"req_filename\":\"" + filename + "\",\"req_use_api\":true}"
 
-        if (mode == "RAW"):
-                data = "{\"req_path\":\"" + newpath + "\",\"req_filename\":\"" + filename + "\"}"
-        else:
-                data = "{\"req_path\":\"" + newpath + "\",\"req_filename\":\"" + filename + "\",\"req_use_api\":true}"
-
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v1/hosts/' + agentId + '/files', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.add_header('Content-Type', 'application/json')
-        request.get_method = lambda: 'POST'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v1/hosts/{0}/files'.format(agentId), method = 'POST', data = data, fetoken = fetoken)
+	
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 # List Bulk Acquisitions
 def restListBulkAcquisitions(fetoken, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/acqs/bulk?limit=1000', fetoken = fetoken)
 
-	data = None
-
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/bulk?limit=1000', data=data)
-	request.add_header('X-FeApi-Token', fetoken)
-	request.add_header('Accept', 'application/json')
-	request.add_header('Content-Type', 'application/json')
-	request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 
 # List hosts in Bulk acquisition
 def restListBulkDetails(fetoken, bulkid, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/acqs/bulk/{0}/hosts?limit=100000'.format(bulkid), fetoken = fetoken)
 
-	data = None
-	request = urllib2.Request('https://' + str(hxip) + ':' + hxport + '/hx/api/v2/acqs/bulk/' +  str(bulkid) + '/hosts?limit=100000', data=data)
-
-	request.add_header('X-FeApi-Token', fetoken)
-	request.add_header('Accept', 'application/json')
-	request.add_header('Content-Type', 'application/json')
-	request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 
 # Get Bulk acquistion detail
 def restGetBulkDetails(fetoken, bulkid, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/acqs/bulk/{0}'.format(bulkid), fetoken = fetoken)
 
-        data = None
-
-        request = urllib2.Request('https://' + str(hxip) + ':' + hxport + '/hx/api/v2/acqs/bulk/' +  str(bulkid), data=data)
-
-	request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.add_header('Content-Type', 'application/json')
-        request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 
 # Download bulk data
 def restDownloadBulkAcq(fetoken, url, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
-
-	data = None
-	
-	request = urllib2.Request('https://' + hxip + ':' + hxport + url, data=data)
-	request.add_header('X-FeApi-Token', fetoken)
-	request.add_header('Accept', 'application/octet-stream')
-	request.add_header('Content-Type', 'application/json')
-	request.get_method = lambda: 'GET'
+	request = restBuildRequest(hxip, hxport, url, accept = 'application/octet-stream', fetoken = fetoken)
 
 	try:
 		response = urllib2.urlopen(request)
@@ -527,253 +387,171 @@ def restDownloadBulkAcq(fetoken, url, hxip, hxport):
 
 def restNewBulkAcq(fetoken, script, hostset, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	#sc = base64.b64encode(script)
+	#sc = "\"" + sc + "\""
+	#data = """{"host_set":{"_id":""" + str(hostset) +  """},"script":{"b64":""" + sc + """}}"""	
+	
+	data = json.dumps({'host_set' : {'_id' : hostset}, 'script' : {'b64' : base64.b64encode(script)}})
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/acqs/bulk', method = 'POST', data = data, fetoken = fetoken)
 
-        sc = base64.b64encode(script)
-        sc = "\"" + sc + "\""
-
-        data = """{"host_set":{"_id":""" + str(hostset) +  """},"script":{"b64":""" + sc + """}}"""
-
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/bulk', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.add_header('Content-Type', 'application/json')
-        request.get_method = lambda: 'POST'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
 		return(r)
 
-		
+
 # List normal acquisitions
 def restListAcquisitions(fetoken, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/acqs', fetoken = fetoken)
 
-	data = None
-
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs', data=data)
-	request.add_header('X-FeApi-Token', fetoken)
-	request.add_header('Accept', 'application/json')
-	request.add_header('Content-Type', 'application/json')
-	request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 # List file acquisitions
 def restListFileaq(fetoken, hxip, hxport):
 
-        data = None
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/acqs/files?limit=10000', fetoken = fetoken)
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/files?limit=10000', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 def restListTriages(fetoken, hxip, hxport):
 
-        data = None
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/acqs/triages?limit=10000', fetoken = fetoken)
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/acqs/triages?limit=10000', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
 
-				
 #######################
 ## Enterprise Search ##
 #######################
 
 def restListSearches(fetoken, hxip, hxport):
 
-	handler = urllib2.HTTPHandler()
-	opener = urllib2.build_opener(handler)
-	urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/searches', fetoken = fetoken)
 
-	data = None
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/searches', data=data)
-	request.add_header('X-FeApi-Token', fetoken)
-	request.add_header('Accept', 'application/json')
-	request.get_method = lambda: 'GET'
-	
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 
 def restSubmitSweep(fetoken, hxip, hxport, b64ioc, hostset):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	#data = """{"indicator":""" + "\"" + b64ioc + "\"" + ""","host_set":{"_id":""" + hostset + """}}"""
+	data = json.dumps({'indicator' : b64ioc, 'host_set' : {'_id' : host_set}})
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/searches', method = 'POST', data = data, fetoken = fetoken)
 
-	data = """{"indicator":""" + "\"" + b64ioc + "\"" + ""","host_set":{"_id":""" + hostset + """}}"""
-	
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/searches', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-	request.add_header('Content-Type', 'application/json')
-        request.get_method = lambda: 'POST'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 def restCancelJob(fetoken, id, path, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
-
-        data = None
-
-        request = urllib2.Request('https://' + str(hxip) + ':' + hxport + path + str(id) + '/actions/stop', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.add_header('Content-Type', 'application/json')
-        request.get_method = lambda: 'POST'
-
-        try:
-            response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-            print e.read()
-        except urllib2.URLError as e:
-            print 'Failed to connect to HX API server.'
-            print 'Reason: ', e.reason
-        else:
-            r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-            return(r)
+	request = restBuildRequest(hxip, hxport, '{0}{2}/actions/stop'.format(path, id), method = 'POST', fetoken = fetoken)
+	
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 def restDeleteJob(fetoken, id, path, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '{0}{1}'.format(path, id), method = 'DELETE', fetoken = fetoken)
+	
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		#r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return()
 
-        data = None
-
-        request = urllib2.Request('https://' + str(hxip) + ':' + hxport + path + str(id), data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        #request.add_header('Content-Type', 'application/json')
-        request.get_method = lambda: 'DELETE'
-
-        try:
-            response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-            print e.read()
-        except urllib2.URLError as e:
-            print 'Failed to connect to HX API server.'
-            print 'Reason: ', e.reason
-        else:
-            #r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-            return()			
-			
 def restGetSearchHosts(fetoken, searchid, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/searches/{0}/hosts?errors=true'.format(searchid), fetoken = fetoken)
 
-        data = None
-
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/searches/' + searchid + '/hosts?errors=true', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 
 
 def restGetSearchResults(fetoken, searchid, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/searches/{0}/results'.format(searchid), fetoken = fetoken)
 
-        data = None
-
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/searches/' + searchid + "/results", data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 
 ##########
@@ -782,13 +560,8 @@ def restGetSearchResults(fetoken, searchid, hxip, hxport):
 
 def restGetAlertID(fetoken, alertid, hxip, hxport):
 
-	data = None
-	
-	request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/alerts/' + alertid, data=data)
-	request.add_header('X-FeApi-Token', fetoken)
-	request.add_header('Accept', 'application/json')
-	request.get_method = lambda: 'GET'
-	
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/alerts/{0}'.format(alertid), fetoken = fetoken)
+
 	try:
 		response = urllib2.urlopen(request)
 	except urllib2.HTTPError as e:
@@ -802,89 +575,67 @@ def restGetAlertID(fetoken, alertid, hxip, hxport):
 
 def restGetAlerts(fetoken, count, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/alerts?sort=reported_at+desc&limit={0}'.format(count), fetoken = fetoken)
 
-        data = None
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/alerts?sort=reported_at+desc&limit=' + count, data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
 
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
-
-				
 # NOTE: this function does not return data in the usual way, the response is a list of alerts
 def restGetAlertsTime(fetoken, startdate, enddate, hxip, hxport):
 
-		handler = urllib2.HTTPHandler()
-		opener = urllib2.build_opener(handler)
-		urllib2.install_opener(opener)
+	#data = """{"event_at":{"min":""" + "\"" + startdate + """T00:00:00.000Z","max":""" + "\"" + enddate + """T23:59:59.999Z"}}"""
+	data = json.dumps({'event_at' : 
+						{'min' : '{0}T00:00:00.000Z'.format(startdate), 
+						'max' : '{0}T23:59:59.999Z'.format(enddate)}
+					})
+						
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/alerts/filter', method = 'POST', data = data, fetoken = fetoken)
+	
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = [];
+		for line in response.read().decode(response.info().getparam('charset') or 'utf-8').split('\n'):
+			if line.startswith('{'):
+				r.append(json.loads(line))
+		
+		from operator import itemgetter
+		newlist = sorted(r, key=itemgetter('reported_at'), reverse=True)
+		return(newlist)
 
-		data = """{"event_at":{"min":""" + "\"" + startdate + """T00:00:00.000Z","max":""" + "\"" + enddate + """T23:59:59.999Z"}}"""
-        
-		request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v3/alerts/filter', data=data)
-		request.add_header('X-FeApi-Token', fetoken)
-		request.add_header('Accept', 'application/json')
-		request.add_header('Content-type', 'application/json')
-		request.get_method = lambda: 'POST'
 
-		try:
-			response = urllib2.urlopen(request)
-		except urllib2.HTTPError as e:
-			print e.read()
-		except urllib2.URLError as e:
-			print 'Failed to connect to HX API server.'
-			print 'Reason: ', e.reason
-		else:
-			r = [];
-			for line in response.read().decode(response.info().getparam('charset') or 'utf-8').split('\n'):
-				if line.startswith('{'):
-					r.append(json.loads(line))
-
-			from operator import itemgetter
-			newlist = sorted(r, key=itemgetter('reported_at'), reverse=True)
-			return(newlist)
-				
-				
 ##############
 # Query host
 ##############
 
 def restGetHostSummary(fetoken, hostid, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/hosts/{0}'.format(hostid), fetoken = fetoken)
 
-        data = None
-
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/hosts/' + hostid, data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
 
 
@@ -894,61 +645,43 @@ def restGetHostSummary(fetoken, hostid, hxip, hxport):
 
 def restListHosts(fetoken, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/hosts?limit=100000', fetoken = fetoken)
 
-        data = None
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/hosts?limit=100000', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
 
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-                r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-                return(r)
-
-				
 def restListHostsets(fetoken, hxip, hxport):
 
-        handler = urllib2.HTTPHandler()
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+	request = restBuildRequest(hxip, hxport, '/hx/api/v2/host_sets?limit=100000', fetoken = fetoken)
 
-        data = None
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
 
-        request = urllib2.Request('https://' + hxip + ':' + hxport + '/hx/api/v2/host_sets?limit=100000', data=data)
-        request.add_header('X-FeApi-Token', fetoken)
-        request.add_header('Accept', 'application/json')
-        request.get_method = lambda: 'GET'
-
-        try:
-                response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-                print e.read()
-        except urllib2.URLError as e:
-                print 'Failed to connect to HX API server.'
-                print 'Reason: ', e.reason
-        else:
-			r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
-			return(r)
-				
 ####
 # Generic functions
 ####
 
 def prettyTime(time=False):
-
-	from datetime import datetime
 	
+	from datetime import datetime
+
 	now = datetime.utcnow()
 	if type(time) is int:
 		diff = now - datetime.fromtimestamp(time)
@@ -956,8 +689,8 @@ def prettyTime(time=False):
 		diff = now - time
 	elif not time:
 		diff = now - now
-	second_diff = diff.seconds
-	day_diff = diff.days
+		second_diff = diff.seconds
+		day_diff = diff.days
 
 	if day_diff < 0:
 		return ''
@@ -983,9 +716,11 @@ def prettyTime(time=False):
 		return str(day_diff / 7) + " weeks ago"
 	if day_diff < 365:
 		return str(day_diff / 30) + " months ago"
+	
 	return str(day_diff / 365) + " years ago"
 
 def gt(dt_str):
+	
 	import datetime
 	dt, _, us= dt_str.partition(".")
 	dt= datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
