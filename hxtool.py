@@ -25,6 +25,7 @@ import StringIO
 import threading
 import time
 from hxtool_process import *
+from hxtool_config import *
 import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -706,7 +707,7 @@ def logout():
 ### Thread: background processing 
 #################################
 		
-def bgprocess():
+def bgprocess(myConf):
 	
 	time.sleep(1)
 	app.logger.info('Background processor thread started')
@@ -714,11 +715,6 @@ def bgprocess():
 	conn = sqlite3.connect('hxtool.db')
 	c = conn.cursor()
 	
-	if checkValidConfig('conf.json', app):
-		with open('conf.json') as conf_file:
-			app.logger.info('Reading configuration file conf.json')
-			myConf = json.load(conf_file)
-
 	while True:
 		try:
 			backgroundStackProcessor(c, conn, myConf, app)
@@ -770,13 +766,10 @@ if __name__ == "__main__":
 	# Start
 	app.logger.info('Application starting')
 
-	if checkValidConfig('conf.json', app):
-		with open('conf.json') as conf_file:
-			app.logger.info('Reading configuration file conf.json')
-			myConf = json.load(conf_file)
+	myConf = hxtool_config('conf.json', app.logger).get_config()
 
 	# Start background processing thread
-	thread = threading.Thread(target=bgprocess, name='BackgroundProcessor', args=())
+	thread = threading.Thread(target=bgprocess, name='BackgroundProcessor', args=(myConf,))
 	thread.daemon = True
 	thread.start()
 	app.logger.info('Background Processor thread starting')

@@ -1,4 +1,5 @@
 
+from hxtool_config import *
 from hx_lib import *
 from hxtool_db import *
 import time
@@ -813,19 +814,3 @@ def formatServiceMD5StackData(stacktable):
 	
 	return(x)
 	
-def checkValidConfig(conf, app):
-
-	with open(conf) as conf_file:
-		app.logger.info('Checking configuration file ' + str(conf))
-		
-		try:
-			myConf = json.load(conf_file)
-		except ValueError, e:
-			app.logger.info('Configuration file not in JSON format ' + str(conf))
-			return False
-		else:
-			if  not {"network", "backgroundProcessor", "ssl"} <= set(myConf):
-				return False
-			else:
-				app.logger.info('Configuration file is OK ' + str(conf))
-				return True
