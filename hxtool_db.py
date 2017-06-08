@@ -47,19 +47,26 @@ def sqlCreateBulkDownloadTable(c):
 # SQL based authentication
 def restAuthProfile(c, conn, profileid):
 	c.execute("SELECT hxuser, hxpass FROM profcreds WHERE profileid = (?)", (str(profileid)))
-	profcreds = c.fetchall()
-	for cred in profcreds:
-		hxuser = cred[0]
-		hxpass = cred[1]
+	cred = c.fetchone()
+	hxuser = cred[0]
+	hxpass = cred[1]
 	
 	c.execute("SELECT hostname, name FROM profiles where id = (?)", (str(profileid)))
-	prof = c.fetchall()
-	for pro in prof:
-		hxip = pro[0]
-		hxname = pro[1]
+	pro = c.fetchone()
+	hxip_port = pro[0]
+	hxname = pro[1]
 	
-	token = restAuth(hxip, "3000", hxuser, hxpass)
-	return(token, hxip, hxname)
+	hxport = '3000'
+	if ':' in hxip_port:
+		hxip_port = hxip_port.split(':')
+		hxip = hxip_port[0]
+		if 0 < int(hxip_port[1]) <= 65535:
+			hxport = hxip_port[1]
+	else:
+		hxip = hxip_port
+	
+	(auth_success, token) = restValidateAuth(hxip, hxport, hxuser, hxpass)
+	return(token, hxip, hxport, hxname)
 
 # Profiles related queries
 ################
