@@ -716,6 +716,43 @@ def formatProfCredsInfo(c, conn, profileid):
 		x += "</form>"
 	
 	return(x)
+
+def formatCustomConfigChannels(ch):
+
+	x = ""
+
+	x += "<table id='channeltable' class='genericTable' style='width: 100%;'>"
+	x += "<thead>"
+	x += "<tr>"
+	x += "<td>Name</td>"
+	x += "<td>Description</td>"
+	x += "<td>Created</td>"
+	x += "<td>Created by</td>"
+	x += "<td>Priority</td>"
+	x += "<td>Host sets</td>"
+	x += "<td>Actions</td>"
+	x += "</tr>"
+	x += "</thead>"
+	x += "<tbody>"
+	for entry in ch['data']['entries']:
+		x += "<tr class='clickable-row' data-href='/channelinfo?id=" + str(entry['_id']) + "'>"
+		x += "<td>" + entry['name'] + "</td>"
+		x += "<td>" + entry['description'] + "</td>"
+		x += "<td>" + entry['create_time'] + "<//td>"
+		x += "<td>" + entry['create_actor']['username'] + "</td>"
+		x += "<td>" + str(entry['priority']) + "</td>"
+		x += "<td>"
+		for hset in entry['host_sets']:
+			x += hset['name'] + "<br>"
+		x += "</td>"
+		x += "<td>"
+		x += "<a href='/channels?delete=" +  str(entry['_id']) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
+		x += "</td>"
+		x += "</tr>"
+		
+	x += "</tbody>"
+	x += "</table>"
+	return(x)
 	
 def formatStackTable(c, conn, profileid, hs):
 

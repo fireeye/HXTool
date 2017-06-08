@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Custom configuration channels{% endblock %}
+{% block navlocation %}Custom configuration channels{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+                var table = $('#channeltable').DataTable( {
+                        "info": false,
+                        "pageLength": 15,
+                        "lengthChange": false
+                });
+		
+		$('#hostsets').multiSelect({
+			selectableHeader: "<div style='background: rgb(121, 161, 190); color: white; padding: 4px; text-align: center; font-weight: bold; border-top-left-radius: 5px; border-top-right-radius: 5px;'>Not included</div>",
+			selectionHeader: "<div style='background: rgb(121, 161, 190); color: white; padding: 4px; text-align: center; font-weight: bold; border-top-left-radius: 5px; border-top-right-radius: 5px;'>Included</div>",
+		});
+				
+		$('#channeltable').on('click', '.clickable-row', function() {
+			window.document.location = $(this).data("href");
+		});
+
+				
+	});
+</script>
+
+<form method='POST' action='/channels' enctype="multipart/form-data">
+	<div class='tableTitle'>
+		New custom configuration channel
+	</div>
+	<div class='inputArea'>
+	
+		<table style='width: 100%; font-size: 12px;'>
+			<tr>
+				<td style='vertical-align: top; width: 400px;'>
+					<div style='font-weight: bold;'>Name</div>
+					<input style='margin-bottom: 5px; width: 200px;' type='text' id='name' name='name'>
+					<div style='font-weight: bold;'>Description</div>
+					<input style='margin-bottom: 5px; width: 300px;' type='text' id='description' name='description'>
+					<div style='font-weight: bold;'>Priority</div>
+					<input style='margin-bottom: 5px; width: 50px;' type='text' id='priority' name='priority'>
+					<br><br>
+					<div style='font-weight: bold;'>Host sets</div>
+					<select multiple="multiple" name='hostsets' id='hostsets'>
+						{% if hostsets %} {{ hostsets|safe }} {% endif %}
+					</select>
+				</td>
+				<td style='vertical-align: top; border-left: 1px solid #cccccc; padding-left: 30px;'>
+					<div style='font-weight: bold;'>Configuration JSON</div>
+					<textarea style='width: 600px; height: 355px;' name='confjson'></textarea>
+				</td>
+		</table>
+		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>Custom configuration channels allows you to use separate configuration settings for host-sets. Refer to the HX API guide on how to use this functionality.</div>
+		
+	    <input type='submit' value='Create channel'>
+	</div>
+</form>
+
+<br>
+
+<div class='tableTitle'>
+	Custom configuration channels
+</div>
+
+{% if channels %} {{ channels|safe }} {% endif %}
+{% endblock %}

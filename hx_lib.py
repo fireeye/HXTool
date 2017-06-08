@@ -674,6 +674,64 @@ def restListHostsets(fetoken, hxip, hxport):
 		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
 		return(r)
 
+		
+def restListCustomConfigChannels(fetoken, hxip, hxport):
+
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/host_policies/channels?limit=1000', fetoken = fetoken)
+	
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
+
+		
+def restNewConfigChannel(fetoken, name, description, priority, hostset, conf, hxip, hxport):
+
+	myhostsets = []
+	for hs in hostset:
+		myhostsets.append({"_id": int(hs)})
+	
+	try:
+		myconf = json.loads(conf)
+	except ValueError:
+		print "Failed to parse incoming json"
+		print conf
+	
+	data = json.dumps({'name' : name, 'description' : description, 'priority' : int(priority), 'host_sets' : myhostsets, 'configuration' : myconf})
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/host_policies/channels', method = 'POST', data = data, fetoken = fetoken)
+
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
+		return(r)
+
+def restDeleteConfigChannel(fetoken, channelid, hxip, hxport):
+
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/host_policies/channels/' + channelid, method = 'DELETE', fetoken = fetoken)
+	
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		print e.read()
+	except urllib2.URLError as e:
+		print 'Failed to connect to HX API server.'
+		print 'Reason: ', e.reason
+	else:
+		return
+	
+		
 ####
 # Generic functions
 ####
