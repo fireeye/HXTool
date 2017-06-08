@@ -297,12 +297,7 @@ def restAcquireFile(agentId, fetoken, path, filename, mode, hxip, hxport):
 	urllib2.install_opener(opener)
 
 	newpath = path.replace('\\','\\\\')
-	
-	if (mode == "RAW"):
-		data = "{\"req_path\":\"" + newpath + "\",\"req_filename\":\"" + filename + "\"}"
-	else:
-		data = "{\"req_path\":\"" + newpath + "\",\"req_filename\":\"" + filename + "\",\"req_use_api\":true}"
-
+	data = json.dumps({'req_path' : newpath, 'req_filename' : filename, 'req_use_api' : str(mode != "RAW").lower()})
 	request = restBuildRequest(hxip, hxport, '/hx/api/v1/hosts/{0}/files'.format(agentId), method = 'POST', data = data, fetoken = fetoken)
 	
 	try:
@@ -387,10 +382,6 @@ def restDownloadBulkAcq(fetoken, url, hxip, hxport):
 
 def restNewBulkAcq(fetoken, script, hostset, hxip, hxport):
 
-	#sc = base64.b64encode(script)
-	#sc = "\"" + sc + "\""
-	#data = """{"host_set":{"_id":""" + str(hostset) +  """},"script":{"b64":""" + sc + """}}"""	
-	
 	data = json.dumps({'host_set' : {'_id' : int(hostset)}, 'script' : {'b64' : base64.b64encode(script)}})
 	request = restBuildRequest(hxip, hxport, '/hx/api/v2/acqs/bulk', method = 'POST', data = data, fetoken = fetoken)
 
@@ -476,8 +467,7 @@ def restListSearches(fetoken, hxip, hxport):
 
 def restSubmitSweep(fetoken, hxip, hxport, b64ioc, hostset):
 
-	#data = """{"indicator":""" + "\"" + b64ioc + "\"" + ""","host_set":{"_id":""" + hostset + """}}"""
-	data = json.dumps({'indicator' : b64ioc, 'host_set' : {'_id' : host_set}})
+	data = json.dumps({'indicator' : b64ioc, 'host_set' : {'_id' : int(hostset)}})
 	request = restBuildRequest(hxip, hxport, '/hx/api/v2/searches', method = 'POST', data = data, fetoken = fetoken)
 
 	try:
@@ -592,7 +582,6 @@ def restGetAlerts(fetoken, count, hxip, hxport):
 # NOTE: this function does not return data in the usual way, the response is a list of alerts
 def restGetAlertsTime(fetoken, startdate, enddate, hxip, hxport):
 
-	#data = """{"event_at":{"min":""" + "\"" + startdate + """T00:00:00.000Z","max":""" + "\"" + enddate + """T23:59:59.999Z"}}"""
 	data = json.dumps({'event_at' : 
 						{'min' : '{0}T00:00:00.000Z'.format(startdate), 
 						'max' : '{0}T23:59:59.999Z'.format(enddate)}
