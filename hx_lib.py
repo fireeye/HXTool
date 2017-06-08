@@ -391,7 +391,7 @@ def restNewBulkAcq(fetoken, script, hostset, hxip, hxport):
 	#sc = "\"" + sc + "\""
 	#data = """{"host_set":{"_id":""" + str(hostset) +  """},"script":{"b64":""" + sc + """}}"""	
 	
-	data = json.dumps({'host_set' : {'_id' : hostset}, 'script' : {'b64' : base64.b64encode(script)}})
+	data = json.dumps({'host_set' : {'_id' : int(hostset)}, 'script' : {'b64' : base64.b64encode(script)}})
 	request = restBuildRequest(hxip, hxport, '/hx/api/v2/acqs/bulk', method = 'POST', data = data, fetoken = fetoken)
 
 	try:
