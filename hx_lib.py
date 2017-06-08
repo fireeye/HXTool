@@ -689,8 +689,9 @@ def prettyTime(time=False):
 		diff = now - time
 	elif not time:
 		diff = now - now
-		second_diff = diff.seconds
-		day_diff = diff.days
+
+	second_diff = diff.seconds
+	day_diff = diff.days
 
 	if day_diff < 0:
 		return ''
