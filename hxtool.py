@@ -196,7 +196,7 @@ def alerts():
 				newrowid = sqlAddAlert(c, conn, session['ht_profileid'], request.form['annotateId'])
 				# Add annotation to annotation table
 				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'], session['ht_user'])
-				app.logger.info('New annotation - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+				app.logger.info('New annotation - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port'])
 		
 		if 'acount' in request.args:
 			acount = request.args['acount']
@@ -279,12 +279,12 @@ def searchaction():
 	
 		if request.args.get('action') == "stop":
 			res = restCancelJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/searches/', session['ht_ip'], session['ht_port'])
-			app.logger.info('User access: Enterprise Search action STOP - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			app.logger.info('User access: Enterprise Search action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 			return redirect("/search", code=302)
 			
 		if request.args.get('action') == "remove":
 			res = restDeleteJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/searches/', session['ht_ip'], session['ht_port'])
-			app.logger.info('User access: Enterprise Search action REMOVE - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			app.logger.info('User access: Enterprise Search action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 			return redirect("/search", code=302)	
 		
 	else:
@@ -307,7 +307,7 @@ def buildioc():
 				myplatforms = request.form['platform'].split(",")
 				
 			iocuri = restAddIndicator(session['ht_user'], request.form['iocname'], request.form['cats'], myplatforms, session['ht_token'], session['ht_ip'], session['ht_port'])
-			app.logger.info('New indicator created - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			app.logger.info('New indicator created - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 			
 			condEx = []
 			condPre = []
@@ -387,7 +387,7 @@ def indicators():
 			strIO = StringIO()
 			strIO.write(ioclist_json)
 			strIO.seek(0)
-			app.logger.info('Indicator(s) exported - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			app.logger.info('Indicator(s) exported - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 			return send_file(strIO, attachment_filename=iocfname, as_attachment=True)
 	
 		iocs = restListIndicators(session['ht_token'], session['ht_ip'], session['ht_port'])
@@ -420,7 +420,7 @@ def categories():
 		if request.method == 'POST':
 			catname = request.form.get('catname')
 			restCreateCategory(session['ht_token'], str(catname), session['ht_ip'], session['ht_port'])
-			app.logger.info('New indicator category created - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			app.logger.info('New indicator category created - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 	
 	
 		cats = restListIndicatorCategories(session['ht_token'], session['ht_ip'], session['ht_port'])
@@ -453,7 +453,7 @@ def importioc():
 					data = """{"tests":""" + data + """}"""
 					res = restAddCondition(iocuri, "execution", data, iocs[iockey]['category'], session['ht_token'], session['ht_ip'], session['ht_port'])
 			
-			app.logger.info('New indicator imported - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			app.logger.info('New indicator imported - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 		
 		return redirect("/indicators", code=302)
 	else:
@@ -471,7 +471,7 @@ def listbulk():
 				f = request.files['bulkscript']
 				bulkscript = f.read()
 				newbulk = restNewBulkAcq(session['ht_token'], bulkscript, request.form['bulkhostset'], session['ht_ip'], session['ht_port'])
-				app.logger.info('New bulk acquisition - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+				app.logger.info('New bulk acquisition - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 
 			conn = sqlite3.connect('hxtool.db')
 			c = conn.cursor()
@@ -506,7 +506,7 @@ def bulkdownload():
 			if request.args.get('id'):
 				urlhead, fname = os.path.split(request.args.get('id'))
 				acq = restDownloadBulkAcq(session['ht_token'], request.args.get('id'), session['ht_ip'], session['ht_port'])
-				app.logger.info('Bulk acquisition download - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+				app.logger.info('Bulk acquisition download - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 				return send_file(io.BytesIO(acq), attachment_filename=fname, as_attachment=True)
         else:
                 return redirect("/login", code=302)
@@ -521,22 +521,22 @@ def bulkaction():
 	
 		if request.args.get('action') == "stop":
 			res = restCancelJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/acqs/bulk/', session['ht_ip'], session['ht_port'])
-			app.logger.info('Bulk acquisition action STOP - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			app.logger.info('Bulk acquisition action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 			return redirect("/bulk", code=302)
 			
 		if request.args.get('action') == "remove":
 			res = restDeleteJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/acqs/bulk/', session['ht_ip'], session['ht_port'])
-			app.logger.info('Bulk acquisition action REMOVE - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			app.logger.info('Bulk acquisition action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 			return redirect("/bulk", code=302)	
 			
 		if request.args.get('action') == "download":
 			res = sqlAddBulkDownload(c, conn, session['ht_profileid'], request.args.get('id'))
-			app.logger.info('Bulk acquisition action DOWNLOAD - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			app.logger.info('Bulk acquisition action DOWNLOAD - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 			return redirect("/bulk", code=302)
 			
 		if request.args.get('action') == "stopdownload":
 			res = sqlRemoveBulkDownload(c, conn, session['ht_profileid'], request.args.get('id'))
-			app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 			return redirect("/bulk", code=302)
 	else:
 		return redirect("/login", code=302)
@@ -585,18 +585,18 @@ def stacking():
 			
 			if request.args.get('stop'):
 				sqlChangeStackJobState(c, conn, request.args.get('stop'), session['ht_profileid'], "STOPPING")
-				app.logger.info('Data stacking action STOP - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+				app.logger.info('Data stacking action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 				return redirect("/stacking", code=302)
 
 			if request.args.get('remove'):
 				sqlChangeStackJobState(c, conn, request.args.get('remove'), session['ht_profileid'], "REMOVING")
-				app.logger.info('Data stacking action REMOVE - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+				app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 				return redirect("/stacking", code=302)
 
 				
 			if request.method == 'POST':
 				out = sqlAddStackJob(c, conn, session['ht_profileid'], request.form['stacktype'], request.form['stackhostset'])
-				app.logger.info('New data stacking job - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 			
 			hs = restListHostsets(session['ht_token'], session['ht_ip'], session['ht_port'])
 			hostsets = formatHostsets(hs)
