@@ -34,7 +34,7 @@ def restBuildRequest(hxip, hxport, url, method = 'GET', data = None, fetoken = N
 	request.get_method = lambda: method
 	request.add_header('Accept', accept)
 	request.add_header('User-Agent', 'Mozilla/5.0 (Windows NT; rv:53.0) Gecko/20100101 Firefox/53.0')
-	if method != 'GET' or method != 'DELETE':
+	if method != 'GET' and method != 'DELETE':
 		request.add_header('Content-Type', content_type)
 	if fetoken:
 		request.add_header('X-FeApi-Token', fetoken)
