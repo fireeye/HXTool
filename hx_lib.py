@@ -292,10 +292,6 @@ def restAcquireTriage(agentId, fetoken, hxip, hxport, timestamp = False):
 # Acquire file
 def restAcquireFile(agentId, fetoken, path, filename, mode, hxip, hxport):
 
-	handler = urllib2.HTTPHandler()
-	opener = urllib2.build_opener(handler)
-	urllib2.install_opener(opener)
-
 	newpath = path.replace('\\','\\\\')
 	data = json.dumps({'req_path' : newpath, 'req_filename' : filename, 'req_use_api' : str(mode != "RAW").lower()})
 	request = restBuildRequest(hxip, hxport, '/hx/api/v1/hosts/{0}/files'.format(agentId), method = 'POST', data = data, fetoken = fetoken)
