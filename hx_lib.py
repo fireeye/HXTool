@@ -659,6 +659,18 @@ def restListHostsets(fetoken, hxip, hxport):
 		r = json.loads(response.read().decode(response.info().getparam('charset') or 'utf-8'))
 		return(r)
 
+def restCheckAccessCustomConfig(fetoken, hxip, hxport):
+
+	request = restBuildRequest(hxip, hxport, '/hx/api/v3/host_policies/channels?limit=1', fetoken = fetoken)
+	
+	try:
+		response = urllib2.urlopen(request)
+	except urllib2.HTTPError as e:
+		return(False)
+	except urllib2.URLError as e:
+		return(False)
+	else:
+		return(True)
 		
 def restListCustomConfigChannels(fetoken, hxip, hxport):
 

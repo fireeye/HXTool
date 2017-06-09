@@ -196,7 +196,7 @@ def alerts():
 				newrowid = sqlAddAlert(c, conn, session['ht_profileid'], request.form['annotateId'])
 				# Add annotation to annotation table
 				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'], session['ht_user'])
-				app.logger.info('New annotation - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port'])
+				app.logger.info('New annotation - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 		
 		if 'acount' in request.args:
 			acount = request.args['acount']
@@ -656,25 +656,29 @@ def settings():
 def channels():
 	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
 	
-			conn = sqlite3.connect('hxtool.db')
-			c = conn.cursor()
-	
-			if (request.method == 'POST'):
-				res = restNewConfigChannel(session['ht_token'], request.form['name'], request.form['description'], request.form['priority'], request.form.getlist('hostsets'), request.form['confjson'], session['ht_ip'], session['ht_port'])
-				app.logger.info("New configuration channel on profile: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
-			
-			if request.args.get('delete'):
-				res = restDeleteConfigChannel(session['ht_token'], request.args.get('delete'), session['ht_ip'], session['ht_port'])
-				app.logger.info("Configuration channel delete on profile: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
-				return redirect("/channels", code=302)
-			
-			ch = restListCustomConfigChannels(session['ht_token'], session['ht_ip'], session['ht_port'])
-			channels = formatCustomConfigChannels(ch)
-			
-			hs = restListHostsets(session['ht_token'], session['ht_ip'], session['ht_port'])
-			hostsets = formatHostsets(hs)
-			
-			return render_template('ht_configchannel.html', channels=channels, hostsets=hostsets)
+			if restCheckAccessCustomConfig(session['ht_token'], session['ht_ip'], session['ht_port']):
+						
+				conn = sqlite3.connect('hxtool.db')
+				c = conn.cursor()
+		
+				if (request.method == 'POST'):
+					res = restNewConfigChannel(session['ht_token'], request.form['name'], request.form['description'], request.form['priority'], request.form.getlist('hostsets'), request.form['confjson'], session['ht_ip'], session['ht_port'])
+					app.logger.info("New configuration channel on profile: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
+				
+				if request.args.get('delete'):
+					res = restDeleteConfigChannel(session['ht_token'], request.args.get('delete'), session['ht_ip'], session['ht_port'])
+					app.logger.info("Configuration channel delete on profile: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
+					return redirect("/channels", code=302)
+				
+				ch = restListCustomConfigChannels(session['ht_token'], session['ht_ip'], session['ht_port'])
+				channels = formatCustomConfigChannels(ch)
+				
+				hs = restListHostsets(session['ht_token'], session['ht_ip'], session['ht_port'])
+				hostsets = formatHostsets(hs)
+				
+				return render_template('ht_configchannel.html', channels=channels, hostsets=hostsets)
+			else:
+				return render_template('ht_noaccess.html')
 	else:
 			return redirect("/login", code=302)
 
