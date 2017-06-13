@@ -197,23 +197,28 @@ def alerts():
 				# Add annotation to annotation table
 				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'], session['ht_user'])
 				app.logger.info('New annotation - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+				return redirect("/alerts", code=302)
 		
-		if 'acount' in request.args:
-			acount = request.args['acount']
+		if not 'render' in request.args:
+			return render_template('ht_alerts_ph.html', session=session)
 		else:
-			acount = 50
 		
-		acountselect = ""
-		for i in [10, 20, 30, 50, 100, 250, 500, 1000]:
-			if (i == int(acount)):
-				acountselect += "<option value='/alerts?acount=" + str(i) + "' selected='selected'>Last " + str(i) + " Alerts"
+			if 'acount' in request.args:
+				acount = request.args['acount']
 			else:
-				acountselect += "<option value='/alerts?acount=" + str(i) + "'>Last " + str(i) + " Alerts"
-		
-		alerts = restGetAlerts(session['ht_token'], str(acount), session['ht_ip'], session['ht_port'])
-		alertshtml = formatAlertsTable(alerts, session['ht_token'], session['ht_ip'], session['ht_port'], session['ht_profileid'], c, conn)
-		
-		return render_template('ht_alerts.html', session=session, alerts=alertshtml, acountselect=acountselect)
+				acount = 50
+			
+			acountselect = ""
+			for i in [10, 20, 30, 50, 100, 250, 500, 1000]:
+				if (i == int(acount)):
+					acountselect += "<option value='/alerts?acount=" + str(i) + "' selected='selected'>Last " + str(i) + " Alerts"
+				else:
+					acountselect += "<option value='/alerts?acount=" + str(i) + "'>Last " + str(i) + " Alerts"
+			
+			alerts = restGetAlerts(session['ht_token'], str(acount), session['ht_ip'], session['ht_port'])
+			alertshtml = formatAlertsTable(alerts, session['ht_token'], session['ht_ip'], session['ht_port'], session['ht_profileid'], c, conn)
+			
+			return render_template('ht_alerts.html', session=session, alerts=alertshtml, acountselect=acountselect)
 
 	else:
 		return redirect("/login", code=302)

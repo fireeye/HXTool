@@ -1,62 +1,3 @@
-{% extends "layout.html" %}
-{% block title %}HXTool - Alerts{% endblock %}
-{% block navlocation %}Alerts{% endblock %}
-{% block content %}
-
-<script>
-        $(document).ready(function() {
-                
-			$("input[id^='annotate_']").click(function() {
-				var id = ($(this).attr('id'));
-				var arrId = id.split("_");
-
-				$('#annotateId').val(arrId[1]);
-				$('#shader').show();
-				$('#annotatePopup').show(200);
-				
-			});
-
-			$('#annotateCancel').click(function() {
-				$('#annotatePopup').hide(200);
-				$('#shader').hide();
-			});
-
-			$("a[id^='adisp_']").click(function() {
-				var id = ($(this).attr('id'));
-				var arrId = id.split("_");
-				
-				$('#annotateDisplayContent').load("/annotatedisplay?alertid=" + arrId[1]);
-				$('#shader').show();
-				$('#annotateDisplayPopup').show(200);
-			});
-			
-			$('#annotateDisplayCancel').click(function() {
-				$('#annotateDisplayPopup').hide(200);
-				$('#shader').hide();
-			});
-
-			// Show alert details
-			$("a[id^='showalert_']").click(function() {
-				var id = ($(this).attr('id'));
-				var arrId = id.split("_");
-				
-				$('#shader').show();
-				$('#alertdetails_' + arrId[1]).show(200);
-				
-			});
-
-			$("input[id^='close_']").click(function() {
-				var id = ($(this).attr('id'));
-				var arrId = id.split("_");
-				
-				$('#alertdetails_' + arrId[1]).hide(200);
-				$('#shader').hide();
-			});
-			
-			
-        });
-</script>
-
 <div class='tableTitle' style='float: left;'>Alerts</div>
 <div style='float: right;'>
 	<select name='acount' id='acount' style='margin-top: -5px;' onchange="if (this.value) window.location.href=this.value">
@@ -89,5 +30,3 @@
 	<br>
 	<input type='button' value='Close' id='annotateDisplayCancel'>
 </div>
-
-{% endblock %}

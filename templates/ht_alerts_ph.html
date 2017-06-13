@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Alerts{% endblock %}
+{% block navlocation %}Alerts{% endblock %}
+{% block content %}
+
+<script>
+        $(document).ready(function() {
+
+			enableStatusBar("<img style='height: 20px; margin-right: 10px; margin-bottom: -5px;' src='/static/spinner.svg'></img>Loading alerts from the controller...", 200, "ht_statusbar_notifyBlue")
+			$("#ht_main_table_main_td").load("/alerts?render=1", function(responseTxt, statusTxt, xhr){
+			if(statusTxt == "success")
+				disableStatusBar(500)
+                
+				$("input[id^='annotate_']").click(function() {
+					var id = ($(this).attr('id'));
+					var arrId = id.split("_");
+
+					$('#annotateId').val(arrId[1]);
+					$('#shader').show();
+					$('#annotatePopup').show(200);
+					
+				});
+
+				$('#annotateCancel').click(function() {
+					$('#annotatePopup').hide(200);
+					$('#shader').hide();
+				});
+
+				$("a[id^='adisp_']").click(function() {
+					var id = ($(this).attr('id'));
+					var arrId = id.split("_");
+					
+					$('#annotateDisplayContent').load("/annotatedisplay?alertid=" + arrId[1]);
+					$('#shader').show();
+					$('#annotateDisplayPopup').show(200);
+				});
+				
+				$('#annotateDisplayCancel').click(function() {
+					$('#annotateDisplayPopup').hide(200);
+					$('#shader').hide();
+				});
+
+				// Show alert details
+				$("a[id^='showalert_']").click(function() {
+					var id = ($(this).attr('id'));
+					var arrId = id.split("_");
+					
+					$('#shader').show();
+					$('#alertdetails_' + arrId[1]).show(200);
+					
+				});
+
+				$("input[id^='close_']").click(function() {
+					var id = ($(this).attr('id'));
+					var arrId = id.split("_");
+					
+					$('#alertdetails_' + arrId[1]).hide(200);
+					$('#shader').hide();
+				});
+
+			if(statusTxt == "error")
+				alert("Error: " + xhr.status + ": " + xhr.statusText);
+			});
+			
+        });
+</script>
+
+{% endblock %}

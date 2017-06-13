@@ -1,5 +1,24 @@
 /* Common */
 
+.ht_statusbar_div {
+	position: absolute;
+	left: 0;
+	top: 59px;
+	right: 0;
+	height: 20px;
+	padding: 10px;
+	display: none;
+	z-index: 50;
+}
+
+.ht_statusbar_notifyBlue {
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-size: 14px;
+	background: rgb(121, 161, 190);
+	font-weight: bold;
+	color: #ffffff;
+}
+
 .morris-hover {
 	position: absolute;
 	padding: 20px;
@@ -9,10 +28,10 @@
 }
 
 .tableTitle {
-        font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
-        font-weight: 700;
-        color: #444;
-        font-size: 14px;
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-weight: 700;
+	color: #444;
+	font-size: 14px;
 	padding-bottom: 5px;
 }
 
