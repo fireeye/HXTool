@@ -17,5 +17,19 @@ class hxtool_config:
 			else:
 				self.logger.info('Configuration file %s is OK.', config_file)
 
+	def __getitem__(self, key):
+		return self._config[key]
+				
 	def get_config(self):
-		return self._config	
+		return self._config
+	
+	def get_or_none(self, key, empty_is_none = True):
+		if key in self._config:
+			c = self._config[key]
+			if empty_is_none and len(c) == 0:
+				return None
+			else:
+				return c
+		else:
+			return None
+			

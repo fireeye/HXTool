@@ -465,8 +465,8 @@ def formatDashAlerts(alerts, hx_api_object):
 		x += "<td>" + str(response_data['data']['os']['product_name']) + " " + str(response_data['data']['os']['patch_level']) + " " + str(response_data['data']['os']['bitness']) + "</td>"
 		x += "<td>"
 		if str(entry['source']) == "IOC":
-			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
-			for indicator in indicators['data']['entries']:
+			(ret, response_code, response_data) = hx_api_object.restGetIndicatorFromCondition(str(entry['condition']['_id']))
+			for indicator in response_data['data']['entries']:
 				x += "<b>Indicator:</b> " + indicator['name'] + " (" + indicator['category']['name'] + ")<br>"
 		elif str(entry['source']) == "MAL":
 			x += "<b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][0].upper() + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][1:] + ": </b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (" + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
@@ -538,8 +538,8 @@ def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 		
 		# Alerted
 		import datetime
-		t = gt(entry['reported_at'])
-		x += "<td style='text-align: center; font-weight: 700;'>" + prettyTime(t) + "</td>"
+		t = HXAPI.gt(entry['reported_at'])
+		x += "<td style='text-align: center; font-weight: 700;'>" + HXAPI.prettyTime(t) + "</td>"
 
 		# Reported at
 		x += "<td>" + str(entry['reported_at']) + "</td>"
@@ -611,7 +611,7 @@ def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 		else:
 			x += "Unknown alert"
 		
-		x += "<a target='_blank' class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='https://" + hxip + ":" + hxport + "/hx/hosts/" + entry['agent']['_id'] + "/alerts/" + str(entry['_id']) + "'>HX</a>"
+		x += "<a target='_blank' class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='https://" + hx_api_object.hx_host + ":" + hx_api_object.hx_port + "/hx/hosts/" + entry['agent']['_id'] + "/alerts/" + str(entry['_id']) + "'>HX</a>"
 		x += "</td>"
 		
 		# State

@@ -92,14 +92,17 @@ class HXAPI:
 		if self.fe_token:
 			self.logger.debug('We have a token, appending it to the request.')
 			request.add_header('X-FeApi-Token', self.get_token()['token'])
+		for header in self.headers:
+			self.logger.debug('Appending additional headers to request.')
+			request.add_header(header[0], header[1])
 		if len(self.cookies) > 0:
-			self.logger.debug('Appending additional cookies.')
+			self.logger.debug('Appending additional cookies to request.')
 			request.add_header('Cookie', ';'.join('='.join(_) for _ in self.cookies.items()) + ';')
 		
 		self.logger.debug('Request created, returning.')
 		return request
 
-	def handle_response(self, request):
+	def handle_response(self, request, expect_multiple_json_objects = False):
 		
 		has_http_error = False
 
@@ -113,12 +116,16 @@ class HXAPI:
 			self.logger.debug('URLError occured. Reason: %s', e.reason)
 			return(False, None, e.reason, None)
 		
-		response_data = response.read()
+		response_data = response.read() 
 		
 		content_type = response.info().getheader('Content-Type')
 		if content_type:
 			if 'json' in content_type:
-				response_data = json.loads(response_data.decode(response.info().getheader('charset') or 'utf-8'))
+				response_data = response_data.decode(response.info().getheader('charset') or 'utf-8')
+				if expect_multiple_json_objects:
+					response_data = [json.loads(_) for _ in response_data.splitlines() if _.startswith('{')]
+				else:
+					response_data = json.loads(response_data)
 			elif 'text' in content_type:
 				response_data = response_data.decode(response.info().getheader('charset') or 'utf-8')
 				
@@ -246,9 +253,9 @@ class HXAPI:
 
 
 	# Add a new condition
-	def restAddCondition(self, ioc_category, ioc_uri, ioc_type, condition_data):
+	def restAddCondition(self, ioc_category, ioc_guid, condition_class, condition_data):
 
-		request = self.build_request('/hx/api/v1/indicators/{0}/{1}/conditions/{2}'.format(ioc_category, ioc_uri, ioc_type), method = 'POST', data = condition_data)
+		request = self.build_request('/hx/api/v1/indicators/{0}/{1}/conditions/{2}'.format(ioc_category, ioc_guid, condition_class), method = 'POST', data = condition_data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -274,9 +281,9 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# Grab conditions from an indicator
-	def restGetCondition(self, ioc_category, ioc_uri, ioc_type, limit=10000):
+	def restGetCondition(self, ioc_category, ioc_uri, condition_class, limit=10000):
 
-		request = self.build_request('/hx/api/v1/indicators/{0}/{1}/conditions/{2}?limit={3}'.format(ioc_category, ioc_uri, ioc_type, limit))
+		request = self.build_request('/hx/api/v1/indicators/{0}/{1}/conditions/{2}?limit={3}'.format(ioc_category, ioc_uri, condition_class, limit))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -297,6 +304,13 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	# Delete an indicator by name
+	def restDeleteIndicator(self, ioc_category, ioc_name):
+		
+		request = self.build_request('/hx/api/v3/indicators/{0}/{1}'.format(ioc_category, ioc_name), method = 'DELETE')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
 
 
 	## Acquisitions
@@ -472,16 +486,13 @@ class HXAPI:
 							
 		request = self.build_request('/hx/api/v3/alerts/filter', method = 'POST', data = data)
 		
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request, expect_multiple_json_objects = True)
 		
 		if ret:
-			# response_data is 0 if there are no alerts
-			if int(response_data) != 0:
-				from operator import itemgetter
-				sorted_alert_list = sorted(response_data, key=itemgetter('reported_at'), reverse=True);
-				return(True, response_code, sorted_alert_list)
-			else:
-				return(True, response_code, '')
+			from operator import itemgetter
+			sorted_alert_list = sorted(response_data, key=itemgetter('reported_at'), reverse=True);
+			return(True, response_code, sorted_alert_list)
+		
 		else:
 			return(ret, response_code, response_data)
 			
@@ -563,8 +574,8 @@ class HXAPI:
 	####
 	# Generic functions
 	####
-
-	def prettyTime(self, time=False):
+	@staticmethod
+	def prettyTime(time=False):
 		
 		from datetime import datetime
 
@@ -606,7 +617,8 @@ class HXAPI:
 		
 		return str(day_diff / 365) + " years ago"
 
-	def gt(self, dt_str):
+	@staticmethod	
+	def gt(dt_str):
 		
 		dt, _, us= dt_str.partition(".")
 		dt = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
