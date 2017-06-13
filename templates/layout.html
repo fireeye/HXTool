@@ -15,17 +15,41 @@
 <body>
 
 <script>
+
+	function showStatusBar(text, showTimer, hideTimer, duration) {
+		$("#ht_statusbar_td").html(text);
+		$("#ht_statusbar_tr").show(showTimer);
+		setTimeout(function() { $("#ht_statusbar_tr").hide(hideTimer); }, duration);
+	}
+	
+	function enableStatusBar(text, showTimer, myClass) {
+		$("#ht_statusbar_div").html(text);
+		$("#ht_statusbar_div").addClass(myClass);
+		$("#ht_statusbar_div").slideDown(showTimer);
+	}
+	
+	function disableStatusBar(hideTimer) {
+		$("#ht_statusbar_div").animate({opacity: "0", height: "0"}, { duration: hideTimer, queue: false }, function() {
+				$("#ht_statusbar_div").hide();
+				$("#ht_statusbar_div").html("");
+		});
+	}
+
+
 	$(document).ready(function() {
 		$('[id^=navbutton]').click(function() {
 			url = this.id.split("_");
 			window.location.replace("/" + url[1]);
 		});
+		
 		$("#navcategory_indicator").click(function() {
 			$("#dropdown-content-indicators").show(200);
 		});
+		
 	});
 </script>
 
+	<div class='ht_statusbar_div' id='ht_statusbar_div'>kakasdalkjfsdlkfjlk sdfjlksdjf lksdjflksdjf lksdjfl</div>
 	<table cellpadding=0 cellspacing=0 class='ht_main_table'> 
 		<tr>
 			<td class='ht_main_table_top_td'>
@@ -60,9 +84,12 @@
 				<div style='clear: both;'></div>
 			</td>
 		</tr>
-		<tr>
-			<td class='ht_main_table_main_td'>
+		<!-- Main content -->
+		<tr id='ht_main_table_main_tr'>
+			<td class='ht_main_table_main_td' id='ht_main_table_main_td'>
+				<div id='mainWrapper'>
 				{% block content %}{% endblock %}
+				</div>
 			</td>
 		</tr>
 	</table>
