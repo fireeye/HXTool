@@ -205,14 +205,14 @@ def backgroundBulkProcessor(c, conn, myConf, app):
 				if host['result'] == None:
 					continue
 
-				directory = "bulkdownload/" + str(hxname) + "_" + str(bulkid)
+				directory = "bulkdownload/{0}_{1}".format(hx_host, bulkid)
 
 				if not os.path.exists(directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip"):
 
 					hiter = hiter + 1
 					
 					# download the zip
-					get_dataurl = 'https://{:s}:{:s}{:s}'.format(hxip, hxport, host['url']) + ".zip"
+					get_dataurl = 'https://{0}:{1}{2}.zip'.format(hx_host, hx_port, host['url'])
 					rd = requests.get(get_dataurl, headers = zip_request_headers, stream = True, verify = False)
 
 					# write data to disk
