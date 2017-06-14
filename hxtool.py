@@ -488,7 +488,7 @@ def listbulk():
 		if request.method == 'POST':
 			f = request.files['bulkscript']
 			bulk_acquisition_script = f.read()
-			(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script)
+			(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, request.form['bulkhostset'])
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 		conn = sqlite3.connect('hxtool.db')

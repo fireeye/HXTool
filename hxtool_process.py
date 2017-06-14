@@ -184,10 +184,10 @@ def backgroundBulkProcessor(c, conn, myConf, app):
 		(ret, response_code, response_data) = hx_api_object.restLogin(hx_user, hx_pass)
 		
 		if ret:
-			json_request_headers = {'X-FeApi-Token': hx_api_object.get_token['token'], 'Accept': 'application/json'}
-			zip_request_headers = {'X-FeApi-Token': hx_api_object.get_token['token'], 'Accept': 'application/octet-stream'}
+			json_request_headers = {'X-FeApi-Token': hx_api_object.get_token()['token'], 'Accept': 'application/json'}
+			zip_request_headers = {'X-FeApi-Token': hx_api_object.get_token()['token'], 'Accept': 'application/octet-stream'}
 			
-			bulk_url = 'https://{:s}:{:s}{:s}{:s}{:s}{:s}'.format(hx_host, hx_port, "/hx/api/v2/acqs/bulk/", str(bulkid), '/hosts?limit=', hxtotal_agents)
+			bulk_url = 'https://{0}:{1}/hx/api/v2/acqs/bulk/{2}/hosts?limit={3}'.format(hx_host, hx_port, str(bulkid), hxtotal_agents)
 
 			r = requests.get(bulk_url, headers = json_request_headers, stream = True, verify = False)
 

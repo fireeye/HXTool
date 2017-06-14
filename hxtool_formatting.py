@@ -611,7 +611,7 @@ def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 		else:
 			x += "Unknown alert"
 		
-		x += "<a target='_blank' class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='https://" + hx_api_object.hx_host + ":" + hx_api_object.hx_port + "/hx/hosts/" + entry['agent']['_id'] + "/alerts/" + str(entry['_id']) + "'>HX</a>"
+		x += "<a target='_blank' class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='https://" + hx_api_object.hx_host + ":" + str(hx_api_object.hx_port) + "/hx/hosts/" + entry['agent']['_id'] + "/alerts/" + str(entry['_id']) + "'>HX</a>"
 		x += "</td>"
 		
 		# State
