@@ -202,24 +202,23 @@ def alerts():
 				# Add annotation to annotation table
 				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'], session['ht_user'])
 				app.logger.info('New annotation - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				return redirect("/alerts", code=302)
 		
-		if 'acount' in request.args:
-			acount = request.args['acount']
+		if not 'render' in request.args:
+			return render_template('ht_alerts_ph.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 		else:
-			acount = 50
-		
-		acountselect = ""
-		for i in [10, 20, 30, 50, 100, 250, 500, 1000]:
-			if (i == int(acount)):
-				acountselect += "<option value='/alerts?acount=" + str(i) + "' selected='selected'>Last " + str(i) + " Alerts"
+			if 'acount' in request.args:
+				acount = request.args['acount']
 			else:
-				acountselect += "<option value='/alerts?acount=" + str(i) + "'>Last " + str(i) + " Alerts"
+				acount = 50
 		
-		(ret, response_code, response_data) = hx_api_object.restGetAlerts(str(acount))
-		alertshtml = formatAlertsTable(response_data, hx_api_object, session['ht_profileid'], c, conn)
-		
-		return render_template('ht_alerts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), alerts=alertshtml, acountselect=acountselect)
-
+			acountselect = ""
+			for i in [10, 20, 30, 50, 100, 250, 500, 1000]:
+				acountselect += '<option value="/alerts?acount={0}"{1}>Last {2} Alerts</option>'.format(i, ' selected="selected"' if i == int(acount) else '', i)
+					
+			(ret, response_code, response_data) = hx_api_object.restGetAlerts(str(acount))
+			alertshtml = formatAlertsTable(response_data, hx_api_object, session['ht_profileid'], c, conn)
+			return render_template('ht_alerts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), alerts=alertshtml, acountselect=acountselect)
 	else:
 		return redirect("/login", code=302)
 
