@@ -777,7 +777,7 @@ def logout():
 def is_session_valid(session):
 	if session and 'ht_user' in session and 'ht_api_object' in session:
 		hx_api_object = HXAPI.deserialize(session['ht_api_object'])
-		return(hx_api_object.restIsSessionValid, hx_api_object)
+		return(hx_api_object.restIsSessionValid(), hx_api_object)
 	else:
 		return(False, None)
 
