@@ -1,4 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 
 ##################################################
 # hxTool - 3rd party user-interface for FireEye HX 
@@ -37,13 +39,15 @@ sqlCreateTables(c)
 
 app = Flask(__name__, static_url_path='/static')
 
+ht_config = None
+
 # Dashboard page
 ################
 
 @app.route('/')
 def index():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
-	
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 		if 'time' in request.args:
 			if request.args.get('time') == "today":
 				starttime = datetime.datetime.now()
@@ -68,16 +72,16 @@ def index():
 	
 		base = datetime.datetime.today()
 	
-		alertsjson = restGetAlertsTime(session['ht_token'], starttime.strftime("%Y-%m-%d"), base.strftime("%Y-%m-%d"), session['ht_ip'], session['ht_port'])
+		(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(starttime.strftime("%Y-%m-%d"), base.strftime("%Y-%m-%d"))
 		
-		nr_of_alerts = len(alertsjson)
+		nr_of_alerts = len(response_data)
 		
 		# Recent alerts
-		alerts = formatDashAlerts(alertsjson, session['ht_token'], session['ht_ip'], session['ht_port'])
+		alerts = formatDashAlerts(response_data, hx_api_object)
 
 		if nr_of_alerts > 0:
 			stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}, {'value': 0, 'label': 'Malware'}]
-			for alert in alertsjson:
+			for alert in response_data:
 				if alert['source'] == "EXD":
 					stats[0]['value'] = stats[0]['value'] + 1
 				if alert['source'] == "IOC":
@@ -104,7 +108,7 @@ def index():
 		exdlist = []
 		mallist = []
 		
-		for talert in alertsjson:
+		for talert in response_data:
 
 			if talert['source'] == "IOC":
 				if not talert['agent']['_id'] in ioclist:
@@ -131,28 +135,28 @@ def index():
 			talerts_list.append({"date": str(key), "count": talert_dates[key]})
 
 		# Info table
-		hosts = restListHosts(session['ht_token'], session['ht_ip'], session['ht_port'])
+		(ret, response_code, response_data) = hx_api_object.restListHosts()
 
 		contcounter = 0;
 		hostcounter = 0;
 		searchcounter = 0;
-		for entry in hosts['data']['entries']:
+		for entry in response_data['data']['entries']:
 			hostcounter = hostcounter + 1
 			if entry['containment_state'] != "normal":
 				contcounter = contcounter + 1
 
-		searches = restListSearches(session['ht_token'], session['ht_ip'], session['ht_port'])
-		for entry in searches['data']['entries']:
-                        if entry['state'] == "RUNNING":
-                                searchcounter = searchcounter + 1;
+		(ret, response_code, response_data) = hx_api_object.restListSearches()
+		for entry in response_data['data']['entries']:
+						if entry['state'] == "RUNNING":
+								searchcounter = searchcounter + 1;
 
-		blk = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], session['ht_port'])
+		(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
 		blkcounter = 0;
-		for entry in blk['data']['entries']:
+		for entry in response_data['data']['entries']:
 			if entry['state'] == "RUNNING":
 				blkcounter = blkcounter + 1;
 
-		return render_template('ht_index.html', session=session, alerts=alerts, iocstats=stats, timeline=talerts_list, contcounter=str(contcounter), hostcounter=str(hostcounter), malcounter=str(malcounter), searchcounter=str(searchcounter), blkcounter=str(blkcounter), exdcounter=str(exdcounter), ioccounter=str(ioccounter))
+		return render_template('ht_index.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), alerts=alerts, iocstats=stats, timeline=talerts_list, contcounter=str(contcounter), hostcounter=str(hostcounter), malcounter=str(malcounter), searchcounter=str(searchcounter), blkcounter=str(blkcounter), exdcounter=str(exdcounter), ioccounter=str(ioccounter))
 	else:
 		return redirect("/login", code=302)
 
@@ -162,8 +166,8 @@ def index():
 
 @app.route('/jobdash', methods=['GET', 'POST'])
 def jobdash():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
-
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 		conn = sqlite3.connect('hxtool.db')
 		c = conn.cursor()
 	
@@ -174,7 +178,7 @@ def jobdash():
 		jobsEs = formatListSearchesJobDash(s)
 		
 		
-		return render_template('ht_jobdash.html', session=session, jobsBulk=jobsBulk, jobsEs=jobsEs)
+		return render_template('ht_jobdash.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), jobsBulk=jobsBulk, jobsEs=jobsEs)
 	else:
 		return redirect("/login", code=302)
 
@@ -184,7 +188,8 @@ def jobdash():
 
 @app.route('/alerts', methods=['GET', 'POST'])
 def alerts():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 	
 		conn = sqlite3.connect('hxtool.db')
 		c = conn.cursor()
@@ -196,37 +201,32 @@ def alerts():
 				newrowid = sqlAddAlert(c, conn, session['ht_profileid'], request.form['annotateId'])
 				# Add annotation to annotation table
 				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'], session['ht_user'])
-				app.logger.info('New annotation - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+				app.logger.info('New annotation - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 				return redirect("/alerts", code=302)
 		
 		if not 'render' in request.args:
-			return render_template('ht_alerts_ph.html', session=session)
+			return render_template('ht_alerts_ph.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 		else:
-		
 			if 'acount' in request.args:
 				acount = request.args['acount']
 			else:
 				acount = 50
-			
+		
 			acountselect = ""
 			for i in [10, 20, 30, 50, 100, 250, 500, 1000]:
-				if (i == int(acount)):
-					acountselect += "<option value='/alerts?acount=" + str(i) + "' selected='selected'>Last " + str(i) + " Alerts"
-				else:
-					acountselect += "<option value='/alerts?acount=" + str(i) + "'>Last " + str(i) + " Alerts"
-			
-			alerts = restGetAlerts(session['ht_token'], str(acount), session['ht_ip'], session['ht_port'])
-			alertshtml = formatAlertsTable(alerts, session['ht_token'], session['ht_ip'], session['ht_port'], session['ht_profileid'], c, conn)
-			
-			return render_template('ht_alerts.html', session=session, alerts=alertshtml, acountselect=acountselect)
-
+				acountselect += '<option value="/alerts?acount={0}"{1}>Last {2} Alerts</option>'.format(i, ' selected="selected"' if i == int(acount) else '', i)
+					
+			(ret, response_code, response_data) = hx_api_object.restGetAlerts(str(acount))
+			alertshtml = formatAlertsTable(response_data, hx_api_object, session['ht_profileid'], c, conn)
+			return render_template('ht_alerts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), alerts=alertshtml, acountselect=acountselect)
 	else:
 		return redirect("/login", code=302)
 
 		
 @app.route('/annotatedisplay', methods=['GET'])
 def annotatedisplay():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 		
 		conn = sqlite3.connect('hxtool.db')
 		c = conn.cursor()
@@ -235,7 +235,7 @@ def annotatedisplay():
 			an = sqlGetAnnotations(c, conn, request.args.get('alertid'), session['ht_profileid'])
 			annotatetable = formatAnnotationTable(an)
 	
-		return render_template('ht_annotatedisplay.html', session=session, annotatetable=annotatetable)
+		return render_template('ht_annotatedisplay.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), annotatetable=annotatetable)
 	else:
 		return redirect("/login", code=302)
 
@@ -246,50 +246,53 @@ def annotatedisplay():
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 	
 		# If we get a post it's a new sweep
 		if request.method == 'POST':
 			f = request.files['newioc']
 			rawioc = f.read()
 			b64ioc = base64.b64encode(rawioc)
-			out = restSubmitSweep(session['ht_token'], session['ht_ip'], session['ht_port'], b64ioc, request.form['sweephostset'])
-			app.logger.info('New Enterprise Search - User: ' + session['ht_user'] + "@" + session['ht_ip'])
+			(ret, response_code, response_data) = hx_api_object.restSubmitSweep(b64ioc, request.form['sweephostset'])
+			app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
-		s = restListSearches(session['ht_token'], session['ht_ip'], session['ht_port'])
-		searches = formatListSearches(s)
+		(ret, response_code, response_data) = hx_api_object.restListSearches()
+		searches = formatListSearches(response_data)
 		
-		hs = restListHostsets(session['ht_token'], session['ht_ip'], session['ht_port'])
-		hostsets = formatHostsets(hs)
+		(ret, response_code, response_data) = hx_api_object.restListHostsets()
+		hostsets = formatHostsets(response_data)
 		
-		return render_template('ht_searchsweep.html', session=session, searches=searches, hostsets=hostsets)
+		return render_template('ht_searchsweep.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), searches=searches, hostsets=hostsets)
 	else:
 		return redirect("/login", code=302)
 
 @app.route('/searchresult', methods=['GET'])
 def searchresult():
-        if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
-		
-			if request.args.get('id'):
-				hostresults = restGetSearchResults(session['ht_token'], request.args.get('id'), session['ht_ip'], session['ht_port'])
-				res = formatSearchResults(hostresults)
-				return render_template('ht_search_dd.html', session=session, result=res)
-        else:
-                return redirect("/login", code=302)
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+	
+		if request.args.get('id'):
+			(ret, response_code, response_data) = hx_api_object.restGetSearchResults(request.args.get('id'))
+			res = formatSearchResults(response_data)
+			return render_template('ht_search_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), result=res)
+	else:
+		return redirect("/login", code=302)
 
-				
+			
 @app.route('/searchaction', methods=['GET'])
 def searchaction():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 	
 		if request.args.get('action') == "stop":
-			res = restCancelJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/searches/', session['ht_ip'], session['ht_port'])
-			app.logger.info('User access: Enterprise Search action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+			(ret, response_code, response_data) = hx_api_object.restCancelJob('/hx/api/v2/searches/', request.args.get('id'))
+			app.logger.info('User access: Enterprise Search action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/search", code=302)
 			
 		if request.args.get('action') == "remove":
-			res = restDeleteJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/searches/', session['ht_ip'], session['ht_port'])
-			app.logger.info('User access: Enterprise Search action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+			(ret, response_code, response_data) = hx_api_object.restDeleteJob('/hx/api/v2/searches/', request.args.get('id'))
+			app.logger.info('User access: Enterprise Search action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/search", code=302)	
 		
 	else:
@@ -301,7 +304,8 @@ def searchaction():
 
 @app.route('/buildioc', methods=['GET', 'POST'])
 def buildioc():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 		
 		# New IOC to be created
 		if request.method == 'POST':
@@ -311,9 +315,11 @@ def buildioc():
 			else:
 				myplatforms = request.form['platform'].split(",")
 				
-			iocuri = restAddIndicator(session['ht_user'], request.form['iocname'], request.form['cats'], myplatforms, session['ht_token'], session['ht_ip'], session['ht_port'])
-			app.logger.info('New indicator created - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+			(ret, response_code, response_data) = hx_api_object.restAddIndicator(session['ht_user'], request.form['iocname'], myplatforms, request.form['cats'])
+			app.logger.info('New indicator created - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			
+			ioc_guid = response_data['data']['_id']
+
 			condEx = []
 			condPre = []
 
@@ -328,17 +334,16 @@ def buildioc():
 			for data in condPre:
 				data = """{"tests":[""" + data + """]}"""
 				data = data.replace('\\', '\\\\')
-				res = restAddCondition(iocuri, "presence", data, request.form['cats'], session['ht_token'], session['ht_ip'], session['ht_port'])
-
+				(ret, response_code, response_data) = hx_api_object.restAddCondition(request.form['cats'], ioc_guid, 'presence', data)
+				
 			for data in condEx:
-                                data = """{"tests":[""" + data + """]}"""
-                                data = data.replace('\\', '\\\\')
-                                res = restAddCondition(iocuri, "execution", data, request.form['cats'], session['ht_token'], session['ht_ip'], session['ht_port'])
-
-
-		categories = restListIndicatorCategories(session['ht_token'], session['ht_ip'], session['ht_port'])
-		cats = formatCategoriesSelect(categories)
-		return render_template('ht_buildioc.html', session=session, cats=cats)
+				data = """{"tests":[""" + data + """]}"""
+				data = data.replace('\\', '\\\\')
+				(ret, response_code, response_data) = hx_api_object.restAddCondition(request.form['cats'], ioc_guid, 'execution', data)
+				
+		(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
+		cats = formatCategoriesSelect(response_data)
+		return render_template('ht_buildioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), cats=cats)
 	else:
 		return redirect("/login", code=302)
 
@@ -348,7 +353,8 @@ def buildioc():
 
 @app.route('/indicators', methods=['GET', 'POST'])
 def indicators():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 	
 		if request.method == 'POST':
 			
@@ -373,13 +379,13 @@ def indicators():
 				ioclist[ioc['uuid']]['platforms'] = ioc['platforms']
 
 				#Grab execution indicators
-				cond_ex = restGetCondition(session['ht_token'], 'execution', ioc['category'], ioc['uuid'], session['ht_ip'], session['ht_port'])
-				for item in cond_ex['data']['entries']:
+				(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], ioc['uuid'], 'execution')
+				for item in response_data['data']['entries']:
 					ioclist[ioc['uuid']]['execution'].append(item['tests'])
 
 				#Grab presence indicators
-				cond_pre = restGetCondition(session['ht_token'], 'presence', ioc['category'], ioc['uuid'], session['ht_ip'], session['ht_port'])
-				for item in cond_pre['data']['entries']:
+				(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], ioc['uuid'], 'presence')
+				for item in response_data['data']['entries']:
 					ioclist[ioc['uuid']]['presence'].append(item['tests'])
 						
 			ioclist_json = json.dumps(ioclist, indent=4)
@@ -392,52 +398,55 @@ def indicators():
 			strIO = StringIO()
 			strIO.write(ioclist_json)
 			strIO.seek(0)
-			app.logger.info('Indicator(s) exported - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+			app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return send_file(strIO, attachment_filename=iocfname, as_attachment=True)
 	
-		iocs = restListIndicators(session['ht_token'], session['ht_ip'], session['ht_port'])
-		indicators = formatIOCResults(iocs)
-		return render_template('ht_indicators.html', session=session, indicators=indicators)
+		(ret, response_code, response_data) = hx_api_object.restListIndicators()
+		indicators = formatIOCResults(response_data)
+		return render_template('ht_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), indicators=indicators)
 	else:
 		return redirect("/login", code=302)
 
 @app.route('/indicatorcondition')
 def indicatorcondition():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 	
 		uuid = request.args.get('uuid')
 		category = request.args.get('category')
 	
-		cond_pre = restGetCondition(session['ht_token'], 'presence', category, uuid, session['ht_ip'], session['ht_port'])
-		cond_ex = restGetCondition(session['ht_token'], 'execution', category, uuid, session['ht_ip'], session['ht_port'])
+		(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(category, uuid, 'presence')
+		(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(category, uuid, 'execution')
 		
-		conditions = formatConditions(cond_pre, cond_ex)
+		conditions = formatConditions(condition_class_presence, condition_class_execution)
 	
-		return render_template('ht_indicatorcondition.html', session=session, conditions=conditions)
+		return render_template('ht_indicatorcondition.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), conditions=conditions)
 	else:
 		return redirect("/login", code=302)
 		
 
 @app.route('/categories', methods=['GET', 'POST'])
 def categories():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 	
 		if request.method == 'POST':
 			catname = request.form.get('catname')
-			restCreateCategory(session['ht_token'], str(catname), session['ht_ip'], session['ht_port'])
-			app.logger.info('New indicator category created - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+			(ret, response_code, response_data) = hx_api_object.restCreateCategory(str(catname))
+			app.logger.info('New indicator category created - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
 	
-		cats = restListIndicatorCategories(session['ht_token'], session['ht_ip'], session['ht_port'])
-		categories = formatCategories(cats)
+		(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
+		categories = formatCategories(response_data)
 		
-		return render_template('ht_categories.html', session=session, categories=categories)
+		return render_template('ht_categories.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories)
 	else:
 		return redirect("/login", code=302)
 
 @app.route('/import', methods=['POST'])
 def importioc():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 		
 		if request.method == 'POST':
 		
@@ -446,19 +455,21 @@ def importioc():
 			
 			for iockey in iocs:
 				myplatforms = iocs[iockey]['platforms'].split(",")
-				iocuri = restAddIndicator(session['ht_user'], iocs[iockey]['name'], iocs[iockey]['category'], myplatforms, session['ht_token'], session['ht_ip'], session['ht_port'])
+				(ret, response_code, response_data) = hx_api_object.restAddIndicator(session['ht_user'], iocs[iockey]['name'], myplatforms, iocs[iockey]['category'])
 
+				ioc_guid = response_data['data']['_id']
+				
 				for p_cond in iocs[iockey]['presence']:
 					data = json.dumps(p_cond)
 					data = """{"tests":""" + data + """}"""
-					res = restAddCondition(iocuri, "presence", data, iocs[iockey]['category'], session['ht_token'], session['ht_ip'], session['ht_port'])
+					(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
 
 				for e_cond in iocs[iockey]['execution']:
 					data = json.dumps(e_cond)
 					data = """{"tests":""" + data + """}"""
-					res = restAddCondition(iocuri, "execution", data, iocs[iockey]['category'], session['ht_token'], session['ht_ip'], session['ht_port'])
+					(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
 			
-			app.logger.info('New indicator imported - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+			app.logger.info('New indicator imported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		
 		return redirect("/indicators", code=302)
 	else:
@@ -470,78 +481,82 @@ def importioc():
 
 @app.route('/bulk', methods=['GET', 'POST'])
 def listbulk():
-        if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
-		
-			if request.method == 'POST':
-				f = request.files['bulkscript']
-				bulkscript = f.read()
-				newbulk = restNewBulkAcq(session['ht_token'], bulkscript, request.form['bulkhostset'], session['ht_ip'], session['ht_port'])
-				app.logger.info('New bulk acquisition - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+	
+		if request.method == 'POST':
+			f = request.files['bulkscript']
+			bulk_acquisition_script = f.read()
+			(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, request.form['bulkhostset'])
+			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
-			conn = sqlite3.connect('hxtool.db')
-			c = conn.cursor()
-			acqs = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], session['ht_port'])
-			bulktable = formatBulkTable(c, conn, acqs, session['ht_profileid'])
-			
-			hs = restListHostsets(session['ht_token'], session['ht_ip'], session['ht_port'])
-			hostsets = formatHostsets(hs)
-			
-			return render_template('ht_bulk.html', session=session, bulktable=bulktable, hostsets=hostsets)
-        else:
-			return redirect("/login", code=302)
+		conn = sqlite3.connect('hxtool.db')
+		c = conn.cursor()
+		(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
+		bulktable = formatBulkTable(c, conn, response_data, session['ht_profileid'])
+		
+		(ret, response_code, response_data) = hx_api_object.restListHostsets()
+		hostsets = formatHostsets(response_data)
+		
+		return render_template('ht_bulk.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable, hostsets=hostsets)
+	else:
+		return redirect("/login", code=302)
 
 @app.route('/bulkdetails')
 def bulkdetails():
-        if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 
-			if request.args.get('id'):
+		if request.args.get('id'):
 
-				hosts = restListBulkDetails(session['ht_token'], request.args.get('id'), session['ht_ip'], session['ht_port'])
-				bulktable = formatBulkHostsTable(hosts)
+			(ret, response_code, response_data) = hx_api_object.restListBulkDetails(request.args.get('id'))
+			bulktable = formatBulkHostsTable(response_data)
 
-				return render_template('ht_bulk_dd.html', session=session, bulktable=bulktable)
-        else:
-                return redirect("/login", code=302)
+			return render_template('ht_bulk_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable)
+	else:
+			return redirect("/login", code=302)
 
 
 @app.route('/bulkdownload')
 def bulkdownload():
-        if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
-		
-			if request.args.get('id'):
-				urlhead, fname = os.path.split(request.args.get('id'))
-				acq = restDownloadBulkAcq(session['ht_token'], request.args.get('id'), session['ht_ip'], session['ht_port'])
-				app.logger.info('Bulk acquisition download - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
-				return send_file(io.BytesIO(acq), attachment_filename=fname, as_attachment=True)
-        else:
-                return redirect("/login", code=302)
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+	
+		if request.args.get('id'):
+			urlhead, fname = os.path.split(request.args.get('id'))
+			(ret, response_code, response_data) = hx_api_object.restDownloadBulkAcq(request.args.get('id'))
+			app.logger.info('Bulk acquisition download - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			return send_file(io.BytesIO(response_data), attachment_filename=fname, as_attachment=True)
+	else:
+			return redirect("/login", code=302)
 
 				
 @app.route('/bulkaction', methods=['GET'])
 def bulkaction():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 	
 		conn = sqlite3.connect('hxtool.db')
 		c = conn.cursor()
 	
 		if request.args.get('action') == "stop":
-			res = restCancelJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/acqs/bulk/', session['ht_ip'], session['ht_port'])
-			app.logger.info('Bulk acquisition action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+			(ret, response_code, response_data) = hx_api_object.restCancelJob('/hx/api/v2/acqs/bulk/', request.args.get('id'))
+			app.logger.info('Bulk acquisition action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/bulk", code=302)
 			
 		if request.args.get('action') == "remove":
-			res = restDeleteJob(session['ht_token'], request.args.get('id'), '/hx/api/v2/acqs/bulk/', session['ht_ip'], session['ht_port'])
-			app.logger.info('Bulk acquisition action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+			(ret, response_code, response_data) = hx_api_object.restDeleteJob('/hx/api/v2/acqs/bulk/', request.args.get('id'))
+			app.logger.info('Bulk acquisition action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/bulk", code=302)	
 			
 		if request.args.get('action') == "download":
 			res = sqlAddBulkDownload(c, conn, session['ht_profileid'], request.args.get('id'))
-			app.logger.info('Bulk acquisition action DOWNLOAD - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+			app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/bulk", code=302)
 			
 		if request.args.get('action') == "stopdownload":
 			res = sqlRemoveBulkDownload(c, conn, session['ht_profileid'], request.args.get('id'))
-			app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+			app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/bulk", code=302)
 	else:
 		return redirect("/login", code=302)
@@ -552,22 +567,24 @@ def bulkaction():
 
 @app.route('/reports')
 def reports():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
-		return render_template('ht_reports.html', session=session)
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+		return render_template('ht_reports.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 	else:
 		return redirect("/login", code=302)
 
 @app.route('/reportgen')
 def reportgen():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 		if request.args.get('id'):
 			if request.args.get('id') == "1":
 				reportFrom = request.args.get('startDate')
 				reportTo = request.args.get('stopDate')
-				alertsjson = restGetAlertsTime(session['ht_token'], reportFrom, reportTo, session['ht_ip'], session['ht_port'])
+				(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(reportFrom, reportTo)
 				
 				if request.args.get('type') == "csv":
-					reportdata = str(formatAlertsCsv(alertsjson, session['ht_token'], session['ht_ip'], session['ht_port']))
+					reportdata = str(formatAlertsCsv(response_data, hx_api_object))
 					fname = 'report.csv'
 					
 			if request.args.get('id') == "2":
@@ -583,7 +600,8 @@ def reportgen():
 ##########
 @app.route('/stacking', methods=['GET', 'POST'])
 def stacking():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 
 			conn = sqlite3.connect('hxtool.db')
 			c = conn.cursor()			
@@ -603,18 +621,19 @@ def stacking():
 				out = sqlAddStackJob(c, conn, session['ht_profileid'], request.form['stacktype'], request.form['stackhostset'])
 				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
 			
-			hs = restListHostsets(session['ht_token'], session['ht_ip'], session['ht_port'])
-			hostsets = formatHostsets(hs)
+			(ret, response_code, response_data) = hx_api_object.restListHostsets()
+			hostsets = formatHostsets(response_data)
 			
-			stacktable = formatStackTable(c, conn, session['ht_profileid'], hs)
+			stacktable = formatStackTable(c, conn, session['ht_profileid'], response_data)
 			
-			return render_template('ht_stacking.html', stacktable=stacktable, hostsets=hostsets)
+			return render_template('ht_stacking.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), stacktable=stacktable, hostsets=hostsets)
 	else:
 			return redirect("/login", code=302)
 
 @app.route('/stackinganalyze', methods=['GET', 'POST'])
 def stackinganalyze():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 		
 		conn = sqlite3.connect('hxtool.db')
 		c = conn.cursor()
@@ -624,7 +643,7 @@ def stackinganalyze():
 		stackdata = sqlGetServiceMD5StackData(c, conn, stackid)
 		stacktable = formatServiceMD5StackData(stackdata)
 		
-		return render_template('ht_stacking_analyze_svcmd5.html', stacktable=stacktable)
+		return render_template('ht_stacking_analyze_svcmd5.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), stacktable=stacktable)
 	else:
 		return redirect("/login", code=302)
 		
@@ -634,23 +653,24 @@ def stackinganalyze():
 			
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
 	
 			conn = sqlite3.connect('hxtool.db')
 			c = conn.cursor()
 	
 			if (request.method == 'POST'):
 				out = sqlInsertProfCredsInfo(c, conn, session['ht_profileid'], request.form['bguser'], request.form['bgpass'])
-				app.logger.info("Background Processing credentials set profileid: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
+				app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			
 			if request.args.get('unsetprofcreds'):
 				out = sqlDeleteProfCredsInfo(c, conn, session['ht_profileid'])
-				app.logger.info("Background Processing credentials unset profileid: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
+				app.logger.info("Background Processing credentials unset profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 				return redirect("/settings", code=302)
 			
 			bgcreds = formatProfCredsInfo(c, conn, session['ht_profileid'])
 			
-			return render_template('ht_settings.html', bgcreds=bgcreds)
+			return render_template('ht_settings.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bgcreds=bgcreds)
 	else:
 			return redirect("/login", code=302)
 
@@ -659,31 +679,31 @@ def settings():
 ########################
 @app.route('/channels', methods=['GET', 'POST'])
 def channels():
-	if 'ht_user' in session and restIsSessionValid(session['ht_token'], session['ht_ip'], session['ht_port']):
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+		(ret, response_code, response_data) = hx_api_object.restCheckAccessCustomConfig()
+		if ret:
+			conn = sqlite3.connect('hxtool.db')
+			c = conn.cursor()
 	
-			if restCheckAccessCustomConfig(session['ht_token'], session['ht_ip'], session['ht_port']):
-						
-				conn = sqlite3.connect('hxtool.db')
-				c = conn.cursor()
-		
-				if (request.method == 'POST'):
-					res = restNewConfigChannel(session['ht_token'], request.form['name'], request.form['description'], request.form['priority'], request.form.getlist('hostsets'), request.form['confjson'], session['ht_ip'], session['ht_port'])
-					app.logger.info("New configuration channel on profile: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
-				
-				if request.args.get('delete'):
-					res = restDeleteConfigChannel(session['ht_token'], request.args.get('delete'), session['ht_ip'], session['ht_port'])
-					app.logger.info("Configuration channel delete on profile: " + session['ht_profileid'] + " by user: " + session['ht_user'] + "@" + session['ht_ip'])
-					return redirect("/channels", code=302)
-				
-				ch = restListCustomConfigChannels(session['ht_token'], session['ht_ip'], session['ht_port'])
-				channels = formatCustomConfigChannels(ch)
-				
-				hs = restListHostsets(session['ht_token'], session['ht_ip'], session['ht_port'])
-				hostsets = formatHostsets(hs)
-				
-				return render_template('ht_configchannel.html', channels=channels, hostsets=hostsets)
-			else:
-				return render_template('ht_noaccess.html')
+			if (request.method == 'POST'):
+				(ret, response_code, response_data) = hx_api_object.restNewConfigChannel(request.form['name'], request.form['description'], request.form['priority'], request.form.getlist('hostsets'), request.form['confjson'])
+				app.logger.info("New configuration channel on profile: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			
+			if request.args.get('delete'):
+				(ret, response_code, response_data) = hx_api_object.restDeleteConfigChannel(request.args.get('delete'))
+				app.logger.info("Configuration channel delete on profile: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				return redirect("/channels", code=302)
+			
+			(ret, response_code, response_data) = hx_api_object.restListCustomConfigChannels()
+			channels = formatCustomConfigChannels(response_data)
+			
+			(ret, response_code, response_data) = hx_api_object.restListHostsets()
+			hostsets = formatHostsets(response_data)
+			
+			return render_template('ht_configchannel.html', channels=channels, hostsets=hostsets)
+		else:
+			return render_template('ht_noaccess.html')
 	else:
 			return redirect("/login", code=302)
 
@@ -700,29 +720,29 @@ def login():
 	
 	if (request.method == 'POST'):
 		if 'ht_user' in request.form:
-			(profileid, myip) = request.form['ht_ip'].split("__")
-			hxport = '3000'
-			if ':' in myip:
-				hxip_port = myip.split(':')
-				myip = hxip_port[0]
-				if 0 < int(hxip_port[1]) <= 65535:
-					hxport = hxip_port[1]
+			(profile_id, hx_host) = request.form['ht_ip'].split("__")
+			hx_port = HXAPI.HX_DEFAULT_PORT
+			if ':' in hx_host:
+				hx_host_port = hx_host.split(':')
+				hx_host = hx_host_port[0]
+				if 0 < int(hx_host_port[1]) <= 65535:
+					hx_port = hx_host_port[1]
+				
+			hx_api_object = HXAPI(hx_host, hx_port = hx_port, headers = ht_config.get_or_none('headers'), cookies = ht_config.get_or_none('cookies'))
 			
-			(resp, message) = restValidateAuth(myip, hxport, request.form['ht_user'], request.form['ht_pass'])
-			if resp:
+			(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
+			if ret:
 				# Set session variables
 				session['ht_user'] = request.form['ht_user']
-				session['ht_ip'] = myip
-				session['ht_port'] = hxport
-				session['ht_token'] = message
-				session['ht_profileid'] = profileid
-				app.logger.info("Successful Authentication - User: {0}@{1}:{2}".format(session['ht_user'], session['ht_ip'], session['ht_port']))
+				session['ht_profileid'] = profile_id
+				app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				session['ht_api_object'] = hx_api_object.serialize()
 				return redirect("/", code=302)
 			else:
 				options = ""
 				for profile in sqlGetProfiles(c):
 					options += "<option value='" + str(profile[0]) + "__" + profile[2] + "'>" + profile[1] + " - " + profile[2]
-				return render_template('ht_login.html', fail=message, controllers=options)
+				return render_template('ht_login.html', fail=response_data, controllers=options)
 			
 		elif 'cname' in request.form:
 			message = "New profile created"
@@ -746,10 +766,20 @@ def login():
 
 @app.route('/logout')
 def logout():
-	app.logger.info('User logged out: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+	hx_api_object = HXAPI.deserialize(session['ht_api_object'])
+	app.logger.info('User logged out: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	session.pop('ht_user', None)
+	session.pop('ht_api_object', None)
+	hx_api_object = None
 	return redirect("/", code=302)
 
+	
+def is_session_valid(session):
+	if session and 'ht_user' in session and 'ht_api_object' in session:
+		hx_api_object = HXAPI.deserialize(session['ht_api_object'])
+		return(hx_api_object.restIsSessionValid, hx_api_object)
+	else:
+		return(False, None)
 
 ### Thread: background processing 
 #################################
@@ -813,16 +843,16 @@ if __name__ == "__main__":
 	# Start
 	app.logger.info('Application starting')
 
-	myConf = hxtool_config('conf.json', app.logger).get_config()
+	ht_config = hxtool_config('conf.json', logger=app.logger)
 
 	# Start background processing thread
-	thread = threading.Thread(target=bgprocess, name='BackgroundProcessor', args=(myConf,))
+	thread = threading.Thread(target=bgprocess, name='BackgroundProcessor', args=(ht_config,))
 	thread.daemon = True
 	thread.start()
 	app.logger.info('Background Processor thread starting')
 	
-	if myConf['network']['ssl'] == "enabled":
-		context = (myConf['ssl']['cert'], myConf['ssl']['key'])
-		app.run(host=myConf['network']['listen_on'], port=myConf['network']['port'], ssl_context=context, threaded=True)
+	if ht_config['network']['ssl'] == "enabled":
+		context = (ht_config['ssl']['cert'], ht_config['ssl']['key'])
+		app.run(host=ht_config['network']['listen_on'], port=ht_config['network']['port'], ssl_context=context, threaded=True)
 	else:
-		app.run(host=myConf['network']['listen_on'], port=myConf['network']['port'])
+		app.run(host=ht_config['network']['listen_on'], port=ht_config['network']['port'])

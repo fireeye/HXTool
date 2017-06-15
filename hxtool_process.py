@@ -59,107 +59,105 @@ def backgroundStackProcessor(c, conn, myConf, app):
 		# If the job-profile doesn't have background credentials set - skip it
 		if len(sqlGetProfCredTable(c, conn, profileid)) == 0:
 			continue
+		else:
+			(hx_host, hx_port, hx_user, hx_pass) = sqlGetProfileBackgroundCredentials(c, conn, profileid)
+			hx_api_object = HXAPI(hx_host, hx_port)
 		
-		# User created a new stack job, create a new bulk acquisition
-		if state == "SCHEDULED":
-			
-			app.logger.info("Stacking: Starting bulk acquisition - " + jobtype)
-						
-			(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
-			
-			# Get the acquisition script
-			if job[1] == "services-md5":
-				bulkscript = open('scripts/services-md5.xml', 'r').read()
-			
-			# Post the new acquisition to the controller
-			newbulk = restNewBulkAcq(mytoken, bulkscript, hostset, hxip, hxport)
-			bulkid = newbulk['data']['_id']
-			
-			out = sqlUpdateStackJobSubmitted(c, conn, stackid, bulkid)
-			
-			resp = restLogout(mytoken, hxip, hxport)
+		(ret, response_code, response_data) = hx_api_object.restLogin(hx_user, hx_pass)
 		
-		# User requested the stack job to stop, stop it on the controller and change state
-		if state == "STOPPING":
-			
-			app.logger.info("Stacking: Stopping bulk acquisition - " + jobtype)
-			
-			(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
-			
-			res = restCancelJob(mytoken, bulkid, '/hx/api/v2/acqs/bulk/', hxip, hxport)
-			out = sqlUpdateStackJobState(c, conn, stackid, "STOPPED")
-			
-			resp = restLogout(mytoken, hxip, hxport)
-		
-		# User requested the stack job to be removed, delete it on the controller and remove it from stacktable
-		if state == "REMOVING":
-		
-			app.logger.info("Stacking: Removing bulk acquisition - " + jobtype)
-			
-			(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
-
-			res = restDeleteJob(mytoken, bulkid, '/hx/api/v2/acqs/bulk/', hxip, hxport)
-			sqlDeleteStackServiceMD5(c, conn, stackid)
-			sqlDeleteStackJob(c, conn, profileid, stackid)
-			
-			resp = restLogout(mytoken, hxip, hxport)
-		
-		# The bulk acquisition has been posted to the controller, poll it and check if its running and update the state
-		if state == "SUBMITTED":
-			
-			(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
-			
-			res = restGetBulkDetails(mytoken, bulkid, hxip, hxport)
-			
-			if res['data']['state'] == "RUNNING":
-				app.logger.info("Stacking: Bulk acquisition is running on the controller, update the state - " + res['data']['state'])
-				out = sqlUpdateStackJobState(c, conn, stackid, "RUNNING")
-
-			resp = restLogout(mytoken, hxip, hxport)
-			
-		# The bulk acquisition is running on the controller, continously poll for new results and update the stats
-		if state == "RUNNING":
-			(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
-			
-			entry = restGetBulkDetails(mytoken, bulkid, hxip, hxport)
-			
-			# calculate completion rate
-			total_size = entry['data']['stats']['running_state']['NEW'] + entry['data']['stats']['running_state']['QUEUED'] + entry['data']['stats']['running_state']['FAILED'] + entry['data']['stats']['running_state']['ABORTED'] + entry['data']['stats']['running_state']['DELETED'] + entry['data']['stats']['running_state']['REFRESH'] + entry['data']['stats']['running_state']['CANCELLED'] + entry['data']['stats']['running_state']['COMPLETE']
-			if total_size == 0:
-				completerate = 0
-			else:
-				completerate = int(float(entry['data']['stats']['running_state']['COMPLETE']) / float(total_size) * 100)
-			
-			out = sqlUpdateStackJobProgress(c, conn, stackid, completerate)
-			
-			# query bulk acquisition results
-			res = restListBulkDetails(mytoken, bulkid, hxip, hxport)
-			
-			iter = 0
-			for entry in res['data']['entries']:
-				if entry['state'] == "COMPLETE":
-					if not sqlQueryStackServiceMD5(c, conn, stackid, entry['host']['hostname']):
-					
-						app.logger.info("Stacking: Found completed bulk acquisition - " + str(entry['host']['hostname']))
-					
-						acq = restDownloadBulkAcq(mytoken, entry['result']['url'], hxip, hxport)
-					
-						# Post-process acquisition results
-						payload_data = findPayloadServiceMD5(acq)
-						payload_xml = parsePayloadServiceMD5(acq, payload_data)
-						payload_parsed = parseXmlServiceMD5Data(payload_xml)
-					
-						dbresult = sqlAddStackServiceMD5(c, conn, stackid, entry['host']['hostname'], payload_parsed)
-						
-						app.logger.info("Stacking: Completed post-processing - " + str(entry['host']['hostname']))
-						
-						iter = iter + 1
+		if ret:
+			# User created a new stack job, create a new bulk acquisition
+			if state == "SCHEDULED":
 				
-				# If cap is reached break out and reloop
-				if iter == myConf['backgroundProcessor']['stack_jobs_per_poll']:
-					break
+				app.logger.info("Stacking: Starting bulk acquisition - %s", jobtype)
+							
+				
+				# Get the acquisition script
+				if job[1] == "services-md5":
+					bulkscript = open('scripts/services-md5.xml', 'r').read()
+				
+				# Post the new acquisition to the controller
+				(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulkscript, hostset)
+				bulkid = response_data['data']['_id']
+				
+				out = sqlUpdateStackJobSubmitted(c, conn, stackid, bulkid)
+				
+				(ret, response_code, response_data) = hx_api_object.restLogout()
+			
+			# User requested the stack job to stop, stop it on the controller and change state
+			if state == "STOPPING":
+				
+				app.logger.info("Stacking: Stopping bulk acquisition - %s", jobtype)
+				
+				(ret, response_code, response_data) = hx_api_object.restCancelJob('/hx/api/v2/acqs/bulk/', bulkid)
+				out = sqlUpdateStackJobState(c, conn, stackid, "STOPPED")
+				
+				(ret, response_code, response_data) = hx_api_object.restLogout()
+			
+			# User requested the stack job to be removed, delete it on the controller and remove it from stacktable
+			if state == "REMOVING":
+			
+				app.logger.info("Stacking: Removing bulk acquisition - %s", jobtype)
+
+				(ret, response_code, response_data) = hx_api_object.restDeleteJob('/hx/api/v2/acqs/bulk/', bulkid)
+				sqlDeleteStackServiceMD5(c, conn, stackid)
+				sqlDeleteStackJob(c, conn, profileid, stackid)
+				
+				(ret, response_code, response_data) = hx_api_object.restLogout()
+		
+			# The bulk acquisition has been posted to the controller, poll it and check if its running and update the state
+			if state == "SUBMITTED":
+				
+				(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(bulkid)
+				
+				if response_data['data']['state'] == "RUNNING":
+					app.logger.info("Stacking: Bulk acquisition is running on the controller, update the state - %s", response_data['data']['state'])
+					out = sqlUpdateStackJobState(c, conn, stackid, "RUNNING")
+
+				(ret, response_code, response_data) = hx_api_object.restLogout()
+		
+			# The bulk acquisition is running on the controller, continously poll for new results and update the stats
+			if state == "RUNNING":
+			
+				(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(bulkid)
+				
+				# calculate completion rate
+				total_size = response_data['data']['stats']['running_state']['NEW'] + response_data['data']['stats']['running_state']['QUEUED'] + response_data['data']['stats']['running_state']['FAILED'] + response_data['data']['stats']['running_state']['ABORTED'] + response_data['data']['stats']['running_state']['DELETED'] + response_data['data']['stats']['running_state']['REFRESH'] + response_data['data']['stats']['running_state']['CANCELLED'] + response_data['data']['stats']['running_state']['COMPLETE']
+				if total_size == 0:
+					completerate = 0
+				else:
+					completerate = int(float(response_data['data']['stats']['running_state']['COMPLETE']) / float(total_size) * 100)
+				
+				out = sqlUpdateStackJobProgress(c, conn, stackid, completerate)
+				
+				# query bulk acquisition results
+				(ret, response_code, response_data) = hx_api_object.restListBulkDetails(bulkid)
+				
+				iter = 0
+				for entry in response_data['data']['entries']:
+					if entry['state'] == "COMPLETE":
+						if not sqlQueryStackServiceMD5(c, conn, stackid, entry['host']['hostname']):
+						
+							app.logger.info("Stacking: Found completed bulk acquisition - %s", entry['host']['hostname'])
+						
+							(ret, response_code, response_data) = hx_api_object.restDownloadBulkAcq(entry['result']['url'])
+						
+							# Post-process acquisition results
+							payload_data = findPayloadServiceMD5(response_data)
+							payload_xml = parsePayloadServiceMD5(response_data, payload_data)
+							payload_parsed = parseXmlServiceMD5Data(payload_xml)
+						
+							dbresult = sqlAddStackServiceMD5(c, conn, stackid, entry['host']['hostname'], payload_parsed)
+							
+							app.logger.info("Stacking: Completed post-processing - %s", entry['host']['hostname'])
+							
+							iter = iter + 1
 					
-			resp = restLogout(mytoken, hxip, hxport)
+					# If cap is reached break out and reloop
+					if iter == myConf['backgroundProcessor']['stack_jobs_per_poll']:
+						break
+					
+			(ret, response_code, response_data) = hx_api_object.restLogout()
 
 def backgroundBulkProcessor(c, conn, myConf, app):
 
@@ -179,58 +177,63 @@ def backgroundBulkProcessor(c, conn, myConf, app):
 		if len(sqlGetProfCredTable(c, conn, profileid)) == 0:
 			continue
 		
-		(mytoken, hxip, hxport, hxname) = restAuthProfile(c, conn, profileid)
+		(hx_host, hx_port, hx_user, hx_pass) = sqlGetProfileBackgroundCredentials(c, conn, profileid)
 		
-		json_request_headers = {'X-FeApi-Token': mytoken, 'Accept': 'application/json'}
-		zip_request_headers = {'X-FeApi-Token': mytoken, 'Accept': 'application/octet-stream'}
+		hx_api_object = HXAPI(hx_host, hx_port)
 		
-		bulk_url = 'https://{:s}:{:s}{:s}{:s}{:s}{:s}'.format(str(hxip), hxport, "/hx/api/v2/acqs/bulk/", str(bulkid), '/hosts?limit=', hxtotal_agents)
-
-		r = requests.get(bulk_url, headers = json_request_headers, stream = True, verify = False)
-
-		if r.status_code != 200:
-			print('Couldn\'t download {:s}. Status code was {:d}'.format(bulk_url, r.status_code))
-
-		rjson = json.loads(r.text)
-
-		if hosts == 0:
-			hc = sqlUpdateBulkDownloadHosts(c, conn, len(rjson['data']['entries']), profileid, bulkid)
+		(ret, response_code, response_data) = hx_api_object.restLogin(hx_user, hx_pass)
 		
-		hiter = 0
-		for host in rjson['data']['entries']:
+		if ret:
+			json_request_headers = {'X-FeApi-Token': hx_api_object.get_token()['token'], 'Accept': 'application/json'}
+			zip_request_headers = {'X-FeApi-Token': hx_api_object.get_token()['token'], 'Accept': 'application/octet-stream'}
+			
+			bulk_url = 'https://{0}:{1}/hx/api/v2/acqs/bulk/{2}/hosts?limit={3}'.format(hx_host, hx_port, str(bulkid), hxtotal_agents)
 
-			if host['result'] == None:
-				continue
+			r = requests.get(bulk_url, headers = json_request_headers, stream = True, verify = False)
 
-			directory = "bulkdownload/" + str(hxname) + "_" + str(bulkid)
+			if r.status_code != 200:
+				print('Couldn\'t download {:s}. Status code was {:d}'.format(bulk_url, r.status_code))
 
-			if not os.path.exists(directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip"):
+			rjson = json.loads(r.text)
 
-				hiter = hiter + 1
-				
-				# download the zip
-				get_dataurl = 'https://{:s}:{:s}{:s}'.format(hxip, hxport, host['url']) + ".zip"
-				rd = requests.get(get_dataurl, headers = zip_request_headers, stream = True, verify = False)
+			if hosts == 0:
+				hc = sqlUpdateBulkDownloadHosts(c, conn, len(rjson['data']['entries']), profileid, bulkid)
+			
+			hiter = 0
+			for host in rjson['data']['entries']:
 
-				# write data to disk
-				if not os.path.exists(directory):
-					os.makedirs(directory)
+				if host['result'] == None:
+					continue
+
+				directory = "bulkdownload/{0}_{1}".format(hx_host, bulkid)
+
+				if not os.path.exists(directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip"):
+
+					hiter = hiter + 1
 					
-				fulloutputpath = os.path.join(directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip")
+					# download the zip
+					get_dataurl = 'https://{0}:{1}{2}.zip'.format(hx_host, hx_port, host['url'])
+					rd = requests.get(get_dataurl, headers = zip_request_headers, stream = True, verify = False)
 
-				app.logger.info("Bulk Downloader: Writing file - " + directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip")
-				with open(fulloutputpath, 'wb') as f:
-					for chunk in rd.iter_content(1024):
-						f.write(chunk)
+					# write data to disk
+					if not os.path.exists(directory):
+						os.makedirs(directory)
 						
-				hd = sqlUpdateBulkDownloadHostsComplete(c, conn, profileid, bulkid)
-				
-			# If cap is reached break out and reloop
-			if hiter == myConf['backgroundProcessor']['downloads_per_poll']:
-				break
-				
-		resp = restLogout(mytoken, hxip, hxport)
-		
+					fulloutputpath = os.path.join(directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip")
+
+					app.logger.info("Bulk Downloader: Writing file - " + directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip")
+					with open(fulloutputpath, 'wb') as f:
+						for chunk in rd.iter_content(1024):
+							f.write(chunk)
+							
+					hd = sqlUpdateBulkDownloadHostsComplete(c, conn, profileid, bulkid)
+					
+				# If cap is reached break out and reloop
+				if hiter == myConf['backgroundProcessor']['downloads_per_poll']:
+					break
+					
+			(ret, response_code, response_data) = hx_api_object.restLogout()
+			
 		
 		
 		

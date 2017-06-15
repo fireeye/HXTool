@@ -442,7 +442,7 @@ def formatHostsets(hs):
 	
 	return(x)
 	
-def formatDashAlerts(alerts, fetoken, hxip, hxport):
+def formatDashAlerts(alerts, hx_api_object):
 
 	x = "<table id='dashAlerts' class='dashAlerts' style='width: 100%;'>"
         x += "<thead>"
@@ -459,14 +459,14 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
 
 	for entry in alerts[:10]:
 		x += "<tr>"
-		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
-		x += "<td>" + str(hostinfo['data']['hostname']) + "</td>"
-		x += "<td>" + str(hostinfo['data']['domain']) + "</td>"
-		x += "<td>" + str(hostinfo['data']['os']['product_name']) + " " + str(hostinfo['data']['os']['patch_level']) + " " + str(hostinfo['data']['os']['bitness']) + "</td>"
+		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(str(entry['agent']['_id']))
+		x += "<td>" + str(response_data['data']['hostname']) + "</td>"
+		x += "<td>" + str(response_data['data']['domain']) + "</td>"
+		x += "<td>" + str(response_data['data']['os']['product_name']) + " " + str(response_data['data']['os']['patch_level']) + " " + str(response_data['data']['os']['bitness']) + "</td>"
 		x += "<td>"
 		if str(entry['source']) == "IOC":
-			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
-			for indicator in indicators['data']['entries']:
+			(ret, response_code, response_data) = hx_api_object.restGetIndicatorFromCondition(str(entry['condition']['_id']))
+			for indicator in response_data['data']['entries']:
 				x += "<b>Indicator:</b> " + indicator['name'] + " (" + indicator['category']['name'] + ")<br>"
 		elif str(entry['source']) == "MAL":
 			x += "<b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][0].upper() + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][1:] + ": </b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (" + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
@@ -484,7 +484,7 @@ def formatDashAlerts(alerts, fetoken, hxip, hxport):
 
 	return(x)
 
-def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
+def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 
 	x = "<table id='alertsTable' class='genericTable genericTableAlerts' style='width: 100%;'>"
 	x += "<thead>"
@@ -520,26 +520,26 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 	
 		x += "<tr>"
 	
-		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
+		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(str(entry['agent']['_id']))
 		
 		# OS
 		x += "<td><center>"
-		if str(hostinfo['data']['os']['product_name']).startswith('Windows'):
+		if str(response_data['data']['os']['product_name']).startswith('Windows'):
 			x += "<img style='width: 20px;' src='/static/ico/windows.svg'>"
 		else:
 			x += "<img style='width: 20px;' src='/static/ico/apple.svg'>"
 		x += "</center></td>"
 		
 		# Host
-		x += "<td>" + str(hostinfo['data']['hostname']) + "</td>"
+		x += "<td>" + str(response_data['data']['hostname']) + "</td>"
 		
 		# Domain
-		x += "<td>" + str(hostinfo['data']['domain']) + "</td>"
+		x += "<td>" + str(response_data['data']['domain']) + "</td>"
 		
 		# Alerted
 		import datetime
-		t = gt(entry['reported_at'])
-		x += "<td style='text-align: center; font-weight: 700;'>" + prettyTime(t) + "</td>"
+		t = HXAPI.gt(entry['reported_at'])
+		x += "<td style='text-align: center; font-weight: 700;'>" + HXAPI.prettyTime(t) + "</td>"
 
 		# Reported at
 		x += "<td>" + str(entry['reported_at']) + "</td>"
@@ -594,8 +594,8 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 			x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>Details</a>"
 			
 		elif (str(entry['source']) == "IOC"):
-			indicators = restGetIndicatorFromCondition(fetoken, str(entry['condition']['_id']), hxip, hxport)
-			for indicator in indicators['data']['entries']:
+			(ret, response_code, response_data) = hx_api_object.restGetIndicatorFromCondition(str(entry['condition']['_id']))
+			for indicator in response_data['data']['entries']:
 				x += indicator['name'] + " (category: " + indicator['category']['name'] + ")"
 				
 			x += "<div class='alertDetailsDisplayPopup' id='alertdetails_" + str(entry['_id']) + "'>"
@@ -611,7 +611,7 @@ def formatAlertsTable(alerts, fetoken, hxip, hxport, profileid, c, conn):
 		else:
 			x += "Unknown alert"
 		
-		x += "<a target='_blank' class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='https://" + hxip + ":" + hxport + "/hx/hosts/" + entry['agent']['_id'] + "/alerts/" + str(entry['_id']) + "'>HX</a>"
+		x += "<a target='_blank' class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='https://" + hx_api_object.hx_host + ":" + str(hx_api_object.hx_port) + "/hx/hosts/" + entry['agent']['_id'] + "/alerts/" + str(entry['_id']) + "'>HX</a>"
 		x += "</td>"
 		
 		# State
@@ -678,19 +678,19 @@ def formatAnnotationTable(an):
 		
 	return (x)
 
-def formatAlertsCsv(alertsjson, fetoken, hxip, hxport):
+def formatAlertsCsv(alertsjson, hx_api_object):
 
 	x = "reported_at;matched_at;event_at;hostname;domain;source;productname;event_type;event_id\r\n"
 	
 	for entry in alertsjson:
-		hostinfo = restGetHostSummary(fetoken, str(entry['agent']['_id']), hxip, hxport)
+		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(str(entry['agent']['_id']))
 		x += entry['reported_at'] + ";"
 		x += entry['matched_at'] + ";"
 		x += entry['event_at'] + ";"
-		x += hostinfo['data']['hostname'] + ";"
-		x += hostinfo['data']['domain'] + ";"
+		x += response_data['data']['hostname'] + ";"
+		x += response_data['data']['domain'] + ";"
 		x += str(entry['source']) + ";"
-		x += hostinfo['data']['os']['product_name'] + " " + hostinfo['data']['os']['patch_level'] + " " + hostinfo['data']['os']['bitness'] + ";"
+		x += response_data['data']['os']['product_name'] + " " + response_data['data']['os']['patch_level'] + " " + response_data['data']['os']['bitness'] + ";"
 		x += str(entry['event_type']) + ";"
 		x += str(entry['event_id'])
 		x += "\r\n"
