@@ -203,8 +203,8 @@ class HXAPI:
 		
 		current_token = self.get_token(update_last_use_timestamp=False)
 		if current_token:
-			last_use_delta = (datetime.datetime.utcnow() - datetime.strptime(current_token['last_use_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds / 60
-			grant_time_delta = (datetime.datetime.utcnow() - datetime.strptime(current_token['grant_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds / 60
+			last_use_delta = (datetime.datetime.utcnow() - datetime.datetime.strptime(current_token['last_use_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds / 60
+			grant_time_delta = (datetime.datetime.utcnow() - datetime.datetime.strptime(current_token['grant_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds / 60
 			return(last_use_delta < 15 and grant_time_delta < 150) 
 		else:
 			return(False)
