@@ -818,7 +818,7 @@ if __name__ == "__main__":
 	
 	# Log early init/failures to stdout
 	console_log = logging.StreamHandler(sys.stdout)
-	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s'))
+	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
 	
 	ht_config = hxtool_config('conf.json', logger=app.logger)

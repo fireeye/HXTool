@@ -16,7 +16,7 @@ class hxtool_config:
 				'max_bytes' : 50000,
 				'backup_count' : 5,
 				'level' : 'info',
-				'format' : '[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s'
+				'format' : '[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'
 			}
 		},
 		'network' : {
