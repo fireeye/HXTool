@@ -11,10 +11,6 @@ import sys, logging, logging.handlers, socket
 class hxtool_config:
 	DEFAULT_CONFIG = {
 		'log_handlers' : {
-			'stream_handler' : {
-				'level' : 'info',
-				'format' : '[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s'
-			},
 			'rotating_file_handler' : {
 				'file' : 'log/hxtool.log',
 				'max_bytes' : 50000,
@@ -98,16 +94,10 @@ class hxtool_config:
 					self._set_level_and_format(handler_config, h)
 					yield(h)
 					
-			elif handler_name == 'stream_handler':
-				handler_config = self._config['log_handlers'][handler_name]
-				h = logging.StreamHandler(sys.stdout)
-				self._set_level_and_format(handler_config, h)
-				yield(h)
-				
 			elif handler_name == 'syslog_handler':
 				handler_config = self._config['log_handlers'][handler_name]
 
-				address_tuple = ('127.0.0.1', logging.SYSLOG_UDP_PORT)
+				address_tuple = ('127.0.0.1', logging.handlers.SYSLOG_UDP_PORT)
 				if 'address' in handler_config:
 					address_tuple[0] = handler_config['address']
 				if 'port' in handler_config and 0 < handler_config['port'] < 65535:

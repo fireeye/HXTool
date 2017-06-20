@@ -1,9 +1,5 @@
 {
    "log_handlers":{
-	   "stream_handler":{
-		  "level":"info",
-		  "format":"[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s"
-	   },
 	   "rotating_file_handler":{
 		  "file":"log/hxtool.log",
 		  "max_bytes":50000,

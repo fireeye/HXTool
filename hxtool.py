@@ -728,7 +728,7 @@ def login():
 				if 0 < int(hx_host_port[1]) <= 65535:
 					hx_port = hx_host_port[1]
 				
-			hx_api_object = HXAPI(hx_host, hx_port = hx_port, headers = ht_config.get_or_none('headers'), cookies = ht_config.get_or_none('cookies'))
+			hx_api_object = HXAPI(hx_host, hx_port = hx_port, headers = ht_config.get_or_none('headers'), cookies = ht_config.get_or_none('cookies'), logger = app.logger)
 			
 			(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
 			if ret:
@@ -813,20 +813,28 @@ def bgprocess(bgprocess_config):
 app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
 		
 if __name__ == "__main__":
+	
 	app.logger.setLevel(logging.INFO)
+	
+	# Log early init/failures to stdout
+	console_log = logging.StreamHandler(sys.stdout)
+	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s'))
+	app.logger.addHandler(console_log)
+	
 	ht_config = hxtool_config('conf.json', logger=app.logger)
 	
+	# Initialize configured log handlers
 	for log_handler in ht_config.log_handlers():
 		app.logger.addHandler(log_handler)
 
-	# WSGI Server logging
-	request_log_handler = RotatingFileHandler('log/access.log', maxBytes=50000, backupCount=5)
-	request_log_handler.setLevel(logging.INFO)
-	request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
-	request_log_handler.setFormatter(request_log_formatter)	
+	# WSGI request log - when not running under gunicorn or mod_wsgi
 	logger = logging.getLogger('werkzeug')
-	logger.setLevel(logging.INFO)
-	logger.addHandler(request_log_handler)
+	if logger:
+		logger.setLevel(logging.INFO)
+		request_log_handler = RotatingFileHandler('log/access.log', maxBytes=50000, backupCount=5)
+		request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
+		request_log_handler.setFormatter(request_log_formatter)	
+		logger.addHandler(request_log_handler)
 
 	# Start
 	app.logger.info('Application starting')
