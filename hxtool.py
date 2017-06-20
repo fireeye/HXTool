@@ -813,38 +813,25 @@ def bgprocess(bgprocess_config):
 app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
 		
 if __name__ == "__main__":
+	app.logger.setLevel(logging.INFO)
+	ht_config = hxtool_config('conf.json', logger=app.logger)
+	
+	for log_handler in ht_config.log_handlers():
+		app.logger.addHandler(log_handler)
 
-	# Logging
-	handler = RotatingFileHandler('log/access.log', maxBytes=50000, backupCount=5)
-	handler.setLevel(logging.INFO)
-	
-	ht_handler = RotatingFileHandler('log/hxtool.log', maxBytes=50000, backupCount=5)
-	ht_handler.setLevel(logging.INFO)
-	
-	c_handler = logging.StreamHandler(sys.stdout)
-	c_handler.setLevel(logging.INFO)
-	
 	# WSGI Server logging
+	request_log_handler = RotatingFileHandler('log/access.log', maxBytes=50000, backupCount=5)
+	request_log_handler.setLevel(logging.INFO)
+	request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
+	request_log_handler.setFormatter(request_log_formatter)	
 	logger = logging.getLogger('werkzeug')
 	logger.setLevel(logging.INFO)
-	logger.addHandler(handler)
-	
-	# Flask logging
-	app.logger.setLevel(logging.INFO)
-	app.logger.addHandler(ht_handler)
-	app.logger.addHandler(c_handler)
-	
-	# Set formatter
-	formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
-	handler.setFormatter(formatter)
-	ht_handler.setFormatter(formatter)
-	c_handler.setFormatter(formatter)
+	logger.addHandler(request_log_handler)
 
 	# Start
 	app.logger.info('Application starting')
 
-	ht_config = hxtool_config('conf.json', logger=app.logger)
-
+	
 	# Start background processing thread
 	thread = threading.Thread(target=bgprocess, name='BackgroundProcessorThread', args=(ht_config,))
 	thread.daemon = True

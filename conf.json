@@ -1,5 +1,18 @@
-{  
-	"network":{  
+{
+   "log_handlers":{
+	   "stream_handler":{
+		  "level":"info",
+		  "format":"[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s"
+	   },
+	   "rotating_file_handler":{
+		  "file":"log/hxtool.log",
+		  "max_bytes":50000,
+		  "backup_count":5,
+		  "level":"info",
+          "format":"[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s"
+	   }
+	},
+   "network":{  
       "ssl":"enabled",
       "port":8080,
       "listen_address":"0.0.0.0"
