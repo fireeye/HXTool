@@ -784,7 +784,7 @@ def is_session_valid(session):
 ### Thread: background processing 
 #################################
 		
-def bgprocess(myConf):
+def bgprocess(bgprocess_config):
 	
 	time.sleep(1)
 	app.logger.info('Background processor thread started')
@@ -794,16 +794,16 @@ def bgprocess(myConf):
 	
 	while True:
 		try:
-			backgroundStackProcessor(c, conn, myConf, app)
+			backgroundStackProcessor(c, conn, bgprocess_config, app)
 		except BaseException as e:
 			print('{!r}; StackProcessor error'.format(e))
 		
 		try:
-			backgroundBulkProcessor(c, conn, myConf, app)
+			backgroundBulkProcessor(c, conn, bgprocess_config, app)
 		except BaseException as e:
 			print('{!r}; BulkProcessor error'.format(e))
 			
-		time.sleep(myConf['backgroundProcessor']['poll_interval'])
+		time.sleep(bgprocess_config['background_processor']['poll_interval'])
 		
 		
 ###########
@@ -846,13 +846,13 @@ if __name__ == "__main__":
 	ht_config = hxtool_config('conf.json', logger=app.logger)
 
 	# Start background processing thread
-	thread = threading.Thread(target=bgprocess, name='BackgroundProcessor', args=(ht_config,))
+	thread = threading.Thread(target=bgprocess, name='BackgroundProcessorThread', args=(ht_config,))
 	thread.daemon = True
 	thread.start()
 	app.logger.info('Background Processor thread starting')
 	
 	if ht_config['network']['ssl'] == "enabled":
 		context = (ht_config['ssl']['cert'], ht_config['ssl']['key'])
-		app.run(host=ht_config['network']['listen_on'], port=ht_config['network']['port'], ssl_context=context, threaded=True)
+		app.run(host=ht_config['network']['listen_address'], port=ht_config['network']['port'], ssl_context=context, threaded=True)
 	else:
-		app.run(host=ht_config['network']['listen_on'], port=ht_config['network']['port'])
+		app.run(host=ht_config['network']['listen_address'], port=ht_config['network']['port'])

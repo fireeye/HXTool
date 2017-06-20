@@ -154,7 +154,7 @@ def backgroundStackProcessor(c, conn, myConf, app):
 							iter = iter + 1
 					
 					# If cap is reached break out and reloop
-					if iter == myConf['backgroundProcessor']['stack_jobs_per_poll']:
+					if iter == myConf['background_processor']['stack_jobs_per_poll']:
 						break
 					
 			(ret, response_code, response_data) = hx_api_object.restLogout()
@@ -229,7 +229,7 @@ def backgroundBulkProcessor(c, conn, myConf, app):
 					hd = sqlUpdateBulkDownloadHostsComplete(c, conn, profileid, bulkid)
 					
 				# If cap is reached break out and reloop
-				if hiter == myConf['backgroundProcessor']['downloads_per_poll']:
+				if hiter == myConf['background_processor']['downloads_per_poll']:
 					break
 					
 			(ret, response_code, response_data) = hx_api_object.restLogout()

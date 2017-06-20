@@ -1,17 +1,19 @@
 {  
+	"network":{  
+      "ssl":"enabled",
+      "port":8080,
+      "listen_address":"0.0.0.0"
+   },
    "ssl":{ 
       "cert":"hxtool.crt",
       "key":"hxtool.key"
    },
-   "backgroundProcessor":{  
+   "background_processor":{  
       "downloads_per_poll":500,
       "poll_interval":5,
       "stack_jobs_per_poll":500
    },
-   "network":{  
-      "ssl":"enabled",
-      "port":8080,
-      "listen_on":"0.0.0.0"
+   "headers":{
    },
    "cookies":{
       "XFIRE_HMAC_SESSION":"<change me>"
