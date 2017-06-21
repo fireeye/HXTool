@@ -431,7 +431,7 @@ class HXAPI:
 
 	def restCancelJob(self, path, id):
 
-		request = self.build_request('{0}{2}/actions/stop'.format(path, id), method = 'POST')
+		request = self.build_request('{0}{1}/actions/stop'.format(path, id), method = 'POST')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
