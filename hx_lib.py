@@ -222,7 +222,7 @@ class HXAPI:
 	## Resolve hosts
 	################
 
-	def restFindHostbyString(self, string):
+	def restFindHostsBySearchString(self, string):
 
 		request = self.build_request('/hx/api/v1/hosts?search={0}'.format(urllib.urlencode(string)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
@@ -420,9 +420,9 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 
-	def restSubmitSweep(self, b64ioc, host_set):
+	def restSubmitSweep(self, b64_indicator, host_set):
 
-		data = json.dumps({'indicator' : b64ioc, 'host_set' : {'_id' : int(host_set)}})
+		data = json.dumps({'indicator' : b64_indicator, 'host_set' : {'_id' : int(host_set)}})
 		
 		request = self.build_request('/hx/api/v2/searches', method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
