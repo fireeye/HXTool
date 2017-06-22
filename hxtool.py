@@ -707,7 +707,19 @@ def channels():
 	else:
 			return redirect("/login", code=302)
 
-
+@app.route('/channelinfo', methods=['GET'])
+def channelinfo():
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+		(ret, response_code, response_data) = hx_api_object.restCheckAccessCustomConfig()
+		if ret:
+			# TODO: finish
+			(ret, response_code, response_data) = hx_api_object.restGetConfigChannelConfiguration(request.args.get('id'))
+			return render_template('ht_configchannel_info.html', channel_json = json.dumps(response_data, sort_keys = True, indent = 4))
+		else:
+			return render_template('ht_noaccess.html')
+	else:
+			return redirect("/login", code=302)
 			
 #### Authentication
 #######################

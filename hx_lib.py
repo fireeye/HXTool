@@ -599,6 +599,20 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 	
+	def restGetConfigChannel(self, channel_id):
+		
+		request = self.build_request(self.build_api_route('host_policies/channels/{0}'.format(channel_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
+	def restGetConfigChannelConfiguration(self, channel_id):
+		
+		request = self.build_request(self.build_api_route('host_policies/channels/{0}.json'.format(channel_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)	
+	
 	def restDeleteConfigChannel(self, channel_id):
 
 		request = self.build_request(self.build_api_route('host_policies/channels/{0}'.format(channel_id)), method = 'DELETE')
