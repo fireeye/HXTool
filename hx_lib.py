@@ -522,6 +522,12 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	def restDeleteHostByID(self, agent_id):
+		
+		request = self.build_request('/hx/api/v3/hosts/{0}'.format(agent_id), method = 'DELETE')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
 
 	def restListHostsets(self, limit=100000):
 
@@ -529,6 +535,14 @@ class HXAPI:
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
+		
+	def restListHostsInHostset(self, host_set_id):
+
+		request = self.build_request('/hx/api/v3/host_sets/{0}/hosts'.format(host_set_id))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
 
 	def restCheckAccessCustomConfig(self, limit=1):
 
