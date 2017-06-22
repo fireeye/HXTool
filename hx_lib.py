@@ -18,7 +18,8 @@ import pickle
 
 class HXAPI:
 	HX_DEFAULT_PORT = 3000
-
+	HX_MIN_API_VERSION = 2
+	
 	def __init__(self, hx_host, hx_port = HX_DEFAULT_PORT, headers = None, cookies = None, disable_certificate_verification = True, logger = logging.getLogger(__name__)):
 		self.logger = logger
 
@@ -42,13 +43,20 @@ class HXAPI:
 			self.logger.info('SSL/TLS certificate verification disabled.')
 		
 		self.fe_token = None
+		self.api_version = self.HX_MIN_API_VERSION
+		self.hx_version = [0, 0, 0]
 		
 		self.logger.debug('__init__ complete.')
-		
+	
+	
+	###################
+	## Generic functions
+	###################
+	
+	# Mmmm, base64 flavored pickles...
 	def serialize(self):
 		return base64.b64encode(pickle.dumps(self, pickle.HIGHEST_PROTOCOL))
 	
-	# Mmmm, base64 flavored pickles...
 	@staticmethod
 	def deserialize(base64_pickle):
 		return pickle.loads(base64.b64decode(base64_pickle))
@@ -64,10 +72,6 @@ class HXAPI:
 		if 'logger' in d.keys():
 			d['logger'] = logging.getLogger(d['logger'])
 		self.__dict__.update(d)	
-
-	###################
-	## Generic functions
-	###################
 
 	def build_request(self, url, method = 'GET', data = None, content_type = 'application/json', accept = 'application/json'):
 	
@@ -102,6 +106,11 @@ class HXAPI:
 		self.logger.debug('Request created, returning.')
 		return request
 
+	def build_api_route(self, api_endpoint, min_api_version = None):
+		if not min_api_version:
+			min_api_version = self.api_version
+		return '/hx/api/v{0}/{1}'.format(min_api_version, api_endpoint)
+		
 	def handle_response(self, request, expect_multiple_json_objects = False):
 		
 		has_http_error = False
@@ -149,7 +158,22 @@ class HXAPI:
 			self.fe_token['last_use_timestamp'] = str(datetime.datetime.utcnow())
 
 		return(self.fe_token)
-			
+	
+	def _set_version(self):
+		
+		(ret, response_code, response_data) = self.restGetControllerVersion()
+		if ret:
+			version_string = response_data['data']['msoVersion']
+			self.hx_version = map(int, version_string.split('.'))
+			# TODO: this should be made into a dict
+			if self.hx_version[0] == 2:
+				self.api_version = 1
+			elif self.hx_version[0] == 3:
+				if self.hx_version[1] < 3:
+					self.api_version = 2
+				else:
+					self.api_version = 3
+	
 	###################
 	## Generic GET
 	###################
@@ -172,13 +196,15 @@ class HXAPI:
 	# See page 47 in the API guide
 	def restLogin(self, hx_user, hx_password):
 	
-		request = self.build_request('/hx/api/v1/token')
+		request = self.build_request(self.build_api_route('token', min_api_version = 1))
 		request.add_header('Authorization', 'Basic {0}'.format(base64.b64encode('{0}:{1}'.format(hx_user, hx_password))))
 
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		if ret and response_code == 204:
+			self.logger.debug('Token granted.')
 			self.set_token(response_headers.getheader('X-FeApi-Token'))
+			self._set_version()
 		
 		return(ret, response_code, response_data)
 
@@ -188,7 +214,7 @@ class HXAPI:
 	# See page 746 of the API guide
 	def restLogout(self):
 
-		request = self.build_request('/hx/api/v1/token', method = 'DELETE')
+		request = self.build_request(self.build_api_route('token', min_api_version = 1), method = 'DELETE')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		self.logger.debug('Setting token to None.')
@@ -210,35 +236,22 @@ class HXAPI:
 			return(False)
 			
 			
-	def restGetVersion(self):
+	def restGetControllerVersion(self):
 
-		request = self.build_request('/hx/api/v2/version')
+		request = self.build_request(self.build_api_route('version', min_api_version = 1))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
 
-	################
-	## Resolve hosts
-	################
-
-	def restFindHostsBySearchString(self, string):
-
-		request = self.build_request('/hx/api/v1/hosts?search={0}'.format(urllib.urlencode(string)))
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-		
-		return(ret, response_code, response_data)
-
-			
-
-
+	
 	## Indicators
 	#############
 
 	# List indicator categories
 	def restListIndicatorCategories(self):
 
-		request = self.build_request('/hx/api/v1/indicator_categories')
+		request = self.build_request(self.build_api_route('indicator_categories'))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -246,7 +259,7 @@ class HXAPI:
 	# List all IOCs
 	def restListIndicators(self, limit=10000):
 
-		request = self.build_request('/hx/api/v3/indicators?limit={0}'.format(limit))
+		request = self.build_request(self.build_api_route('indicators?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -255,7 +268,7 @@ class HXAPI:
 	# Add a new condition
 	def restAddCondition(self, ioc_category, ioc_guid, condition_class, condition_data):
 
-		request = self.build_request('/hx/api/v1/indicators/{0}/{1}/conditions/{2}'.format(ioc_category, ioc_guid, condition_class), method = 'POST', data = condition_data)
+		request = self.build_request(self.build_api_route('indicators/{0}/{1}/conditions/{2}'.format(ioc_category, ioc_guid, condition_class)), method = 'POST', data = condition_data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -265,7 +278,7 @@ class HXAPI:
 
 		data = json.dumps({"create_text" : create_user, "display_name" : display_name, "platforms" : platforms})
 		
-		request = self.build_request('/hx/api/v3/indicators/{0}'.format(ioc_category), method = 'POST', data = data)
+		request = self.build_request(self.build_api_route('indicators/{0}'.format(ioc_category)), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -273,7 +286,7 @@ class HXAPI:
 	# Submit a new category
 	def restCreateCategory(self, category_name):
 
-		request = self.build_request('/hx/api/v1/indicator_categories/{0}'.format(category_name), method = 'PUT', data = '{}')
+		request = self.build_request(self.build_api_route('indicator_categories/{0}'.format(category_name)), method = 'PUT', data = '{}')
 		request.add_header('If-None-Match', '*')
 		
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
@@ -283,7 +296,7 @@ class HXAPI:
 	# Grab conditions from an indicator
 	def restGetCondition(self, ioc_category, ioc_uri, condition_class, limit=10000):
 
-		request = self.build_request('/hx/api/v1/indicators/{0}/{1}/conditions/{2}?limit={3}'.format(ioc_category, ioc_uri, condition_class, limit))
+		request = self.build_request(self.build_api_route('indicators/{0}/{1}/conditions/{2}?limit={3}'.format(ioc_category, ioc_uri, condition_class, limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -291,7 +304,7 @@ class HXAPI:
 	# List all indicators
 	def restListIndicators(self, limit=10000):
 
-		request = self.build_request('/hx/api/v3/indicators?limit={0}'.format(limit))
+		request = self.build_request(self.build_api_route('indicators?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -299,7 +312,7 @@ class HXAPI:
 	# Get indicator based on condition
 	def restGetIndicatorFromCondition(self, condition_id):
 
-		request = self.build_request('/hx/api/v2/conditions/{0}/indicators'.format(condition_id))
+		request = self.build_request(self.build_api_route('conditions/{0}/indicators'.format(condition_id)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -307,7 +320,7 @@ class HXAPI:
 	# Delete an indicator by name
 	def restDeleteIndicator(self, ioc_category, ioc_name):
 		
-		request = self.build_request('/hx/api/v3/indicators/{0}/{1}'.format(ioc_category, ioc_name), method = 'DELETE')
+		request = self.build_request(self.build_api_route('indicators/{0}/{1}'.format(ioc_category, ioc_name)), method = 'DELETE')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -323,7 +336,7 @@ class HXAPI:
 		if timestamp:
 			data = json.dumps({'req_timestamp' : timestamp})
 
-		request = self.build_request('/hx/api/v1/hosts/{0}/triages'.format(agent_id), data = data)
+		request = self.build_request(self.build_api_route('hosts/{0}/triages'.format(agent_id)), data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -334,7 +347,7 @@ class HXAPI:
 		newpath = path.replace('\\','\\\\')
 		data = json.dumps({'req_path' : newpath, 'req_filename' : filename, 'req_use_api' : str(mode != "RAW").lower()})
 		
-		request = self.build_request('/hx/api/v1/hosts/{0}/files'.format(agent_id), method = 'POST', data = data)
+		request = self.build_request(self.build_api_route('hosts/{0}/files'.format(agent_id)), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -342,7 +355,7 @@ class HXAPI:
 	# List Bulk Acquisitions
 	def restListBulkAcquisitions(self, limit=1000):
 
-		request = self.build_request('/hx/api/v2/acqs/bulk?limit={0}'.format(limit))
+		request = self.build_request(self.build_api_route('acqs/bulk?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -351,7 +364,7 @@ class HXAPI:
 	# List hosts in Bulk acquisition
 	def restListBulkDetails(self, bulk_id, limit=10000):
 
-		request = self.build_request('/hx/api/v2/acqs/bulk/{0}/hosts?limit={1}'.format(bulk_id, limit))
+		request = self.build_request(self.build_api_route('acqs/bulk/{0}/hosts?limit={1}'.format(bulk_id, limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -360,7 +373,7 @@ class HXAPI:
 	# Get Bulk acquistion detail
 	def restGetBulkDetails(self, bulk_id):
 
-		request = self.build_request('/hx/api/v2/acqs/bulk/{0}'.format(bulk_id))
+		request = self.build_request(self.build_api_route('acqs/bulk/{0}'.format(bulk_id)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -380,7 +393,7 @@ class HXAPI:
 
 		data = json.dumps({'host_set' : {'_id' : int(host_set)}, 'script' : {'b64' : base64.b64encode(script)}})
 		
-		request = self.build_request('/hx/api/v2/acqs/bulk', method = 'POST', data = data)
+		request = self.build_request(self.build_api_route('acqs/bulk'), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -388,7 +401,7 @@ class HXAPI:
 	# List normal acquisitions
 	def restListAcquisitions(self):
 
-		request = self.build_request('/hx/api/v2/acqs')
+		request = self.build_request(self.build_api_route('acqs'))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -396,14 +409,14 @@ class HXAPI:
 	# List file acquisitions
 	def restListFileaq(self, limit=10000):
 
-		request = self.build_request('/hx/api/v2/acqs/files?limit={0}'.format(limit))
+		request = self.build_request(self.build_api_route('acqs/files?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
 	def restListTriages(self, limit=10000):
 
-		request = self.build_request('/hx/api/v2/acqs/triages?limit={0}'.format(limit))
+		request = self.build_request(self.build_api_route('acqs/triages?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -414,7 +427,7 @@ class HXAPI:
 
 	def restListSearches(self):
 
-		request = self.build_request('/hx/api/v2/searches')
+		request = self.build_request(self.build_api_route('searches'))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -424,7 +437,7 @@ class HXAPI:
 
 		data = json.dumps({'indicator' : b64_indicator, 'host_set' : {'_id' : int(host_set)}})
 		
-		request = self.build_request('/hx/api/v2/searches', method = 'POST', data = data)
+		request = self.build_request(self.build_api_route('searches'), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -445,14 +458,14 @@ class HXAPI:
 		
 	def restGetSearchHosts(self, search_id):
 
-		request = self.build_request('/hx/api/v2/searches/{0}/hosts?errors=true'.format(search_id))
+		request = self.build_request(self.build_api_route('searches/{0}/hosts?errors=true'.format(search_id)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
 	def restGetSearchResults(self, search_id):
 
-		request = self.build_request('/hx/api/v3/searches/{0}/results'.format(search_id))
+		request = self.build_request(self.build_api_route('searches/{0}/results'.format(search_id)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -464,14 +477,14 @@ class HXAPI:
 
 	def restGetAlertID(self, alert_id):
 
-		request = self.build_request('/hx/api/v3/alerts/{0}'.format(alert_id))
+		request = self.build_request(self.build_api_route('alerts/{0}'.format(alert_id)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
 	def restGetAlerts(self, limit):
 
-		request = self.build_request('/hx/api/v3/alerts?sort=reported_at+desc&limit={0}'.format(limit))
+		request = self.build_request(self.build_api_route('alerts?sort=reported_at+desc&limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -484,7 +497,7 @@ class HXAPI:
 							'max' : '{0}T23:59:59.999Z'.format(end_date)}
 						})
 							
-		request = self.build_request('/hx/api/v3/alerts/filter', method = 'POST', data = data)
+		request = self.build_request(self.build_api_route('alerts/filter'), method = 'POST', data = data)
 		
 		(ret, response_code, response_data, response_headers) = self.handle_response(request, expect_multiple_json_objects = True)
 		
@@ -498,62 +511,71 @@ class HXAPI:
 			
 
 
-	##############
-	# Query host
-	##############
-
-	def restGetHostSummary(self, host_id):
-
-		request = self.build_request('/hx/api/v2/hosts/{0}'.format(host_id))
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-		
-		return(ret, response_code, response_data)
-
-
-
 	########
 	# Hosts
 	########
-
+		
 	def restListHosts(self, limit=100000):
 
-		request = self.build_request('/hx/api/v2/hosts?limit={0}'.format(limit))
+		request = self.build_request(self.build_api_route('hosts?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
 	def restDeleteHostByID(self, agent_id):
 		
-		request = self.build_request('/hx/api/v3/hosts/{0}'.format(agent_id), method = 'DELETE')
+		request = self.build_request(self.build_api_route('hosts/{0}'.format(agent_id)), method = 'DELETE')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
+	def restFindHostsBySearchString(self, string):
+
+		request = self.build_request(self.build_api_route('hosts?search={0}'.format(urllib.urlencode(string))))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
+	def restGetHostSummary(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	###########
+	# Host Sets
+	###########
+		
 	def restListHostsets(self, limit=100000):
 
-		request = self.build_request('/hx/api/v2/host_sets?limit=100000'.format(limit))
+		request = self.build_request(self.build_api_route('host_sets?limit=100000'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 		
 	def restListHostsInHostset(self, host_set_id):
 
-		request = self.build_request('/hx/api/v3/host_sets/{0}/hosts'.format(host_set_id))
+		request = self.build_request(self.build_api_route('host_sets/{0}/hosts'.format(host_set_id)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
 
+	##################
+	# Config Channels
+	##################	
+		
 	def restCheckAccessCustomConfig(self, limit=1):
 
-		request = self.build_request('/hx/api/v3/host_policies/channels?limit={0}'.format(limit))
+		request = self.build_request(self.build_api_route('host_policies/channels?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 			
 	def restListCustomConfigChannels(self, limit=1000):
 
-		request = self.build_request('/hx/api/v3/host_policies/channels?limit={0}'.format(limit))
+		request = self.build_request(self.build_api_route('host_policies/channels?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -572,14 +594,14 @@ class HXAPI:
 		
 		data = json.dumps({'name' : name, 'description' : description, 'priority' : int(priority), 'host_sets' : myhostsets, 'configuration' : myconf})
 		
-		request = self.build_request('/hx/api/v3/host_policies/channels', method = 'POST', data = data)
+		request = self.build_request(self.build_api_route('host_policies/channels'), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 	
 	def restDeleteConfigChannel(self, channel_id):
 
-		request = self.build_request('/hx/api/v3/host_policies/channels/{0}'.format(channel_id), method = 'DELETE')
+		request = self.build_request(self.build_api_route('host_policies/channels/{0}'.format(channel_id)), method = 'DELETE')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
