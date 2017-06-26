@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Custom configuration channels{% endblock %}
+{% block navlocation %}Custom configuration channels{% endblock %}
+{% block content %}
+Configuration Channel Data:
+<br />
+<textarea style='width: 600px; height: 800px;' name='confjson'>
+{% if channel_json %} {{ channel_json|safe }} {% endif %}
+</textarea>
+{% endblock %}

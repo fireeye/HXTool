@@ -707,7 +707,19 @@ def channels():
 	else:
 			return redirect("/login", code=302)
 
-
+@app.route('/channelinfo', methods=['GET'])
+def channelinfo():
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+		(ret, response_code, response_data) = hx_api_object.restCheckAccessCustomConfig()
+		if ret:
+			# TODO: finish
+			(ret, response_code, response_data) = hx_api_object.restGetConfigChannelConfiguration(request.args.get('id'))
+			return render_template('ht_configchannel_info.html', channel_json = json.dumps(response_data, sort_keys = True, indent = 4))
+		else:
+			return render_template('ht_noaccess.html')
+	else:
+			return redirect("/login", code=302)
 			
 #### Authentication
 #######################
@@ -728,7 +740,7 @@ def login():
 				if 0 < int(hx_host_port[1]) <= 65535:
 					hx_port = hx_host_port[1]
 				
-			hx_api_object = HXAPI(hx_host, hx_port = hx_port, headers = ht_config.get_or_none('headers'), cookies = ht_config.get_or_none('cookies'))
+			hx_api_object = HXAPI(hx_host, hx_port = hx_port, headers = ht_config.get_or_none('headers'), cookies = ht_config.get_or_none('cookies'), logger = app.logger)
 			
 			(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
 			if ret:
@@ -784,7 +796,7 @@ def is_session_valid(session):
 ### Thread: background processing 
 #################################
 		
-def bgprocess(myConf):
+def bgprocess(bgprocess_config):
 	
 	time.sleep(1)
 	app.logger.info('Background processor thread started')
@@ -794,16 +806,16 @@ def bgprocess(myConf):
 	
 	while True:
 		try:
-			backgroundStackProcessor(c, conn, myConf, app)
+			backgroundStackProcessor(c, conn, bgprocess_config, app)
 		except BaseException as e:
 			print('{!r}; StackProcessor error'.format(e))
 		
 		try:
-			backgroundBulkProcessor(c, conn, myConf, app)
+			backgroundBulkProcessor(c, conn, bgprocess_config, app)
 		except BaseException as e:
 			print('{!r}; BulkProcessor error'.format(e))
 			
-		time.sleep(myConf['backgroundProcessor']['poll_interval'])
+		time.sleep(bgprocess_config['background_processor']['poll_interval'])
 		
 		
 ###########
@@ -813,46 +825,41 @@ def bgprocess(myConf):
 app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
 		
 if __name__ == "__main__":
-
-	# Logging
-	handler = RotatingFileHandler('log/access.log', maxBytes=50000, backupCount=5)
-	handler.setLevel(logging.INFO)
 	
-	ht_handler = RotatingFileHandler('log/hxtool.log', maxBytes=50000, backupCount=5)
-	ht_handler.setLevel(logging.INFO)
-	
-	c_handler = logging.StreamHandler(sys.stdout)
-	c_handler.setLevel(logging.INFO)
-	
-	# WSGI Server logging
-	logger = logging.getLogger('werkzeug')
-	logger.setLevel(logging.INFO)
-	logger.addHandler(handler)
-	
-	# Flask logging
 	app.logger.setLevel(logging.INFO)
-	app.logger.addHandler(ht_handler)
-	app.logger.addHandler(c_handler)
 	
-	# Set formatter
-	formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
-	handler.setFormatter(formatter)
-	ht_handler.setFormatter(formatter)
-	c_handler.setFormatter(formatter)
+	# Log early init/failures to stdout
+	console_log = logging.StreamHandler(sys.stdout)
+	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
+	app.logger.addHandler(console_log)
+	
+	ht_config = hxtool_config('conf.json', logger=app.logger)
+	
+	# Initialize configured log handlers
+	for log_handler in ht_config.log_handlers():
+		app.logger.addHandler(log_handler)
+
+	# WSGI request log - when not running under gunicorn or mod_wsgi
+	logger = logging.getLogger('werkzeug')
+	if logger:
+		logger.setLevel(logging.INFO)
+		request_log_handler = RotatingFileHandler('log/access.log', maxBytes=50000, backupCount=5)
+		request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
+		request_log_handler.setFormatter(request_log_formatter)	
+		logger.addHandler(request_log_handler)
 
 	# Start
 	app.logger.info('Application starting')
 
-	ht_config = hxtool_config('conf.json', logger=app.logger)
-
+	
 	# Start background processing thread
-	thread = threading.Thread(target=bgprocess, name='BackgroundProcessor', args=(ht_config,))
+	thread = threading.Thread(target=bgprocess, name='BackgroundProcessorThread', args=(ht_config,))
 	thread.daemon = True
 	thread.start()
 	app.logger.info('Background Processor thread starting')
 	
 	if ht_config['network']['ssl'] == "enabled":
 		context = (ht_config['ssl']['cert'], ht_config['ssl']['key'])
-		app.run(host=ht_config['network']['listen_on'], port=ht_config['network']['port'], ssl_context=context, threaded=True)
+		app.run(host=ht_config['network']['listen_address'], port=ht_config['network']['port'], ssl_context=context, threaded=True)
 	else:
-		app.run(host=ht_config['network']['listen_on'], port=ht_config['network']['port'])
+		app.run(host=ht_config['network']['listen_address'], port=ht_config['network']['port'])
