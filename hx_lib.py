@@ -42,6 +42,7 @@ class HXAPI:
 			ssl._create_default_https_context = ssl._create_unverified_context
 			self.logger.info('SSL/TLS certificate verification disabled.')
 		
+		self.hx_user = None
 		self.fe_token = None
 		self.api_version = self.HX_MIN_API_VERSION
 		self.hx_version = [0, 0, 0]
@@ -204,6 +205,7 @@ class HXAPI:
 		if ret and response_code == 204:
 			self.logger.debug('Token granted.')
 			self.set_token(response_headers.getheader('X-FeApi-Token'))
+			self.hx_user = hx_user
 			self._set_version()
 		
 		return(ret, response_code, response_data)
