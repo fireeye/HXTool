@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Dashboard{% endblock %}
+{% block content %}
+
+<script>
+
+	function getQueryParam(param) {
+		location.search.substr(1)
+			.split("&")
+			.some(function(item) { // returns first occurence and stops
+				return item.split("=")[0] == param && (param = item.split("=")[1])
+			})
+		return param
+	}
+
+        $(document).ready(function() {
+
+			enableStatusBar("<img style='height: 20px; margin-right: 10px; margin-bottom: -5px;' src='/static/spinner.svg'></img>Loading dashboard...", 200, "ht_statusbar_notifyBlue")
+			$("#ht_main_table_main_td").load("/?render=1&time=" + getQueryParam('time'), function(responseTxt, statusTxt, xhr){
+			if(statusTxt == "success")
+			
+				disableStatusBar(600)
+		
+				Morris.Donut({
+				  element: 'dashAlertsGraph',
+				  data: $("#dashAlertsGraphData").data("donut"),
+				  backgroundColor: '#5387ac',
+				  labelColor: '#444',
+				  colors: [
+					'#79a1be',
+					'#d7d7d7',
+					'#7983be'
+				  ],
+				  formatter: function (x) { return x + "%"}
+				});
+
+						Morris.Area({
+						  element: 'dashAlertsTimeline',
+						  data: $("#dashAlertsTimelineData").data("chart"),
+				  xkey: 'date',
+				  ykeys: ['count'],
+				  labels: ['Count'],
+						  lineColors: [
+							'#79a1be',
+							'#d7d7d7',
+							'#7983be'
+						  ],
+
+						});
+						
+			if(statusTxt == "error")
+				alert("Error: " + xhr.status + ": " + xhr.statusText);
+			});
+
+        });
+</script>
+
+{% endblock %}
