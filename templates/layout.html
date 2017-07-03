@@ -34,6 +34,14 @@
 		});
 	}
 
+	function getQueryParam(param) {
+		location.search.substr(1)
+			.split("&")
+			.some(function(item) { // returns first occurence and stops
+				return item.split("=")[0] == param && (param = item.split("=")[1])
+			})
+	return param
+	}
 
 	$(document).ready(function() {
 		$('[id^=navbutton]').click(function() {
@@ -53,7 +61,7 @@
 		<tr>
 			<td class='ht_main_table_top_td'>
 				<a href='/?time=week'><img style='height: 58px; margin-left: 25px; margin-right: 20px; float: left;' src='/static/fireeye.svg'></a>
-				<div style='position: absolute; left: 120px; top: 45px; font-size: 12px; font-weight: bold;'>HXTool v2.0</div>
+				<div style='position: absolute; left: 120px; top: 45px; font-size: 12px; font-weight: bold;'>HXTool v2.1</div>
 				
 				<div id='navbutton_?time=week' style='float: left;' class='ht_nav_table_cell'>Dashboard</div>
 				<div id='navbutton_alerts?acount=30' style='float: left;' class='ht_nav_table_cell'>Alerts</div>

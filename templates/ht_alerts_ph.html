@@ -7,7 +7,7 @@
         $(document).ready(function() {
 
 			enableStatusBar("<img style='height: 20px; margin-right: 10px; margin-bottom: -5px;' src='/static/spinner.svg'></img>Loading alerts from the controller...", 200, "ht_statusbar_notifyBlue")
-			$("#ht_main_table_main_td").load("/alerts?render=1", function(responseTxt, statusTxt, xhr){
+			$("#ht_main_table_main_td").load("/alerts?render=1&acount=" + getQueryParam('acount'), function(responseTxt, statusTxt, xhr){
 			if(statusTxt == "success")
 				disableStatusBar(600)
                 
