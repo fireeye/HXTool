@@ -38,6 +38,8 @@ sys.setdefaultencoding('utf8')
 
 app = Flask(__name__, static_url_path='/static')
 
+HXTOOL_API_VERSION = 1
+
 ht_config = None
 ht_db = None
 
@@ -685,10 +687,16 @@ def logout(hx_api_object):
 	return redirect("/login", code=302)
 	
 
+####################################
+#
+#	HXTool API
+#	
+####################################	
+	
 ####################
 # Profile Management
 ####################
-@app.route('/profile', methods=['GET', 'POST'])
+@app.route('/api/v{0}/profile'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT'])
 def profile():
 	if request.method == 'GET':
 		profiles = ht_db.profileList()
@@ -702,7 +710,7 @@ def profile():
 		else:
 			return make_response_by_code(400)
 			
-@app.route('/profile/<int:profile_id>', methods=['GET', 'POST', 'DELETE'])
+@app.route('/api/v{0}/profile/<int:profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
 def profile_by_id(profile_id):
 	if request.method == 'GET':
 		profile_object = ht_db.profileGetById(profile_id)

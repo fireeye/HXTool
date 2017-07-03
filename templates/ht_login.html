@@ -11,7 +11,7 @@
 		if (profile_id > 0) {
 			$.ajax({
 				type: "DELETE",
-				url: "/profile/" + profile_id,
+				url: "/api/v1/profile/" + profile_id,
 				contentType: "application/json; charset=utf-8",
 				dataType: "json",
 				success: function(r) {
@@ -27,7 +27,7 @@
 	function bindData() {
 		$.ajax({
 			type: "GET",
-			url: "/profile",
+			url: "/api/v1/profile",
 			contentType: "application/json; charset=utf-8",
 			dataType: "json",
 			success: function(r) {
@@ -51,7 +51,7 @@
 			$("#controllerProfileManagerPanel").show();
 		});
 		
-		$("#controllerProfileAddButton").click(function() {			
+		$("#controllerProfileSaveButton").click(function() {			
 			var request_json = {};
 			$("*[data-key]").each(function(idx) {
 				request_json[$(this).attr("data-key")] = $(this).val();
@@ -59,8 +59,8 @@
 			request_json = JSON.stringify(request_json);
 			
 			$.ajax({
-				type: "POST",
-				url: "/profile",
+				type: "PUT",
+				url: "/api/v1/profile",
 				contentType: "application/json; charset=utf-8",
 				dataType: "json",
 				data: request_json,
@@ -140,7 +140,7 @@
 			<br />
 			<br />
 			<input type='button' value='Cancel' onclick='JavaScript: $("#controllerProfileManagerAddProfilePanel").hide(200);' />
-			<input type='button' value='Add' id='controllerProfileAddButton' />	
+			<input type='button' value='Save' id='controllerProfileSaveButton' />	
 		</div>
 	</div>
 </body>
