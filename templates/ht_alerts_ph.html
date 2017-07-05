@@ -40,24 +40,6 @@
 					$('#shader').hide();
 				});
 
-				// Show alert details
-				$("a[id^='showalert_']").click(function() {
-					var id = ($(this).attr('id'));
-					var arrId = id.split("_");
-					
-					$('#shader').show();
-					$('#alertdetails_' + arrId[1]).show(200);
-					
-				});
-
-				$("input[id^='close_']").click(function() {
-					var id = ($(this).attr('id'));
-					var arrId = id.split("_");
-					
-					$('#alertdetails_' + arrId[1]).hide(200);
-					$('#shader').hide();
-				});
-
 			if(statusTxt == "error")
 				alert("Error: " + xhr.status + ": " + xhr.statusText);
 			});

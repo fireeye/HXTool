@@ -173,24 +173,20 @@ def index():
 		return redirect("/login", code=302)
 
 
-### Jobdash
+### Hosts
 ##########
 
-@app.route('/jobdash', methods=['GET', 'POST'])
-def jobdash():
+@app.route('/hosts', methods=['GET', 'POST'])
+def hosts():
 	(ret, hx_api_object) = is_session_valid(session)
 	if ret:
-		conn = sqlite3.connect('hxtool.db')
-		c = conn.cursor()
-	
-		blk = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], session['ht_port'])
-		jobsBulk = formatBulkTableJobDash(c, conn, blk, session['ht_profileid'])
-
-		s = restListSearches(session['ht_token'], session['ht_ip'], session['ht_port'])
-		jobsEs = formatListSearchesJobDash(s)
-		
-		
-		return render_template('ht_jobdash.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), jobsBulk=jobsBulk, jobsEs=jobsEs)
+		if 'host' in request.args.keys():
+			(ret, response_code, response_data) = hx_api_object.restGetHostSummary(request.args.get('host'))
+			myhosthtml = formatHostInfo(response_data, hx_api_object)
+			return render_template('ht_hostinfo.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostinfo=myhosthtml)
+		else:
+			return redirect('/', code=302)
+			
 	else:
 		return redirect("/login", code=302)
 
@@ -214,7 +210,7 @@ def alerts():
 				# Add annotation to annotation table
 				sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'], session['ht_user'])
 				app.logger.info('New annotation - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-				return redirect("/alerts", code=302)
+				return redirect("/alerts?acount=30", code=302)
 		
 		if not 'render' in request.args:
 			return render_template('ht_alerts_ph.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
