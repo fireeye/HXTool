@@ -1,49 +1,5 @@
-{% extends "layout.html" %}
-{% block title %}HXTool - Dashboard{% endblock %}
-{% block content %}
-
-<script>
-        $(document).ready(function() {
-
-		Morris.Donut({
-		  element: 'dashAlertsGraph',
-		  data: {% if iocstats %} {{ iocstats|safe }} {% endif %},
-		  backgroundColor: '#5387ac',
-		  labelColor: '#444',
-		  colors: [
-		    '#79a1be',
-		    '#d7d7d7',
-		    '#7983be'
-		  ],
-		  formatter: function (x) { return x + "%"}
-		});
-
-                Morris.Area({
-                  element: 'dashAlertsTimeline',
-                  data: {% if timeline %} {{ timeline|safe }} {% endif %},
-		  xkey: 'date',
-		  ykeys: ['count'],
-		  labels: ['Count'],
-                  lineColors: [
-                    '#79a1be',
-                    '#d7d7d7',
-                    '#7983be'
-                  ],
-
-                });
-
-        });
-</script>
-
 <select name='stime' id='stime' style='margin-top: -5px;' onchange="if (this.value) window.location.href=this.value">
-	<option value='/?time=today'>Today
-	<option value='/?time=1week' SELECTED>1 Week
-	<option value='/?time=2week'>2 Weeks
-	<option value='/?time=30days'>30 days
-	<option value='/?time=60days'>60 days
-	<option value='/?time=90days'>90 days
-	<option value='/?time=182days'>182 days
-	<option value='/?time=365days'>365 days
+	{% if iselect %} {{ iselect|safe }} {% endif %}
 </select><br>
 
 <br>
@@ -55,6 +11,7 @@
 		</td>
 		<td style='border-top: 2px solid rgb(215,215,215); border-bottom: 2px solid rgb(215,215,215); border-left: 2px solid rgb(215,215,215); width: 250px; padding: 0;'>
 			<div id='dashAlertsGraph' style='width: 250px;'></div>
+			<div id='dashAlertsGraphData' style='display: none;' data-donut='{% if iocstats %}{{iocstats|safe}}{% endif %}'></div>
 			<div class='graphLabel'>Alert distribution</div>
 		</td>
 	</tr>
@@ -72,5 +29,6 @@
 </table>
 
 <div id='dashAlertsTimeline' style='height: 250px;' ></div>
+<div id='dashAlertsTimelineData' style='display: none;' data-chart='{% if timeline %}{{timeline|safe}}{% endif %}'></div>
 <div class='graphLabel' style='margin-top: 20px;'>Alert distribution over time</div>
-{% endblock %}
+
