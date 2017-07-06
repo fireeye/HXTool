@@ -327,6 +327,13 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	def restGetConditionDetails(self, condition_id):
+	
+		request = self.build_request(self.build_api_route('conditions/{0}'.format(condition_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+	
 
 	## Acquisitions
 	###############
@@ -492,6 +499,22 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# NOTE: this function does not return data in the usual way, the response is a list of alerts
+	def restGetAlertsHost(self, agent_id):
+	
+		data = json.dumps({'agent._id' : [agent_id]})
+	
+		request = self.build_request(self.build_api_route('alerts/filter'), method = 'POST', data = data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request, expect_multiple_json_objects = True)
+		
+		if ret:
+			from operator import itemgetter
+			sorted_alert_list = sorted(response_data, key=itemgetter('reported_at'), reverse=True);
+			return(True, response_code, sorted_alert_list)
+		
+		else:
+			return(ret, response_code, response_data)
+		
+	# NOTE: this function does not return data in the usual way, the response is a list of alerts
 	def restGetAlertsTime(self, start_date, end_date):
 
 		data = json.dumps({'event_at' : 
@@ -544,6 +567,14 @@ class HXAPI:
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
+		
+	def restGetHostSysinfo(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}/sysinfo'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
 
 	def restGetContainmentStatus(self, host_id):
 	

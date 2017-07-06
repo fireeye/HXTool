@@ -144,10 +144,28 @@
         border-right: none;
 }
 
+.genericTableSmall thead td {
+	padding: 5px;
+}
+
+.genericTableSmall tbody td {
+	padding: 5px;
+}
+
+.genericTableSelected {
+	background: #eeeeee;
+}
+
 .genericTableAlerts tbody td {
 		padding: 5px;
 }
 
+.hostLink {
+	text-decoration: none;
+	cursor: pointer;
+	color: rgb(66, 136, 191);
+	font-weight: bold;
+}
 
 .dataTables_filter {
         margin-bottom: 10px;

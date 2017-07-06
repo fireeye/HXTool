@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Host{% endblock %}
+{% block navlocation %}Host{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+		
+		var alertid = getQueryParam('alertid')
+		
+		if (alertid !== "alertid") {
+			$("#alertdetails_" + alertid).closest('tr').addClass('genericTableSelected');
+			$("#alertcontent").html($("#alertdetails_" + alertid).html());
+		}
+		
+		$('#hostAlertTable').on('click', '.clickable-row', function() {
+			
+			var item = $(this).attr('id').split("_");
+			var myid = item[1];
+			
+			$('#hostAlertTable').find('.genericTableSelected').each(function(){
+				$(this).removeClass("genericTableSelected");
+			});
+			
+			$(this).addClass('genericTableSelected');
+			
+			$("#alertcontent").html($("#alertdetails_" + myid).html());
+			$("html, body").animate({ scrollTop: 0 }, 200);
+		});
+
+	});
+</script>
+
+<div class='tableTitle'>
+	Alert investigation panel
+</div>
+
+{% if hostinfo %} {{ hostinfo|safe }} {% endif %}
+
+{% endblock %}
