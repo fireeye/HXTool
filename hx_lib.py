@@ -543,6 +543,29 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	def restGetContainmentStatus(self, host_id):
+	
+		request = self.build_request(self.build_api_route('hosts/{0}/containment'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+	
+	def restRequestContainment(self, host_id):
+	
+		request = self.build_request(self.build_api_route('hosts/{0}/containment'.format(host_id)), method = 'POST')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restApproveContainment(self, host_id):
+	
+		data = json.dumps({'state' : 'contain'})
+	
+		request = self.build_request(self.build_api_route('hosts/{0}/containment'.format(host_id)), method = 'PATCH', data = data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
 	###########
 	# Host Sets
 	###########
