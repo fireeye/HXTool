@@ -698,14 +698,12 @@ def formatAlertsCsv(alertsjson, hx_api_object):
 	return (x)
 	
 
-def formatProfCredsInfo(c, conn, profileid):
+def formatProfCredsInfo(has_creds):
 
 	x = ""
 	
-	data = sqlGetProfCredTable(c, conn, profileid)
-	
-	if len(data) > 0:
-		x += "Background processing credentials are set <a href='/settings?unsetprofcreds=" + profileid + "'>Unset</a>"
+	if has_creds:
+		x += "Background processing credentials are set <a href='/settings?unset=1'>Unset</a>"
 	else:
 		x += "<form method='POST'>"
 		x += "<div>Username</div>"
