@@ -61,6 +61,7 @@ def valid_session_required(f):
 ################
 
 @app.route('/')
+<<<<<<< HEAD
 @valid_session_required
 def index(hx_api_object):
 	if 'time' in request.args:
@@ -172,6 +173,134 @@ def index(hx_api_object):
 			blkcounter = blkcounter + 1;
 
 	return render_template('ht_index.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), alerts=alerts, iocstats=stats, timeline=talerts_list, contcounter=str(contcounter), hostcounter=str(hostcounter), malcounter=str(malcounter), searchcounter=str(searchcounter), blkcounter=str(blkcounter), exdcounter=str(exdcounter), ioccounter=str(ioccounter))
+=======
+def index():
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+		
+		if not 'render' in request.args:
+			return render_template('ht_index_ph.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+		else:
+		
+			if 'time' in request.args:
+				mytime = request.args.get('time')
+				if mytime == "today":
+					starttime = datetime.datetime.now()
+				elif mytime == "week":
+					starttime = datetime.datetime.now() - datetime.timedelta(days=7)
+				elif mytime == "2weeks":
+					starttime = datetime.datetime.now() - datetime.timedelta(days=14)
+				elif mytime == "30days":
+					starttime = datetime.datetime.now() - datetime.timedelta(days=30)
+				elif mytime == "60days":
+					starttime = datetime.datetime.now() - datetime.timedelta(days=60)
+				elif mytime == "90days":
+					starttime = datetime.datetime.now() - datetime.timedelta(days=90)
+				elif mytime == "182days":
+					starttime = datetime.datetime.now() - datetime.timedelta(days=182)
+				elif mytime == "365days":
+					starttime = datetime.datetime.now() - datetime.timedelta(days=365)
+				else:
+					starttime = datetime.datetime.now() - datetime.timedelta(days=7)
+			else:
+				mytime = "week"
+				starttime = datetime.datetime.now() - datetime.timedelta(days=7)
+
+			interval_select = ""
+			for i in ["today", "week", "2weeks", "30days", "60days", "90days", "182days", "365days"]:
+					interval_select += '<option value="/?time={0}"{1}>{2}</option>'.format(i, ' selected="selected"' if i == mytime else '', i)
+				
+			base = datetime.datetime.today()
+		
+			(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(starttime.strftime("%Y-%m-%d"), base.strftime("%Y-%m-%d"))
+			
+			nr_of_alerts = len(response_data)
+			
+			# Recent alerts
+			alerts = formatDashAlerts(response_data, hx_api_object)
+
+			if nr_of_alerts > 0:
+				stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}, {'value': 0, 'label': 'Malware'}]
+				for alert in response_data:
+					if alert['source'] == "EXD":
+						stats[0]['value'] = stats[0]['value'] + 1
+					if alert['source'] == "IOC":
+						stats[1]['value'] = stats[1]['value'] + 1
+					if alert['source'] == "MAL":
+						stats[2]['value'] = stats[2]['value'] + 1
+				
+				stats[0]['value'] = round((stats[0]['value'] / float(nr_of_alerts)) * 100)
+				stats[1]['value'] = round((stats[1]['value'] / float(nr_of_alerts)) * 100)
+				stats[2]['value'] = round((stats[2]['value'] / float(nr_of_alerts)) * 100)
+			else:
+				stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}, {'value': 0, 'label': 'Malware'}]
+
+			# Event timeline last 30 days
+			talert_dates = {}
+			
+			delta = (base - starttime)
+			
+			date_list = [base - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
+			for date in date_list:
+				talert_dates[date.strftime("%Y-%m-%d")] = 0
+
+			ioclist = []
+			exdlist = []
+			mallist = []
+			
+			for talert in response_data:
+
+				if talert['source'] == "IOC":
+					if not talert['agent']['_id'] in ioclist:
+						ioclist.append(talert['agent']['_id'])
+					
+				if talert['source'] == "EXD":
+					if not talert['agent']['_id'] in exdlist:
+						exdlist.append(talert['agent']['_id'])
+				
+				if talert['source'] == "MAL":
+					if not talert['agent']['_id'] in mallist:
+						mallist.append(talert['agent']['_id'])			
+				
+				date = talert['event_at'][0:10]
+				if date in talert_dates.keys():
+					talert_dates[date] = talert_dates[date] + 1
+
+			ioccounter = len(ioclist)
+			exdcounter = len(exdlist)
+			malcounter = len(mallist)
+			
+			talerts_list = []
+			for key in talert_dates:
+				talerts_list.append({"date": str(key), "count": talert_dates[key]})
+
+			# Info table
+			(ret, response_code, response_data) = hx_api_object.restListHosts()
+
+			contcounter = 0;
+			hostcounter = 0;
+			searchcounter = 0;
+			for entry in response_data['data']['entries']:
+				hostcounter = hostcounter + 1
+				if entry['containment_state'] != "normal":
+					contcounter = contcounter + 1
+
+			(ret, response_code, response_data) = hx_api_object.restListSearches()
+			for entry in response_data['data']['entries']:
+							if entry['state'] == "RUNNING":
+									searchcounter = searchcounter + 1;
+
+			(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
+			blkcounter = 0;
+			for entry in response_data['data']['entries']:
+				if entry['state'] == "RUNNING":
+					blkcounter = blkcounter + 1;
+
+			return render_template('ht_index.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), alerts=alerts, iocstats=json.dumps(stats), timeline=json.dumps(talerts_list), contcounter=str(contcounter), hostcounter=str(hostcounter), malcounter=str(malcounter), searchcounter=str(searchcounter), blkcounter=str(blkcounter), exdcounter=str(exdcounter), ioccounter=str(ioccounter), iselect=interval_select)
+			
+	else:
+		return redirect("/login", code=302)
+>>>>>>> 102bad322cba79734a58996b5129fd0737c72396
 
 
 ### Jobdash
@@ -646,6 +775,7 @@ def login():
 			if ht_profile:	
 				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], headers = ht_config.get_or_none('headers'), cookies = ht_config.get_or_none('cookies'), logger = app.logger)
 				
+<<<<<<< HEAD
 				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
 				if ret:
 					# Set session variables
@@ -656,6 +786,18 @@ def login():
 					return redirect("/{0}".format(request.args.get('redirect_uri')), code=302)
 				else:
 					return render_template('ht_login.html', fail=response_data)
+=======
+			hx_api_object = HXAPI(hx_host, hx_port = hx_port, headers = ht_config.get_or_none('headers'), cookies = ht_config.get_or_none('cookies'), logger = app.logger)
+			
+			(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
+			if ret:
+				# Set session variables
+				session['ht_user'] = request.form['ht_user']
+				session['ht_profileid'] = profile_id
+				app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				session['ht_api_object'] = hx_api_object.serialize()
+				return redirect("/?time=week", code=302)
+>>>>>>> 102bad322cba79734a58996b5129fd0737c72396
 			else:
 				return render_template('ht_login.html', fail = 'Invalid profile id.')
 	else:	

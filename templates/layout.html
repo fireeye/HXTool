@@ -1,7 +1,7 @@
 <html>
 <head>
     <title>{% block title %}{% endblock %}</title>
-	<script type="text/javascript" src="/static/jquery-1.11.3.min.js"></script>
+	<script type="text/javascript" src="/static/jquery-3.2.1.min.js"></script>
 	<script type="text/javascript" src="/static/jquery.dataTables.min.js"></script>
 	<script type="text/javascript" src="/static/raphael-min.js"></script>
 	<script type="text/javascript" src="/static/morris.min.js"></script>
@@ -29,8 +29,7 @@
 	}
 	
 	function disableStatusBar(hideTimer) {
-		$("#ht_statusbar_div").animate({opacity: "0", height: "0"}, { duration: hideTimer, queue: false }, function() {
-				$("#ht_statusbar_div").hide();
+		$("#ht_statusbar_div").slideUp(hideTimer, function() {
 				$("#ht_statusbar_div").html("");
 		});
 	}
@@ -53,10 +52,10 @@
 	<table cellpadding=0 cellspacing=0 class='ht_main_table'> 
 		<tr>
 			<td class='ht_main_table_top_td'>
-				<a href='/'><img style='height: 58px; margin-left: 25px; margin-right: 20px; float: left;' src='/static/fireeye.svg'></a>
+				<a href='/?time=week'><img style='height: 58px; margin-left: 25px; margin-right: 20px; float: left;' src='/static/fireeye.svg'></a>
 				<div style='position: absolute; left: 120px; top: 45px; font-size: 12px; font-weight: bold;'>HXTool v2.0</div>
 				
-				<div id='navbutton_' style='float: left;' class='ht_nav_table_cell'>Dashboard</div>
+				<div id='navbutton_?time=week' style='float: left;' class='ht_nav_table_cell'>Dashboard</div>
 				<div id='navbutton_alerts?acount=30' style='float: left;' class='ht_nav_table_cell'>Alerts</div>
 				<div id='navbutton_search' style='float: left;' class='ht_nav_table_cell'>Enterprise Search</div>
 				<div id='navbutton_bulk' style='float: left;' class='ht_nav_table_cell'>Bulk Acquisitions</div>
