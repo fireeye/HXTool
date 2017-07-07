@@ -6,33 +6,52 @@
 </head>
 
 <script language="JavaScript">
-	$(document).ready(function() {
-		function bindData() {
+	function deleteProfile(e) {
+		profile_id = $(e).attr("profile-id");
+		if (profile_id > 0) {
 			$.ajax({
-				type: "GET",
-				url: "/profile",
+				type: "DELETE",
+				url: "/profile/" + profile_id,
 				contentType: "application/json; charset=utf-8",
 				dataType: "json",
 				success: function(r) {
-					$("#controllerProfileDropdown").empty();
-					$("#controllerProfileTable tbody").empty();			
-					$.each(r.data, function() {
-						// TODO: implementing a string format function would be nicer...
-						$("#controllerProfileDropdown").append($("<option></option>").val(this.profile_id).text(this.hx_name + " - " + this.hx_host + ":" + this.hx_port));
-						$("#controllerProfileTable tbody").append("<tr><td>" + this.profile_id + "</td><td>" + this.hx_name + "</td><td>" + this.hx_host + "</td><td>" + this.hx_port + "</td><td><a href='#' style='text-decoration: none;' id='controllerProfileDeleteButton' profile-id='" + this.profile_id + "'>Delete</a></td></tr>");
-					});
-					
+					bindData();
+				},
+				error: function(xhr) {
+					alert("Error: " + xhr.responseJSON);
 				}
 			});
 		}
-		
+	}
+	
+	function bindData() {
+		$.ajax({
+			type: "GET",
+			url: "/profile",
+			contentType: "application/json; charset=utf-8",
+			dataType: "json",
+			success: function(r) {
+				$("#controllerProfileDropdown").empty();
+				$("#controllerProfileTable tbody").empty();			
+				$.each(r.data, function() {
+					// TODO: implementing a string format function would be nicer...
+					$("#controllerProfileDropdown").append($("<option></option>").val(this.profile_id).text(this.hx_name + " - " + this.hx_host + ":" + this.hx_port));
+					$("#controllerProfileTable tbody").append("<tr><td>" + this.hx_name + "</td><td>" + this.hx_host + "</td><td>" + this.hx_port + "</td><td><a href='#' style='text-decoration: none;' onclick='JavaScript: deleteProfile(this);' profile-id='" + this.profile_id + "'>Delete</a></td></tr>");
+				});
+				
+			}
+		});
+	}
+	
+	
+	$(document).ready(function() {
+		bindData();
 		
 		$("#controllerProfileManagerButton").click(function() {
 			$("#controllerProfileManagerPanel").show();
 		});
 		
-		$("#controllerProfileAddButton").click(function() {
-			
+		$("#controllerProfileAddButton").click(function() {			
 			var request_json = {};
 			$("*[data-key]").each(function(idx) {
 				request_json[$(this).attr("data-key")] = $(this).val();
@@ -53,28 +72,6 @@
 				}
 			});
 		});
-		
-		$("#controllerProfileDeleteButton").click(function() {
-			profile_id = $(this).attr("profile-id");
-			alert(profile_id);
-			if (profile_id > 0) {
-				$.ajax({
-					type: "DELETE",
-					url: "/profile/" + profile_id,
-					contentType: "application/json; charset=utf-8",
-					dataType: "json",
-					success: function(r) {
-						bindData();
-					},
-					error: function(xhr) {
-						alert("Error: " + xhr.responseJSON);
-					}
-				});
-			}
-		});
-		
-		bindData();
-		
 	});
 </script>
 
@@ -114,13 +111,12 @@
 		</div>
 	</div>
 	<div id='controllerProfileManagerPanel' class='controllerProfileManagerDialog' style='display: none;'>
-		<table class='genericTable' id='controllerProfileTable' style='width: 100%;'>
+		<table class='genericTable' id='controllerProfileTable' style='width: 100%; text-align: center;'>
 			<thead>
-				<th>#</th>
 				<th>Name</th>
 				<th>Hostname/IP</th>
 				<th>Port</th>
-				<th>Action</th>
+				<th></th>
 			</thead>
 			<tbody></tbody>
 			<tfoot>
