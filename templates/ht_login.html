@@ -1,37 +1,80 @@
 <html>
 <head>
 	<title>HXTool - Please Authenticate</title>
-	<link rel="stylesheet" type="text/css" href="static/ht.css">
-	<script type="text/javascript" src="/static/jquery-1.11.3.min.js"></script>
-		<script type="text/javascript" src="/static/jquery.dataTables.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="/static/ht.css">
+	<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
 </head>
 
-<script>
+<script language="JavaScript">
 	$(document).ready(function() {
-		
-		// TODO: We need to rebind both the drop down and manager data table anytime there is a change
-		$.ajax({
-			type: "GET",
-			url: "/profile",
-			contentType: "application/json; charset=utf-8",
-			dataType: "json",
-			success: function(r) {
-				$("#controllerProfileDropdown").empty();
-				$("#controllerProfileTable tbody").empty();			
-				$.each(r.data, function() {
-					// TODO: implementing a string format function would be nicer...
-					$("#controllerProfileDropdown").append($("<option></option>").val(this._id).text(this.hx_name + " - " + this.hx_host + ":" + this.hx_port));
-					$("#controllerProfileTable tbody").append("<tr><td>" + this._id + "</td><td>" + this.hx_name + "</td><td>" + this.hx_host + "</td><td>" + this.hx_port + "</td></tr>");
-				});
-				
-			}
-		});
-		
+		function bindData() {
+			$.ajax({
+				type: "GET",
+				url: "/profile",
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				success: function(r) {
+					$("#controllerProfileDropdown").empty();
+					$("#controllerProfileTable tbody").empty();			
+					$.each(r.data, function() {
+						// TODO: implementing a string format function would be nicer...
+						$("#controllerProfileDropdown").append($("<option></option>").val(this.profile_id).text(this.hx_name + " - " + this.hx_host + ":" + this.hx_port));
+						$("#controllerProfileTable tbody").append("<tr><td>" + this.profile_id + "</td><td>" + this.hx_name + "</td><td>" + this.hx_host + "</td><td>" + this.hx_port + "</td><td><a href='#' style='text-decoration: none;' id='controllerProfileDeleteButton' profile-id='" + this.profile_id + "'>Delete</a></td></tr>");
+					});
+					
+				}
+			});
+		}
 		
 		
 		$("#controllerProfileManagerButton").click(function() {
 			$("#controllerProfileManagerPanel").show();
 		});
+		
+		$("#controllerProfileAddButton").click(function() {
+			
+			var request_json = {};
+			$("*[data-key]").each(function(idx) {
+				request_json[$(this).attr("data-key")] = $(this).val();
+			});
+			request_json = JSON.stringify(request_json);
+			
+			$.ajax({
+				type: "POST",
+				url: "/profile",
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				data: request_json,
+				success: function(r) {
+					bindData();
+				},
+				error: function(xhr) {
+					alert("Error: " + xhr.responseJSON);
+				}
+			});
+		});
+		
+		$("#controllerProfileDeleteButton").click(function() {
+			profile_id = $(this).attr("profile-id");
+			alert(profile_id);
+			if (profile_id > 0) {
+				$.ajax({
+					type: "DELETE",
+					url: "/profile/" + profile_id,
+					contentType: "application/json; charset=utf-8",
+					dataType: "json",
+					success: function(r) {
+						bindData();
+					},
+					error: function(xhr) {
+						alert("Error: " + xhr.responseJSON);
+					}
+				});
+			}
+		});
+		
+		bindData();
+		
 	});
 </script>
 
@@ -70,20 +113,39 @@
 			</div>
 		</div>
 	</div>
-	<div id='controllerProfileManagerPanel' class='profilePopup' style='display: none;'>
-		<a href='#' style='text-decoration: none; left: 550px;' onclick='JavaScript: $("#controllerProfileManagerPanel").hide();'>&times;</a>
-		<table class='genericTable' id='controllerProfileTable'>
+	<div id='controllerProfileManagerPanel' class='controllerProfileManagerDialog' style='display: none;'>
+		<table class='genericTable' id='controllerProfileTable' style='width: 100%;'>
 			<thead>
 				<th>#</th>
 				<th>Name</th>
 				<th>Hostname/IP</th>
 				<th>Port</th>
+				<th>Action</th>
 			</thead>
 			<tbody></tbody>
 			<tfoot>
 				
 			</tfoot>
 		</table>
+		<br>
+		<input type='button' value='Close' onclick='JavaScript: $("#controllerProfileManagerPanel").hide(200);'  />
+		<input type='button' value='Create' onclick='JavaScript: $("#controllerProfileManagerAddProfilePanel").show();' />
+		<div id='controllerProfileManagerAddProfilePanel' class='controllerProfileAddDialog' style='display: none;'>
+			<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>Name</div>
+			<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfileName' data-key='hx_name'>
+			<br />
+			<br />
+			<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>Hostname/IP</div>
+			<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfileHost' data-key='hx_host'>
+			<br />
+			<br />
+			<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>Port</div>
+			<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfilePort' data-key='hx_port'>
+			<br />
+			<br />
+			<input type='button' value='Cancel' onclick='JavaScript: $("#controllerProfileManagerAddProfilePanel").hide(200);' />
+			<input type='button' value='Add' id='controllerProfileAddButton' />	
+		</div>
 	</div>
 </body>
 </html>

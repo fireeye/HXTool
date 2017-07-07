@@ -209,10 +209,8 @@ def alerts(hx_api_object):
 	if request.method == "POST":
 		# We have a new annotation
 		if 'annotateText' in request.form:
-			# Create entry in the alerts table
-			newrowid = sqlAddAlert(c, conn, session['ht_profileid'], request.form['annotateId'])
-			# Add annotation to annotation table
-			sqlAddAnnotation(c, conn, newrowid, request.form['annotateText'], request.form['annotateState'], session['ht_user'])
+			ht_db.alertCreate(session['ht_profileid'], request.form['annotateId'])
+			ht_db.alertAddAnnotation(session['ht_profileid'], request.form['annotateId'], request.form['annotateText'], request.form['annotateState'], session['ht_user'])
 			app.logger.info('New annotation - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/alerts", code=302)
 	
@@ -228,15 +226,18 @@ def alerts(hx_api_object):
 		for i in [10, 20, 30, 50, 100, 250, 500, 1000]:
 			acountselect += '<option value="/alerts?acount={0}"{1}>Last {2} Alerts</option>'.format(i, ' selected="selected"' if i == int(acount) else '', i)
 				
-		(ret, response_code, response_data) = hx_api_object.restGetAlerts(str(acount))
-		alertshtml = formatAlertsTable(response_data, hx_api_object, session['ht_profileid'], c, conn)
+		(ret, response_code, response_data) = hx_api_object.restGetAlerts(acount)
+		alertshtml = formatAlertsTable(response_data, hx_api_object, session['ht_profileid'], ht_db)
 		return render_template('ht_alerts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), alerts=alertshtml, acountselect=acountselect)
 		
 @app.route('/annotatedisplay', methods=['GET'])
 @valid_session_required
 def annotatedisplay(hx_api_object):	
 	if 'alertid' in request.args:
-		an = sqlGetAnnotations(c, conn, request.args.get('alertid'), session['ht_profileid'])
+		alert = ht_db.alertGet(session['ht_profileid'], request.args.get('alertid'))
+		an = None
+		if alert:
+			an = alert['annotations']
 		annotatetable = formatAnnotationTable(an)
 
 	return render_template('ht_annotatedisplay.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), annotatetable=annotatetable)
@@ -598,7 +599,7 @@ def settings(hx_api_object):
 		app.logger.info("Background Processing credentials unset profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/settings", code=302)
 	
-	bgcreds = formatProfCredsInfo(ht_db.backgroundProcessorCredentialsExist(session['ht_profileid']))
+	bgcreds = formatProfCredsInfo((ht_db.backgroundProcessorCredentialsGet(session['ht_profileid']) is not None))
 	
 	return render_template('ht_settings.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bgcreds=bgcreds)
 
@@ -659,7 +660,7 @@ def login():
 				if ret:
 					# Set session variables
 					session['ht_user'] = request.form['ht_user']
-					session['ht_profileid'] = ht_profile['_id']
+					session['ht_profileid'] = ht_profile['profile_id']
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					session['ht_api_object'] = hx_api_object.serialize()
 					redirect_uri = request.args.get('redirect_uri')
@@ -694,8 +695,9 @@ def profile():
 		return json.dumps({'data_count' :  len(profiles), 'data' : profiles})
 	elif request.method == 'POST':
 		request_json = request.json
-		if ['hx_name', 'hx_host', 'hx_port'] in request_json:
-			if hx_db.profileCreate(request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
+		if validate_json(['hx_name', 'hx_host', 'hx_port'], request_json):
+			if ht_db.profileCreate(request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
+				app.logger.info("New controller profile added")
 				return make_response_by_code(200)
 		else:
 			return make_response_by_code(400)
@@ -710,11 +712,13 @@ def profile_by_id(profile_id):
 			return make_response_by_code(404)
 	elif request.method == 'POST':
 		request_json = request.json
-		if ['_id', 'hx_name', 'hx_host', 'hx_port'] in request_json:
-			if hx_db.profileUpdateById(request_json['_id'], request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
+		if validate_json(['profile_id', 'hx_name', 'hx_host', 'hx_port'], request_json):
+			if ht_db.profileUpdateById(request_json['_id'], request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
+				app.logger.info("Controller profile %d modified.", profile_id)
 				return make_response_by_code(200)
 	elif request.method == 'DELETE':
 		if ht_db.profileDeleteById(profile_id):
+			app.logger.info("Controller profile %d deleted.", profile_id)
 			return make_response_by_code(200)
 		else:
 			return make_response_by_code(404)
@@ -724,7 +728,12 @@ def profile_by_id(profile_id):
 # Utility Functions
 ####################
 
-
+def validate_json(keys, j):
+	for k in keys:
+		if not j.has_key(k) or not j[k]:
+			return False	
+	return True
+	
 def is_session_valid(session):
 	if session and 'ht_user' in session and 'ht_api_object' in session:
 		hx_api_object = HXAPI.deserialize(session['ht_api_object'])

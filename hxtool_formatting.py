@@ -484,7 +484,7 @@ def formatDashAlerts(alerts, hx_api_object):
 
 	return(x)
 
-def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
+def formatAlertsTable(alerts, hx_api_object, profileid, ht_db):
 
 	x = "<table id='alertsTable' class='genericTable genericTableAlerts' style='width: 100%;'>"
 	x += "<thead>"
@@ -509,14 +509,18 @@ def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 	for entry in alerts['data']['entries']:
 		
 		# Get annotations
-		annotations = sqlGetAnnotationStats(c, conn, str(entry['_id']), profileid)
+		alert = ht_db.alertGet(profileid, entry['_id'])
+		annotation_count = 0
+		annotation_max_state = 0
+		if alert:
+			annotation_count = len(alert['annotations'])
+			annotation_max_state = int(max(alert['annotations'], key = (lambda k: k['state']))['state'])
 		
-		if (annotations[0][1] == 1):
+		bgcolor = "#ffffff"
+		if (annotation_max_state == 1):
 			bgcolor = "#fffce0"
-		elif (annotations[0][1] == 2):
-			bgcolor = "#e0ffe3"
-		else:
-			bgcolor = "#ffffff"
+		elif (annotation_max_state == 2):
+			bgcolor = "#e0ffe3"		
 	
 		x += "<tr>"
 	
@@ -615,9 +619,9 @@ def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 		x += "</td>"
 		
 		# State
-		if (annotations[0][1] == 1):
+		if (annotation_max_state == 1):
 			x += "<td style='text-align: center; background: " + bgcolor + ";'>Investigating</td>"
-		elif (annotations[0][1] == 2):
+		elif (annotation_max_state == 2):
 			x += "<td style='text-align: center; background: " + bgcolor + ";'>Completed</td>"
 		else:
 			x += "<td style='text-align: center; background: " + bgcolor + ";'>New</td>"
@@ -625,7 +629,7 @@ def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 		# Annotation status
 		x += "<td style='text-align: center;'>"
 			
-		x += "<a href='#' id='adisp_" + str(entry['_id']) + "' class='tableActionButton'>show (" + str(annotations[0][0]) + ")</a>"
+		x += "<a href='#' id='adisp_" + str(entry['_id']) + "' class='tableActionButton'>show (" + str(annotation_count) + ")</a>"
 		x += "</td>"
 		
 		# Actions
@@ -653,25 +657,26 @@ def formatAnnotationTable(an):
 	x += "<tbody>"
 
 
-	for item in an:
-	
-		atext = "<br />".join(item[0].split("\n"))
-	
-		x += "<tr>"
-		x += "<td>" + str(item[2]) + "</td>"
-		x += "<td>" + str(item[3]) + "</td>"
-		x += "<td>" + atext + "</td>"
-		x += "<td>"
+	if an:
+		for item in an:
 		
-		if item[1] == 1:
-			x += "Investigating"
-		elif item[1] == 2:
-			x += "Completed"
-		else:
-			x += "Unknown"
+			atext = "<br />".join(item['annotation'].split("\n"))
+		
+			x += "<tr>"
+			x += "<td>" + str(item['create_timestamp']) + "</td>"
+			x += "<td>" + str(item['create_user']) + "</td>"
+			x += "<td>" + atext + "</td>"
+			x += "<td>"
 			
-		x += "</td>"
-		x += "</tr>"
+			if item['state'] == 1:
+				x += "Investigating"
+			elif item['state'] == 2:
+				x += "Completed"
+			else:
+				x += "Unknown"
+				
+			x += "</td>"
+			x += "</tr>"
 		
 	x += "</tbody>"
 	x += "</table>"
