@@ -554,9 +554,9 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 		
-	def restFindHostsBySearchString(self, string):
+	def restFindHostsBySearchString(self, search_string):
 
-		request = self.build_request(self.build_api_route('hosts?search={0}'.format(urllib.urlencode(string))))
+		request = self.build_request(self.build_api_route('hosts?search={0}'.format(urllib.quote_plus(search_string))))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
