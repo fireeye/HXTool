@@ -27,7 +27,8 @@ import base64
 import json
 import io
 import os
-
+import hashlib
+from Crypto.Cipher import AES
 import datetime
 import StringIO
 import threading
@@ -591,7 +592,11 @@ def stackinganalyze(hx_api_object):
 @valid_session_required
 def settings(hx_api_object):
 	if request.method == 'POST':
-		out = ht_db.backgroundProcessorCredentialsSet(session['ht_profileid'], request.form['bguser'], request.form['bgpass'])
+		ks_parts = session['key'].split(':')
+		# Generate a new IV - must be 16 bytes
+		iv = crypt_generate_random(16)
+		encrypted_password = base64.b64encode(crypt_aes(base64.b64decode(ks_parts[1]), iv, request.form['bgpass']))
+		out = ht_db.backgroundProcessorCredentialsSet(session['ht_profileid'], request.form['bguser'], encrypted_password, '{0}:{1}'.format(base64.b64encode(iv), ks_parts[0]))
 		app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
 	if request.args.get('unset'):
@@ -661,8 +666,25 @@ def login():
 					# Set session variables
 					session['ht_user'] = request.form['ht_user']
 					session['ht_profileid'] = ht_profile['profile_id']
-					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					session['ht_api_object'] = hx_api_object.serialize()
+					# Decrypt background processor credential if available
+					background_credential = ht_db.backgroundProcessorCredentialsGet(ht_profile.eid)
+					is_parts = None
+					if background_credential and background_credential.has_key('salt') and background_credential['salt']:
+						is_parts = background_credential['salt'].split(':')
+						salt = base64.b64decode(is_parts[1])
+					else:
+						salt = crypt_generate_random(64)
+					
+					key = crypt_pbkdf2_hmacsha256(salt, request.form['ht_pass'])
+					if is_parts:
+						decrypted_background_password = crypt_aes(key, base64.b64decode(is_parts[0]), base64.b64decode(background_credential['hx_api_password']), decrypt = True)
+						start_background_processor(background_credential['hx_api_username'], decrypted_background_password)
+						decrypted_background_password = None
+					key = '{0}:{1}'.format(base64.b64encode(salt), base64.b64encode(key))
+					session['key']= key						
+					
+					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
 						redirect_uri = "/?time=week"
@@ -675,13 +697,14 @@ def login():
 		return render_template('ht_login.html')
 		
 @app.route('/logout', methods=['GET'])
-@valid_session_required
-def logout(hx_api_object):
-	hx_api_object.restLogout()	
-	app.logger.info('User logged out: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-	session.pop('ht_user', None)
-	session.pop('ht_api_object', None)
-	hx_api_object = None
+def logout():
+	if session and session['ht_api_object']:
+		hx_api_object = HXAPI.deserialize(session['ht_api_object'])
+		hx_api_object.restLogout()	
+		app.logger.info('User logged out: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		session.pop('ht_user', None)
+		session.pop('ht_api_object', None)
+		hx_api_object = None
 	return redirect("/login", code=302)
 	
 
@@ -751,11 +774,46 @@ def make_response_by_code(code):
 	code_table = {200 : {'message' : 'OK'},
 				400 : {'message' : 'Invalid request'},
 				404 : {'message' : 'Object not found'}}
-	return (json.dumps(code_table.get(code)), code)	
-	
+	return (json.dumps(code_table.get(code)), code)
+
+"""
+Generate a random byte string for use in encrypting the background processor credentails
+"""
+def crypt_generate_random(length):
+	return os.urandom(length)
+
+"""
+Return a PBKDF2 HMACSHA512 digest of a salt and password
+"""
+def crypt_pbkdf2_hmacsha256(salt, data):
+	return hashlib.pbkdf2_hmac('sha256', salt, data, 100000)
+
+"""
+AES-256 operation
+"""
+def crypt_aes(key, iv, data, decrypt = False):
+	cipher = AES.new(key, AES.MODE_OFB, iv)
+	if decrypt:
+		data = cipher.decrypt(data)
+		# Implement PKCS7 de-padding
+		pad_length = ord(data[-1:])
+		if 1 <= pad_length <= 15:
+			if all(c == chr(pad_length) for c in data[-pad_length:]):
+				data = data[:len(data) - pad_length:]
+		return data
+	else:
+		# Implement PKCS7 padding
+		pad_length = 16 - (len(data) % 16)
+		if pad_length != 16:
+			data += (chr(pad_length) * pad_length) 
+		return cipher.encrypt(data)
+		
 ### Thread: background processing 
 #################################
-		
+def start_background_processor(hx_username, hx_password):
+	pass
+	
+	
 def bgprocess(bgprocess_config):
 	
 	time.sleep(1)
@@ -781,10 +839,9 @@ def bgprocess(bgprocess_config):
 ###########
 ### Main ####
 ###########			
-
-app.secret_key = 'A0Zr98j/3yX23R~XH1212jmN]Llw/,?RT'
 		
 if __name__ == "__main__":
+	app.secret_key = crypt_generate_random(32)
 	
 	app.logger.setLevel(logging.INFO)
 	

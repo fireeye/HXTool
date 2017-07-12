@@ -58,9 +58,9 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('profile').remove(eids = [int(profile_id)])
 		
-	def backgroundProcessorCredentialsSet(self, profile_id, hx_api_username, hx_api_password):
+	def backgroundProcessorCredentialsSet(self, profile_id, hx_api_username, hx_api_password, salt):
 		with self._lock:
-			r = self._db.table('background_processor_credential').insert({'profile_id' : int(profile_id), 'hx_api_username' : hx_api_username, 'hx_api_password' : hx_api_password})
+			r = self._db.table('background_processor_credential').insert({'profile_id' : int(profile_id), 'hx_api_username' : hx_api_username, 'hx_api_password' : hx_api_password, 'salt': salt})
 		return r	
 	
 	def backgroundProcessorCredentialsUnset(self, profile_id):
@@ -88,9 +88,9 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('alert').update(alert, eids = [alert.eid])
 		
-	def bulkDownloadAdd(self, profile_id, bulk_download_id):
+	def bulkDownloadAdd(self, profile_id, bulk_download_id, host_count):
 		with self._lock:
-			return self._db.table('bulk_download').insert({'profile_id' : int(profile_id), 'bulk_download_id': int(bulk_download_id), 'hosts' : [], 'stopped' : False})
+			return self._db.table('bulk_download').insert({'profile_id' : int(profile_id), 'bulk_download_id': int(bulk_download_id), 'host_count' : int(host_count), 'hosts_complete' : 0, 'stopped' : False})
 	
 	def bulkDownloadGet(self, profile_id, bulk_download_id):
 		return self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == int(profile_id)) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
@@ -98,6 +98,16 @@ class hxtool_db:
 	def bulkDownloadList(self, profile_id):
 		return self._db.table('bulk_download').all()
 	
+	def bulkDownloadUpdate(self, profile_id, bulk_download_id, host_count = None, hosts_complete = None):
+		fields = {}
+		if host_count:
+			fields['host_count'] = host_count
+		if hosts_complete:
+			fields['hosts_complete'] = hosts_complete
+			
+		with self._lock:
+			return self._db.table('bulk_download').update(fields, (tinydb.Query()['profile_id'] == int(profile_id)) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+		
 	def bulkDownloadStop(self, profile_id, bulk_download_id):
 		with self._lock:
 			return self._db.table('bulk_download').update({'stopped' : True}, (tinydb.Query()['profile_id'] == int(profile_id)) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
