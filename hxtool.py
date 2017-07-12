@@ -461,10 +461,8 @@ def listbulk(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, request.form['bulkhostset'])
 		app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
-	conn = sqlite3.connect('hxtool.db')
-	c = conn.cursor()
 	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
-	bulktable = formatBulkTable(c, conn, response_data, session['ht_profileid'])
+	bulktable = formatBulkTable(ht_db, response_data, session['ht_profileid'])
 	
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
 	hostsets = formatHostsets(response_data)
@@ -498,22 +496,22 @@ def bulkdownload(hx_api_object):
 def bulkaction(hx_api_object):
 
 	if request.args.get('action') == "stop":
-		(ret, response_code, response_data) = hx_api_object.restCancelJob('/hx/api/v2/acqs/bulk/', request.args.get('id'))
+		(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', request.args.get('id'))
 		app.logger.info('Bulk acquisition action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 		
 	if request.args.get('action') == "remove":
-		(ret, response_code, response_data) = hx_api_object.restDeleteJob('/hx/api/v2/acqs/bulk/', request.args.get('id'))
+		(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', request.args.get('id'))
 		app.logger.info('Bulk acquisition action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)	
 		
 	if request.args.get('action') == "download":
-		res = sqlAddBulkDownload(c, conn, session['ht_profileid'], request.args.get('id'))
+		ret = ht_db.bulkDownloadAdd(session['ht_profileid'], request.args.get('id'))
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 		
 	if request.args.get('action') == "stopdownload":
-		res = sqlRemoveBulkDownload(c, conn, session['ht_profileid'], request.args.get('id'))
+		res = ht_db.bulkDownloadStop(session['ht_profileid'], request.args.get('id'))
 		app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 				
@@ -701,7 +699,7 @@ def profile():
 	if request.method == 'GET':
 		profiles = ht_db.profileList()
 		return json.dumps({'data_count' :  len(profiles), 'data' : profiles})
-	elif request.method == 'POST':
+	elif request.method == 'PUT':
 		request_json = request.json
 		if validate_json(['hx_name', 'hx_host', 'hx_port'], request_json):
 			if ht_db.profileCreate(request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
@@ -718,7 +716,7 @@ def profile_by_id(profile_id):
 			return json.dumps({'data' : profile_object})
 		else:
 			return make_response_by_code(404)
-	elif request.method == 'POST':
+	elif request.method == 'PUT':
 		request_json = request.json
 		if validate_json(['profile_id', 'hx_name', 'hx_host', 'hx_port'], request_json):
 			if ht_db.profileUpdateById(request_json['_id'], request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):

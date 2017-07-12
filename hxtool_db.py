@@ -24,8 +24,7 @@ class hxtool_db:
 	"""	
 	def profileCreate(self, hx_name, hx_host, hx_port):
 		with self._lock:
-			r = self._db.table('profile').insert({'hx_name' : hx_name, 'hx_host' : hx_host, 'hx_port' : hx_port})
-		return r
+			return self._db.table('profile').insert({'hx_name' : hx_name, 'hx_host' : hx_host, 'hx_port' : hx_port})
 		
 	"""
 	List all profiles
@@ -48,19 +47,16 @@ class hxtool_db:
 			
 	def profileUpdateById(self, profile_id, hx_name, hx_host, hx_port):
 		with self._lock:
-			r = self._db.table('profile').update({'hx_name' : hx_name, 'hx_host' : hx_host, 'hx_port' : hx_port}, eids = [int(profile_id)])
-		return r
+			return self._db.table('profile').update({'hx_name' : hx_name, 'hx_host' : hx_host, 'hx_port' : hx_port}, eids = [int(profile_id)])
+		
 	"""
 	Delete a profile
 	Also remove any background processor credentials associated with the profile
 	"""
 	def profileDeleteById(self, profile_id):
-		r = False
-		if self._db.table('profile').contains(eids = [int(profile_id)]):
-			with self._lock:
-				r = self._db.table('profile').remove(eids = [int(profile_id)])
-			self.backgroundProcessorCredentialsUnset(profile_id)	
-		return r
+		self.backgroundProcessorCredentialsUnset(profile_id)	
+		with self._lock:
+			return self._db.table('profile').remove(eids = [int(profile_id)])
 		
 	def backgroundProcessorCredentialsSet(self, profile_id, hx_api_username, hx_api_password):
 		with self._lock:
@@ -68,15 +64,11 @@ class hxtool_db:
 		return r	
 	
 	def backgroundProcessorCredentialsUnset(self, profile_id):
-		r = False
-		e = self.backgroundProcessorCredentialsGet(profile_id)
-		if e:
-			with self._lock:
-				r = self._db.table('background_processor_credential').remove(eids = [e.eid])	
-		return r
-		
+		with self._lock:
+			return self._db.table('background_processor_credential').remove((tinydb.Query()['profile_id'] == int(profile_id)))
+			
 	def backgroundProcessorCredentialsGet(self, profile_id):
-		return self._db.table('background_processor_credential').get(tinydb.Query()['profile_id'] == int(profile_id))
+		return self._db.table('background_processor_credential').get((tinydb.Query()['profile_id'] == int(profile_id)))
 		
 	def alertCreate(self, profile_id, hx_alert_id):
 		r = self.alertGet(profile_id, hx_alert_id)
@@ -94,6 +86,25 @@ class hxtool_db:
 		alert = self.alertGet(profile_id, hx_alert_id)
 		alert['annotations'].append({'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : str(datetime.datetime.utcnow())})
 		with self._lock:
-			r = self._db.table('alert').update(alert, eids = [alert.eid])
-		return r
+			return self._db.table('alert').update(alert, eids = [alert.eid])
+		
+	def bulkDownloadAdd(self, profile_id, bulk_download_id):
+		with self._lock:
+			return self._db.table('bulk_download').insert({'profile_id' : int(profile_id), 'bulk_download_id': int(bulk_download_id), 'hosts' : [], 'stopped' : False})
+	
+	def bulkDownloadGet(self, profile_id, bulk_download_id):
+		return self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == int(profile_id)) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+	
+	def bulkDownloadList(self, profile_id):
+		return self._db.table('bulk_download').all()
+	
+	def bulkDownloadStop(self, profile_id, bulk_download_id):
+		with self._lock:
+			return self._db.table('bulk_download').update({'stopped' : True}, (tinydb.Query()['profile_id'] == int(profile_id)) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+	
+	def bulkDownloadDelete(self, profile_id, bulk_download_id):
+		with self._lock:
+			return self._db.table('bulk_download').remove((tinydb.Query()['profile_id'] == int(profile_id)) & 
+														(tinydb.Query()['bulk_download_id'] == int(bulk_download_id)) & 
+														(tinydb.Query()['stopped'] == True))
 		

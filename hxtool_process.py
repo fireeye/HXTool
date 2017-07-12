@@ -233,8 +233,42 @@ def backgroundBulkProcessor(c, conn, myConf, app):
 					break
 					
 			(ret, response_code, response_data) = hx_api_object.restLogout()
-			
-		
-		
-		
-		
+
+from hx_lib import *
+import threading			
+
+"""
+Assume most systems are quad core, so 4 threads should be optimal - 1 thread per core
+"""					
+class hxtool_background_processor:
+	def __init__(self, hxtool_db_instance, profile_id, thread_count = 4, logger = logging.getLogger(__name__)):
+		self._ht_db = hxtool_db_instance
+		p = self._ht_db.profileGetById(profile_id)
+		self._hx_api_object = HXAPI(p['hx_host'], p['hx_port'])
+		self.logger = logger
+		self.thread_count = thread_count
+		self._thread_list = []
+
+	def start_bulk_downloader(self, hx_user, hx_password):
+		(ret, response_code, response_data) = self._hx_api_object.restLogin(hx_user, hx_password)
+		if ret:
+			bulk_jobs = self._ht_db.bulkDownloadList()
+			for job in bulk_jobs:
+				hosts = self._hx_api_object.restListBulkDetails(job['bulk_download_id'])
+				if hosts and len(hosts['data']['entries']) > 0:
+					for host in hosts:
+						if host['result']:
+							
+		else:
+			self.logger.error("Failed to login to the HX controller! Error: {0}".format(response_data))
+	
+	def start_stack_processor(self):
+		pass
+	
+	def stop(self):
+		# Stop threads
+		if self._hx_api_object.restIsSessionValid():
+			(ret, response_code, response_data) = self._hx_api_object.restLogout()
+
+	def download_callback(download_url, destination_path):
+		pass
