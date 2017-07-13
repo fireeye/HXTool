@@ -364,7 +364,7 @@ class HXAPI:
 
 
 	# List hosts in Bulk acquisition
-	def restListBulkDetails(self, bulk_id, limit=10000):
+	def restListBulkHosts(self, bulk_id, limit=10000):
 
 		request = self.build_request(self.build_api_route('acqs/bulk/{0}/hosts?limit={1}'.format(bulk_id, limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
@@ -391,11 +391,15 @@ class HXAPI:
 
 	# New Bulk acquisition
 
-	def restNewBulkAcq(self, script, host_set):
+	def restNewBulkAcq(self, script, hostset_id = None, hosts = None):
 
-		data = json.dumps({'host_set' : {'_id' : int(host_set)}, 'script' : {'b64' : base64.b64encode(script)}})
-		
-		request = self.build_request(self.build_api_route('acqs/bulk'), method = 'POST', data = data)
+		data = {'scripts' : [{'platform' : '*', 'b64' : base64.b64encode(script)}]}
+		if hostset_id:
+			data['host_set'] = {'_id' : hostset_id}
+		elif hosts:
+			data['hosts'] = hosts
+	
+		request = self.build_request(self.build_api_route('acqs/bulk'), method = 'POST', data = json.dumps(data))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)

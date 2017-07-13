@@ -236,6 +236,10 @@ def backgroundBulkProcessor(c, conn, myConf, app):
 
 from hx_lib import *
 import threading			
+try:
+    import Queue as queue
+except ImportError:
+    import queue
 
 """
 Assume most systems are quad core, so 4 threads should be optimal - 1 thread per core
@@ -246,24 +250,24 @@ class hxtool_background_processor:
 		p = self._ht_db.profileGetById(profile_id)
 		self._hx_api_object = HXAPI(p['hx_host'], p['hx_port'])
 		self.logger = logger
-		self.thread_count = thread_count
 		self._thread_list = []
+			
 
 	def start_bulk_downloader(self, hx_user, hx_password):
 		(ret, response_code, response_data) = self._hx_api_object.restLogin(hx_user, hx_password)
 		if ret:
 			bulk_jobs = self._ht_db.bulkDownloadList()
 			for job in bulk_jobs:
-				hosts = self._hx_api_object.restListBulkDetails(job['bulk_download_id'])
-				if hosts and len(hosts['data']['entries']) > 0:
-					for host in hosts:
+				(ret, response_code, response_data) = self._hx_api_object.restListBulkHosts(job['bulk_download_id'])
+				if len(response_data['data']['entries']) > 0:
+					for host in response_data['data']['entries']:
 						if host['result']:
-							
+							pass
 		else:
 			self.logger.error("Failed to login to the HX controller! Error: {0}".format(response_data))
 	
 	def start_stack_processor(self):
-		pass
+		pass	
 	
 	def stop(self):
 		# Stop threads

@@ -459,7 +459,11 @@ def listbulk(hx_api_object):
 	if request.method == 'POST':
 		f = request.files['bulkscript']
 		bulk_acquisition_script = f.read()
-		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, request.form['bulkhostset'])
+		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['bulkhostset'])
+		hosts = []
+		for host in response_data['data']['entries']:
+			hosts.append({'_id' : host['_id']})
+		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts)
 		app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
@@ -475,7 +479,7 @@ def listbulk(hx_api_object):
 def bulkdetails(hx_api_object):
 	if request.args.get('id'):
 
-		(ret, response_code, response_data) = hx_api_object.restListBulkDetails(request.args.get('id'))
+		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
 		bulktable = formatBulkHostsTable(response_data)
 
 		return render_template('ht_bulk_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable)
@@ -507,12 +511,15 @@ def bulkaction(hx_api_object):
 		return redirect("/bulk", code=302)	
 		
 	if request.args.get('action') == "download":
-		ret = ht_db.bulkDownloadAdd(session['ht_profileid'], request.args.get('id'))
+		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
+		ret = ht_db.bulkDownloadAdd(session['ht_profileid'], request.args.get('id'), len(response_data['data']['entries']))
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 		
 	if request.args.get('action') == "stopdownload":
-		res = ht_db.bulkDownloadStop(session['ht_profileid'], request.args.get('id'))
+		ret = ht_db.bulkDownloadStop(session['ht_profileid'], request.args.get('id'))
+		# Delete should really be done by the background processor
+		ret = ht_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
 		app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 				

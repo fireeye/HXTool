@@ -161,12 +161,15 @@ def formatBulkTable(ht_db, bulktable, profileid):
 
 		#out = sqlGetStackJobsForBulkId(c, conn, profileid, entry['_id'])
 		out = None
-		bulkdl = ht_db.bulkDownloadGet(profileid, entry['_id'])
+		bulk_download = ht_db.bulkDownloadGet(profileid, entry['_id'])
 		
 		x += "<tr class='clickable-row' data-href='/bulkdetails?id=" + str(entry['_id']) + "'>"
 		x += "<td>" + str(entry['_id']) + "</td>"
 		x += "<td>" + str(entry['state']) + "</td>"
-		x += "<td>" + str(entry['host_set']['name']) + "</td>"
+		if entry['host_set']:
+			x += "<td>" + str(entry['host_set']['name']) + "</td>"
+		else:
+			x += "<td></td>"
 		x += "<td>" + str(entry['stats']['running_state']['NEW']) + "</td>"
 		x += "<td>" + str(entry['stats']['running_state']['QUEUED']) + "</td>"
 		x += "<td>" + str(entry['stats']['running_state']['FAILED']) + "</td>"
@@ -189,10 +192,10 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry['_id']) + "' data-percent='" + str(int(round(completerate))) + "'></div></div>"
 		x += "</td>"
 		
-		if bulkdl and (len(bulkdl) > 0):
-			if (bulkdl[0][3] != 0 or bulkdl[0][2] != 0):
+		if bulk_download:
+			if (bulk_download['host_count'] > 0 and bulk_download['hosts_complete'] > 0):
 				
-				dlprogress = float(bulkdl[0][3]) / float(bulkdl[0][2]) * 100
+				dlprogress = float(bulk_download['host_count']) / float(bulk_download['hosts_complete']) * 100
 							
 				if dlprogress > 100:
 					dlprogress = 100
@@ -212,8 +215,7 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		else:
 			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
 			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
-			bulkdl = ht_db.bulkDownloadGet(profileid, str(entry['_id']))
-			if bulkdl and (len(bulkdl) == 0):
+			if not bulk_download:
 				x += "<a class='tableActionButton' href='/bulkaction?action=download&id=" + str(entry['_id']) + "'>download</a>"
 			else:
 				x += "<a class='tableActionButton' href='/bulkaction?action=stopdownload&id=" + str(entry['_id']) + "'>stop download</a>"
