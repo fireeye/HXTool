@@ -463,7 +463,7 @@ def formatDashAlerts(alerts, hx_api_object):
 	for entry in alerts[:10]:
 		x += "<tr>"
 		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(str(entry['agent']['_id']))
-		x += "<td>" + str(response_data['data']['hostname']) + "</td>"
+		x += "<td><a class='hostLink' href='/hosts?host=" + str(response_data['data']['_id']) + "'>" + str(response_data['data']['hostname']) + "</a></td>"
 		x += "<td>" + str(response_data['data']['domain']) + "</td>"
 		x += "<td>" + str(response_data['data']['os']['product_name']) + " " + str(response_data['data']['os']['patch_level']) + " " + str(response_data['data']['os']['bitness']) + "</td>"
 		x += "<td>"
@@ -538,7 +538,7 @@ def formatAlertsTable(alerts, hx_api_object, profileid, ht_db):
 		x += "</center></td>"
 		
 		# Host
-		x += "<td>" + str(response_data['data']['hostname']) + "</td>"
+		x += "<td><a class='hostLink' href='/hosts?host=" + str(response_data['data']['_id']) + "&alertid=" + str(entry['_id']) + "'>" + str(response_data['data']['hostname']) + "</a></td>"
 		
 		# Domain
 		x += "<td>" + str(response_data['data']['domain']) + "</td>"
@@ -573,48 +573,22 @@ def formatAlertsTable(alerts, hx_api_object, profileid, ht_db):
 		
 		# Event name
 		x += "<td>"
-		#x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>&#x25BC;</a>"
 		
 		if str(entry['source']) == "EXD":
-			
 			x += str(entry['event_values']['process_name']) + " (pid: " + str(entry['event_values']['process_id']) + ") (count: " + str(len(entry['event_values']['messages'])) + ")"
-			x += "<div class='alertDetailsDisplayPopupEXD' id='alertdetails_" + str(entry['_id']) + "'>"
-			for behavior in entry['event_values']['messages']:
-				x += behavior + "<br>"
-			x += "<br>"
-			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
-			x += "</div>"
-			x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>Details</a>"
-		elif (str(entry['source']) == "MAL"):
-			x += "<div class='alertDetailsDisplayPopup' id='alertdetails_" + str(entry['_id']) + "'>"
-			x += "<div class='tableTitle'>Malware alert: " + entry['event_values']['detections']['detection'][0]['infection']['infection-type'] + "</div>"
-			x += "<table class='genericTable' style='width: 100%; margin-bottom: 15px;'>"
-			for hitkey, hitdata in entry['event_values']['detections']['detection'][0]['infection'].iteritems():
-				x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
-			for hitkey, hitdata in entry['event_values']['detections']['detection'][0]['infected-object']['file-object'].iteritems():
-				x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
-			x += "</table>"
-			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
-			x += "</div>"
+			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + str(entry['agent']['_id']) + "&alertid=" + str(entry['_id']) + "'>Details</a>"
 			
+		elif (str(entry['source']) == "MAL"):
 			x += entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (severity: " + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
-			x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>Details</a>"
+			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + str(entry['agent']['_id']) + "&alertid=" + str(entry['_id']) + "'>Details</a>"
 			
 		elif (str(entry['source']) == "IOC"):
 			(ret, response_code, response_data) = hx_api_object.restGetIndicatorFromCondition(str(entry['condition']['_id']))
 			for indicator in response_data['data']['entries']:
 				x += indicator['name'] + " (category: " + indicator['category']['name'] + ")"
-				
-			x += "<div class='alertDetailsDisplayPopup' id='alertdetails_" + str(entry['_id']) + "'>"
-			x += "<div class='tableTitle'>Indicator type: " + str(entry['event_type']) + "</div>"
-			x += "<table class='genericTable' style='margin-bottom: 15px;'>"
-			for hitkey, hitdata in entry['event_values'].iteritems():
-				x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
-				# x += str(hitkey) + ":" + str(hitdata) + "<br>"
-			x += "</table>"
-			x += "<input type='button' id='close_" + str(entry['_id']) + "' value='close'>"
-			x += "</div>"
-			x += "<a class='tableActionButton' id='showalert_" + str(entry['_id']) + "' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='#'>Details</a>"
+						
+			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + str(entry['agent']['_id']) + "&alertid=" + str(entry['_id']) + "'>Details</a>"
+			
 		else:
 			x += "Unknown alert"
 		
@@ -856,4 +830,196 @@ def formatServiceMD5StackData(stacktable):
 	x += "</table>"
 	
 	return(x)
+
 	
+def formatHostInfo(response_data, hx_api_object):
+
+	x = ""
+
+	x += "<table id='hostinfo' class='genericTable' style='width: 100%; border-bottom: 0;'>"
+	x += "<tbody>"
+	x += "<tr>"
+
+	# First box
+	x += "<td style='width: 550px; border-right: 0;'>"
+	
+	if str(response_data['data']['os']['product_name']).startswith('Windows'):
+		x += "<img style='float: left; width: 100px;' src='/static/ico/windows.svg'>"
+	else:
+		x += "<img style='float: left; width: 100px;' src='/static/ico/apple.svg'>"
+		
+	x += "<div style='float: left; padding-left: 10px;'>" 
+	x += "<b>Hostname:</b> " + str(response_data['data']['hostname'])  + "<br>" 
+	x += "<b>Domain:</b> " + str(response_data['data']['domain']) + "<br>"
+	x += "<b>Last poll IP:</b> " + str(response_data['data']['last_poll_ip']) + "<br>"
+	x += "<b>Last poll Timestamp:</b> " + str(response_data['data']['last_poll_timestamp']) + "<br>"
+	x += "<b>Timezone:</b> " + str(response_data['data']['timezone']) + "<br>"
+	x += "<b>Operating system:</b> " + str(response_data['data']['os']['product_name']) + " " + str(response_data['data']['os']['patch_level']) + " " + str(response_data['data']['os']['bitness']) + "<br>"
+	
+	(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(str(response_data['data']['_id']))
+	if sret:
+		x += "<b>Logged on user:</b> " + str(sresponse_data['data']['loggedOnUser']) + "<br>"
+	x += "</div>"
+	
+	
+	x += "</td>"
+	
+	# Second box
+	x += "<td>"
+	x += "<table style='width: 100%;'>"
+	x += "<tr>"
+	x += "<td style='width: 17%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerting_conditions']) + "</span><br>Alerting conditions</td>"
+	x += "<td style='width: 17%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_alerts']) + "</span><br>Exploit alerts</td>"
+	x += "<td style='width: 17%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['acqs']) + "</span><br>Acquisitions</td>"
+	x += "<td style='width: 17%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerts']) + "</span><br>Alerts</td>"
+	x += "<td style='width: 17%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_blocks']) + "</span><br>Exploit blocks</td>"
+	x += "<td style='width: 17%; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['malware_alerts']) + "</span><br>Malware alerts</td>"
+	x += "</tr>"
+	x += "</table>"
+	x += "</td>"
+	x += "</tr>"
+	
+	# Alerts view
+	x += "<tr>"
+	x += "<td style='width: 500px; padding: 0; vertical-align: top; border-right: 0;'>"
+	
+	# Sub alert table start
+	x += "<table id='hostAlertTable' class='genericTable' style='width: 100%; border-top: none; border-right: 1px solid #dddddd; border-left: 1px solid #dddddd;'>"
+	x += "<thead>"
+	x += "<tr>"
+	x += "<td style='padding: 3px; font-weight: bold; text-align: center;'>type</td>"
+	x += "<td style='padding: 3px; font-weight: bold; '>name</td>"
+	x += "<td style='padding: 3px; font-weight: bold; text-align: center;'>time</td>"
+	x += "<td style='padding: 3px; font-weight: bold; text-align: center;'>action</td>"
+	x += "</tr>"
+	x += "</thead>"
+
+	(aret, aresponse_code, aresponse_data) = hx_api_object.restGetAlertsHost(response_data['data']['_id'])
+	if aret:
+		for alert in aresponse_data:
+			x += "<tr class='clickable-row' id='alert_" + str(alert['_id']) + "'>"
+					
+			x += "<td style='text-align: center; width: 40px; padding: 3px;;'>"
+			if str(alert['source']) == "EXD":
+				x += "<div class='tableActionIcon'>EXD</div>"
+			elif (str(alert['source']) == "MAL"):
+				x += "<div class='tableActionIcon'>MAL</div>"
+			elif (str(alert['source']) == "IOC"):
+				x += "<div class='tableActionIcon'>IOC</div>"
+			else:
+				x +="N/A"
+			x += "</td>"
+						
+			x += "<td style='padding: 3px;'>"
+			
+			# IOC
+			if str(alert['source']) == "IOC":
+				(iret, iresponse_code, iresponse_data) = hx_api_object.restGetIndicatorFromCondition(str(alert['condition']['_id']))
+				if iret:
+					for indicator in iresponse_data['data']['entries']:
+						x += indicator['name']
+					
+					# Alert details hidden div
+					x += "<div style='display: none;' id='alertdetails_" + str(alert['_id']) + "'>"
+					
+					(cret, cresponse_code, cresponse_data) = hx_api_object.restGetConditionDetails(str(alert['condition']['_id']))
+					if cret:
+						x += "<div class='tableTitle'>Matching condition</div>"
+		
+						x += "<div style='margin-bottom: 20px; margin-top: -18px;' class='clt'>"
+						x += "<ul>"
+						x += "<li>or"
+						x += "<ul>"
+						x += "<li>and"
+						x += "<ul>"
+						for test in cresponse_data['data']['tests']:
+							if 'negate' in test:
+								x += "<li style=''>" + test['token'] + " <i><span style='color: red; font-weight: 700;'>not</span> " + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+							else:
+								x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+						x += "</ul>"
+						x += "</li>"
+		
+						x += "</ul>"
+						x += "</li>"
+						x += "</div>"
+		
+					
+					x += "<div class='tableTitle'>Indicator type: " + str(alert['event_type']) + "</div>"
+					x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px; margin-left: 20px;'>"
+					for hitkey, hitdata in alert['event_values'].iteritems():
+						x += "<tr><td style='width: 300px;'>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
+					x += "</table>"
+					x += "</div>"
+			
+			# EXG
+			elif str(alert['source']) == "EXD":
+				x += str(alert['event_values']['process_name']) + " (pid: " + str(alert['event_values']['process_id']) + ")"
+			
+				# Alert details hidden div
+				x += "<div style='display: none;' id='alertdetails_" + str(alert['_id']) + "'>"
+				x += "<div class='tableTitle'>Observed behavior</div>"
+				x += "<ul>"
+				for behavior in alert['event_values']['messages']:
+					x += "<li>" + behavior
+				x += "</ul>"
+				x += "<br><br>"
+				x += "<div class='tableTitle'>Initial exploited process</div>"
+				x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-left: 20px;'>"
+				x += "<tr><td style='width: 150px;'>Initial exploit timestamp</td><td>" + alert['event_values']['earliest_detection_time'] + "</td></tr>"
+				x += "<tr><td style='width: 150px;'>Process path</td><td>" + alert['event_values']['process_name'] + "</td></tr>"
+				x += "<tr><td style='width: 150px;'>Process ID</td><td>" + alert['event_values']['process_id'] + "</td></tr>"
+				x += "</table>"
+				x += "</div>"
+			
+			# MAL
+			elif str(alert['source']) == "MAL":
+				x += alert['event_values']['detections']['detection'][0]['infection']['infection-name']
+			
+				# Alert details hidden div
+				x += "<div style='display: none;' id='alertdetails_" + str(alert['_id']) + "'>"
+				x += "<div class='tableTitle'>Malware alert: " + alert['event_values']['detections']['detection'][0]['infection']['infection-type'] + "</div>"
+				x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
+				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infection'].iteritems():
+					x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
+				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infected-object']['file-object'].iteritems():
+					x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
+				x += "</table>"
+				x += "</div>"
+
+			
+			# UNKNOWN (new alert type?)
+			else:
+				x += "Unknown alert"
+			
+			x += "</td>"
+			
+			
+			x += "<td style='text-align: center; width: 90px; padding: 3px;'>"
+			import datetime
+			t = HXAPI.gt(alert['reported_at'])
+			x += HXAPI.prettyTime(t)
+			x += "</td>"
+			
+	
+			x += "<td style='text-align: center; width: 60px; padding: 3px;'>"
+			x += str(alert['resolution'])
+			x += "</td>"
+			
+			x += "</tr>"
+	x += "</table>"
+	# Sub alert table stop
+	
+	x += "</td>"
+	x += "<td id='alertcontent' style='vertical-align: top; padding: 30px; padding-top: 15px;'>"
+	x += "</td>"
+	x += "</tr>"
+	
+	# Alerts context view
+	
+	# Acquisitions
+	
+	
+	x += "</table>"
+	
+	return(x)

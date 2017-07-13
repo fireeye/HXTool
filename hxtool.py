@@ -275,6 +275,19 @@ def jobdash(hx_api_object):
 	
 	return render_template('ht_jobdash.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), jobsBulk=jobsBulk, jobsEs=jobsEs)
 
+### Hosts
+##########
+
+@app.route('/hosts', methods=['GET', 'POST'])
+@valid_session_required
+def hosts(hx_api_object):
+	if 'host' in request.args.keys():
+		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(request.args.get('host'))
+		myhosthtml = formatHostInfo(response_data, hx_api_object)
+		return render_template('ht_hostinfo.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostinfo=myhosthtml)
+	else:
+		return redirect('/', code=302)
+			
 
 ### Alerts Page
 ###################
@@ -283,13 +296,12 @@ def jobdash(hx_api_object):
 @valid_session_required
 def alerts(hx_api_object):
 		
-	if request.method == "POST":
+	if request.method == "POST" and 'annotateText' in request.form:
 		# We have a new annotation
-		if 'annotateText' in request.form:
-			ht_db.alertCreate(session['ht_profileid'], request.form['annotateId'])
-			ht_db.alertAddAnnotation(session['ht_profileid'], request.form['annotateId'], request.form['annotateText'], request.form['annotateState'], session['ht_user'])
-			app.logger.info('New annotation - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-			return redirect("/alerts", code=302)
+		ht_db.alertCreate(session['ht_profileid'], request.form['annotateId'])
+		ht_db.alertAddAnnotation(session['ht_profileid'], request.form['annotateId'], request.form['annotateText'], request.form['annotateState'], session['ht_user'])
+		app.logger.info('New annotation - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		return redirect("/alerts?acount=30", code=302)
 	
 	if not 'render' in request.args:
 		return render_template('ht_alerts_ph.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
