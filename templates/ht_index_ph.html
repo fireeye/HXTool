@@ -4,15 +4,6 @@
 
 <script>
 
-	function getQueryParam(param) {
-		location.search.substr(1)
-			.split("&")
-			.some(function(item) { // returns first occurence and stops
-				return item.split("=")[0] == param && (param = item.split("=")[1])
-			})
-		return param
-	}
-
         $(document).ready(function() {
 
 			enableStatusBar("<img style='height: 20px; margin-right: 10px; margin-bottom: -5px;' src='/static/spinner.svg'></img>Loading dashboard...", 200, "ht_statusbar_notifyBlue")
