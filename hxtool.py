@@ -798,7 +798,7 @@ def crypt_pbkdf2_hmacsha256(salt, data):
 	except AttributeError:
 		from Crypto.Protocol.KDF import PBKDF2
 		from Crypto.Hash import HMAC, SHA256
-		return PBKDF2(data, salt, dklen = 32, count = 100000, prf = lambda p, s: HMAC.new(p, s, SHA256).digest())
+		return PBKDF2(data, salt, dkLen = 32, count = 100000, prf = lambda p, s: HMAC.new(p, s, SHA256).digest())
 """
 AES-256 operation
 """
