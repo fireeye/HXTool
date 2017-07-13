@@ -793,8 +793,12 @@ def crypt_generate_random(length):
 Return a PBKDF2 HMACSHA512 digest of a salt and password
 """
 def crypt_pbkdf2_hmacsha256(salt, data):
-	return hashlib.pbkdf2_hmac('sha256', salt, data, 100000)
-
+	try:
+		return hashlib.pbkdf2_hmac('sha256', salt, data, 100000)
+	except AttributeError:
+		from Crypto.Protocol.KDF import PBKDF2
+		from Crypto.Hash import HMAC, SHA256
+		return PBKDF2(data, salt, dklen = 32, count = 100000, prf = lambda p, s: HMAC.new(p, s, SHA256).digest())
 """
 AES-256 operation
 """
