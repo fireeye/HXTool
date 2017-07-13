@@ -1,7 +1,12 @@
-import tinydb
-import tinydb.operations
 import threading
 import datetime
+
+try:
+	import tinydb
+	import tinydb.operations
+except ImportError:
+	print "hxtool_db requires the TinyDB module, please install it."
+	exit(1)
 
 from hx_lib import *
 

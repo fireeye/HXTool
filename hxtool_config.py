@@ -9,6 +9,9 @@ import sys, logging, logging.handlers, socket
 #TODO: Add config documentation
 
 class hxtool_config:
+	"""
+	Default hard coded config
+	"""
 	DEFAULT_CONFIG = {
 		'log_handlers' : {
 			'rotating_file_handler' : {

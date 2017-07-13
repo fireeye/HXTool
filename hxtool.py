@@ -11,32 +11,43 @@
 # For license information see the 'LICENSE' file
 ##################################################
 
+# Core python imports
 import logging
-
+import base64
+import json
+import io
+import os
+import datetime
+import StringIO
+import threading
+import time
 from functools import wraps
-from flask import Flask, request, session, redirect, render_template, send_file, g, url_for
 
+# Flask imports
+try:
+	from flask import Flask, request, session, redirect, render_template, send_file, g, url_for
+except ImportError:
+	print "hxtool requires the Flask module, please install it."
+	exit(1)
+	
+# pycrypto imports
+try:
+	from Crypto.Cipher import AES
+	from Crypto.Protocol.KDF import PBKDF2
+	from Crypto.Hash import HMAC, SHA256
+except ImportError:
+	print "hxtool requires the pycrypto module, please install it."
+	exit(1)
+	
+# hx_tool imports
 from hx_lib import *
-
 from hxtool_formatting import *
 from hxtool_db import *
 from hxtool_process import *
 from hxtool_config import *
 
-import base64
-import json
-import io
-import os
 
-# pycrypto imports
-from Crypto.Cipher import AES
-from Crypto.Protocol.KDF import PBKDF2
-from Crypto.Hash import HMAC, SHA256
 
-import datetime
-import StringIO
-import threading
-import time
 import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -798,6 +809,7 @@ Return a PBKDF2 HMACSHA512 digest of a salt and password
 """
 def crypt_pbkdf2_hmacsha256(salt, data):
 	return PBKDF2(data, salt, dkLen = 32, count = 100000, prf = lambda p, s: HMAC.new(p, s, SHA256).digest())
+
 """
 AES-256 operation
 """
