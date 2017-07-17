@@ -97,9 +97,6 @@ class HXAPI:
 		if self.fe_token:
 			self.logger.debug('We have a token, appending it to the request.')
 			request.add_header('X-FeApi-Token', self.get_token()['token'])
-		for header in self.headers:
-			self.logger.debug('Appending additional headers to request.')
-			request.add_header(header[0], header[1])
 		if len(self.cookies) > 0:
 			self.logger.debug('Appending additional cookies to request.')
 			request.add_header('Cookie', ';'.join('='.join(_) for _ in self.cookies.items()) + ';')
