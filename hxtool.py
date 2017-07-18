@@ -12,22 +12,28 @@
 ##################################################
 
 # Core python imports
-import logging
 import base64
+import sys
+import logging
 import json
 import io
 import os
 import datetime
-import StringIO
 import threading
 import time
 from functools import wraps
+
+try:
+	import StringIO
+except ImportError:
+	# Running on Python 3.x
+	from io import StringIO
 
 # Flask imports
 try:
 	from flask import Flask, request, session, redirect, render_template, send_file, g, url_for
 except ImportError:
-	print "hxtool requires the Flask module, please install it."
+	print("hxtool requires the Flask module, please install it.")
 	exit(1)
 	
 # pycrypto imports
@@ -36,7 +42,7 @@ try:
 	from Crypto.Protocol.KDF import PBKDF2
 	from Crypto.Hash import HMAC, SHA256
 except ImportError:
-	print "hxtool requires the pycrypto module, please install it."
+	print("hxtool requires the pycrypto module, please install it.")
 	exit(1)
 	
 # hx_tool imports
@@ -46,11 +52,6 @@ from hxtool_db import *
 from hxtool_process import *
 from hxtool_config import *
 
-
-
-import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -342,8 +343,7 @@ def search(hx_api_object):
 	if request.method == 'POST':
 		f = request.files['newioc']
 		rawioc = f.read()
-		b64ioc = base64.b64encode(rawioc)
-		(ret, response_code, response_data) = hx_api_object.restSubmitSweep(b64ioc, request.form['sweephostset'])
+		(ret, response_code, response_data) = hx_api_object.restSubmitSweep(rawioc, request.form['sweephostset'])
 		app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 	(ret, response_code, response_data) = hx_api_object.restListSearches()
@@ -764,7 +764,7 @@ def login():
 					# Decrypt background processor credential if available
 					background_credential = ht_db.backgroundProcessorCredentialsGet(ht_profile.eid)
 					is_parts = None
-					if background_credential and background_credential.has_key('salt') and background_credential['salt']:
+					if background_credential and 'salt' in background_credential and background_credential['salt']:
 						is_parts = background_credential['salt'].split(':')
 						salt = base64.b64decode(is_parts[1])
 					else:

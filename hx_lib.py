@@ -6,11 +6,15 @@
 ### Henrik Olsson @FireEye
 ##########################
 
-import urllib2
+
+try:
+	import requests
+except ImportError:
+	print("HXTool requires the requests Python library, please install it.")
+	
 import urllib
 import base64
 import json
-import ssl
 import logging
 import datetime
 import pickle
@@ -29,23 +33,26 @@ class HXAPI:
 		self.logger.debug('hx_host set to %s.', self.hx_host)
 		self.hx_port = hx_port
 		self.logger.debug('hx_port set to %s.', self.hx_port)
-		self.headers = {}
+		
+		self._session = requests.Session()
+		
 		if headers:
 			self.logger.debug('Appending additional headers passed to __init__')
-			self.headers.update(headers)
-		self.cookies = {}
+			self._session.headers.update(headers)
+		
 		if cookies:
 			self.logger.debug('Appending additional cookies passed to __init__')
-			self.cookies.update(cookies)
+			self._session.cookies.update(cookies)
 		
-		if disable_certificate_verification and hasattr(ssl, '_create_unverified_context'):
-			ssl._create_default_https_context = ssl._create_unverified_context
+		if disable_certificate_verification:
 			self.logger.info('SSL/TLS certificate verification disabled.')
+			self._session.verify = False
 		
 		self.hx_user = None
 		self.fe_token = None
 		self.api_version = self.HX_MIN_API_VERSION
 		self.hx_version = [0, 0, 0]
+		
 		
 		self.logger.debug('__init__ complete.')
 	
@@ -74,38 +81,24 @@ class HXAPI:
 			d['logger'] = logging.getLogger(d['logger'])
 		self.__dict__.update(d)	
 
-	def build_request(self, url, method = 'GET', data = None, content_type = 'application/json', accept = 'application/json'):
+	def build_request(self, url, method = 'GET', request_headers = {}, data = None, content_type = 'application/json', accept = 'application/json', auth = None):
 	
 		full_url = "https://{0}:{1}{2}".format(self.hx_host, self.hx_port, url)
 		self.logger.debug('Full URL is: %s', full_url)
 		
-		if len(self.headers) > 0:
-			request = urllib2.Request(full_url, data = data, headers = self.headers)
-			self.logger.debug('Creating request with additional headers.')
-		else:
-			request = urllib2.Request(full_url, data = data)
-			self.logger.debug('Creating request without additional headers.')
+		self.logger.debug('Creating request.')
+		request = requests.Request(method = method, url = full_url, data = data, auth = auth)
+		self.logger.debug('HTTP method set to: %s', request.method)
 		
-		request.get_method = lambda: method
-		self.logger.debug('HTTP method set to: %s', request.get_method)
-		request.add_header('Accept', accept)
+		request.headers['Accept'] = accept
 		self.logger.debug('Accept header set to: %s', accept)
-		request.add_header('User-Agent', 'HXTool/2.0')
-		if method != 'GET' and method != 'DELETE':
-			self.logger.debug('HTTP method is not GET or DELETE, Content-Type header set to: %s', content_type)
-			request.add_header('Content-Type', content_type)
-		if self.fe_token:
-			self.logger.debug('We have a token, appending it to the request.')
-			request.add_header('X-FeApi-Token', self.get_token()['token'])
-		for header in self.headers:
-			self.logger.debug('Appending additional headers to request.')
-			request.add_header(header[0], header[1])
-		if len(self.cookies) > 0:
-			self.logger.debug('Appending additional cookies to request.')
-			request.add_header('Cookie', ';'.join('='.join(_) for _ in self.cookies.items()) + ';')
 		
+		if method != 'GET' and method != 'DELETE':
+			request.headers['Content-Type'] = content_type
+			self.logger.debug('HTTP method is not GET or DELETE, Content-Type header set to: %s', content_type)
+			
 		self.logger.debug('Request created, returning.')
-		return request
+		return self._session.prepare_request(request)
 
 	def build_api_route(self, api_endpoint, min_api_version = None):
 		if not min_api_version:
@@ -114,32 +107,23 @@ class HXAPI:
 		
 	def handle_response(self, request, expect_multiple_json_objects = False):
 		
-		has_http_error = False
-
 		try:
-			response = urllib2.urlopen(request)
-		except urllib2.HTTPError as e:
-			self.logger.debug('HTTPError occured. Status code: %s, reason: %s', e.code, e.reason)
-			response = e
-			has_http_error = True		
-		except urllib2.URLError as e:
-			self.logger.debug('URLError occured. Reason: %s', e.reason)
-			return(False, None, e.reason, None)
+			response = self._session.send(request)
+			if not response.ok:
+				response.raise_for_status()
+		except requests.HTTPError as e:
+			return(False, response.status_code, e, None)
 		
-		response_data = response.read() 
+		response_data = response.text
 		
-		content_type = response.info().getheader('Content-Type')
-		if content_type:
-			if 'json' in content_type:
-				response_data = response_data.decode(response.info().getheader('charset') or 'utf-8')
-				if expect_multiple_json_objects:
-					response_data = [json.loads(_) for _ in response_data.splitlines() if _.startswith('{')]
-				else:
-					response_data = json.loads(response_data)
-			elif 'text' in content_type:
-				response_data = response_data.decode(response.info().getheader('charset') or 'utf-8')
+		content_type = response.headers.get('Content-Type')
+		if content_type and 'json' in content_type:
+			if expect_multiple_json_objects:
+				response_data = [json.loads(_) for _ in response_data.splitlines() if _.startswith('{')]
+			else:
+				response_data = response.json()
 				
-		return(not has_http_error, response.code, response_data, response.info())
+		return(True, response.status_code, response_data, response.headers)
 
 	def set_token(self, token):
 		self.logger.debug('set_token called')
@@ -147,14 +131,16 @@ class HXAPI:
 		timestamp = str(datetime.datetime.utcnow())
 		if token:
 			self.fe_token = {'token' : token, 'grant_timestamp' : timestamp, 'last_use_timestamp' : timestamp}
+			# Add the token header to the requests Session
+			self._session.headers['X-FeApi-Token'] = token
 		else:
 			self.fe_token = None
 		
 	def get_token(self, update_last_use_timestamp = True):
-		self.logger.debug('get_token called, update_last_use_timestamp=%s', update_last_use_timestamp)
+		self.logger.debug("get_token called, update_last_use_timestamp=%s", update_last_use_timestamp)
 		
 		if not self.fe_token:
-			self.logger.debug('fe_token is empty.')
+			self.logger.debug("fe_token is empty.")
 		elif update_last_use_timestamp:
 			self.fe_token['last_use_timestamp'] = str(datetime.datetime.utcnow())
 
@@ -165,7 +151,7 @@ class HXAPI:
 		(ret, response_code, response_data) = self.restGetControllerVersion()
 		if ret:
 			version_string = response_data['data']['msoVersion']
-			self.hx_version = map(int, version_string.split('.'))
+			self.hx_version = [int(v) for v in version_string.split('.')]
 			# TODO: this should be made into a dict
 			if self.hx_version[0] == 2:
 				self.api_version = 1
@@ -195,17 +181,16 @@ class HXAPI:
 	# A response code of 401 means that the
 	# authentication request failed.
 	# See page 47 in the API guide
-	def restLogin(self, hx_user, hx_password):
+	def restLogin(self, hx_api_username, hx_api_password):
 	
-		request = self.build_request(self.build_api_route('token', min_api_version = 1))
-		request.add_header('Authorization', 'Basic {0}'.format(base64.b64encode('{0}:{1}'.format(hx_user, hx_password))))
+		request = self.build_request(self.build_api_route('token', min_api_version = 1), auth = (hx_api_username, hx_api_password))
 
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		if ret and response_code == 204:
 			self.logger.debug('Token granted.')
-			self.set_token(response_headers.getheader('X-FeApi-Token'))
-			self.hx_user = hx_user
+			self.set_token(response_headers.get('X-FeApi-Token'))
+			self.hx_user = hx_api_username
 			self._set_version()
 		
 		return(ret, response_code, response_data)
@@ -399,8 +384,12 @@ class HXAPI:
 	# New Bulk acquisition
 
 	def restNewBulkAcq(self, script, hostset_id = None, hosts = None):
-
-		data = {'scripts' : [{'platform' : '*', 'b64' : base64.b64encode(script)}]}
+		
+		script = base64.b64encode(script)
+		if 'bytes' in str(type(script)):
+			script = script.decode('utf-8')
+	
+		data = {'scripts' : [{'platform' : '*', 'b64' : script}]}
 		if hostset_id:
 			data['host_set'] = {'_id' : hostset_id}
 		elif hosts:
@@ -446,9 +435,13 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 
-	def restSubmitSweep(self, b64_indicator, host_set):
-
-		data = json.dumps({'indicator' : b64_indicator, 'host_set' : {'_id' : int(host_set)}})
+	def restSubmitSweep(self, indicator, host_set):
+		
+		indicator = base64.b64encode(indicator)
+		if 'bytes' in str(type(indicator)):
+			indicator = indicator.decode('utf-8')
+	
+		data = json.dumps({'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
 		
 		request = self.build_request(self.build_api_route('searches'), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
@@ -649,8 +642,8 @@ class HXAPI:
 		try:
 			myconf = json.loads(conf)
 		except ValueError:
-			print "Failed to parse incoming json"
-			print conf
+			print("Failed to parse incoming json")
+			print(conf)
 		
 		data = json.dumps({'name' : name, 'description' : description, 'priority' : int(priority), 'host_sets' : myhostsets, 'configuration' : myconf})
 		
@@ -734,3 +727,7 @@ class HXAPI:
 		dt = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
 		us = int(us.rstrip("Z"), 10)
 		return dt + datetime.timedelta(microseconds=us)
+		
+
+			
+		

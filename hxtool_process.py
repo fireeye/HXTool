@@ -1,12 +1,18 @@
 from hxtool_db import *
 import zipfile
-import json
-from StringIO import StringIO
+import json	
 import xml.etree.ElementTree as ET
 import os
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+try:
+	from StringIO import StringIO
+except ImportError:
+	# Running on Python 3.x
+	from io import StringIO
+
 
 def findPayloadServiceMD5(sourcefile):
 	with zipfile.ZipFile(StringIO(sourcefile)) as zf:

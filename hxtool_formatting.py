@@ -104,15 +104,15 @@ def formatListSearchesJobDash(s):
 
 def formatSearchResults(hostresults):
 
-	x = "<table id='resultsTable' class='genericTable' style='width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>host</td>"
-	x += "<td style='width: 180px;'>type</td>"
-	x += "<td>data</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x = "<table id='resultsTable' class='genericTable' style='width: 100%;'>" \
+		"<thead>" \
+		"<tr>" \
+		"<td style='width: 100px;'>host</td>" \
+		"<td style='width: 180px;'>type</td>" \
+		"<td>data</td>" \
+		"</tr>" \
+		"</thead>" \
+		"<tbody>"
 
 	for entry in hostresults['data']['entries']:
 		for result in entry['results']:
@@ -126,35 +126,35 @@ def formatSearchResults(hostresults):
 			for data in result['data']:
 				x += "<b>" + data + ":</b> " + str(result['data'][data]) + " "
 			x += "</td>"
-                	x += "</tr>"
+			x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
-        return (x)
+		x += "</tbody>"
+		x += "</table>"
+		return (x)
 
 
 def formatBulkTable(ht_db, bulktable, profileid):
 
-        x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>id</td>"
-        x += "<td style='width: 100px;'>state</td>"
-        x += "<td>host set</td>"
-        x += "<td>New</td>"
-        x += "<td>Queued</td>"
-        x += "<td>Failed</td>"
-        x += "<td>Complete</td>"
-        x += "<td>Aborted</td>"
-        x += "<td>Deleted</td>"
-        x += "<td>Refresh</td>"
-        x += "<td>Cancelled</td>"
-        x += "<td style='width: 160px;'>Complete rate</td>"
-        x += "<td style='width: 160px;'>Download rate</td>"
-        x += "<td style='width: 260px;'>Actions</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>" \
+		"<thead>" \
+		"<tr>" \
+		"<td style='width: 100px;'>id</td>" \
+		"<td style='width: 100px;'>state</td>" \
+		"<td>host set</td>" \
+		"<td>New</td>" \
+		"<td>Queued</td>" \
+		"<td>Failed</td>" \
+		"<td>Complete</td>" \
+		"<td>Aborted</td>" \
+		"<td>Deleted</td>" \
+		"<td>Refresh</td>" \
+		"<td>Cancelled</td>" \
+		"<td style='width: 160px;'>Complete rate</td>" \
+		"<td style='width: 160px;'>Download rate</td>" \
+		"<td style='width: 260px;'>Actions</td>" \
+		"</tr>" \
+		"</thead>" \
+		"<tbody>"
 
 	for entry in bulktable['data']['entries']:
 
@@ -223,26 +223,26 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		
 		x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
-        return (x)
+		x += "</tbody>"
+		x += "</table>"
+		return (x)
 
 # Renders the bulk table on the Jobs dashboard
 def formatBulkTableJobDash(c, conn, bulktable, profileid):
 
-        x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>id</td>"
-        x += "<td style='width: 100px;'>state</td>"
-        x += "<td>host set</td>"
-        x += "<td>Queued</td>"
-        x += "<td>Complete</td>"
-        x += "<td>% Complete</td>"
-        x += "<td>Actions</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>" \
+		"<thead>" \
+		"<tr>" \
+		"<td style='width: 100px;'>id</td>" \
+		"<td style='width: 100px;'>state</td>" \
+		"<td>host set</td>" \
+		"<td>Queued</td>" \
+		"<td>Complete</td>" \
+		"<td>% Complete</td>" \
+		"<td>Actions</td>" \
+		"</tr>" \
+		"</thead>" \
+		"<tbody>"
 
 	for entry in bulktable['data']['entries']:
 	
@@ -273,24 +273,24 @@ def formatBulkTableJobDash(c, conn, bulktable, profileid):
 		
 		x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
-        return (x)
+		x += "</tbody>"
+		x += "</table>"
+		return (x)
 		
 		
 def formatBulkHostsTable(hoststable):
 
-        x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>hostname</td>"
-        x += "<td style='width: 100px;'>queued at</td>"
-        x += "<td style='width: 100px;'>completed at</td>"
-        x += "<td style='width: 100px;'>state</td>"
-        x += "<td>actions</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>" \
+		"<thead>" \
+		"<tr>" \
+		"<td style='width: 100px;'>hostname</td>" \
+		"<td style='width: 100px;'>queued at</td>" \
+		"<td style='width: 100px;'>completed at</td>" \
+		"<td style='width: 100px;'>state</td>" \
+		"<td>actions</td>" \
+		"</tr>" \
+		"</thead>" \
+		"<tbody>" 
 
 
 	for entry in hoststable['data']['entries']:
@@ -306,9 +306,9 @@ def formatBulkHostsTable(hoststable):
 		x += "</td>"
 		x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
-        return (x)
+		x += "</tbody>"
+		x += "</table>"
+		return (x)
 
 
 def formatIOCResults(iocs):
@@ -447,18 +447,18 @@ def formatHostsets(hs):
 	
 def formatDashAlerts(alerts, hx_api_object):
 
-	x = "<table id='dashAlerts' class='dashAlerts' style='width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>Host</td>"
-        x += "<td style='width: 100px;'>Domain</td>"
-        x += "<td style='width: 150px;'>Operating system</td>"
-	x += "<td style='width: 100px;'>Threat info</td>"
-        x += "<td style='width: 100px;'>Reported at</td>"
-        x += "<td style='width: 100px;'>Matched at</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x = "<table id='dashAlerts' class='dashAlerts' style='width: 100%;'>" \
+		"<thead>" \
+		"<tr>" \
+		"<td style='width: 100px;'>Host</td>" \
+		"<td style='width: 100px;'>Domain</td>" \
+		"<td style='width: 150px;'>Operating system</td>" \
+		"<td style='width: 100px;'>Threat info</td>" \
+		"<td style='width: 100px;'>Reported at</td>" \
+		"<td style='width: 100px;'>Matched at</td>" \
+		"</tr>" \
+		"</thead>" \
+		"<tbody>"
 
 	for entry in alerts[:10]:
 		x += "<tr>"
@@ -482,8 +482,8 @@ def formatDashAlerts(alerts, hx_api_object):
 		x += "<td>" + str(entry['matched_at']) + "</td>"
 		x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
+		x += "</tbody>"
+		x += "</table>"
 
 	return(x)
 
@@ -617,8 +617,7 @@ def formatAlertsTable(alerts, hx_api_object, profileid, ht_db):
 
 	x += "</tbody>"
 	x += "</table>"
-
-        return(x)
+	return(x)
 
 def formatAnnotationTable(an):
 
