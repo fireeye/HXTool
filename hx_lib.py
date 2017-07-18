@@ -18,6 +18,7 @@ import json
 import logging
 import datetime
 import pickle
+import shutil
 
 
 class HXAPI:
@@ -81,7 +82,7 @@ class HXAPI:
 			d['logger'] = logging.getLogger(d['logger'])
 		self.__dict__.update(d)	
 
-	def build_request(self, url, method = 'GET', request_headers = {}, data = None, content_type = 'application/json', accept = 'application/json', auth = None):
+	def build_request(self, url, method = 'GET', data = None, content_type = 'application/json', accept = 'application/json', auth = None):
 	
 		full_url = "https://{0}:{1}{2}".format(self.hx_host, self.hx_port, url)
 		self.logger.debug('Full URL is: %s', full_url)
@@ -105,23 +106,27 @@ class HXAPI:
 			min_api_version = self.api_version
 		return '/hx/api/v{0}/{1}'.format(min_api_version, api_endpoint)
 		
-	def handle_response(self, request, expect_multiple_json_objects = False):
+	def handle_response(self, request, expect_multiple_json_objects = False, stream = False):
 		
 		try:
-			response = self._session.send(request)
+			response = self._session.send(request, stream = stream)
 			if not response.ok:
 				response.raise_for_status()
 		except requests.HTTPError as e:
 			return(False, response.status_code, e, None)
 		
-		response_data = response.text
+		response_data = response.content
 		
 		content_type = response.headers.get('Content-Type')
-		if content_type and 'json' in content_type:
-			if expect_multiple_json_objects:
-				response_data = [json.loads(_) for _ in response_data.splitlines() if _.startswith('{')]
-			else:
-				response_data = response.json()
+		if content_type:
+			if 'json' in content_type:
+				if expect_multiple_json_objects:
+					# TODO: replace with Response.iter_lines()?
+					response_data = [json.loads(_) for _ in response_data.splitlines() if _.startswith('{')]
+				else:
+					response_data = response.json()
+			elif 'text' in content_type:
+				response_data = response.text
 				
 		return(True, response.status_code, response_data, response.headers)
 
@@ -164,9 +169,9 @@ class HXAPI:
 	###################
 	## Generic GET
 	###################
-	def restGetUrl(self, url):
+	def restGetUrl(self, url, method = 'GET'):
 
-		request = self.build_request(url)
+		request = self.build_request(url, method = method)
 		(ret, response_code, response_data, response_headers) = handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -363,7 +368,14 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	# Get the status of a bulk acquisition for a single host	
+	def restGetBulkHost(self, bulk_id, host_id):
 
+		request = self.build_request(self.build_api_route('acqs/bulk/{0}/hosts/{1}'.format(bulk_id, host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
 	# Get Bulk acquistion detail
 	def restGetBulkDetails(self, bulk_id):
 
@@ -374,20 +386,23 @@ class HXAPI:
 
 
 	# Download bulk data
-	def restDownloadBulkAcq(self, url):
+	def restDownloadFile(self, url, destination_file_path):
 
 		request = self.build_request(url, accept = 'application/octet-stream')
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		try:
+			response = self._session.send(request, stream = True)
+			with open(destination_file_path, 'wb') as f:
+				shutil.copyfileobj(response.raw, f)
+			return(True, response.status_code, None)	
+		except:
+			return(False, None, None)
+			
 		
-		return(ret, response_code, response_data)
 
 	# New Bulk acquisition
-
 	def restNewBulkAcq(self, script, hostset_id = None, hosts = None):
 		
-		script = base64.b64encode(script)
-		if 'bytes' in str(type(script)):
-			script = script.decode('utf-8')
+		script = base64.b64encode(script).decode('ascii')
 	
 		data = {'scripts' : [{'platform' : '*', 'b64' : script}]}
 		if hostset_id:
@@ -437,10 +452,8 @@ class HXAPI:
 
 	def restSubmitSweep(self, indicator, host_set):
 		
-		indicator = base64.b64encode(indicator)
-		if 'bytes' in str(type(indicator)):
-			indicator = indicator.decode('utf-8')
-	
+		indicator = base64.b64encode(indicator).decode('ascii')
+		
 		data = json.dumps({'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
 		
 		request = self.build_request(self.build_api_route('searches'), method = 'POST', data = data)

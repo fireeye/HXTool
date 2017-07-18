@@ -598,7 +598,10 @@ def bulkaction(hx_api_object):
 		
 	if request.args.get('action') == "download":
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
-		ret = ht_db.bulkDownloadAdd(session['ht_profileid'], request.args.get('id'), len(response_data['data']['entries']))
+		hosts = {}
+		for host in response_data['data']['entries']:
+			hosts[host['host']['_id']] = { 'downloaded' : False, 'host_name' : host['host']['hostname']}
+		ret = ht_db.bulkDownloadAdd(session['ht_profileid'], request.args.get('id'), hosts)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 		
@@ -688,7 +691,7 @@ def settings(hx_api_object):
 		ks_parts = session['key'].split(':')
 		# Generate a new IV - must be 16 bytes
 		iv = crypt_generate_random(16)
-		encrypted_password = base64.b64encode(crypt_aes(base64.b64decode(ks_parts[1]), iv, request.form['bgpass']))
+		encrypted_password = crypt_aes(base64.b64decode(ks_parts[1]), iv, request.form['bgpass'])
 		out = ht_db.backgroundProcessorCredentialsSet(session['ht_profileid'], request.form['bguser'], encrypted_password, '{0}:{1}'.format(base64.b64encode(iv), ks_parts[0]))
 		app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
@@ -753,7 +756,7 @@ def login():
 			ht_profile = ht_db.profileGetById(request.form['controllerProfileDropdown'])
 			if ht_profile:	
 
-				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], headers = ht_config.get_or_none('headers'), cookies = ht_config.get_or_none('cookies'), logger = app.logger)
+				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger)
 
 				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
 				if ret:
@@ -762,18 +765,18 @@ def login():
 					session['ht_profileid'] = ht_profile['profile_id']
 					session['ht_api_object'] = hx_api_object.serialize()
 					# Decrypt background processor credential if available
-					background_credential = ht_db.backgroundProcessorCredentialsGet(ht_profile.eid)
+					background_credential = ht_db.backgroundProcessorCredentialsGet(ht_profile['profile_id'])
 					is_parts = None
 					if background_credential and 'salt' in background_credential and background_credential['salt']:
 						is_parts = background_credential['salt'].split(':')
 						salt = base64.b64decode(is_parts[1])
 					else:
-						salt = crypt_generate_random(64)
+						salt = crypt_generate_random(32)
 					
 					key = crypt_pbkdf2_hmacsha256(salt, request.form['ht_pass'])
 					if is_parts:
-						decrypted_background_password = crypt_aes(key, base64.b64decode(is_parts[0]), base64.b64decode(background_credential['hx_api_password']), decrypt = True)
-						start_background_processor(background_credential['hx_api_username'], decrypted_background_password)
+						decrypted_background_password = crypt_aes(key, base64.b64decode(is_parts[0]), background_credential['hx_api_password'], decrypt = True)
+						start_background_processor(ht_profile['profile_id'], background_credential['hx_api_username'], decrypted_background_password)
 						decrypted_background_password = None
 					key = '{0}:{1}'.format(base64.b64encode(salt), base64.b64encode(key))
 					session['key']= key						
@@ -877,7 +880,7 @@ def crypt_generate_random(length):
 	return os.urandom(length)
 
 """
-Return a PBKDF2 HMACSHA512 digest of a salt and password
+Return a PBKDF2 HMACSHA256 digest of a salt and password
 """
 def crypt_pbkdf2_hmacsha256(salt, data):
 	return PBKDF2(data, salt, dkLen = 32, count = 100000, prf = lambda p, s: HMAC.new(p, s, SHA256).digest())
@@ -885,9 +888,11 @@ def crypt_pbkdf2_hmacsha256(salt, data):
 """
 AES-256 operation
 """
-def crypt_aes(key, iv, data, decrypt = False):
+def crypt_aes(key, iv, data, decrypt = False, base64_coding = True):
 	cipher = AES.new(key, AES.MODE_OFB, iv)
 	if decrypt:
+		if base64_coding:
+			data = base64.b64decode(data)
 		data = cipher.decrypt(data)
 		# Implement PKCS7 de-padding
 		pad_length = ord(data[-1:])
@@ -900,35 +905,17 @@ def crypt_aes(key, iv, data, decrypt = False):
 		pad_length = 16 - (len(data) % 16)
 		if pad_length != 16:
 			data += (chr(pad_length) * pad_length) 
-		return cipher.encrypt(data)
+		data = cipher.encrypt(data)
+		if base64_coding:
+			data = base64.b64encode(data)
+		return data
 		
-### Thread: background processing 
+### background processing 
 #################################
-def start_background_processor(hx_username, hx_password):
-	pass
-	
-	
-def bgprocess(bgprocess_config):
-	
-	time.sleep(1)
-	app.logger.info('Background processor thread started')
-	# SQLITE3
-	conn = sqlite3.connect('hxtool.db')
-	c = conn.cursor()
-	
-	while True:
-		try:
-			backgroundStackProcessor(c, conn, bgprocess_config, app)
-		except BaseException as e:
-			print('{!r}; StackProcessor error'.format(e))
-		
-		try:
-			backgroundBulkProcessor(c, conn, bgprocess_config, app)
-		except BaseException as e:
-			print('{!r}; BulkProcessor error'.format(e))
-			
-		time.sleep(bgprocess_config['background_processor']['poll_interval'])
-		
+def start_background_processor(profile_id, hx_api_username, hx_api_password):
+	p = hxtool_background_processor(ht_config, ht_db, profile_id, logger = app.logger)
+	p.start(hx_api_username, hx_api_password)
+	app.logger.info('Background processor started.')	
 		
 ###########
 ### Main ####
@@ -944,7 +931,7 @@ if __name__ == "__main__":
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
 	
-	ht_config = hxtool_config('conf.json', logger=app.logger)
+	ht_config = hxtool_config('conf.json', logger = app.logger)
 	
 	# Initialize configured log handlers
 	for log_handler in ht_config.log_handlers():
@@ -964,12 +951,6 @@ if __name__ == "__main__":
 
 	# Init DB
 	ht_db = hxtool_db('hxtool.db')
-	
-	# Start background processing thread
-	#thread = threading.Thread(target=bgprocess, name='BackgroundProcessorThread', args=(ht_config,))
-	#thread.daemon = True
-	#thread.start()
-	#app.logger.info('Background Processor thread starting')
 	
 	if ht_config['network']['ssl'] == "enabled":
 		context = (ht_config['ssl']['cert'], ht_config['ssl']['key'])

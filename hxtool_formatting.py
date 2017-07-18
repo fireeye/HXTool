@@ -159,8 +159,7 @@ def formatBulkTable(ht_db, bulktable, profileid):
 	for entry in bulktable['data']['entries']:
 
 
-		#out = sqlGetStackJobsForBulkId(c, conn, profileid, entry['_id'])
-		out = None
+	
 		bulk_download = ht_db.bulkDownloadGet(profileid, entry['_id'])
 		
 		x += "<tr class='clickable-row' data-href='/bulkdetails?id=" + str(entry['_id']) + "'>"
@@ -193,9 +192,11 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		x += "</td>"
 		
 		if bulk_download:
-			if (bulk_download['host_count'] > 0 and bulk_download['hosts_complete'] > 0):
+			total_hosts = len(bulk_download['hosts'])
+			hosts_completed = len(filter(lambda _id: bulk_download['hosts'][_id]['downloaded'] == True, bulk_download['hosts']))
+			if total_hosts > 0 and hosts_completed > 0:
 				
-				dlprogress = float(bulk_download['host_count']) / float(bulk_download['hosts_complete']) * 100
+				dlprogress = int(float(hosts_completed) / total_hosts * 100)
 							
 				if dlprogress > 100:
 					dlprogress = 100
@@ -203,14 +204,14 @@ def formatBulkTable(ht_db, bulktable, profileid):
 			else:
 				dlprogress = 0
 			x += "<td>"
-			x += "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + str(entry['_id']) + "' data-percent='" + str(int(round(dlprogress))) + "'></div></div>"
+			x += "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + str(entry['_id']) + "' data-percent='" + str(dlprogress) + "'></div></div>"
 			x += "</td>"
 		else:
 			x += "<td>N/A</td>"
 			
 		x += "<td>" 
 		
-		if out and (len(out) > 0):
+		if bulk_download and bulk_download['stack_job']:
 			x += "Stacking job"
 		else:
 			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"

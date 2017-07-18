@@ -165,120 +165,89 @@ def backgroundStackProcessor(c, conn, myConf, app):
 					
 			(ret, response_code, response_data) = hx_api_object.restLogout()
 
-def backgroundBulkProcessor(c, conn, myConf, app):
-
-	### Function to check and download bulk acquisitions
-	####################################
-	
-	bulkjobs = sqlGetBulkDownloads(c, conn)
-	
-	for bulkjob in bulkjobs:
-	
-		profileid = bulkjob[0]
-		bulkid =  bulkjob[1]
-		hosts  = bulkjob[2]
-		hostscomplete = bulkjob[3]
-		hxtotal_agents = "100000"
-		
-		if len(sqlGetProfCredTable(c, conn, profileid)) == 0:
-			continue
-		
-		(hx_host, hx_port, hx_user, hx_pass) = sqlGetProfileBackgroundCredentials(c, conn, profileid)
-		
-		hx_api_object = HXAPI(hx_host, hx_port)
-		
-		(ret, response_code, response_data) = hx_api_object.restLogin(hx_user, hx_pass)
-		
-		if ret:
-			json_request_headers = {'X-FeApi-Token': hx_api_object.get_token()['token'], 'Accept': 'application/json'}
-			zip_request_headers = {'X-FeApi-Token': hx_api_object.get_token()['token'], 'Accept': 'application/octet-stream'}
-			
-			bulk_url = 'https://{0}:{1}/hx/api/v2/acqs/bulk/{2}/hosts?limit={3}'.format(hx_host, hx_port, str(bulkid), hxtotal_agents)
-
-			r = requests.get(bulk_url, headers = json_request_headers, stream = True, verify = False)
-
-			if r.status_code != 200:
-				print('Couldn\'t download {:s}. Status code was {:d}'.format(bulk_url, r.status_code))
-
-			rjson = json.loads(r.text)
-
-			if hosts == 0:
-				hc = sqlUpdateBulkDownloadHosts(c, conn, len(rjson['data']['entries']), profileid, bulkid)
-			
-			hiter = 0
-			for host in rjson['data']['entries']:
-
-				if host['result'] == None:
-					continue
-
-				directory = "bulkdownload/{0}_{1}".format(hx_host, bulkid)
-
-				if not os.path.exists(directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip"):
-
-					hiter = hiter + 1
-					
-					# download the zip
-					get_dataurl = 'https://{0}:{1}{2}.zip'.format(hx_host, hx_port, host['url'])
-					rd = requests.get(get_dataurl, headers = zip_request_headers, stream = True, verify = False)
-
-					# write data to disk
-					if not os.path.exists(directory):
-						os.makedirs(directory)
-						
-					fulloutputpath = os.path.join(directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip")
-
-					app.logger.info("Bulk Downloader: Writing file - " + directory + "/" + host['host']['hostname'] + "_" + host['host']['_id'] +  ".zip")
-					with open(fulloutputpath, 'wb') as f:
-						for chunk in rd.iter_content(1024):
-							f.write(chunk)
-							
-					hd = sqlUpdateBulkDownloadHostsComplete(c, conn, profileid, bulkid)
-					
-				# If cap is reached break out and reloop
-				if hiter == myConf['background_processor']['downloads_per_poll']:
-					break
-					
-			(ret, response_code, response_data) = hx_api_object.restLogout()
 
 from hx_lib import *
 import threading			
+import time
 try:
-    import Queue as queue
+	import Queue as queue
 except ImportError:
-    import queue
+	import queue
 
 """
 Assume most systems are quad core, so 4 threads should be optimal - 1 thread per core
 """					
 class hxtool_background_processor:
-	def __init__(self, hxtool_db_instance, profile_id, thread_count = 4, logger = logging.getLogger(__name__)):
-		self._ht_db = hxtool_db_instance
-		p = self._ht_db.profileGetById(profile_id)
-		self._hx_api_object = HXAPI(p['hx_host'], p['hx_port'])
+	def __init__(self, hxtool_config, hxtool_db, profile_id, thread_count = 4, logger = logging.getLogger(__name__)):
 		self.logger = logger
-		self._thread_list = []
-			
-
-	def start_bulk_downloader(self, hx_user, hx_password):
-		(ret, response_code, response_data) = self._hx_api_object.restLogin(hx_user, hx_password)
+		self._ht_db = hxtool_db
+		# TODO: maybe replace with hx_hostname, hx_port variables in __init__
+		profile = self._ht_db.profileGetById(profile_id)
+		self._hx_api_object = HXAPI(profile['hx_host'], profile['hx_port'])
+		self.profile_id = profile_id
+		self.thread_count = thread_count
+		self._task_queue = queue.Queue()
+		self._task_thread_list = []
+		self._stop_event = threading.Event()
+		self._poll_thread = threading.Thread(target = self.bulk_download_processor, name = "hxtool_background_processor", args = (hxtool_config['background_processor']['poll_interval'], ))
+		# TODO: should be configurable
+		self._download_directory_base = "bulkdownload"
+		
+	def __exit__(self, exc_type, exc_value, traceback):
+		self.stop()
+		
+	def start(self, hx_api_username, hx_api_password):
+		(ret, response_code, response_data) = self._hx_api_object.restLogin(hx_api_username, hx_api_password)
 		if ret:
-			bulk_jobs = self._ht_db.bulkDownloadList()
-			for job in bulk_jobs:
-				(ret, response_code, response_data) = self._hx_api_object.restListBulkHosts(job['bulk_download_id'])
-				if len(response_data['data']['entries']) > 0:
-					for host in response_data['data']['entries']:
-						if host['result']:
-							pass
+			self._poll_thread.start()
+			for i in range(1, self.thread_count):
+				task_thread = threading.Thread(target = self.await_task)
+				self._task_thread_list.append(task_thread)
+				task_thread.start()
 		else:
 			self.logger.error("Failed to login to the HX controller! Error: {0}".format(response_data))
-	
-	def start_stack_processor(self):
-		pass	
-	
+			self.stop()
+		
 	def stop(self):
-		# Stop threads
+		self._stop_event.set()
+		self._poll_thread.join()
+		for task_thread in self._task_thread_list:
+			task_thread.join()
 		if self._hx_api_object.restIsSessionValid():
 			(ret, response_code, response_data) = self._hx_api_object.restLogout()
 
-	def download_callback(download_url, destination_path):
+	def bulk_download_processor(self, poll_interval):
+		while not self._stop_event.is_set():
+			bulk_jobs = self._ht_db.bulkDownloadList(self.profile_id)
+			for job in filter(lambda j: j['stopped'] == False, bulk_jobs):
+				download_directory = self.make_download_directory(job['bulk_download_id'])
+				for host_id in filter(lambda _id: job['hosts'][_id]['downloaded'] == False, job['hosts']):
+					(ret, response_code, response_data) = self._hx_api_object.restGetBulkHost(job['bulk_download_id'], host_id)
+					if ret:
+						if response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
+							full_path = os.path.join(download_directory, '{0}_{1}.zip'.format(job['hosts'][host_id]['host_name'], host_id))
+							self._task_queue.put((self.download_task, (job['bulk_download_id'], host_id, job['stack_job'], response_data['data']['result']['url'], full_path)))
+			time.sleep(poll_interval)
+			
+	def await_task(self):
+		while not self._stop_event.is_set():
+			task = self._task_queue.get()
+			task[0](*task[1])
+			self._task_queue.task_done()
+			
+	def download_task(self, bulk_download_id, host_id, is_stack_job, download_url, destination_path):
+		(ret, response_code, response_data) = self._hx_api_object.restDownloadFile(download_url, destination_path)
+		if ret:
+			self._ht_db.bulkDownloadUpdateHost(self.profile_id, bulk_download_id, host_id)
+			if is_stack_job:
+				self._task_queue.put((self.stack_task, (destination_path,)))
+
+	def stack_task(self, file_path):
 		pass
+
+			
+	def make_download_directory(self, bulk_download_id):
+		download_directory = os.path.join(self._download_directory_base, self._hx_api_object.hx_host, str(bulk_download_id))
+		if not os.path.exists(download_directory):
+			os.makedirs(download_directory)
+		return download_directory
