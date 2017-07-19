@@ -219,14 +219,14 @@ class hxtool_background_processor:
 	def bulk_download_processor(self, poll_interval):
 		while not self._stop_event.is_set():
 			bulk_jobs = self._ht_db.bulkDownloadList(self.profile_id)
-			for job in filter(lambda j: j['stopped'] == False, bulk_jobs):
+			for job in [j for j in bulk_jobs if j['stopped'] == False]:
 				download_directory = self.make_download_directory(job['bulk_download_id'])
-				for host_id in filter(lambda _id: job['hosts'][_id]['downloaded'] == False, job['hosts']):
-					(ret, response_code, response_data) = self._hx_api_object.restGetBulkHost(job['bulk_download_id'], host_id)
+				for host in [h for h in job['hosts'] if h['downloaded'] == False]:
+					(ret, response_code, response_data) = self._hx_api_object.restGetBulkHost(job['bulk_download_id'], host['_id'])
 					if ret:
 						if response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
-							full_path = os.path.join(download_directory, '{0}_{1}.zip'.format(job['hosts'][host_id]['host_name'], host_id))
-							self._task_queue.put((self.download_task, (job['bulk_download_id'], host_id, job['stack_job'], response_data['data']['result']['url'], full_path)))
+							full_path = os.path.join(download_directory, '{0}_{1}.zip'.format(host['host_name'], host['_id']))
+							self._task_queue.put((self.download_task, (job['bulk_download_id'], host['_id'], job['stack_job'], response_data['data']['result']['url'], full_path)))
 			time.sleep(poll_interval)
 			
 	def await_task(self):
@@ -240,11 +240,14 @@ class hxtool_background_processor:
 		if ret:
 			self._ht_db.bulkDownloadUpdateHost(self.profile_id, bulk_download_id, host_id)
 			if is_stack_job:
-				self._task_queue.put((self.stack_task, (destination_path,)))
+				self._task_queue.put((self.stack_task, (bulk_download_id, destination_path,)))
 
-	def stack_task(self, file_path):
-		pass
-
+	def stack_task(self, bulk_download_id, file_path):
+		with zipfile.ZipFile(file_path) as f:
+			acquisition_manifest = json.loads(f.read('manifest.json'))
+			results_file = acquisition_manifest['audits'][0]['results'][0]['type']['payload']	
+			results = f.read(results_files[0]['payload'])
+			print(results)
 			
 	def make_download_directory(self, bulk_download_id):
 		download_directory = os.path.join(self._download_directory_base, self._hx_api_object.hx_host, str(bulk_download_id))

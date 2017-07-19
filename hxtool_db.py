@@ -40,9 +40,9 @@ class hxtool_db:
 		return profiles
 	
 	"""
-	Delete a profile by id
+	Get a profile by id
 	"""
-	def profileGetById(self, profile_id):
+	def profileGet(self, profile_id):
 		profile = self._db.table('profile').get(eid = int(profile_id))
 		if profile:
 			profile['profile_id'] = profile.eid
@@ -50,7 +50,7 @@ class hxtool_db:
 		else:
 			return None
 			
-	def profileUpdateById(self, profile_id, hx_name, hx_host, hx_port):
+	def profileUpdate(self, profile_id, hx_name, hx_host, hx_port):
 		with self._lock:
 			return self._db.table('profile').update({'hx_name' : hx_name, 'hx_host' : hx_host, 'hx_port' : hx_port}, eids = [int(profile_id)])
 		
@@ -58,21 +58,20 @@ class hxtool_db:
 	Delete a profile
 	Also remove any background processor credentials associated with the profile
 	"""
-	def profileDeleteById(self, profile_id):
+	def profileDelete(self, profile_id):
 		self.backgroundProcessorCredentialsUnset(profile_id)	
 		with self._lock:
 			return self._db.table('profile').remove(eids = [int(profile_id)])
 		
-	def backgroundProcessorCredentialsSet(self, profile_id, hx_api_username, hx_api_password, salt):
+	def backgroundProcessorCredentialCreate(self, profile_id, hx_api_username, iv, salt, hx_api_encrypted_password):
 		with self._lock:
-			r = self._db.table('background_processor_credential').insert({'profile_id' : int(profile_id), 'hx_api_username' : hx_api_username, 'hx_api_password' : hx_api_password, 'salt': salt})
-		return r	
+			return self._db.table('background_processor_credential').insert({'profile_id' : int(profile_id), 'hx_api_username' : hx_api_username, 'iv' : iv, 'salt': salt, 'hx_api_encrypted_password' : hx_api_encrypted_password})
 	
-	def backgroundProcessorCredentialsUnset(self, profile_id):
+	def backgroundProcessorCredentialRemove(self, profile_id):
 		with self._lock:
 			return self._db.table('background_processor_credential').remove((tinydb.Query()['profile_id'] == int(profile_id)))
 			
-	def backgroundProcessorCredentialsGet(self, profile_id):
+	def backgroundProcessorCredentialGet(self, profile_id):
 		return self._db.table('background_processor_credential').get((tinydb.Query()['profile_id'] == int(profile_id)))
 		
 	def alertCreate(self, profile_id, hx_alert_id):
@@ -89,28 +88,28 @@ class hxtool_db:
 	
 	def alertAddAnnotation(self, profile_id, hx_alert_id, annotation, state, create_user):
 		alert = self.alertGet(profile_id, hx_alert_id)
-		alert['annotations'].append({'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : str(datetime.datetime.utcnow())})
 		with self._lock:
+			alert['annotations'].append({'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : str(datetime.datetime.utcnow())})		
 			return self._db.table('alert').update(alert, eids = [alert.eid])
 		
-	def bulkDownloadAdd(self, profile_id, bulk_download_id, hosts, stack_job = False):
+	def bulkDownloadCreate(self, profile_id, bulk_download_id, hosts, hostset_id = -1, stack_job = False):
 		with self._lock:
-			return self._db.table('bulk_download').insert({'profile_id' : int(profile_id), 'bulk_download_id': int(bulk_download_id), 'hosts' : hosts, 'stopped' : False, 'stack_job' : stack_job})
+			return self._db.table('bulk_download').insert({'profile_id' : int(profile_id), 'bulk_download_id': int(bulk_download_id), 'hosts' : hosts, 'hostset_id' : hostset_id, 'stopped' : False, 'stack_job' : stack_job})
 	
 	def bulkDownloadGet(self, profile_id, bulk_download_id):
 		return self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == int(profile_id)) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
 	
 	def bulkDownloadList(self, profile_id):
-		return self._db.table('bulk_download').all()
+		return self._db.table('bulk_download').search((tinydb.Query()['profile_id'] == int(profile_id)))
 	
 	def bulkDownloadUpdateHost(self, profile_id, bulk_download_id, host_id):
-		with self._lock:
-			r = self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == int(profile_id)) & 
-													(tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
-			if r:
-				r['hosts'][host_id]['downloaded'] = True
+		r = self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == int(profile_id)) & 
+												(tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+		if r and r['hosts'].index({'_id' : host_id}):
+			with self._lock:
+				r['hosts'][r['hosts'].index({'_id' : host_id})]['downloaded'] = True
 				return self._db.table('bulk_download').update(r, eids = [ r.eid ])
-																				
+																			
 	def bulkDownloadStop(self, profile_id, bulk_download_id):
 		with self._lock:
 			return self._db.table('bulk_download').update({'stopped' : True}, (tinydb.Query()['profile_id'] == int(profile_id)) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
@@ -120,4 +119,26 @@ class hxtool_db:
 			return self._db.table('bulk_download').remove((tinydb.Query()['profile_id'] == int(profile_id)) & 
 														(tinydb.Query()['bulk_download_id'] == int(bulk_download_id)) & 
 														(tinydb.Query()['stopped'] == True))
-		
+														
+	def stackJobCreate(self, profile_id, bulk_download_id, hostset_id = -1):
+		with self._lock:
+			return self._db.table('stacking').insert({'profile_id' : int(profile_id), 'bulk_download_id' : int(bulk_download_id), 'hostset_id' : int(hostset_id), 'create_timestamp' : str(datetime.datetime.utcnow()), 'update_timestamp' : str(datetime.datetime.utcnow()), 'hosts' : []})
+	
+	def stackJobGet(self, profile_id, bulk_download_id):
+		return self._db.table('stacking').get((tinydb.Query()['profile_id'] == int(profile_id)) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+	
+	def stackJobList(self, profile_id):
+		return self._db.table('stacking').search((tinydb.Query()['profile_id'] == int(profile_id)))
+	
+	def stackJobAddHost(self, profile_id, bulk_download_id, host_id, results):
+		r = self.stackGet(profile_id, bulk_download_id)
+		if r:
+			h = { '_id' : host_id, 'results' : results, 'processed' : True}
+			with self._lock:
+				r['hosts'].append(h)
+				r['update_timestamp'] = str(datetime.datetime.utcnow())
+				return self._db.table('stacking').update(r, eids = [r.eid])
+	
+	def stackJobDelete(self, profile_id, bulk_download_id):
+		with self._lock:
+			return self._db.remove((tinydb.Query()['profile_id'] == int(profile_id)) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))

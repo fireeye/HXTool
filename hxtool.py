@@ -577,6 +577,7 @@ def bulkdetails(hx_api_object):
 def bulkdownload(hx_api_object):
 	if request.args.get('id'):
 		urlhead, fname = os.path.split(request.args.get('id'))
+		# TODO: Fix
 		(ret, response_code, response_data) = hx_api_object.restDownloadBulkAcq(request.args.get('id'))
 		app.logger.info('Bulk acquisition download - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return send_file(io.BytesIO(response_data), attachment_filename=fname, as_attachment=True)
@@ -598,9 +599,9 @@ def bulkaction(hx_api_object):
 		
 	if request.args.get('action') == "download":
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
-		hosts = {}
+		hosts = []
 		for host in response_data['data']['entries']:
-			hosts[host['host']['_id']] = { 'downloaded' : False, 'host_name' : host['host']['hostname']}
+			hosts.append({'_id' : host['host']['_id'], 'downloaded' : False, 'host_name' : host['host']['hostname']})
 		ret = ht_db.bulkDownloadAdd(session['ht_profileid'], request.args.get('id'), hosts)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
@@ -648,23 +649,35 @@ def stacking(hx_api_object):
 	
 	if request.args.get('stop'):
 		sqlChangeStackJobState(c, conn, request.args.get('stop'), session['ht_profileid'], "STOPPING")
-		app.logger.info('Data stacking action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+		app.logger.info('Data stacking action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 
 	if request.args.get('remove'):
 		sqlChangeStackJobState(c, conn, request.args.get('remove'), session['ht_profileid'], "REMOVING")
-		app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+		app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 
 		
 	if request.method == 'POST':
-		out = sqlAddStackJob(c, conn, session['ht_profileid'], request.form['stacktype'], request.form['stackhostset'])
-		app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+		script_type = request.form['stacktype']
+		with open(os.path.join('scripts', '{0}.xml'.format(script_type)), 'rb') as f:
+			bulk_acquisition_script = f.read()
+		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['stackhostset'])
+		hosts = []
+		bulk_job_entry_hosts = {}
+		for host in response_data['data']['entries']:
+			hosts.append({'_id' : host['_id']})
+			bulk_job_entry_hosts[host['_id']] = { 'downloaded' : False, 'host_name' : host['hostname']}
+		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts)
+		app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		bulk_job_entry = ht_db.bulkDownloadAdd(session['ht_profileid'], response_data['data']['_id'], bulk_job_entry_hosts, stack_job = True)
+		ret = ht_db.stackJobCreate(session['ht_profileid'], response_data['data']['_id'])
+		app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 	
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
 	hostsets = formatHostsets(response_data)
 	
-	stacktable = formatStackTable(c, conn, session['ht_profileid'], response_data)
+	stacktable = formatStackTable(ht_db, session['ht_profileid'], response_data)
 	
 	return render_template('ht_stacking.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), stacktable=stacktable, hostsets=hostsets)
 
@@ -688,19 +701,20 @@ def stackinganalyze(hx_api_object):
 @valid_session_required
 def settings(hx_api_object):
 	if request.method == 'POST':
-		ks_parts = session['key'].split(':')
+		key = base64.b64decode(session['key']).decode('utf-8')
+		salt = base64.b64decode(session['salt']).decode('utf-8')
 		# Generate a new IV - must be 16 bytes
 		iv = crypt_generate_random(16)
-		encrypted_password = crypt_aes(base64.b64decode(ks_parts[1]), iv, request.form['bgpass'])
-		out = ht_db.backgroundProcessorCredentialsSet(session['ht_profileid'], request.form['bguser'], encrypted_password, '{0}:{1}'.format(base64.b64encode(iv), ks_parts[0]))
+		encrypted_password = crypt_aes(key, iv, request.form['bgpass'])
+		out = ht_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], base64.b64encode(iv).decode('utf-8'), base64.b64encode(salt).decode('utf-8'), encrypted_password)
 		app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
 	if request.args.get('unset'):
-		out = ht_db.backgroundProcessorCredentialsUnset(session['ht_profileid'])
+		out = ht_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
 		app.logger.info("Background Processing credentials unset profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/settings", code=302)
 	
-	bgcreds = formatProfCredsInfo((ht_db.backgroundProcessorCredentialsGet(session['ht_profileid']) is not None))
+	bgcreds = formatProfCredsInfo((ht_db.backgroundProcessorCredentialGet(session['ht_profileid']) is not None))
 	
 	return render_template('ht_settings.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bgcreds=bgcreds)
 
@@ -753,7 +767,7 @@ def login():
 	
 	if (request.method == 'POST'):
 		if 'ht_user' in request.form:
-			ht_profile = ht_db.profileGetById(request.form['controllerProfileDropdown'])
+			ht_profile = ht_db.profileGet(request.form['controllerProfileDropdown'])
 			if ht_profile:	
 
 				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger)
@@ -765,31 +779,31 @@ def login():
 					session['ht_profileid'] = ht_profile['profile_id']
 					session['ht_api_object'] = hx_api_object.serialize()
 					# Decrypt background processor credential if available
-					background_credential = ht_db.backgroundProcessorCredentialsGet(ht_profile['profile_id'])
-					is_parts = None
-					if background_credential and 'salt' in background_credential and background_credential['salt']:
-						is_parts = background_credential['salt'].split(':')
-						salt = base64.b64decode(is_parts[1])
+					background_credential = ht_db.backgroundProcessorCredentialGet(ht_profile['profile_id'])
+					if background_credential:
+						salt = base64.b64decode(background_credential['salt']).decode('utf-8')
+						iv = base64.b64decode(background_credential['iv']).decode('utf-8')
 					else:
 						salt = crypt_generate_random(32)
 					
 					key = crypt_pbkdf2_hmacsha256(salt, request.form['ht_pass'])
-					if is_parts:
-						decrypted_background_password = crypt_aes(key, base64.b64decode(is_parts[0]), background_credential['hx_api_password'], decrypt = True)
+					
+					if iv and salt:
+						decrypted_background_password = crypt_aes(key, iv, background_credential['hx_api_encrypted_password'], decrypt = True)
 						start_background_processor(ht_profile['profile_id'], background_credential['hx_api_username'], decrypted_background_password)
 						decrypted_background_password = None
-					key = '{0}:{1}'.format(base64.b64encode(salt), base64.b64encode(key))
-					session['key']= key						
-					
+
+					session['key']= base64.b64encode(key).decode('utf-8')						
+					session['salt'] = base64.b64encode(salt).decode('utf-8')
+
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
 						redirect_uri = "/?time=week"
 					return redirect(redirect_uri, code=302)
 				else:
-					return render_template('ht_login.html', fail=response_data)
-			else:
-				return render_template('ht_login.html', fail = 'Invalid profile id.')
+					return render_template('ht_login.html', fail=response_data)		
+		return render_template('ht_login.html', fail = "Invalid profile id.")
 	else:	
 		return render_template('ht_login.html')
 		
@@ -831,7 +845,7 @@ def profile():
 @app.route('/api/v{0}/profile/<int:profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
 def profile_by_id(profile_id):
 	if request.method == 'GET':
-		profile_object = ht_db.profileGetById(profile_id)
+		profile_object = ht_db.profileGet(profile_id)
 		if profile_object:
 			return json.dumps({'data' : profile_object})
 		else:
@@ -839,11 +853,11 @@ def profile_by_id(profile_id):
 	elif request.method == 'PUT':
 		request_json = request.json
 		if validate_json(['profile_id', 'hx_name', 'hx_host', 'hx_port'], request_json):
-			if ht_db.profileUpdateById(request_json['_id'], request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
+			if ht_db.profileUpdate(request_json['_id'], request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
 				app.logger.info("Controller profile %d modified.", profile_id)
 				return make_response_by_code(200)
 	elif request.method == 'DELETE':
-		if ht_db.profileDeleteById(profile_id):
+		if ht_db.profileDelete(profile_id):
 			app.logger.info("Controller profile %d deleted.", profile_id)
 			return make_response_by_code(200)
 		else:
@@ -892,7 +906,7 @@ def crypt_aes(key, iv, data, decrypt = False, base64_coding = True):
 	cipher = AES.new(key, AES.MODE_OFB, iv)
 	if decrypt:
 		if base64_coding:
-			data = base64.b64decode(data)
+			data = base64.b64decode(data).decode('utf-8')
 		data = cipher.decrypt(data)
 		# Implement PKCS7 de-padding
 		pad_length = ord(data[-1:])
@@ -907,7 +921,7 @@ def crypt_aes(key, iv, data, decrypt = False, base64_coding = True):
 			data += (chr(pad_length) * pad_length) 
 		data = cipher.encrypt(data)
 		if base64_coding:
-			data = base64.b64encode(data)
+			data = base64.b64encode(data).decode('utf-8')
 		return data
 		
 ### background processing 

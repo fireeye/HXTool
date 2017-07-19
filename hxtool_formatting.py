@@ -193,7 +193,7 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		
 		if bulk_download:
 			total_hosts = len(bulk_download['hosts'])
-			hosts_completed = len(filter(lambda _id: bulk_download['hosts'][_id]['downloaded'] == True, bulk_download['hosts']))
+			hosts_completed = len([h for h in bulk_download['hosts'] if h['downloaded'] == True])
 			if total_hosts > 0 and hosts_completed > 0:
 				
 				dlprogress = int(float(hosts_completed) / total_hosts * 100)
@@ -734,11 +734,11 @@ def formatCustomConfigChannels(ch):
 	x += "</table>"
 	return(x)
 	
-def formatStackTable(c, conn, profileid, hs):
+def formatStackTable(ht_db, profile_id, hs):
 
 	x = ""
 	
-	data = sqlGetStackJobsProfile(c, conn, profileid)
+	stack_jobs = ht_db.stackJobList(profile_id)
 	
 	x += "<table id='stacktable' class='genericTable' style='width: 100%;'>"
 	x += "<thead>"
@@ -757,34 +757,30 @@ def formatStackTable(c, conn, profileid, hs):
 	x += "</thead>"
 	x += "<tbody>"
 	
-	for entry in data:
+	for job in stack_jobs:
 		x += "<tr>"
-		x += "<td>" + str(entry[0]) + "</td>"
-		x += "<td>" + str(entry[1]) + "</td>"
-		x += "<td>" + str(entry[2]) + "</td>"
-		x += "<td>" + str(entry[3]) + "</td>"
-		x += "<td>" + str(entry[4]) + "</td>"
-		x += "<td>" + str(entry[5]) + "</td>"
-		x += "<td>" + str(entry[6]) + "</td>"
-		
-		# Host set
-		for hsentry in hs['data']['entries']:
-			if hsentry['_id'] == entry[7]:
-				hsname = hsentry['name']
-				hstype = hsentry['type']
-				
-		x += "<td>" + hsname + " - (" + hstype + ")" + "</td>"
+		x += "<td>" + str(job.eid) + "</td>"
+		x += "<td>" + str(job['create_timestamp']) + "</td>"
+		x += "<td>" + 'N/A' + "</td>"
+		x += "<td>" + 'N/A' + "</td>"
+		x += "<td>" + 'N/A' + "</td>"
+		x += "<td>" + str(job['profile_id'])	+ "</td>"
+		x += "<td>" + str(job['bulk_download_id']) + "</td>"		
+		x += "<td>" + str(job['hostset_id']) + "</td>"
 		
 		# Completion rate
+		job_progress = 0
+		if len(job['hosts']) > 0:
+			job_progress = int(float(len(job['hosts'])) / len(ht_db.bulkDownloadGet(job['profile_id'], job['bulk_download_id'])['hosts']) * 100)
 		x += "<td>"
-		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry[0]) + "' data-percent='" + str(entry[8]) + "'></div></div>"
+		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(job.eid) + "' data-percent='" + str(job_progress) + "'></div></div>"
 		x += "</td>"
 		
 		# Actions
 		x += "<td>"
-		x += "<a href='/stacking?stop=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
-		x += "<a href='/stacking?remove=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
-		x += "<a href='/stackinganalyze?id=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>analyze</a>"
+		x += "<a href='/stacking?stop=" +  str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
+		x += "<a href='/stacking?remove=" +  str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
+		x += "<a href='/stackinganalyze?id=" +  str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>analyze</a>"
 		x += "</td>"
 		x += "</tr>"
 	
