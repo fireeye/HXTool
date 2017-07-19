@@ -182,7 +182,7 @@ class hxtool_background_processor:
 		self.logger = logger
 		self._ht_db = hxtool_db
 		# TODO: maybe replace with hx_hostname, hx_port variables in __init__
-		profile = self._ht_db.profileGetById(profile_id)
+		profile = self._ht_db.profileGet(profile_id)
 		self._hx_api_object = HXAPI(profile['hx_host'], profile['hx_port'])
 		self.profile_id = profile_id
 		self.thread_count = thread_count
@@ -210,8 +210,9 @@ class hxtool_background_processor:
 		
 	def stop(self):
 		self._stop_event.set()
-		self._poll_thread.join()
-		for task_thread in self._task_thread_list:
+		if self._poll_thread.is_alive():
+			self._poll_thread.join()
+		for task_thread in [t for t in self._task_thread_list if t.is_alive()]:
 			task_thread.join()
 		if self._hx_api_object.restIsSessionValid():
 			(ret, response_code, response_data) = self._hx_api_object.restLogout()

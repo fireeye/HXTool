@@ -701,12 +701,12 @@ def stackinganalyze(hx_api_object):
 @valid_session_required
 def settings(hx_api_object):
 	if request.method == 'POST':
-		key = base64.b64decode(session['key']).decode('utf-8')
-		salt = base64.b64decode(session['salt']).decode('utf-8')
+		key = b64(session['key'], True)
 		# Generate a new IV - must be 16 bytes
 		iv = crypt_generate_random(16)
 		encrypted_password = crypt_aes(key, iv, request.form['bgpass'])
-		out = ht_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], base64.b64encode(iv).decode('utf-8'), base64.b64encode(salt).decode('utf-8'), encrypted_password)
+		salt = b64(session['salt'], True)
+		out = ht_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], b64(iv), b64(salt), encrypted_password)
 		app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
 	if request.args.get('unset'):
@@ -778,11 +778,14 @@ def login():
 					session['ht_user'] = request.form['ht_user']
 					session['ht_profileid'] = ht_profile['profile_id']
 					session['ht_api_object'] = hx_api_object.serialize()
+					
 					# Decrypt background processor credential if available
+					iv = None
+					salt = None
 					background_credential = ht_db.backgroundProcessorCredentialGet(ht_profile['profile_id'])
 					if background_credential:
-						salt = base64.b64decode(background_credential['salt']).decode('utf-8')
-						iv = base64.b64decode(background_credential['iv']).decode('utf-8')
+						salt = b64(background_credential['salt'], True)
+						iv = b64(background_credential['iv'], True)
 					else:
 						salt = crypt_generate_random(32)
 					
@@ -793,8 +796,8 @@ def login():
 						start_background_processor(ht_profile['profile_id'], background_credential['hx_api_username'], decrypted_background_password)
 						decrypted_background_password = None
 
-					session['key']= base64.b64encode(key).decode('utf-8')						
-					session['salt'] = base64.b64encode(salt).decode('utf-8')
+					session['key']= b64(key)					
+					session['salt'] = b64(salt)
 
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
@@ -906,8 +909,8 @@ def crypt_aes(key, iv, data, decrypt = False, base64_coding = True):
 	cipher = AES.new(key, AES.MODE_OFB, iv)
 	if decrypt:
 		if base64_coding:
-			data = base64.b64decode(data).decode('utf-8')
-		data = cipher.decrypt(data)
+			data = b64(data, True)
+		data = cipher.decrypt(data).decode('utf-8')
 		# Implement PKCS7 de-padding
 		pad_length = ord(data[-1:])
 		if 1 <= pad_length <= 15:
@@ -917,13 +920,21 @@ def crypt_aes(key, iv, data, decrypt = False, base64_coding = True):
 	else:
 		# Implement PKCS7 padding
 		pad_length = 16 - (len(data) % 16)
-		if pad_length != 16:
-			data += (chr(pad_length) * pad_length) 
+		if pad_length < 16:
+			data += (chr(pad_length) * pad_length)
+		data = data.encode('utf-8')			
 		data = cipher.encrypt(data)
 		if base64_coding:
-			data = base64.b64encode(data).decode('utf-8')
+			data = b64(data)
 		return data
-		
+"""
+Base64 encoding/decoding - Python 2/3 compatibility
+"""
+def b64(s, decode = False, decode_string = False):
+	if decode:
+		return base64.b64decode(s)
+	return base64.b64encode(s).decode('utf-8')
+	
 ### background processing 
 #################################
 def start_background_processor(profile_id, hx_api_username, hx_api_password):

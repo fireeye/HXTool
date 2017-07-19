@@ -59,7 +59,7 @@ class hxtool_db:
 	Also remove any background processor credentials associated with the profile
 	"""
 	def profileDelete(self, profile_id):
-		self.backgroundProcessorCredentialsUnset(profile_id)	
+		self.backgroundProcessorCredentialRemove(profile_id)	
 		with self._lock:
 			return self._db.table('profile').remove(eids = [int(profile_id)])
 		

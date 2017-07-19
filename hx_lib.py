@@ -106,29 +106,34 @@ class HXAPI:
 			min_api_version = self.api_version
 		return '/hx/api/v{0}/{1}'.format(min_api_version, api_endpoint)
 		
-	def handle_response(self, request, expect_multiple_json_objects = False, stream = False):
+	def handle_response(self, request, multiline_json = False, stream = True):
+		
+		response = None
+		response_data = None
 		
 		try:
 			response = self._session.send(request, stream = stream)
+
 			if not response.ok:
 				response.raise_for_status()
+
+			content_type = response.headers.get('Content-Type')
+			if content_type:
+				if 'json' in content_type:
+					if multiline_json:
+						response_data = [json.loads(_) for _ in response.iter_lines(decode_unicode = True) if _.startswith(b'{')]
+					else:
+						response_data = response.json()
+				elif 'text' in content_type:
+					response_data = response.text
+			else:
+				response_data = response.content
+					
+			return(True, response.status_code, response_data, response.headers)	
 		except requests.HTTPError as e:
 			return(False, response.status_code, e, None)
 		
-		response_data = response.content
 		
-		content_type = response.headers.get('Content-Type')
-		if content_type:
-			if 'json' in content_type:
-				if expect_multiple_json_objects:
-					# TODO: replace with Response.iter_lines()?
-					response_data = [json.loads(_) for _ in response_data.splitlines() if _.startswith('{')]
-				else:
-					response_data = response.json()
-			elif 'text' in content_type:
-				response_data = response.text
-				
-		return(True, response.status_code, response_data, response.headers)
 
 	def set_token(self, token):
 		self.logger.debug('set_token called')
@@ -514,7 +519,7 @@ class HXAPI:
 		data = json.dumps({'agent._id' : [agent_id]})
 	
 		request = self.build_request(self.build_api_route('alerts/filter'), method = 'POST', data = data)
-		(ret, response_code, response_data, response_headers) = self.handle_response(request, expect_multiple_json_objects = True)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request, multiline_json = True)
 		
 		if ret:
 			from operator import itemgetter
@@ -534,7 +539,7 @@ class HXAPI:
 							
 		request = self.build_request(self.build_api_route('alerts/filter'), method = 'POST', data = data)
 		
-		(ret, response_code, response_data, response_headers) = self.handle_response(request, expect_multiple_json_objects = True)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request, multiline_json = True)
 		
 		if ret:
 			from operator import itemgetter
