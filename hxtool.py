@@ -602,7 +602,7 @@ def bulkaction(hx_api_object):
 		hosts = []
 		for host in response_data['data']['entries']:
 			hosts.append({'_id' : host['host']['_id'], 'downloaded' : False, 'host_name' : host['host']['hostname']})
-		ret = ht_db.bulkDownloadAdd(session['ht_profileid'], request.args.get('id'), hosts)
+		ret = ht_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 		

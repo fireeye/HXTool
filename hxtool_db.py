@@ -94,7 +94,7 @@ class hxtool_db:
 		
 	def bulkDownloadCreate(self, profile_id, bulk_download_id, hosts, hostset_id = -1, stack_job = False):
 		with self._lock:
-			return self._db.table('bulk_download').insert({'profile_id' : int(profile_id), 'bulk_download_id': int(bulk_download_id), 'hosts' : hosts, 'hostset_id' : hostset_id, 'stopped' : False, 'stack_job' : stack_job})
+			return self._db.table('bulk_download').insert({'profile_id' : int(profile_id), 'bulk_download_id': int(bulk_download_id), 'hosts' : hosts, 'hostset_id' : hostset_id, 'stopped' : False, 'stack_job' : stack_job, 'create_timestamp' : str(datetime.datetime.utcnow()), 'update_timestamp' : str(datetime.datetime.utcnow())})
 	
 	def bulkDownloadGet(self, profile_id, bulk_download_id):
 		return self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == int(profile_id)) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
@@ -108,6 +108,7 @@ class hxtool_db:
 		if r and r['hosts'].index({'_id' : host_id}):
 			with self._lock:
 				r['hosts'][r['hosts'].index({'_id' : host_id})]['downloaded'] = True
+				r['update_timestamp'] = str(datetime.datetime.utcnow())
 				return self._db.table('bulk_download').update(r, eids = [ r.eid ])
 																			
 	def bulkDownloadStop(self, profile_id, bulk_download_id):

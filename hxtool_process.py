@@ -212,7 +212,7 @@ class hxtool_background_processor:
 		self._stop_event.set()
 		if self._poll_thread.is_alive():
 			self._poll_thread.join()
-		for task_thread in [t for t in self._task_thread_list if t.is_alive()]:
+		for task_thread in [_ for _ in self._task_thread_list if _.is_alive()]:
 			task_thread.join()
 		if self._hx_api_object.restIsSessionValid():
 			(ret, response_code, response_data) = self._hx_api_object.restLogout()
@@ -220,9 +220,9 @@ class hxtool_background_processor:
 	def bulk_download_processor(self, poll_interval):
 		while not self._stop_event.is_set():
 			bulk_jobs = self._ht_db.bulkDownloadList(self.profile_id)
-			for job in [j for j in bulk_jobs if j['stopped'] == False]:
+			for job in [_ for _ in bulk_jobs if _['stopped'] == False]:
 				download_directory = self.make_download_directory(job['bulk_download_id'])
-				for host in [h for h in job['hosts'] if h['downloaded'] == False]:
+				for host in [_ for _ in job['hosts'] if _['downloaded'] == False]:
 					(ret, response_code, response_data) = self._hx_api_object.restGetBulkHost(job['bulk_download_id'], host['_id'])
 					if ret:
 						if response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
