@@ -9,8 +9,10 @@
 
 try:
 	import requests
+	from requests.packages.urllib3.exceptions import InsecureRequestWarning
 except ImportError:
 	print("HXTool requires the requests Python library, please install it.")
+	exit(1)
 	
 import urllib
 import base64
@@ -48,6 +50,7 @@ class HXAPI:
 		if disable_certificate_verification:
 			self.logger.info('SSL/TLS certificate verification disabled.')
 			self._session.verify = False
+			requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 		
 		self.hx_user = None
 		self.fe_token = None
@@ -106,7 +109,7 @@ class HXAPI:
 			min_api_version = self.api_version
 		return '/hx/api/v{0}/{1}'.format(min_api_version, api_endpoint)
 		
-	def handle_response(self, request, multiline_json = False, stream = True):
+	def handle_response(self, request, multiline_json = False, stream = False):
 		
 		response = None
 		response_data = None
@@ -357,11 +360,10 @@ class HXAPI:
 		return(ret, response_code, response_data)
 		
 	# List Bulk Acquisitions
-	def restListBulkAcquisitions(self, limit=1000):
+	def restListBulkAcquisitions(self, limit=10000):
 
 		request = self.build_request(self.build_api_route('acqs/bulk?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-		
 		return(ret, response_code, response_data)
 
 

@@ -599,9 +599,9 @@ def bulkaction(hx_api_object):
 		
 	if request.args.get('action') == "download":
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
-		hosts = []
+		hosts = {}
 		for host in response_data['data']['entries']:
-			hosts.append({'_id' : host['host']['_id'], 'downloaded' : False, 'host_name' : host['host']['hostname']})
+			hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' : host['host']['hostname']}
 		ret = ht_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
@@ -648,13 +648,23 @@ def reportgen(hx_api_object):
 def stacking(hx_api_object):
 	
 	if request.args.get('stop'):
-		sqlChangeStackJobState(c, conn, request.args.get('stop'), session['ht_profileid'], "STOPPING")
-		app.logger.info('Data stacking action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+		stack_job = ht_db.stackJobGetById(request.args.get('stop'))
+		if stack_job:
+			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', stack_job['bulk_download_id'])
+			if ret:
+				ht_db.stackJobStop(stack_job.eid)
+				ht_db.bulkDownloadStop(session['ht_profileid'], stack_job['bulk_download_id'])
+				app.logger.info('Data stacking action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 
 	if request.args.get('remove'):
-		sqlChangeStackJobState(c, conn, request.args.get('remove'), session['ht_profileid'], "REMOVING")
-		app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+		stack_job = ht_db.stackJobGetById(request.args.get('remove'))
+		if stack_job:
+			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', stack_job['bulk_download_id'])
+			if ret:
+				ht_db.stackJobDelete(stack_job.eid)
+				ht_db.bulkDownloadDelete(session['ht_profileid'], stack_job['bulk_download_id'])
+				app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 
 		
@@ -664,14 +674,14 @@ def stacking(hx_api_object):
 			bulk_acquisition_script = f.read()
 		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['stackhostset'])
 		hosts = []
-		bulk_job_entry_hosts = {}
+		bulk_download_entry_hosts = {}
 		for host in response_data['data']['entries']:
 			hosts.append({'_id' : host['_id']})
-			bulk_job_entry_hosts[host['_id']] = { 'downloaded' : False, 'host_name' : host['hostname']}
+			bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
 		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts)
 		app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		bulk_job_entry = ht_db.bulkDownloadAdd(session['ht_profileid'], response_data['data']['_id'], bulk_job_entry_hosts, stack_job = True)
-		ret = ht_db.stackJobCreate(session['ht_profileid'], response_data['data']['_id'])
+		bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], response_data['data']['_id'], bulk_download_entry_hosts, stack_job = True)
+		ret = ht_db.stackJobCreate(session['ht_profileid'], response_data['data']['_id'], request.form['stacktype'])
 		app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 	
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()

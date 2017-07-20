@@ -1,11 +1,18 @@
-from hxtool_db import *
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import threading			
+import time
 import zipfile
 import json	
 import xml.etree.ElementTree as ET
 import os
 import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+try:
+	import Queue as queue
+except ImportError:
+	import queue
 
 try:
 	from StringIO import StringIO
@@ -13,6 +20,8 @@ except ImportError:
 	# Running on Python 3.x
 	from io import StringIO
 
+from hxtool_db import *
+from hx_lib import *
 
 def findPayloadServiceMD5(sourcefile):
 	with zipfile.ZipFile(StringIO(sourcefile)) as zf:
@@ -43,136 +52,6 @@ def parseXmlServiceMD5Data(sourcedata):
 		acqdata.append(store)
 	
 	return(acqdata)
-		
-def backgroundStackProcessor(c, conn, myConf, app):
-	
-	###
-	### Control bulk acquisitions for stacking job
-	##############################
-	
-	jobs = sqlGetStackJobs(c, conn)
-	
-	for job in jobs:
-	
-		stackid = job[0]
-		jobtype = job[1]
-		state = job[2]
-		profileid = job[3]
-		bulkid = job[4]
-		hostset = job[5]
-		c_rate = job[6]
-		
-		# If the job-profile doesn't have background credentials set - skip it
-		if len(sqlGetProfCredTable(c, conn, profileid)) == 0:
-			continue
-		else:
-			(hx_host, hx_port, hx_user, hx_pass) = sqlGetProfileBackgroundCredentials(c, conn, profileid)
-			hx_api_object = HXAPI(hx_host, hx_port)
-		
-		(ret, response_code, response_data) = hx_api_object.restLogin(hx_user, hx_pass)
-		
-		if ret:
-			# User created a new stack job, create a new bulk acquisition
-			if state == "SCHEDULED":
-				
-				app.logger.info("Stacking: Starting bulk acquisition - %s", jobtype)
-							
-				
-				# Get the acquisition script
-				if job[1] == "services-md5":
-					bulkscript = open('scripts/services-md5.xml', 'r').read()
-				
-				# Post the new acquisition to the controller
-				(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulkscript, hostset)
-				bulkid = response_data['data']['_id']
-				
-				out = sqlUpdateStackJobSubmitted(c, conn, stackid, bulkid)
-				
-				(ret, response_code, response_data) = hx_api_object.restLogout()
-			
-			# User requested the stack job to stop, stop it on the controller and change state
-			if state == "STOPPING":
-				
-				app.logger.info("Stacking: Stopping bulk acquisition - %s", jobtype)
-				
-				(ret, response_code, response_data) = hx_api_object.restCancelJob('/hx/api/v2/acqs/bulk/', bulkid)
-				out = sqlUpdateStackJobState(c, conn, stackid, "STOPPED")
-				
-				(ret, response_code, response_data) = hx_api_object.restLogout()
-			
-			# User requested the stack job to be removed, delete it on the controller and remove it from stacktable
-			if state == "REMOVING":
-			
-				app.logger.info("Stacking: Removing bulk acquisition - %s", jobtype)
-
-				(ret, response_code, response_data) = hx_api_object.restDeleteJob('/hx/api/v2/acqs/bulk/', bulkid)
-				sqlDeleteStackServiceMD5(c, conn, stackid)
-				sqlDeleteStackJob(c, conn, profileid, stackid)
-				
-				(ret, response_code, response_data) = hx_api_object.restLogout()
-		
-			# The bulk acquisition has been posted to the controller, poll it and check if its running and update the state
-			if state == "SUBMITTED":
-				
-				(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(bulkid)
-				
-				if response_data['data']['state'] == "RUNNING":
-					app.logger.info("Stacking: Bulk acquisition is running on the controller, update the state - %s", response_data['data']['state'])
-					out = sqlUpdateStackJobState(c, conn, stackid, "RUNNING")
-
-				(ret, response_code, response_data) = hx_api_object.restLogout()
-		
-			# The bulk acquisition is running on the controller, continously poll for new results and update the stats
-			if state == "RUNNING":
-			
-				(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(bulkid)
-				
-				# calculate completion rate
-				total_size = response_data['data']['stats']['running_state']['NEW'] + response_data['data']['stats']['running_state']['QUEUED'] + response_data['data']['stats']['running_state']['FAILED'] + response_data['data']['stats']['running_state']['ABORTED'] + response_data['data']['stats']['running_state']['DELETED'] + response_data['data']['stats']['running_state']['REFRESH'] + response_data['data']['stats']['running_state']['CANCELLED'] + response_data['data']['stats']['running_state']['COMPLETE']
-				if total_size == 0:
-					completerate = 0
-				else:
-					completerate = int(float(response_data['data']['stats']['running_state']['COMPLETE']) / float(total_size) * 100)
-				
-				out = sqlUpdateStackJobProgress(c, conn, stackid, completerate)
-				
-				# query bulk acquisition results
-				(ret, response_code, response_data) = hx_api_object.restListBulkDetails(bulkid)
-				
-				iter = 0
-				for entry in response_data['data']['entries']:
-					if entry['state'] == "COMPLETE":
-						if not sqlQueryStackServiceMD5(c, conn, stackid, entry['host']['hostname']):
-						
-							app.logger.info("Stacking: Found completed bulk acquisition - %s", entry['host']['hostname'])
-						
-							(ret, response_code, response_data) = hx_api_object.restDownloadBulkAcq(entry['result']['url'])
-						
-							# Post-process acquisition results
-							payload_data = findPayloadServiceMD5(response_data)
-							payload_xml = parsePayloadServiceMD5(response_data, payload_data)
-							payload_parsed = parseXmlServiceMD5Data(payload_xml)
-						
-							dbresult = sqlAddStackServiceMD5(c, conn, stackid, entry['host']['hostname'], payload_parsed)
-							
-							app.logger.info("Stacking: Completed post-processing - %s", entry['host']['hostname'])
-							
-							iter = iter + 1
-					
-					# If cap is reached break out and reloop
-					if iter == myConf['background_processor']['stack_jobs_per_poll']:
-						break
-					
-			(ret, response_code, response_data) = hx_api_object.restLogout()
-
-
-from hx_lib import *
-import threading			
-import time
-try:
-	import Queue as queue
-except ImportError:
-	import queue
 
 """
 Assume most systems are quad core, so 4 threads should be optimal - 1 thread per core
@@ -219,15 +98,15 @@ class hxtool_background_processor:
 
 	def bulk_download_processor(self, poll_interval):
 		while not self._stop_event.is_set():
-			bulk_jobs = self._ht_db.bulkDownloadList(self.profile_id)
-			for job in [_ for _ in bulk_jobs if _['stopped'] == False]:
+			bulk_download_jobs = self._ht_db.bulkDownloadList(self.profile_id)
+			for job in [_ for _ in bulk_download_jobs if not _['stopped']]:
 				download_directory = self.make_download_directory(job['bulk_download_id'])
-				for host in [_ for _ in job['hosts'] if _['downloaded'] == False]:
-					(ret, response_code, response_data) = self._hx_api_object.restGetBulkHost(job['bulk_download_id'], host['_id'])
+				for host_id, host in [(_, job['hosts'][_]) for _ in job['hosts'] if not job['hosts'][_]['downloaded']]:
+					(ret, response_code, response_data) = self._hx_api_object.restGetBulkHost(job['bulk_download_id'], host_id)
 					if ret:
 						if response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
-							full_path = os.path.join(download_directory, '{0}_{1}.zip'.format(host['host_name'], host['_id']))
-							self._task_queue.put((self.download_task, (job['bulk_download_id'], host['_id'], job['stack_job'], response_data['data']['result']['url'], full_path)))
+							full_path = os.path.join(download_directory, '{0}_{1}.zip'.format(host['hostname'], host_id))
+							self._task_queue.put((self.download_task, (job['bulk_download_id'], host_id, job['stack_job'], response_data['data']['result']['url'], full_path)))
 			time.sleep(poll_interval)
 			
 	def await_task(self):
@@ -241,14 +120,15 @@ class hxtool_background_processor:
 		if ret:
 			self._ht_db.bulkDownloadUpdateHost(self.profile_id, bulk_download_id, host_id)
 			if is_stack_job:
-				self._task_queue.put((self.stack_task, (bulk_download_id, destination_path,)))
+				self._task_queue.put((self.stack_task, (bulk_download_id, host_id, destination_path)))
 
-	def stack_task(self, bulk_download_id, file_path):
+	def stack_task(self, bulk_download_id, host_id, file_path):
 		with zipfile.ZipFile(file_path) as f:
 			acquisition_manifest = json.loads(f.read('manifest.json'))
-			results_file = acquisition_manifest['audits'][0]['results'][0]['type']['payload']	
-			results = f.read(results_files[0]['payload'])
-			print(results)
+			if acquisition_manifest['audits'][0]['results'][0]['type'] == "application/xml":
+				results_file = acquisition_manifest['audits'][0]['results'][0]['payload']	
+				results = f.read(results_file)
+				self._ht_db.stackJobAddHost(self.profile_id, bulk_download_id, host_id, str(results))
 			
 	def make_download_directory(self, bulk_download_id):
 		download_directory = os.path.join(self._download_directory_base, self._hx_api_object.hx_host, str(bulk_download_id))

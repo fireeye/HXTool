@@ -128,9 +128,9 @@ def formatSearchResults(hostresults):
 			x += "</td>"
 			x += "</tr>"
 
-		x += "</tbody>"
-		x += "</table>"
-		return (x)
+	x += "</tbody>"
+	x += "</table>"
+	return (x)
 
 
 def formatBulkTable(ht_db, bulktable, profileid):
@@ -157,7 +157,6 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		"<tbody>"
 
 	for entry in bulktable['data']['entries']:
-
 
 	
 		bulk_download = ht_db.bulkDownloadGet(profileid, entry['_id'])
@@ -193,7 +192,7 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		
 		if bulk_download:
 			total_hosts = len(bulk_download['hosts'])
-			hosts_completed = len([h for h in bulk_download['hosts'] if h['downloaded'] == True])
+			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
 			if total_hosts > 0 and hosts_completed > 0:
 				
 				dlprogress = int(float(hosts_completed) / total_hosts * 100)
@@ -224,12 +223,12 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		
 		x += "</tr>"
 
-		x += "</tbody>"
-		x += "</table>"
-		return (x)
+	x += "</tbody>"
+	x += "</table>"
+	return (x)
 
 # Renders the bulk table on the Jobs dashboard
-def formatBulkTableJobDash(c, conn, bulktable, profileid):
+def formatBulkTableJobDash(ht_db, bulktable, profileid):
 
 	x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>" \
 		"<thead>" \
@@ -274,9 +273,9 @@ def formatBulkTableJobDash(c, conn, bulktable, profileid):
 		
 		x += "</tr>"
 
-		x += "</tbody>"
-		x += "</table>"
-		return (x)
+	x += "</tbody>"
+	x += "</table>"
+	return (x)
 		
 		
 def formatBulkHostsTable(hoststable):
@@ -307,9 +306,9 @@ def formatBulkHostsTable(hoststable):
 		x += "</td>"
 		x += "</tr>"
 
-		x += "</tbody>"
-		x += "</table>"
-		return (x)
+	x += "</tbody>"
+	x += "</table>"
+	return (x)
 
 
 def formatIOCResults(iocs):
@@ -483,8 +482,8 @@ def formatDashAlerts(alerts, hx_api_object):
 		x += "<td>" + str(entry['matched_at']) + "</td>"
 		x += "</tr>"
 
-		x += "</tbody>"
-		x += "</table>"
+	x += "</tbody>"
+	x += "</table>"
 
 	return(x)
 
@@ -761,9 +760,9 @@ def formatStackTable(ht_db, profile_id, hs):
 		x += "<tr>"
 		x += "<td>" + str(job.eid) + "</td>"
 		x += "<td>" + str(job['create_timestamp']) + "</td>"
-		x += "<td>" + 'N/A' + "</td>"
-		x += "<td>" + 'N/A' + "</td>"
-		x += "<td>" + 'N/A' + "</td>"
+		x += "<td>" + str(job['update_timestamp']) + "</td>"
+		x += "<td>" + job['script_type'] + "</td>"
+		x += "<td>" + ("STOPPED" if job['stopped'] else "RUNNING") + "</td>"
 		x += "<td>" + str(job['profile_id'])	+ "</td>"
 		x += "<td>" + str(job['bulk_download_id']) + "</td>"		
 		x += "<td>" + str(job['hostset_id']) + "</td>"
