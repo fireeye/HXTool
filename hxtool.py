@@ -616,18 +616,18 @@ def stacking():
 			
 			if request.args.get('stop'):
 				sqlChangeStackJobState(c, conn, request.args.get('stop'), session['ht_profileid'], "STOPPING")
-				app.logger.info('Data stacking action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+				app.logger.info('Data stacking action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 				return redirect("/stacking", code=302)
 
 			if request.args.get('remove'):
 				sqlChangeStackJobState(c, conn, request.args.get('remove'), session['ht_profileid'], "REMOVING")
-				app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+				app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 				return redirect("/stacking", code=302)
 
 				
 			if request.method == 'POST':
 				out = sqlAddStackJob(c, conn, session['ht_profileid'], request.form['stacktype'], request.form['stackhostset'])
-				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], session['ht_ip'], session['ht_port']))
+				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 			
 			(ret, response_code, response_data) = hx_api_object.restListHostsets()
 			hostsets = formatHostsets(response_data)
