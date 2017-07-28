@@ -133,8 +133,11 @@ class HXAPI:
 				response_data = response.content
 					
 			return(True, response.status_code, response_data, response.headers)	
-		except requests.HTTPError as e:
-			return(False, response.status_code, e, None)
+		except (requests.HTTPError, requests.ConnectionError) as e:
+			response_code = None
+			if e.response:
+				response_code = e.response.status_code
+			return(False, response_code, e, None)
 		
 		
 
