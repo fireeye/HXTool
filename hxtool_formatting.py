@@ -161,7 +161,6 @@ def formatBulkTable(c, conn, bulktable, profileid):
 
 		out = sqlGetStackJobsForBulkId(c, conn, profileid, entry['_id'])
 		bulkdl = sqlGetBulkDownloadStatus(c, conn, profileid, entry['_id'])
-		print(entry)
 		x += "<tr class='clickable-row' data-href='/bulkdetails?id=" + str(entry['_id']) + "'>"
 		x += "<td>" + str(entry['_id']) + "</td>"
 		x += "<td>" + str(entry['state']) + "</td>"
