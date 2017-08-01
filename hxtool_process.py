@@ -7,7 +7,6 @@ import zipfile
 import json	
 import xml.etree.ElementTree as ET
 import os
-import requests
 
 try:
 	import Queue as queue
@@ -22,21 +21,6 @@ except ImportError:
 
 from hxtool_db import *
 from hx_lib import *
-
-def findPayloadServiceMD5(sourcefile):
-	with zipfile.ZipFile(StringIO(sourcefile)) as zf:
-		data = zf.read("manifest.json")
-		arrData = json.loads(data)
-		for audit in arrData['audits']:
-			if audit['generator'] == "w32services":
-				for item in audit['results']:
-					if item['type'] == "application/xml":
-						return item['payload']
-
-def parsePayloadServiceMD5(sourcefile, payloadname):
-	with zipfile.ZipFile(StringIO(sourcefile)) as zf:
-		data = zf.read(payloadname)
-		return data
 
 def parseXmlServiceMD5Data(sourcedata):
 
@@ -54,7 +38,9 @@ def parseXmlServiceMD5Data(sourcedata):
 	return(acqdata)
 
 """
-Assume most systems are quad core, so 4 threads should be optimal - 1 thread per core
+Multi-threaded bulk download
+
+thread_count: Assume most systems are quad core, so 4 threads should be optimal - 1 thread per core
 """					
 class hxtool_background_processor:
 	def __init__(self, hxtool_config, hxtool_db, profile_id, thread_count = 4, logger = logging.getLogger(__name__)):
@@ -128,7 +114,7 @@ class hxtool_background_processor:
 			if acquisition_manifest['audits'][0]['results'][0]['type'] == "application/xml":
 				results_file = acquisition_manifest['audits'][0]['results'][0]['payload']	
 				results = f.read(results_file)
-				self._ht_db.stackJobAddHost(self.profile_id, bulk_download_id, host_id, str(results))
+				self._ht_db.stackJobAddHost(self.profile_id, bulk_download_id, host_id, results.decode('utf-8'))
 			
 	def make_download_directory(self, bulk_download_id):
 		download_directory = os.path.join(self._download_directory_base, self._hx_api_object.hx_host, str(bulk_download_id))
