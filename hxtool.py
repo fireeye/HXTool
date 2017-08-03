@@ -118,9 +118,9 @@ def index(hx_api_object):
 		
 		stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}, {'value': 0, 'label': 'Malware'}]
 		if nr_of_alerts > 0:
-			stats[0]['value'] = len([_ for _ in alert if _['source'] == "EXD"])
-			stats[1]['value'] = len([_ for _ in alert if _['source'] == "IOC"])
-			stats[2]['value'] = len([_ for _ in alert if _['source'] == "MAL"])
+			stats[0]['value'] = len([_ for _ in response_data if _['source'] == "EXD"])
+			stats[1]['value'] = len([_ for _ in response_data if _['source'] == "IOC"])
+			stats[2]['value'] = len([_ for _ in response_data if _['source'] == "MAL"])
 			
 			stats[0]['value'] = round((stats[0]['value'] / float(nr_of_alerts)) * 100)
 			stats[1]['value'] = round((stats[1]['value'] / float(nr_of_alerts)) * 100)
