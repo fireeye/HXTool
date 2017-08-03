@@ -8,7 +8,7 @@
 <script language="JavaScript">
 	function deleteProfile(e) {
 		profile_id = $(e).attr("profile-id");
-		if (profile_id > 0) {
+		if (profile_id) {
 			$.ajax({
 				type: "DELETE",
 				url: "/api/v1/profile/" + profile_id,
@@ -71,6 +71,8 @@
 					alert("Error: " + xhr.responseJSON);
 				}
 			});
+			
+			$("#controllerProfileManagerAddProfilePanel").hide(200);
 		});
 	});
 </script>
@@ -136,7 +138,7 @@
 			<br />
 			<br />
 			<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>Port</div>
-			<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfilePort' data-key='hx_port'>
+			<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfilePort' data-key='hx_port' placeholder = '{{ hx_default_port }}'>
 			<br />
 			<br />
 			<input type='button' value='Cancel' onclick='JavaScript: $("#controllerProfileManagerAddProfilePanel").hide(200);' />

@@ -733,9 +733,9 @@ def login():
 					return redirect(redirect_uri, code=302)
 				else:
 					return render_template('ht_login.html', fail=response_data)		
-		return render_template('ht_login.html', fail = "Invalid profile id.")
+		return render_template('ht_login.html', hx_default_port = HXAPI.HX_DEFAULT_PORT, fail = "Invalid profile id.")
 	else:	
-		return render_template('ht_login.html')
+		return render_template('ht_login.html', hx_default_port = HXAPI.HX_DEFAULT_PORT)
 		
 @app.route('/logout', methods=['GET'])
 def logout():
@@ -772,7 +772,7 @@ def profile():
 		else:
 			return make_response_by_code(400)
 			
-@app.route('/api/v{0}/profile/<int:profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/v{0}/profile/<profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
 def profile_by_id(profile_id):
 	if request.method == 'GET':
 		profile_object = ht_db.profileGet(profile_id)
