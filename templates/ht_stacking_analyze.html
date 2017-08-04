@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Stacking analysis{% endblock %}
+{% block navlocation %}Stacking analysis{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+		$.ajax({
+				type: "GET",
+				url: "/api/v1/stacking/{{ stack_id }}/results",
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				success: function(r) {
+					var columns = [];
+					// Dynamically create table column headers. Yuck...
+					//$('#stackResultsTable').append('<thead><tr>');
+					$.each(r[0], function(k, v) {
+						columns.push({'name' : k, 'title' : k, 'data' : k});
+					});
+					//$('#stackResultsTable').append('</tr></thead>');
+					
+					$('#stackResultsTable').DataTable( {
+                        "info": false,
+						"columns": columns,
+						"data": r, 
+                        "pageLength": 20,
+                        "lengthChange": false,
+					});
+				},
+				error: function(xhr) {
+					alert("Error: " + xhr.responseJSON);
+				}
+		});
+		
+	});
+</script>
+
+<br>
+
+<div class='tableTitle'>
+        Stacking Results
+</div>
+<table id='stackResultsTable' class='genericTable' style='width: 100%;'>
+</table>
+{% endblock %}

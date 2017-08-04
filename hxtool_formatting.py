@@ -745,7 +745,7 @@ def formatStackTable(ht_db, profile_id, hs):
 	x += "<td>ID</td>"
 	x += "<td>Created</td>"
 	x += "<td>Last updated</td>"
-	x += "<td>Type</td>"
+	x += "<td>Stack Type</td>"
 	x += "<td>State</td>"
 	x += "<td>Profile ID</td>"
 	x += "<td>HX Bulk ID</td>"
@@ -761,7 +761,7 @@ def formatStackTable(ht_db, profile_id, hs):
 		x += "<td>" + str(job.eid) + "</td>"
 		x += "<td>" + str(job['create_timestamp']) + "</td>"
 		x += "<td>" + str(job['update_timestamp']) + "</td>"
-		x += "<td>" + job['script_type'] + "</td>"
+		x += "<td>" + job['stack_type'] + "</td>"
 		x += "<td>" + ("STOPPED" if job['stopped'] else "RUNNING") + "</td>"
 		x += "<td>" + str(job['profile_id'])	+ "</td>"
 		x += "<td>" + str(job['bulk_download_id']) + "</td>"		
@@ -769,8 +769,9 @@ def formatStackTable(ht_db, profile_id, hs):
 		
 		# Completion rate
 		job_progress = 0
-		if len(job['hosts']) > 0:
-			job_progress = int(float(len(job['hosts'])) / len(ht_db.bulkDownloadGet(job['profile_id'], job['bulk_download_id'])['hosts']) * 100)
+		bulk_download = ht_db.bulkDownloadGet(job['profile_id'], job['bulk_download_id'])
+		hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
+		job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
 		x += "<td>"
 		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(job.eid) + "' data-percent='" + str(job_progress) + "'></div></div>"
 		x += "</td>"
@@ -786,44 +787,6 @@ def formatStackTable(ht_db, profile_id, hs):
 	x += "</tbody>"
 	x += "</table>"
 
-	return(x)
-
-def formatServiceMD5StackData(stacktable):
-
-	x = ""
-
-	x += "<table id='svcmd5' class='genericTable' style='width: 100%;'>"
-	x += "<thead>"
-	x += "<tr>"
-	x += "<td>Count</td>"
-	x += "<td>Hostname</td>"
-	x += "<td>Name</td>"
-	x += "<td>Path</td>"
-	x += "<td>Path MD5</td>"
-	x += "<td>Service DLL</td>"
-	x += "<td>Service DLL MD5</td>"
-	x += "</tr>"
-	x += "</thead>"
-	x += "<tbody>"
-	
-	for entry in stacktable:
-		x += "<tr>"
-		x += "<td>" + str(entry[0]) + "</td>"
-		# Name of endpoint
-		if (entry[0] == 1):
-			x += "<td>" + str(entry[6]) + "</td>"
-		else:
-			x += "<td>Multiple</td>"
-		x += "<td>" + str(entry[1]) + "</td>"
-		x += "<td>" + str(entry[2]) + "</td>"
-		x += "<td>" + str(entry[3]) + "</td>"
-		x += "<td>" + str(entry[4]) + "</td>"
-		x += "<td>" + str(entry[5]) + "</td>"
-		x += "</tr>"
-
-	x += "</tbody>"
-	x += "</table>"
-	
 	return(x)
 
 	

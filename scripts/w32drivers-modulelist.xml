@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<command xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="AuditHostScriptCommand" id="urn:uuid:a41122b4-f645-4c7a-8a35-f662f25ee0e9">
+  <input>
+    <type>application/vnd.mandiant.host+xml</type>
+  </input>
+  <result>
+    <type>application/vnd.mandiant.auditresult+xml</type>
+  </result>
+  <script id="urn:uuid:af6d83f3-adf5-4da0-a3cd-e0f0e1e2ff49" chaining="implicit">
+    <commands>
+      <command xsi:type="ExecuteModuleCommand" id="urn:uuid:a6b83e31-dc3a-404f-a776-72ebedf57d84">
+        <module name="w32drivers-modulelist" version="1.4.46.0" />
+        <config xsi:type="ParameterListModuleConfig">
+          <parameters>
+            <param name="memory file" />
+            <param name="Filter Behavior" />
+            <param name="Prevent Hibernation">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+          </parameters>
+        </config>
+      </command>
+    </commands>
+  </script>
+</command>

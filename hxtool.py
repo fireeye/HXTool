@@ -22,6 +22,7 @@ import datetime
 import threading
 import time
 from functools import wraps
+import xml.etree.ElementTree as ET
 
 try:
 	import StringIO
@@ -51,6 +52,7 @@ from hxtool_formatting import *
 from hxtool_db import *
 from hxtool_process import *
 from hxtool_config import *
+from hxtool_data_models import *
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -586,39 +588,34 @@ def stacking(hx_api_object):
 
 		
 	if request.method == 'POST':
-		script_type = request.form['stacktype']
-		with open(os.path.join('scripts', '{0}.xml'.format(script_type)), 'rb') as f:
-			bulk_acquisition_script = f.read()
-		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['stackhostset'])
-		hosts = []
-		bulk_download_entry_hosts = {}
-		for host in response_data['data']['entries']:
-			hosts.append({'_id' : host['_id']})
-			bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
-		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts)
-		app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], response_data['data']['_id'], bulk_download_entry_hosts, stack_job = True)
-		ret = ht_db.stackJobCreate(session['ht_profileid'], response_data['data']['_id'], request.form['stacktype'])
-		app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+		stack_type = hxtool_data_models.stack_types.get(request.form['stack_type'])
+		if stack_type:
+			with open(os.path.joing('scripts', stack_type['script']), 'rb') as f:
+				stack_script = f.read()
+			(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['stackhostset'])
+			hosts = []
+			bulk_download_entry_hosts = {}
+			for host in response_data['data']['entries']:
+				hosts.append({'_id' : host['_id']})
+				bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
+			(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts)
+			app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], response_data['data']['_id'], bulk_download_entry_hosts, stack_job = True)
+			ret = ht_db.stackJobCreate(session['ht_profileid'], response_data['data']['_id'], request.form['stack_type'])
+			app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 	
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
 	hostsets = formatHostsets(response_data)
 	
 	stacktable = formatStackTable(ht_db, session['ht_profileid'], response_data)
 	
-	return render_template('ht_stacking.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), stacktable=stacktable, hostsets=hostsets)
+	return render_template('ht_stacking.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), stacktable=stacktable, hostsets=hostsets, stack_types = hxtool_data_models.stack_types)
 
 
 @app.route('/stackinganalyze', methods=['GET', 'POST'])
 @valid_session_required
 def stackinganalyze(hx_api_object):
-	
-	stackid = request.args.get('id')
-	
-	stackdata = sqlGetServiceMD5StackData(c, conn, stackid)
-	stacktable = formatServiceMD5StackData(stackdata)
-	
-	return render_template('ht_stacking_analyze_svcmd5.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), stacktable=stacktable)
+	return render_template('ht_stacking_analyze.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), stack_id = request.args.get('id'))
 		
 			
 ### Settings
@@ -792,7 +789,24 @@ def profile_by_id(profile_id):
 			return make_response_by_code(200)
 		else:
 			return make_response_by_code(404)
-			
+
+#####################
+# Stacking Results
+#####################
+@app.route('/api/v{0}/stacking/<int:stack_id>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def stack_job_results(hx_api_object, stack_id):
+	stack_job = ht_db.stackJobGetById(stack_id)
+	
+	if stack_job is None:
+		return make_response_by_code(404)
+
+	if session['ht_profileid'] != stack_job['profile_id']:
+		return make_response_by_code(401)
+		
+	ht_data_model = hxtool_data_models(stack_job['stack_type'])
+	return ht_data_model.stack_data(stack_job['results'])	
+		
 		
 ####################
 # Utility Functions

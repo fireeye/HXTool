@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<command xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="AuditHostScriptCommand" id="urn:uuid:31485653-e5fa-42ea-92a9-33f453fdf0c5">
+  <input>
+    <type>application/vnd.mandiant.host+xml</type>
+  </input>
+  <result>
+    <type>application/vnd.mandiant.auditresult+xml</type>
+  </result>
+  <script id="urn:uuid:e0bd765c-1771-442e-92c2-ff444b518ffd" chaining="implicit">
+    <commands>
+      <command xsi:type="ExecuteModuleCommand" id="urn:uuid:085cec93-9e01-4842-9e07-364084625268">
+        <module name="w32drivers-signature" version="2.1.4.0" />
+        <config xsi:type="ParameterListModuleConfig">
+          <parameters>
+            <param name="memory file" />
+            <param name="enumerate imports">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="enumerate exports">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="strings">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+            <param name="shortest matched string" />
+            <param name="Preserve Times">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="MD5">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="SHA1">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="SHA256">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="Verify Digital Signatures">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+            <param name="raw mode">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="Filter Behavior" />
+            <param name="Prevent Hibernation">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+          </parameters>
+        </config>
+      </command>
+    </commands>
+  </script>
+</command>
