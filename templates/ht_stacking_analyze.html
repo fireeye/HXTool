@@ -12,19 +12,18 @@
 				dataType: "json",
 				success: function(r) {
 					var columns = [];
-					// Dynamically create table column headers. Yuck...
-					//$('#stackResultsTable').append('<thead><tr>');
+					// Dynamically create table column headers.
 					$.each(r[0], function(k, v) {
 						columns.push({'name' : k, 'title' : k, 'data' : k});
 					});
-					//$('#stackResultsTable').append('</tr></thead>');
 					
-					$('#stackResultsTable').DataTable( {
+					$('#stackResultsTable').DataTable({
                         "info": false,
 						"columns": columns,
 						"data": r, 
                         "pageLength": 20,
                         "lengthChange": false,
+						"colReorder": true,
 					});
 				},
 				error: function(xhr) {
