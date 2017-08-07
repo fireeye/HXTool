@@ -21,9 +21,16 @@
                         "info": false,
 						"columns": columns,
 						"data": r, 
-                        "pageLength": 20,
+                        "pageLength": 25,
                         "lengthChange": false,
 						"colReorder": true,
+						"dom": '<"htDTButtons"B>frtip',
+						"buttons": [
+							"copy",
+							"csv",
+							"excel",
+							"print"
+						]
 					});
 				},
 				error: function(xhr) {
