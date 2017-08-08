@@ -23,21 +23,6 @@ from hxtool_db import *
 from hx_lib import *
 from hxtool_data_models import *
 
-def parseXmlServiceMD5Data(sourcedata):
-
-	tree = ET.ElementTree(ET.fromstring(sourcedata))
-	root = tree.getroot()
-
-	acqdata = []
-
-	for child in root:
-		store = {}
-		for data in child:
-			store[data.tag] = data.text
-		acqdata.append(store)
-	
-	return(acqdata)
-
 """
 Multi-threaded bulk download
 
@@ -110,14 +95,18 @@ class hxtool_background_processor:
 			if is_stack_job:
 				with zipfile.ZipFile(destination_path) as f:
 					acquisition_manifest = json.loads(f.read('manifest.json'))
-					if acquisition_manifest['audits'][0]['results'][0]['type'] == "application/xml":
-						results_file = acquisition_manifest['audits'][0]['results'][0]['payload']	
-						results = f.read(results_file)
-						stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
-						data_model = hxtool_data_models(stack_job['stack_type'])
-						results_dict = data_model.xml_to_dict(hostname, results)
-						self._ht_db.stackJobAddResult(self.profile_id, bulk_download_id, results_dict)
-		
+					if 'audits' in acquisition_manifest:
+						for result in [i['results'] for i in acquisition_manifest['audits'] if 'results' in i
+									and [_ for _ in hxtool_data_models.stack_types if i['generator'] in hxtool_data_models.stack_types[_]['audit_module']]]:						
+							result = result[0]
+							results_file = result['payload']	
+							results = f.read(results_file)
+							stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
+							data_model = hxtool_data_models(stack_job['stack_type'])
+							results_dict = data_model.process_results(hostname, results, result['type'])
+							if results_dict:
+								self._ht_db.stackJobAddResult(self.profile_id, bulk_download_id, results_dict)
+								# TODO: Need to delete the bulk acq file
 			
 	def make_download_directory(self, bulk_download_id):
 		download_directory = os.path.join(self._download_directory_base, self._hx_api_object.hx_host, str(bulk_download_id))

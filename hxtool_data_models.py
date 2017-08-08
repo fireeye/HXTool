@@ -9,20 +9,31 @@ class hxtool_data_models:
 	def __init__(self, stack_type):
 		self._stack_type = self.stack_types[stack_type]
 	
-	def xml_to_dict(self, hostname, results_xml):
-		xml_items = ET.fromstring(results_xml).findall('./{0}'.format(self._stack_type['item_name']))
+	def process_results(self, hostname, results_data, results_type):
 		items = []
-		for xml_item in xml_items:
-			item = {"hostname" : hostname}
-			for e in xml_item:
-				if e.tag in self._stack_type['fields']:
-					item[e.tag] = e.text.encode('utf-8')
+		if results_type == 'application/xml':		
+			xml_items = ET.fromstring(results_data).findall('./{0}'.format(self._stack_type['item_name']))
+			for xml_item in xml_items:
+				item = {'hostname' : hostname}
+				for e in xml_item:
+					if e.tag in self._stack_type['fields']:
+						# TODO: we only recurse 1 level deep - should recurse further
+						if len(list(e)) > 0:
+							item[e.tag] = [{_.tag : _.text} for _ in e]
+						else:
+							item[e.tag] = e.text
+							
+				if self._stack_type['post_process']:
+					item.update(self._stack_type['post_process'](results_data))
 					
-			if self._stack_type['post_process']:
-				item = self._stack_type['post_process'](item, xml_item)
-				
-			items.append(item)	
+				items.append(item)	
+		elif results_type == 'application/octet-stream':
+			item = {'hostname' : hostname}
+			item.update(self._stack_type['post_process'](results_data))
+			items.append(item)
+		
 		return items
+
 	
 	def stack_data(self, data, index = None, group_by = None):
 		if not index:
@@ -37,10 +48,13 @@ class hxtool_data_models:
 		data_frame.sort_values(by = 'count', ascending = False, inplace = True)
 		return data_frame.to_json(orient = 'records')
 	
-	def w32mbr_post_process(self, item, xml_item):
-		# TODO: implement mbr hashing
-		pass
-
+	def w32mbr_post_process(mbr_data):
+		return {
+				'Md5sum' : hashlib.md5(mbr_data).hexdigest(),
+				'Sha1sum' : hashlib.sha1(mbr_data).hexdigest(),
+				'Sha256sum' : hashlib.sha256(mbr_data).hexdigest()
+				}
+		
 	stack_types = {
 		"windows-services": {
 			"audit_module" : "w32services",
@@ -72,7 +86,7 @@ class hxtool_data_models:
 			"script" : "w32drivers-modulelist.xml",
 			"platform" : "windows",
 			"name" : "Driver Modules",
-			"item_name" : "",
+			"item_name" : "ModuleItem",
 			"fields" : [
 				"ModuleName",
 				"ModuleInit",
@@ -90,7 +104,7 @@ class hxtool_data_models:
 			"script" : "w32drivers-signature.xml",
 			"platform" : "windows",
 			"name" : "Driver Signature",
-			"item_name" : "",
+			"item_name" : "DriverItem",
 			"fields" : [
 				"ImageSize",
 				"DriverObjectAddress",
@@ -115,7 +129,7 @@ class hxtool_data_models:
 			"script": "w32ports.xml",
 			"platform": "windows",
 			"name" : "Ports",
-			"item_name": "",
+			"item_name": "PortItem",
 			"fields": [
 				"remotePort",
 				"protocol",
@@ -136,7 +150,7 @@ class hxtool_data_models:
 			"script" : "w32processes-memory.xml",
 			"platform" : "windows",
 			"name" : "Process",
-			"item_name" : "",
+			"item_name" : "ProcessItem",
 			"fields" : [
 				"Username",
 				"SectionList",
@@ -162,7 +176,7 @@ class hxtool_data_models:
 			"script": "w32tasks.xml",
 			"platform": "windows",
 			"name" : "Task",
-			"item_name": "",
+			"item_name": "TaskItem",
 			"fields": [
 				"Status",
 				"Name",

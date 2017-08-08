@@ -739,7 +739,7 @@ def formatStackTable(ht_db, profile_id, hs):
 	
 	stack_jobs = ht_db.stackJobList(profile_id)
 	
-	x += "<table id='stacktable' class='genericTable' style='width: 100%;'>"
+	x += "<table id='stacktable' class='genericTable dataTable no-footer' style='width: 100%;'>"
 	x += "<thead>"
 	x += "<tr>"
 	x += "<td>ID</td>"

@@ -14,7 +14,17 @@
 					var columns = [];
 					// Dynamically create table column headers.
 					$.each(r[0], function(k, v) {
-						columns.push({'name' : k, 'title' : k, 'data' : k});
+						c = {'name' : k, 'title' : k, 'data' : k};
+						if ($.isArray(v) && v.length > 1) {
+							c['render'] = function(data, type, row, meta) {
+											if (type == 'display' && data.length > 1) {
+												return "Multiple";
+											} else {
+												return data
+											}
+										}
+						}
+						columns.push(c);
 					});
 					
 					$('#stackResultsTable').DataTable({
@@ -47,6 +57,6 @@
 <div class='tableTitle'>
         Stacking Results
 </div>
-<table id='stackResultsTable' class='genericTable row-border' style='width: 100%;'>
+<table id='stackResultsTable' class='genericTable dataTable no-footer' style='width: 100%;'>
 </table>
 {% endblock %}

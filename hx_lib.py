@@ -396,18 +396,24 @@ class HXAPI:
 
 
 	# Download bulk data
-	def restDownloadFile(self, url, destination_file_path):
+	def restDownloadFile(self, url, destination_file_path = None):
 
 		request = self.build_request(url, accept = 'application/octet-stream')
 		try:
 			response = self._session.send(request, stream = True)
-			with open(destination_file_path, 'wb') as f:
-				shutil.copyfileobj(response.raw, f)
-			return(True, response.status_code, None)	
-		except:
-			return(False, None, None)
 			
-		
+			if destination_file_path: 
+				with open(destination_file_path, 'wb') as f:
+					shutil.copyfileobj(response.raw, f)
+				return(True, response.status_code, None)	
+			else:
+				return(True, response.status_code, response.raw)
+				
+		except (requests.HTTPError, requests.ConnectionError) as e:
+			response_code = None
+			if e.response:
+				response_code = e.response.status_code
+			return(False, response_code, e)
 
 	# New Bulk acquisition
 	def restNewBulkAcq(self, script, hostset_id = None, hosts = None):

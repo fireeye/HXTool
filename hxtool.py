@@ -32,7 +32,7 @@ except ImportError:
 
 # Flask imports
 try:
-	from flask import Flask, request, session, redirect, render_template, send_file, g, url_for
+	from flask import Flask, request, session, redirect, render_template, send_file, g, url_for, abort
 except ImportError:
 	print("hxtool requires the Flask module, please install it.")
 	exit(1)
@@ -479,7 +479,7 @@ def listbulk(hx_api_object):
 	
 	return render_template('ht_bulk.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable, hostsets=hostsets)
 	
-@app.route('/bulkdetails')
+@app.route('/bulkdetails', methods = ['GET'])
 @valid_session_required
 def bulkdetails(hx_api_object):
 	if request.args.get('id'):
@@ -488,20 +488,24 @@ def bulkdetails(hx_api_object):
 		bulktable = formatBulkHostsTable(response_data)
 
 		return render_template('ht_bulk_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable)
+	else:
+		abort(404)
 
 
-
-@app.route('/bulkdownload')
+@app.route('/bulkdownload', methods = ['GET'])
 @valid_session_required
 def bulkdownload(hx_api_object):
 	if request.args.get('id'):
 		urlhead, fname = os.path.split(request.args.get('id'))
-		# TODO: Fix
-		(ret, response_code, response_data) = hx_api_object.restDownloadBulkAcq(request.args.get('id'))
-		app.logger.info('Bulk acquisition download - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return send_file(io.BytesIO(response_data), attachment_filename=fname, as_attachment=True)
-
-				
+		(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
+		if ret:
+			app.logger.info('Bulk acquisition download - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			return send_file(response_data, attachment_filename=fname, as_attachment=True)
+		else:
+			return "HX controller responded with code {0}: {1}".format(response_code, response_data)
+	else:
+		abort(404)
+		
 @app.route('/bulkaction', methods=['GET'])
 @valid_session_required
 def bulkaction(hx_api_object):
@@ -590,7 +594,7 @@ def stacking(hx_api_object):
 	if request.method == 'POST':
 		stack_type = hxtool_data_models.stack_types.get(request.form['stack_type'])
 		if stack_type:
-			with open(os.path.joing('scripts', stack_type['script']), 'rb') as f:
+			with open(os.path.join('scripts', stack_type['script']), 'rb') as f:
 				stack_script = f.read()
 			(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['stackhostset'])
 			hosts = []
@@ -598,11 +602,13 @@ def stacking(hx_api_object):
 			for host in response_data['data']['entries']:
 				hosts.append({'_id' : host['_id']})
 				bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
-			(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts)
-			app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-			bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], response_data['data']['_id'], bulk_download_entry_hosts, stack_job = True)
-			ret = ht_db.stackJobCreate(session['ht_profileid'], response_data['data']['_id'], request.form['stack_type'])
-			app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+			(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(stack_script, hosts = hosts)
+			if ret:
+				app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], response_data['data']['_id'], bulk_download_entry_hosts, stack_job = True)
+				ret = ht_db.stackJobCreate(session['ht_profileid'], response_data['data']['_id'], request.form['stack_type'])
+				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+		return redirect("/stacking", code=302)
 	
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
 	hostsets = formatHostsets(response_data)
