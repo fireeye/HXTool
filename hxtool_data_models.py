@@ -142,7 +142,7 @@ class hxtool_data_models:
 				"path"
 			],
 			"default_index": "hostname",
-			"default_groupby": ['path', 'localPort', 'state', 'remoteIP', 'remotePort'],			
+			"default_groupby": ['path', 'localIP', 'localPort', 'state', 'remoteIP', 'remotePort'],			
 			"post_process": None
 		},
 		"windows-processes": {

@@ -18,7 +18,9 @@
 						if ($.isArray(v) && v.length > 1) {
 							c['render'] = function(data, type, row, meta) {
 											if (type == 'display' && data.length > 1) {
-												return "Multiple";
+												return '<a href="#" style="text-decoration: none;" onclick="JavaScript: $(this).next().show()">Multiple</a>\
+												<div id="indexPopup" onclick="JavaScript: $(this).hide();" class="stackingIndexPopup" style="display:none;">'
+												+ data.join('<br />') + '</div>';
 											} else {
 												return data
 											}
