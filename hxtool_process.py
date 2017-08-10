@@ -41,7 +41,6 @@ class hxtool_background_processor:
 			self.thread_count = 4
 		self._task_queue = queue.Queue()
 		self._task_thread_list = []
-		self._stack_data_model_instance = None
 		self._stop_event = threading.Event()
 		self._poll_thread = threading.Thread(target = self.bulk_download_processor, name = "hxtool_background_processor", args = (hxtool_config['background_processor']['poll_interval'], ))
 		# TODO: should be configurable
@@ -108,7 +107,7 @@ class hxtool_background_processor:
 							results_dict = data_model.process_results(hostname, results, result['type'])
 							if results_dict:
 								self._ht_db.stackJobAddResult(self.profile_id, bulk_download_id, results_dict)
-								# TODO: Need to delete the bulk acq file
+								os.remove(os.path.realpath(destination_path))
 			
 	def make_download_directory(self, bulk_download_id):
 		download_directory = os.path.join(self._download_directory_base, self._hx_api_object.hx_host, str(bulk_download_id))
