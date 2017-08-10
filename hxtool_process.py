@@ -29,14 +29,16 @@ Multi-threaded bulk download
 thread_count: Assume most systems are quad core, so 4 threads should be optimal - 1 thread per core
 """					
 class hxtool_background_processor:
-	def __init__(self, hxtool_config, hxtool_db, profile_id, thread_count = 4, logger = logging.getLogger(__name__)):
+	def __init__(self, hxtool_config, hxtool_db, profile_id, logger = logging.getLogger(__name__)):
 		self.logger = logger
 		self._ht_db = hxtool_db
 		# TODO: maybe replace with hx_hostname, hx_port variables in __init__
 		profile = self._ht_db.profileGet(profile_id)
 		self._hx_api_object = HXAPI(profile['hx_host'], profile['hx_port'])
 		self.profile_id = profile_id
-		self.thread_count = thread_count
+		self.thread_count = hxtool_config['background_processor']['poll_threads']
+		if not self.thread_count:
+			self.thread_count = 4
 		self._task_queue = queue.Queue()
 		self._task_thread_list = []
 		self._stack_data_model_instance = None
