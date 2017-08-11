@@ -96,13 +96,13 @@ class hxtool_background_processor:
 			if is_stack_job:
 				with zipfile.ZipFile(destination_path) as f:
 					acquisition_manifest = json.loads(f.read('manifest.json'))
+					stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
 					if 'audits' in acquisition_manifest:
-						for result in [i['results'] for i in acquisition_manifest['audits'] if 'results' in i
-									and [_ for _ in hxtool_data_models.stack_types if i['generator'] in hxtool_data_models.stack_types[_]['audit_module']]]:						
+						for result in [audit['results'] for audit in acquisition_manifest['audits'] if audit['generator'] in hxtool_data_models.stack_types[stack_job['stack_type']]['audit_module'] 
+						and 'results' in audit]:						
 							result = result[0]
 							results_file = result['payload']	
 							results = f.read(results_file)
-							stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
 							data_model = hxtool_data_models(stack_job['stack_type'])
 							results_dict = data_model.process_results(hostname, results, result['type'])
 							if results_dict:
