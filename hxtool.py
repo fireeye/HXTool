@@ -605,7 +605,7 @@ def stacking(hx_api_object):
 			(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(stack_script, hosts = hosts)
 			if ret:
 				app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-				bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], response_data['data']['_id'], bulk_download_entry_hosts, stack_job = True)
+				bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], response_data['data']['_id'], bulk_download_entry_hosts, post_download_handler = "stacking")
 				ret = ht_db.stackJobCreate(session['ht_profileid'], response_data['data']['_id'], request.form['stack_type'])
 				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
