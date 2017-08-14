@@ -256,7 +256,7 @@
     border-radius: 5px;
     z-index: 10;
 	padding: 20px;
-    width: auto;
+    width: 100px;
     height: auto;
 	box-shadow: 5px 5px 5px rgb(215, 215, 215);
 }

@@ -19,7 +19,8 @@ class hxtool_data_models:
 					if e.tag in self._stack_type['fields']:
 						# TODO: we only recurse 1 level deep - should recurse further
 						if len(list(e)) > 0:
-							item[e.tag] = [{_.tag : _.text} for _ in e]
+							item[e.tag] = []
+							item[e.tag].append({_.tag : _.text for _ in e[0]})
 						else:
 							item[e.tag] = e.text
 							
@@ -209,6 +210,27 @@ class hxtool_data_models:
 			"default_index" : "hostname",
 			"default_groupby" : ["Md5sum", "Sha1sum", "Sha256sum"],
 			"post_process" : w32mbr_post_process
-		}
+		},
+		"linux-ports": {
+			"audit_module" : "w32ports",
+			"script": "linux-ports.json",
+			"platform": "linux",
+			"name" : "Ports",
+			"item_name": "PortItem",
+			"fields": [
+				"remotePort",
+				"protocol",
+				"localPort",
+				"process",
+				"pid",
+				"localIP",
+				"state",
+				"remoteIP",
+				"path"
+			],
+			"default_index": "hostname",
+			"default_groupby": ['path', 'localIP', 'localPort', 'state', 'remoteIP', 'remotePort'],			
+			"post_process": None
+		},
 	}
 	
