@@ -94,14 +94,14 @@ class hxtool_background_processor:
 		if ret:
 			self._ht_db.bulkDownloadUpdateHost(self.profile_id, bulk_download_id, host_id)
 			if post_download_handler:
-				handler = post_download_handlers.get(post_download_handler)
+				handler = self.post_download_handlers.get(post_download_handler)
 				if handler is not None:
 					handler(self, bulk_download_id, destination_path, hostname)
 				
 	
 	def stacking_handler(self, bulk_download_id, acquisition_package_path, hostname):
 		success = False
-		with zipfile.ZipFile(destination_path) as f:
+		with zipfile.ZipFile(acquisition_package_path) as f:
 			acquisition_manifest = json.loads(f.read('manifest.json'))
 			stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
 			if 'audits' in acquisition_manifest:

@@ -210,8 +210,8 @@ def formatBulkTable(ht_db, bulktable, profileid):
 			
 		x += "<td>" 
 		
-		if bulk_download and bulk_download['stack_job']:
-			x += "Stacking job"
+		if bulk_download and bulk_download['post_download_handler']:
+			x += "Post download handler is: {0}".format(bulk_download['post_download_handler'])
 		else:
 			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
 			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"

@@ -89,12 +89,13 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('alert').update(self._db_append_to_list('annotations', {'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : str(datetime.datetime.utcnow())}), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['hx_alert_id'] == int(hx_alert_id)))
 		
-	def bulkDownloadCreate(self, profile_id, bulk_download_id, hosts, hostset_id = -1, post_download_handler = None):
+	def bulkDownloadCreate(self, profile_id, bulk_download_id, hosts, hostset_id = -1, hostset_name = None, post_download_handler = None):
 		with self._lock:
 			return self._db.table('bulk_download').insert({'profile_id' : profile_id, 
 														'bulk_download_id': int(bulk_download_id), 
 														'hosts' : hosts, 
-														'hostset_id' : hostset_id, 
+														'hostset_id' : hostset_id,
+														'hostset_name' : hostset_name,		
 														'stopped' : False, 
 														'post_download_handler' : post_download_handler, 
 														'create_timestamp' : str(datetime.datetime.utcnow()), 
