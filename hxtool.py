@@ -465,9 +465,7 @@ def listbulk(hx_api_object):
 		f = request.files['bulkscript']
 		bulk_acquisition_script = f.read()
 		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['bulkhostset'])
-		hosts = []
-		for host in response_data['data']['entries']:
-			hosts.append({'_id' : host['_id']})
+		hosts = [{'_id' : host['_id']} for host in response_data['data']['entries']]
 		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts)
 		app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
