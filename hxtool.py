@@ -466,7 +466,7 @@ def listbulk(hx_api_object):
 		bulk_acquisition_script = f.read()
 		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['bulkhostset'])
 		hosts = [{'_id' : host['_id']} for host in response_data['data']['entries']]
-		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts)
+		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts, comment = json.dumps({'hostset_id' : str(request.form['bulkhostset'])}))
 		app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
@@ -521,7 +521,13 @@ def bulkaction(hx_api_object):
 	if request.args.get('action') == "download":
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
 		hosts = { host['host']['_id'] : {'downloaded' : False, 'hostname' :  host['host']['hostname']} for host in response_data['data']['entries'] }
-		ret = ht_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts)
+		
+		hostset_id = -1
+		(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
+		if ret and 'hostset_id' in response_data['data']['comment']:
+			hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
+			
+		ret = ht_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts, hostset_id = hostset_id)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 		
@@ -601,7 +607,7 @@ def stacking(hx_api_object):
 			(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(stack_script, hosts = hosts)
 			if ret:
 				app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-				bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], response_data['data']['_id'], bulk_download_entry_hosts, post_download_handler = "stacking")
+				bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], response_data['data']['_id'], bulk_download_entry_hosts, hostset_id = request.form['stackhostset'], post_download_handler = "stacking")
 				ret = ht_db.stackJobCreate(session['ht_profileid'], response_data['data']['_id'], request.form['stack_type'])
 				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)

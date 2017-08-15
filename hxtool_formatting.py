@@ -140,7 +140,7 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		"<tr>" \
 		"<td style='width: 100px;'>id</td>" \
 		"<td style='width: 100px;'>state</td>" \
-		"<td>host set</td>" \
+		"<td>Hostset ID</td>" \
 		"<td>New</td>" \
 		"<td>Queued</td>" \
 		"<td>Failed</td>" \
@@ -164,10 +164,12 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		x += "<tr class='clickable-row' data-href='/bulkdetails?id=" + str(entry['_id']) + "'>"
 		x += "<td>" + str(entry['_id']) + "</td>"
 		x += "<td>" + str(entry['state']) + "</td>"
+		hostset_id = ""
 		if entry['host_set']:
-			x += "<td>" + str(entry['host_set']['name']) + "</td>"
-		else:
-			x += "<td></td>"
+			hostset_id = entry['host_set']['_id']
+		elif entry['comment'] and 'hostset_id' in entry['comment']:
+			hostset_id = json.loads(entry['comment'])['hostset_id']
+		x += "<td>{0}</td>".format(hostset_id)
 		x += "<td>" + str(entry['stats']['running_state']['NEW']) + "</td>"
 		x += "<td>" + str(entry['stats']['running_state']['QUEUED']) + "</td>"
 		x += "<td>" + str(entry['stats']['running_state']['FAILED']) + "</td>"
@@ -211,7 +213,7 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		x += "<td>" 
 		
 		if bulk_download and bulk_download['post_download_handler']:
-			x += "Post download handler is: {0}".format(bulk_download['post_download_handler'])
+			x += "Post-download handler: {0}".format(bulk_download['post_download_handler'])
 		else:
 			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
 			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
@@ -749,7 +751,7 @@ def formatStackTable(ht_db, profile_id, hs):
 	x += "<td>State</td>"
 	x += "<td>Profile ID</td>"
 	x += "<td>HX Bulk ID</td>"
-	x += "<td>Hostset</td>"
+	x += "<td>Hostset ID</td>"
 	x += "<td style='width: 160px;'>Completion rate</td>"
 	x += "<td style='width: 260px;'>Actions</td>"
 	x += "</tr>"
@@ -757,6 +759,7 @@ def formatStackTable(ht_db, profile_id, hs):
 	x += "<tbody>"
 	
 	for job in stack_jobs:
+		bulk_download = ht_db.bulkDownloadGet(job['profile_id'], job['bulk_download_id'])
 		x += "<tr>"
 		x += "<td>" + str(job.eid) + "</td>"
 		x += "<td>" + str(job['create_timestamp']) + "</td>"
@@ -765,11 +768,10 @@ def formatStackTable(ht_db, profile_id, hs):
 		x += "<td>" + ("STOPPED" if job['stopped'] else "RUNNING") + "</td>"
 		x += "<td>" + str(job['profile_id'])	+ "</td>"
 		x += "<td>" + str(job['bulk_download_id']) + "</td>"		
-		x += "<td>" + str(job['hostset_id']) + "</td>"
+		x += "<td>" + str(bulk_download['hostset_id']) + "</td>"
 		
 		# Completion rate
 		job_progress = 0
-		bulk_download = ht_db.bulkDownloadGet(job['profile_id'], job['bulk_download_id'])
 		hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
 		job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
 		x += "<td>"

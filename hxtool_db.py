@@ -94,7 +94,7 @@ class hxtool_db:
 			return self._db.table('bulk_download').insert({'profile_id' : profile_id, 
 														'bulk_download_id': int(bulk_download_id), 
 														'hosts' : hosts, 
-														'hostset_id' : hostset_id,
+														'hostset_id' : int(hostset_id),
 														'hostset_name' : hostset_name,		
 														'stopped' : False, 
 														'post_download_handler' : post_download_handler, 
@@ -125,12 +125,11 @@ class hxtool_db:
 														(tinydb.Query()['bulk_download_id'] == int(bulk_download_id)) & 
 														(tinydb.Query()['stopped'] == True))
 	
-	def stackJobCreate(self, profile_id, bulk_download_id, stack_type, hostset_id = -1):
+	def stackJobCreate(self, profile_id, bulk_download_id, stack_type):
 		with self._lock:
 			ts = str(datetime.datetime.utcnow())
 			return self._db.table('stacking').insert({'profile_id' : profile_id, 
 													'bulk_download_id' : int(bulk_download_id), 
-													'hostset_id' : int(hostset_id),
 													'stopped' : False,
 													'stack_type' : stack_type, 													
 													'results' : [],
