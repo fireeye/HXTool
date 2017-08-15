@@ -520,9 +520,7 @@ def bulkaction(hx_api_object):
 		
 	if request.args.get('action') == "download":
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
-		hosts = {}
-		for host in response_data['data']['entries']:
-			hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' : host['host']['hostname']}
+		hosts = { host['host']['_id'] : {'downloaded' : False, 'hostname' :  host['host']['hostname']} for host in response_data['data']['entries'] }
 		ret = ht_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)

@@ -116,7 +116,7 @@ class hxtool_background_processor:
 						self._ht_db.stackJobAddResult(self.profile_id, bulk_download_id, results_dict)
 						success = True
 		if success:
-			os.remove(os.path.realpath(destination_path))
+			os.remove(os.path.realpath(acquisition_package_path))
 	
 	def make_download_directory(self, bulk_download_id):
 		download_directory = os.path.join(self._download_directory_base, self._hx_api_object.hx_host, str(bulk_download_id))
