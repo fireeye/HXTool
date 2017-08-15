@@ -416,7 +416,7 @@ class HXAPI:
 			return(False, response_code, e)
 
 	# New Bulk acquisition
-	def restNewBulkAcq(self, script, hostset_id = None, hosts = None):
+	def restNewBulkAcq(self, script, hostset_id = None, hosts = None, comment = None):
 		
 		script = base64.b64encode(script).decode('ascii')
 	
@@ -425,6 +425,9 @@ class HXAPI:
 			data['host_set'] = {'_id' : hostset_id}
 		elif hosts:
 			data['hosts'] = hosts
+			
+		if comment:
+			data['comment'] = comment
 	
 		request = self.build_request(self.build_api_route('acqs/bulk'), method = 'POST', data = json.dumps(data))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
