@@ -533,12 +533,28 @@ def bulkdownload():
 		if request.args.get('id'):
 			urlhead, fname = os.path.split(request.args.get('id'))
 			(ret, response_code, response_data) = hx_api_object.restDownloadBulkAcq(request.args.get('id'))
+			print ret
+			print response_code
 			app.logger.info('Bulk acquisition download - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return send_file(io.BytesIO(response_data), attachment_filename=fname, as_attachment=True)
 	else:
 			return redirect("/login", code=302)
 
+			
+@app.route('/download')
+def download():
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+	
+		if request.args.get('id'):
+			urlhead, fname = os.path.split(request.args.get('id'))
+			(ret, response_code, response_data) = hx_api_object.restDownloadGeneric(request.args.get('id'))
+			app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
+			return send_file(io.BytesIO(response_data), attachment_filename=fname, as_attachment=True)
+	else:
+			return redirect("/login", code=302)
 				
+
 @app.route('/bulkaction', methods=['GET'])
 def bulkaction():
 	(ret, hx_api_object) = is_session_valid(session)

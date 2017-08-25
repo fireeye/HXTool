@@ -394,8 +394,14 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
-	# New Bulk acquisition
+	def restDownloadGeneric(self, url):
 
+		request = self.build_request(url, accept = 'application/octet-stream')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	# New Bulk acquisition
 	def restNewBulkAcq(self, script, host_set):
 
 		data = json.dumps({'host_set' : {'_id' : int(host_set)}, 'script' : {'b64' : base64.b64encode(script)}})
@@ -412,6 +418,28 @@ class HXAPI:
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
+
+	def restListFileAcquisitionsHost(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}/files'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restListTriageAcquisitionsHost(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}/triages'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restListDataAcquisitionsHost(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}/live'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
 		
 	# List file acquisitions
 	def restListFileaq(self, limit=10000):
