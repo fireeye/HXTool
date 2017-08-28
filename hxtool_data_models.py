@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import xml.etree.ElementTree as ET
-from pandas import DataFrame
 import hashlib
+try:
+	from pandas import DataFrame
+except ImportError:
+	print("hxtool_data_models requires the 'pandas' module, please install it.")
+	exit(1)
 
 class hxtool_data_models:
 	def __init__(self, stack_type):

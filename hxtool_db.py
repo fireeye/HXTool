@@ -9,7 +9,7 @@ try:
 	import tinydb
 	import tinydb.operations
 except ImportError:
-	print("hxtool_db requires the TinyDB module, please install it.")
+	print("hxtool_db requires the 'tinydb' module, please install it.")
 	exit(1)
 
 from hx_lib import *

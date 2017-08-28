@@ -11,7 +11,7 @@ try:
 	import requests
 	from requests.packages.urllib3.exceptions import InsecureRequestWarning
 except ImportError:
-	print("HXTool requires the requests Python library, please install it.")
+	print("HXTool requires the 'requests' module, please install it.")
 	exit(1)
 	
 import urllib
