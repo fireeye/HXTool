@@ -49,8 +49,8 @@ class hxtool_data_models:
 		try:
 			data_frame = DataFrame(data).astype(unicode)
 		except NameError:
-			# Running under Python 3 which doesn't have a unicode type, nor requires conversion
-			data_frame = DataFrame(data)
+			# under Python 3, str is unicode
+			data_frame = DataFrame(data).astype(str)
 			
 		data_frame.replace('nan', '', inplace = True)
 		data_frame = data_frame.groupby(by = group_by, as_index = False).apply(lambda _: list(_[index])).reset_index(name = index)
