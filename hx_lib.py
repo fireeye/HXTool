@@ -414,6 +414,14 @@ class HXAPI:
 			if e.response:
 				response_code = e.response.status_code
 			return(False, response_code, e)
+			
+	# Delete bulk acquisition file		
+	def restDeleteFile(self, url):
+		
+		request = self.build_request(self.build_api_route(url), method = 'DELETE')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
 
 	# New Bulk acquisition
 	def restNewBulkAcq(self, script, hostset_id = None, hosts = None, comment = None):
