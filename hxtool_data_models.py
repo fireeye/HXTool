@@ -46,7 +46,12 @@ class hxtool_data_models:
 		if not group_by:
 			group_by = self._stack_type['default_groupby']
 			
-		data_frame = DataFrame(data).astype(unicode)
+		try:
+			data_frame = DataFrame(data).astype(unicode)
+		except NameError:
+			# Running under Python 3 which doesn't have a unicode type, nor requires conversion
+			data_frame = DataFrame(data)
+			
 		data_frame.replace('nan', '', inplace = True)
 		data_frame = data_frame.groupby(by = group_by, as_index = False).apply(lambda _: list(_[index])).reset_index(name = index)
 		data_frame['count'] = data_frame[index].apply(lambda _: len(_))
