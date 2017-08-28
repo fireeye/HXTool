@@ -34,8 +34,14 @@ class hxtool_db:
 	def profileCreate(self, hx_name, hx_host, hx_port):
 		# Generate a unique profile id
 		profile_id = str(uuid.uuid4())
+		r = None
 		with self._lock:
-			return self._db.table('profile').insert({'profile_id' : profile_id, 'hx_name' : hx_name, 'hx_host' : hx_host, 'hx_port' : hx_port})
+			try:
+				r = self._db.table('profile').insert({'profile_id' : profile_id, 'hx_name' : hx_name, 'hx_host' : hx_host, 'hx_port' : hx_port})
+			except:	
+				self._db.table('profile').remove(eids = [r])
+				raise
+		return r
 		
 	"""
 	List all profiles
@@ -63,9 +69,15 @@ class hxtool_db:
 			return self._db.table('profile').remove((tinydb.Query()['profile_id'] == profile_id))
 		
 	def backgroundProcessorCredentialCreate(self, profile_id, hx_api_username, iv, salt, hx_api_encrypted_password):
+		r = None
 		with self._lock:
-			return self._db.table('background_processor_credential').insert({'profile_id' : profile_id, 'hx_api_username' : hx_api_username, 'iv' : iv, 'salt': salt, 'hx_api_encrypted_password' : hx_api_encrypted_password})
-	
+			try:
+				r = self._db.table('background_processor_credential').insert({'profile_id' : profile_id, 'hx_api_username' : hx_api_username, 'iv' : iv, 'salt': salt, 'hx_api_encrypted_password' : hx_api_encrypted_password})
+			except:
+				self._db.table('background_processor_credential').remove(eids = [r])
+				raise
+		return r
+		
 	def backgroundProcessorCredentialRemove(self, profile_id):
 		with self._lock:
 			return self._db.table('background_processor_credential').remove((tinydb.Query()['profile_id'] == profile_id))
@@ -77,7 +89,11 @@ class hxtool_db:
 		r = self.alertGet(profile_id, hx_alert_id)
 		if not r:
 			with self._lock:
-				r = self._db.table('alert').insert({'profile_id' : profile_id, 'hx_alert_id' : int(hx_alert_id), 'annotations' : []})
+				try:
+					r = self._db.table('alert').insert({'profile_id' : profile_id, 'hx_alert_id' : int(hx_alert_id), 'annotations' : []})
+				except:
+					self._db.table('alert').remove(eids = [r])
+					raise
 		else:
 			r = r.eid
 		return r
@@ -90,16 +106,22 @@ class hxtool_db:
 			return self._db.table('alert').update(self._db_append_to_list('annotations', {'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : str(datetime.datetime.utcnow())}), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['hx_alert_id'] == int(hx_alert_id)))
 		
 	def bulkDownloadCreate(self, profile_id, bulk_download_id, hosts, hostset_id = -1, hostset_name = None, post_download_handler = None):
+		r = None
 		with self._lock:
-			return self._db.table('bulk_download').insert({'profile_id' : profile_id, 
-														'bulk_download_id': int(bulk_download_id), 
-														'hosts' : hosts, 
-														'hostset_id' : int(hostset_id),
-														'hostset_name' : hostset_name,		
-														'stopped' : False, 
-														'post_download_handler' : post_download_handler, 
-														'create_timestamp' : str(datetime.datetime.utcnow()), 
-														'update_timestamp' : str(datetime.datetime.utcnow())})
+			try:
+				r = self._db.table('bulk_download').insert({'profile_id' : profile_id, 
+															'bulk_download_id': int(bulk_download_id), 
+															'hosts' : hosts, 
+															'hostset_id' : int(hostset_id),
+															'hostset_name' : hostset_name,		
+															'stopped' : False, 
+															'post_download_handler' : post_download_handler, 
+															'create_timestamp' : str(datetime.datetime.utcnow()), 
+															'update_timestamp' : str(datetime.datetime.utcnow())})
+			except:
+				self._db.table('bulk_download').remove(eids = [r])
+				raise
+		return r		
 	
 	def bulkDownloadGet(self, profile_id, bulk_download_id):
 		return self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
@@ -126,18 +148,25 @@ class hxtool_db:
 														(tinydb.Query()['stopped'] == True))
 	
 	def stackJobCreate(self, profile_id, bulk_download_id, stack_type):
+		r = None
 		with self._lock:
 			ts = str(datetime.datetime.utcnow())
-			return self._db.table('stacking').insert({'profile_id' : profile_id, 
-													'bulk_download_id' : int(bulk_download_id), 
-													'stopped' : False,
-													'stack_type' : stack_type, 													
-													'results' : [],
-													'last_index' : None,
-													'last_groupby' : [],
-													'create_timestamp' : ts, 
-													'update_timestamp' : ts
-													})
+			try:
+				r = self._db.table('stacking').insert({'profile_id' : profile_id, 
+														'bulk_download_id' : int(bulk_download_id), 
+														'stopped' : False,
+														'stack_type' : stack_type, 													
+														'results' : [],
+														'last_index' : None,
+														'last_groupby' : [],
+														'create_timestamp' : ts, 
+														'update_timestamp' : ts
+														})
+			except:
+				self._db.table('stacking').remove(eids = [r])
+				raise
+		return r
+		
 	def stackJobGetById(self, stack_job_id):
 		return self._db.table('stacking').get(eid = int(stack_job_id))
 	
