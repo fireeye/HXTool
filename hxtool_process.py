@@ -90,33 +90,44 @@ class hxtool_background_processor:
 			self._task_queue.task_done()
 			
 	def download_task(self, bulk_download_id, host_id, hostname, post_download_handler, download_url, destination_path):
-		(ret, response_code, response_data) = self._hx_api_object.restDownloadFile(download_url, destination_path)
-		if ret:
-			self._ht_db.bulkDownloadUpdateHost(self.profile_id, bulk_download_id, host_id)
-			if post_download_handler:
-				handler = self.post_download_handlers.get(post_download_handler)
-				if handler is not None:
-					handler(self, bulk_download_id, destination_path, hostname)
-				
+		try:
+			(ret, response_code, response_data) = self._hx_api_object.restDownloadFile(download_url, destination_path)
+			if ret:
+				self._ht_db.bulkDownloadUpdateHost(self.profile_id, bulk_download_id, host_id)
+				# TODO: commenting out for now as a stopped bulk download job
+				# will still give the option to download the individual host
+				# acquisitions, which will result in a 404
+				# self._hx_api_object.restDeleteFile(download_url)
+				if post_download_handler:
+					handler = self.post_download_handlers.get(post_download_handler)
+					if handler is not None:
+						handler(self, bulk_download_id, destination_path, hostname)
+		except:
+			# TODO: re-raise for now, need to handle specific errors
+			raise
 	
 	def stacking_handler(self, bulk_download_id, acquisition_package_path, hostname):
 		success = False
-		with zipfile.ZipFile(acquisition_package_path) as f:
-			acquisition_manifest = json.loads(f.read('manifest.json'))
-			stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
-			if 'audits' in acquisition_manifest:
-				for result in [audit['results'] for audit in acquisition_manifest['audits'] if audit['generator'] in hxtool_data_models.stack_types[stack_job['stack_type']]['audit_module'] 
-				and 'results' in audit]:						
-					result = result[0]
-					results_file = result['payload']	
-					results = f.read(results_file)
-					data_model = hxtool_data_models(stack_job['stack_type'])
-					results_dict = data_model.process_results(hostname, results, result['type'])
-					if results_dict:
-						self._ht_db.stackJobAddResult(self.profile_id, bulk_download_id, results_dict)
-						success = True
-		if success:
-			os.remove(os.path.realpath(acquisition_package_path))
+		try:
+			with zipfile.ZipFile(acquisition_package_path) as f:
+				acquisition_manifest = json.loads(f.read('manifest.json'))
+				stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
+				if 'audits' in acquisition_manifest:
+					for result in [audit['results'] for audit in acquisition_manifest['audits'] if audit['generator'] in hxtool_data_models.stack_types[stack_job['stack_type']]['audit_module'] 
+					and 'results' in audit]:						
+						result = result[0]
+						results_file = result['payload']	
+						results = f.read(results_file)
+						data_model = hxtool_data_models(stack_job['stack_type'])
+						results_dict = data_model.process_results(hostname, results, result['type'])
+						if results_dict:
+							self._ht_db.stackJobAddResult(self.profile_id, bulk_download_id, results_dict)
+							success = True
+			if success:
+				os.remove(os.path.realpath(acquisition_package_path))
+		except:
+			# TODO: re-raise for now, need to handle specific errors
+			raise
 	
 	def make_download_directory(self, bulk_download_id):
 		download_directory = os.path.join(self._download_directory_base, self._hx_api_object.hx_host, str(bulk_download_id))
