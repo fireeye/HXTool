@@ -17,7 +17,7 @@ from hx_lib import *
 class hxtool_db:
 	def __init__(self, db_file):
 		self._db = tinydb.TinyDB(db_file)
-		self._lock = threading.RLock()
+		self._lock = threading.Lock()
 		
 	def __exit__(self, exc_type, exc_value, traceback):
 		if self._db:
