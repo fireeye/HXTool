@@ -101,13 +101,16 @@ class hxtool_background_processor:
 				if post_download_handler:
 					handler = self.post_download_handlers.get(post_download_handler)
 					if handler is not None:
-						handler(self, bulk_download_id, destination_path, hostname)
+						if handler(self, bulk_download_id, destination_path, hostname):
+							# TODO: check to see if the user chose to keep the bulk acquisition package
+							# even after post processing
+							os.remove(os.path.realpath(destination_path))
 		except:
 			# TODO: re-raise for now, need to handle specific errors
 			raise
 	
 	def stacking_handler(self, bulk_download_id, acquisition_package_path, hostname):
-		success = False
+		ret = False
 		try:
 			with zipfile.ZipFile(acquisition_package_path) as f:
 				acquisition_manifest = json.loads(f.read('manifest.json'))
@@ -122,12 +125,12 @@ class hxtool_background_processor:
 						results_dict = data_model.process_results(hostname, results, result['type'])
 						if results_dict:
 							self._ht_db.stackJobAddResult(self.profile_id, bulk_download_id, results_dict)
-							success = True
-			if success:
-				os.remove(os.path.realpath(acquisition_package_path))
+							ret = True
+			return ret
 		except:
 			# TODO: re-raise for now, need to handle specific errors
 			raise
+			return False
 	
 	def make_download_directory(self, bulk_download_id):
 		download_directory = os.path.join(self._download_directory_base, self._hx_api_object.hx_host, str(bulk_download_id))
