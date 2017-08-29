@@ -617,15 +617,18 @@ def bulkdownload(hx_api_object):
 
 		
 @app.route('/download')
+@valid_session_required
 def download(hx_api_object):
 	if request.args.get('id'):
 		urlhead, fname = os.path.split(request.args.get('id'))
-		(ret, response_code, response_data) = hx_api_object.restDownloadGeneric(request.args.get('id'))
+		(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
 		if ret:
 			app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
-			return send_file(io.BytesIO(response_data), attachment_filename=fname, as_attachment=True)
+			return send_file(response_data, attachment_filename=fname, as_attachment=True)
 		else:
-			print response_data				
+			return "HX controller responded with code {0}: {1}".format(response_code, response_data)
+	else:
+		abort(404)		
 
 @app.route('/bulkaction', methods=['GET'])
 @valid_session_required
