@@ -940,7 +940,7 @@ def formatHostInfo(response_data, hx_api_object):
 		
 					
 					x += "<div class='tableTitle'>Indicator type: " + str(alert['event_type']) + "</div>"
-					x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px; margin-left: 20px;'>"
+					x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
 					for hitkey, hitdata in alert['event_values'].iteritems():
 						x += "<tr><td style='width: 300px;'>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
 					x += "</table>"
@@ -959,14 +959,14 @@ def formatHostInfo(response_data, hx_api_object):
 				x += "</ul>"
 				x += "<br><br>"
 				x += "<div class='tableTitle'>Initial exploited process</div>"
-				x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-left: 20px; margin-bottom: 20px;'>"
+				x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 20px;'>"
 				x += "<tr><td style='width: 150px;'>Initial exploit timestamp</td><td>" + alert['event_values']['earliest_detection_time'] + "</td></tr>"
 				x += "<tr><td style='width: 150px;'>Process path</td><td>" + alert['event_values']['process_name'] + "</td></tr>"
 				x += "<tr><td style='width: 150px;'>Process ID</td><td>" + alert['event_values']['process_id'] + "</td></tr>"
 				x += "</table>"
 				
 				x += "<div class='tableTitle'>Analysis details</div>"
-				x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-left: 20px;'>"
+				x += "<table class='genericTable genericTableSmall' style='width: 100%;'>"
 				x += "<tr>"
 				x += "<td style='width: 150px; font-weight: bold;'>Type</td>"
 				x += "<td style='width: 150px; font-weight: bold;'>Timestamp</td>"
@@ -1017,7 +1017,7 @@ def formatHostInfo(response_data, hx_api_object):
 				# Alert details hidden div
 				x += "<div style='display: none;' id='alertdetails_" + str(alert['_id']) + "'>"
 				x += "<div class='tableTitle'>Malware alert: " + alert['event_values']['detections']['detection'][0]['infection']['infection-type'] + "</div>"
-				x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-left: 20px;'>"
+				x += "<table class='genericTable genericTableSmall' style='width: 100%;'>"
 				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infection'].iteritems():
 					x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
 				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infected-object']['file-object'].iteritems():
@@ -1050,8 +1050,8 @@ def formatHostInfo(response_data, hx_api_object):
 	# Sub alert table stop
 	
 	x += "</td>"
-	x += "<td style='vertical-align: top; padding: 30px; padding-top: 15px;'>"
-	x += "<div id='alertcontent'></div>"
+	x += "<td style='vertical-align: top; padding-top: 15px;'>"
+	x += "<div id='alertcontent' style='margin-left: 10px; margin-bottom: 15px; padding: 15px; border: 1px solid #dddddd; box-shadow: 8px 8px 5px rgb(215,215,215);'></div>"
 	x += "</td>"
 	x += "</tr>"
 	
@@ -1066,15 +1066,15 @@ def formatHostInfo(response_data, hx_api_object):
 	
 	if (atret):
 		if (len(atresponse_data['data']['entries']) > 0):
-			x += "<div class='tableTitle'>Triage acquisitions on host: " + response_data['data']['hostname'] + "</div>"
-			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-left: 20px; margin-bottom: 15px;'>"
+			x += "<div class='tableTitle'>Triage acquisitions</div>"
+			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
 			x += "<thead>"
 			x += "<tr>"
-			x += "<td>Acquisition</td>"
-			x += "<td>Requested by</td>"
-			x += "<td>Requested</td>"
-			x += "<td>Status</td>"
-			x += "<td style='width: 100px;'>Action</td>"
+			x += "<td style='font-weight: bold;'>Acquisition</td>"
+			x += "<td style='font-weight: bold;'>Requested by</td>"
+			x += "<td style='font-weight: bold;'>Requested</td>"
+			x += "<td style='font-weight: bold;'>Status</td>"
+			x += "<td style='width: 100px; font-weight: bold;'>Action</td>"
 			x += "</tr>"
 			for triage in atresponse_data['data']['entries']:
 				x += "<tr>"
@@ -1094,18 +1094,18 @@ def formatHostInfo(response_data, hx_api_object):
 	(afret, afresponse_code, afresponse_data) = hx_api_object.restListFileAcquisitionsHost(response_data['data']['_id'])
 	if (afret):
 		if (len(afresponse_data['data']['entries']) > 0):
-			x += "<div class='tableTitle'>File acquisitions on host: " + response_data['data']['hostname'] + "</div>"
-			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-left: 20px; margin-bottom: 15px;'>"
+			x += "<div class='tableTitle'>File acquisitions</div>"
+			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
 			x += "<thead>"
 			x += "<tr>"
-			x += "<td>Path</td>"
-			x += "<td>Filename</td>"
-			x += "<td>Requested by</td>"
-			x += "<td>Requested</td>"
-			x += "<td>Passphrase</td>"
-			x += "<td>Status</td>"
-			x += "<td>Error message</td>"
-			x += "<td style='width: 100px;'>Action</td>"
+			x += "<td style='font-weight: bold;'>Path</td>"
+			x += "<td style='font-weight: bold;'>Filename</td>"
+			x += "<td style='font-weight: bold;'>Requested by</td>"
+			x += "<td style='font-weight: bold;'>Requested</td>"
+			x += "<td style='font-weight: bold;'>Passphrase</td>"
+			x += "<td style='font-weight: bold;'>Status</td>"
+			x += "<td style='font-weight: bold;'>Error message</td>"
+			x += "<td style='width: 100px; font-weight: bold;'>Action</td>"
 			x += "</tr>"
 			for fileaq in afresponse_data['data']['entries']:
 				x += "<tr>"
@@ -1123,15 +1123,15 @@ def formatHostInfo(response_data, hx_api_object):
 	(adret, adresponse_code, adresponse_data) = hx_api_object.restListDataAcquisitionsHost(response_data['data']['_id'])
 	if (adret):
 		if (len(adresponse_data['data']['entries']) > 0):
-			x += "<div class='tableTitle'>Data acquisitions on host: " + response_data['data']['hostname'] + "</div>"
-			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-left: 20px; margin-bottom: 15px;'>"
+			x += "<div class='tableTitle'>Data acquisitions</div>"
+			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
 			x += "<thead>"
 			x += "<tr>"
-			x += "<td>Name</td>"
-			x += "<td>Requested by</td>"
-			x += "<td>Requested</td>"
-			x += "<td>Status</td>"			
-			x += "<td style='width: 100px;'>Action</td>"
+			x += "<td style='font-weight: bold;'>Name</td>"
+			x += "<td style='font-weight: bold;'>Requested by</td>"
+			x += "<td style='font-weight: bold;'>Requested</td>"
+			x += "<td style='font-weight: bold;'>Status</td>"			
+			x += "<td style='width: 100px; font-weight: bold;'>Action</td>"
 			x += "</tr>"
 			for daq in adresponse_data['data']['entries']:
 				x += "<tr>"
@@ -1151,3 +1151,66 @@ def formatHostInfo(response_data, hx_api_object):
 	x += "</table>"
 	
 	return(x)
+	
+def formatHostSearch(response_data, hx_api_object):
+
+	x = ""
+	
+	x += "<table id='hostinfo' class='genericTable' style='width: 100%;'>"
+	x += "<thead>"
+	x += "<tr>"
+	x += "<td style='font-weight: bold;'>Hostname</td>"
+	x += "<td style='font-weight: bold;'>Domain</td>"
+	x += "<td style='font-weight: bold;'>Primary IP</td>"
+	x += "<td style='font-weight: bold;'>Last poll IP</td>"
+	x += "<td style='font-weight: bold;'>Last poll timestamp</td>"
+	x += "<td style='font-weight: bold;'>Containment</td>"
+	x += "<td style='font-weight: bold;'>Initial provision</td>"
+	x += "<td style='font-weight: bold;'>Operating system</td>"
+	x += "<td style='font-weight: bold;'>Agent version</td>"
+	x += "<td style='font-weight: bold;'>Action</td>"
+	x += "</tr>"
+	x += "</thead>"
+	
+	for host in response_data['data']['entries']:
+		
+		x += "<tr>"
+		x += "<td><a class='hostLink' href='/hosts?host=" + str(host['_id']) + "'>" + str(host['hostname']) + "</a></td>"
+		x += "<td>" + str(host['domain']) + "</td>"
+		x += "<td>" + str(host['primary_ip_address']) + "</td>"
+		x += "<td>" + str(host['last_poll_ip']) + "</td>"
+		x += "<td>" + str(host['last_poll_timestamp']) + "</td>"
+		
+		x += "<td>"
+		if (host['containment_state'] == "normal") and (host['containment_queued'] == True):
+			x += "requested"
+		else:
+			x += str(host['containment_state'])
+		x += "<div style='float: right;'>"
+		if host['containment_state'] == "contained":
+			x += "<a class='tableActionButton' id='uncontain_" + str(host['_id']) + "'>uncontain</a>"
+		elif (host['containment_state'] == "normal") and (host['containment_queued'] == False):
+			x += "<a class='tableActionButton' id='contain_" + str(host['_id']) + "'>contain</a>"
+		elif (host['containment_state'] == "normal") and (host['containment_queued'] == True):
+			x += "<a class='tableActionButton' id='appcontain_" + str(host['_id']) + "'>approve</a>"
+		x += "</div>"
+		x += "</td>"
+		
+		import datetime
+		t = HXAPI.gt(host['initial_agent_checkin'])
+		x += "<td>" + HXAPI.prettyTime(t) + "</td>"
+				
+		x += "<td>" + str(host['os']['product_name']) + " " + str(host['os']['patch_level']) + " " + str(host['os']['bitness']) + "</td>"
+		x += "<td>" + str(host['agent_version']) + "</td>"
+		
+		x += "<td>"
+		x += "<a class='tableActionButton' id='triage_" + str(host['_id']) + "'>triage</a>"
+		x += "<a class='tableActionButton' id='fileaq_" + str(host['_id']) + "'>file acq</a>"
+		x += "<a class='tableActionButton' id='acq_" + str(host['_id']) + "'>acquisition</a>"
+		x += "</td>"
+		
+		x += "</tr>"
+	
+	x += "</table>"
+	
+	return (x)
