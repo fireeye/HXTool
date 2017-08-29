@@ -346,7 +346,7 @@ class HXAPI:
 		if timestamp:
 			data = json.dumps({'req_timestamp' : timestamp})
 
-		request = self.build_request(self.build_api_route('hosts/{0}/triages'.format(agent_id)), data = data)
+		request = self.build_request(self.build_api_route('hosts/{0}/triages'.format(agent_id)), data = data, method = 'POST')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
