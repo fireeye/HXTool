@@ -42,6 +42,7 @@ class HXAPI:
 			ssl._create_default_https_context = ssl._create_unverified_context
 			self.logger.info('SSL/TLS certificate verification disabled.')
 		
+		self.hx_user = None
 		self.fe_token = None
 		self.api_version = self.HX_MIN_API_VERSION
 		self.hx_version = [0, 0, 0]
@@ -201,6 +202,7 @@ class HXAPI:
 		if ret and response_code == 204:
 			self.logger.debug('Token granted.')
 			self.set_token(response_headers.getheader('X-FeApi-Token'))
+			self.hx_user = hx_user
 			self._set_version()
 		
 		return(ret, response_code, response_data)
@@ -588,9 +590,9 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 		
-	def restFindHostsBySearchString(self, string):
+	def restFindHostsBySearchString(self, search_string):
 
-		request = self.build_request(self.build_api_route('hosts?limit=1000&search={0}'.format(urllib.quote(string))))
+		request = self.build_request(self.build_api_route('hosts?search={0}'.format(urllib.quote_plus(search_string))))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
