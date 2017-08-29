@@ -452,14 +452,6 @@ class HXAPI:
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
-
-	def restDownloadGeneric(self, url):
-
-		request = self.build_request(url, accept = 'application/octet-stream')
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-		
-		return(ret, response_code, response_data)
-	
 		
 	# List normal acquisitions
 	def restListAcquisitions(self):
