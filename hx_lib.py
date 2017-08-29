@@ -345,19 +345,30 @@ class HXAPI:
 		data = '{}'
 		if timestamp:
 			data = json.dumps({'req_timestamp' : timestamp})
-
-		request = self.build_request(self.build_api_route('hosts/{0}/triages'.format(agent_id)), data = data, method = 'POST')
+			
+		request = self.build_request(self.build_api_route('hosts/{0}/triages'.format(agent_id)), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
 	# Acquire file
-	def restAcquireFile(self, agent_id, path, filename, mode):
+	def restAcquireFile(self, agent_id, path, filename, mode = True):
 
-		newpath = path.replace('\\','\\\\')
-		data = json.dumps({'req_path' : newpath, 'req_filename' : filename, 'req_use_api' : str(mode != "RAW").lower()})
+		# Mode = True = API mode
+		# Mode = False = RAW mode
+	
+		data = json.dumps({'req_path' : path, 'req_filename' : filename, 'req_use_api' : mode})
 		
 		request = self.build_request(self.build_api_route('hosts/{0}/files'.format(agent_id)), method = 'POST', data = data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restNewAcquisition(self, agent_id, scriptname, script):
+
+		data = json.dumps({'name' : scriptname, 'script' : {'b64' : base64.b64encode(script)}})
+		
+		request = self.build_request(self.build_api_route('hosts/{0}/live'.format(agent_id)), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -442,6 +453,14 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	def restDownloadGeneric(self, url):
+
+		request = self.build_request(url, accept = 'application/octet-stream')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+	
+		
 	# List normal acquisitions
 	def restListAcquisitions(self):
 
@@ -449,6 +468,28 @@ class HXAPI:
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
+
+	def restListFileAcquisitionsHost(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}/files'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restListTriageAcquisitionsHost(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}/triages'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restListDataAcquisitionsHost(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}/live'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
 		
 	# List file acquisitions
 	def restListFileaq(self, limit=10000):
@@ -591,9 +632,9 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 		
-	def restFindHostsBySearchString(self, search_string):
-
-		request = self.build_request(self.build_api_route('hosts?search={0}'.format(urllib.quote_plus(search_string))))
+	def restFindHostsBySearchString(self, search_string, limit = 1000):
+	
+		request = self.build_request(self.build_api_route('hosts?limit={0}&search={1}'.format(limit, urllib.quote_plus(search_string))))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -632,6 +673,13 @@ class HXAPI:
 		data = json.dumps({'state' : 'contain'})
 	
 		request = self.build_request(self.build_api_route('hosts/{0}/containment'.format(host_id)), method = 'PATCH', data = data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restRemoveContainment(self, host_id):
+	
+		request = self.build_request(self.build_api_route('hosts/{0}/containment'.format(host_id)), method = 'DELETE')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)

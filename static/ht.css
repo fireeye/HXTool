@@ -11,6 +11,20 @@
 	z-index: 50;
 }
 
+.ht_popup_div {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	height: 0;
+	padding: 20px;
+	display: none;
+	background: #ffffff;
+	border: 2px solid rgb(215, 215, 215);
+	box-shadow: 5px 5px 5px rgb(215, 215, 215);
+	z-index: 100;
+}
+
 .ht_statusbar_notifyBlue {
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-size: 14px;
@@ -482,6 +496,13 @@
 	font-size: 14px;
 	font-weight: 700;
 	text-decoration: none;
+	color: rgb(81, 87, 97);
+}
+
+.ht_nav_span {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	font-weight: 700;
 	color: rgb(81, 87, 97);
 }
 

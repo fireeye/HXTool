@@ -30,6 +30,20 @@
 
 <script>
 
+	function showPopup(height, width, url) {
+		$('#shader').show();
+		$('#ht_popup_div').css({height : height });
+		$('#ht_popup_div').css({width : width });
+		$('#ht_popup_div').center();
+		$('#ht_popup_div').load(url, function( response, status, xhr ) {
+			$('#ht_popup_div').show(200);
+			$('#popupCancel').click(function(e) {
+				$('#ht_popup_div').hide();
+				$('#shader').hide();
+			});
+		});
+	}
+
 	function showStatusBar(text, showTimer, hideTimer, duration) {
 		$("#ht_statusbar_td").html(text);
 		$("#ht_statusbar_tr").show(showTimer);
@@ -56,7 +70,25 @@
 			})
 	return param
 	}
+	
+	(function($){
+		$.fn.extend({
+			center: function () {
+				return this.each(function() {
+					var top = ($(window).height() - $(this).outerHeight()) / 2;
+					var left = ($(window).width() - $(this).outerWidth()) / 2;
+					$(this).css({position:'absolute', margin:0, top: (top > 0 ? top : 0)+'px', left: (left > 0 ? left : 0)+'px'});
+				});
+			}
+		}); 
+	})(jQuery);
 
+	$(document).on("keypress", "#findhost", function(e) {
+		if (e.which == 13) {
+			window.location.href = "/hosts?q=" + $("#findhost").val();
+		}
+	});
+	
 	$(document).ready(function() {
 		$('[id^=navbutton]').click(function() {
 			url = this.id.split("_");
@@ -70,12 +102,14 @@
 	});
 </script>
 
-	<div class='ht_statusbar_div' id='ht_statusbar_div'>kakasdalkjfsdlkfjlk sdfjlksdjf lksdjflksdjf lksdjfl</div>
+	<div class='ht_statusbar_div' id='ht_statusbar_div'></div>
+	<div class='ht_popup_div' id='ht_popup_div'></div>
+	<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
 	<table cellpadding=0 cellspacing=0 class='ht_main_table'> 
 		<tr>
 			<td class='ht_main_table_top_td'>
 				<a href='/?time=week'><img style='height: 58px; margin-left: 25px; margin-right: 20px; float: left;' src='/static/fireeye.svg'></a>
-				<div style='position: absolute; left: 120px; top: 45px; font-size: 12px; font-weight: bold;'>HXTool v2.1</div>
+				<div style='position: absolute; left: 120px; top: 45px; font-size: 12px; font-weight: bold;'>HXTool v3.0</div>
 				
 				<div id='navbutton_?time=week' style='float: left;' class='ht_nav_table_cell'>Dashboard</div>
 				<div id='navbutton_alerts?acount=30' style='float: left;' class='ht_nav_table_cell'>Alerts</div>
@@ -83,7 +117,7 @@
 				<div id='navbutton_bulk' style='float: left;' class='ht_nav_table_cell'>Bulk Acquisitions</div>
 				<div id='navbutton_stacking' style='float: left;' class='ht_nav_table_cell'>Data Stacking</div>
 				<div id='navbutton_channels' style='float: left;' class='ht_nav_table_cell'>Config Channels</div>
-				<div id='navcategory_indicator' style='float: left; position: relative;' class='ht_nav_table_cell'>Indicators
+				<div id='navcategory_indicator' style='float: left; position: relative; border-right: none;' class='ht_nav_table_cell'>Indicators
 					<div id='dropdown-content-indicators' class='dropdown-content'>
 						<div id='navbutton_buildioc' style='' class='ht_nav_table_cell_sub'>Build</div>
 						<div id='navbutton_indicators' style='' class='ht_nav_table_cell_sub'>Manage</div>
@@ -93,6 +127,9 @@
 								
 				<div style='color: rgb(81, 87, 97); text-align: right; float: right;'>
 				
+				<span class='ht_nav_span'>Find a host</span>
+				<input type='text' id='findhost' style='width: 200px;'>
+				&nbsp;|&nbsp;
 				<a class='ht_nav_a' href='/settings'>Settings</a>
 				&nbsp;|&nbsp;
 				<b>User:</b> {{ user }}
