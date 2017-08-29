@@ -838,21 +838,24 @@ def login():
 					session['ht_api_object'] = hx_api_object.serialize()
 					
 					# Decrypt background processor credential if available
+					# TODO: this could probably be better written
 					iv = None
-					salt = None
+					salt = crypt_generate_random(32)
 					background_credential = ht_db.backgroundProcessorCredentialGet(ht_profile['profile_id'])
 					if background_credential:
 						salt = b64(background_credential['salt'], True)
 						iv = b64(background_credential['iv'], True)
-					else:
-						salt = crypt_generate_random(32)
-					
+						
 					key = crypt_pbkdf2_hmacsha256(salt, request.form['ht_pass'])
 					
 					if iv and salt:
-						decrypted_background_password = crypt_aes(key, iv, background_credential['hx_api_encrypted_password'], decrypt = True)
-						start_background_processor(ht_profile['profile_id'], background_credential['hx_api_username'], decrypted_background_password)
-						decrypted_background_password = None
+						try:
+							decrypted_background_password = crypt_aes(key, iv, background_credential['hx_api_encrypted_password'], decrypt = True)
+							start_background_processor(ht_profile['profile_id'], background_credential['hx_api_username'], decrypted_background_password)
+						except UnicodeDecodeError:
+							app.logger.error("Failed to decrypt background processor credential! Did you change recently change your password? If so, please unset and reset these credentials under Settings.")
+						finally:
+							decrypted_background_password = None
 
 					session['key']= b64(key)					
 					session['salt'] = b64(salt)
