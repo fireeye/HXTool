@@ -406,10 +406,10 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 
-	# Download bulk data
-	def restDownloadFile(self, url, destination_file_path = None):
+	# Download an acquisition (file)
+	def restDownloadFile(self, url, destination_file_path = None, accept = 'application/octet-stream'):
 
-		request = self.build_request(url, accept = 'application/octet-stream')
+		request = self.build_request(url, accept = accept)
 		try:
 			response = self._session.send(request, stream = True)
 			
