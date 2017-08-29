@@ -42,7 +42,6 @@ class HXAPI:
 			ssl._create_default_https_context = ssl._create_unverified_context
 			self.logger.info('SSL/TLS certificate verification disabled.')
 		
-		self.hx_user = None
 		self.fe_token = None
 		self.api_version = self.HX_MIN_API_VERSION
 		self.hx_version = [0, 0, 0]
@@ -202,7 +201,6 @@ class HXAPI:
 		if ret and response_code == 204:
 			self.logger.debug('Token granted.')
 			self.set_token(response_headers.getheader('X-FeApi-Token'))
-			self.hx_user = hx_user
 			self._set_version()
 		
 		return(ret, response_code, response_data)
@@ -342,18 +340,29 @@ class HXAPI:
 		if timestamp:
 			data = json.dumps({'req_timestamp' : timestamp})
 
-		request = self.build_request(self.build_api_route('hosts/{0}/triages'.format(agent_id)), data = data)
+		request = self.build_request(self.build_api_route('hosts/{0}/triages'.format(agent_id)), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
 	# Acquire file
-	def restAcquireFile(self, agent_id, path, filename, mode):
+	def restAcquireFile(self, agent_id, path, filename, mode = True):
 
-		newpath = path.replace('\\','\\\\')
-		data = json.dumps({'req_path' : newpath, 'req_filename' : filename, 'req_use_api' : str(mode != "RAW").lower()})
+		# Mode = True = API mode
+		# Mode = False = RAW mode
+	
+		data = json.dumps({'req_path' : path, 'req_filename' : filename, 'req_use_api' : mode})
 		
 		request = self.build_request(self.build_api_route('hosts/{0}/files'.format(agent_id)), method = 'POST', data = data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restNewAcquisition(self, agent_id, scriptname, script):
+
+		data = json.dumps({'name' : scriptname, 'script' : {'b64' : base64.b64encode(script)}})
+		
+		request = self.build_request(self.build_api_route('hosts/{0}/live'.format(agent_id)), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -393,8 +402,14 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
-	# New Bulk acquisition
+	def restDownloadGeneric(self, url):
 
+		request = self.build_request(url, accept = 'application/octet-stream')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	# New Bulk acquisition
 	def restNewBulkAcq(self, script, host_set):
 
 		data = json.dumps({'host_set' : {'_id' : int(host_set)}, 'script' : {'b64' : base64.b64encode(script)}})
@@ -411,6 +426,28 @@ class HXAPI:
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
+
+	def restListFileAcquisitionsHost(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}/files'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restListTriageAcquisitionsHost(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}/triages'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restListDataAcquisitionsHost(self, host_id):
+
+		request = self.build_request(self.build_api_route('hosts/{0}/live'.format(host_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
 		
 	# List file acquisitions
 	def restListFileaq(self, limit=10000):
@@ -450,14 +487,14 @@ class HXAPI:
 
 	def restCancelJob(self, path, id):
 
-		request = self.build_request(self.build_api_route('{0}/{1}/actions/stop'.format(path, id)), method = 'POST')
+		request = self.build_request('{0}{1}/actions/stop'.format(path, id), method = 'POST')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
 	def restDeleteJob(self, path, id):
 
-		request = self.build_request(self.build_api_route('{0}/{1}'.format(path, id)), method = 'DELETE')
+		request = self.build_request('{0}{1}'.format(path, id), method = 'DELETE')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -551,9 +588,9 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 		
-	def restFindHostsBySearchString(self, search_string):
+	def restFindHostsBySearchString(self, string):
 
-		request = self.build_request(self.build_api_route('hosts?search={0}'.format(urllib.quote_plus(search_string))))
+		request = self.build_request(self.build_api_route('hosts?limit=1000&search={0}'.format(urllib.quote(string))))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -592,6 +629,13 @@ class HXAPI:
 		data = json.dumps({'state' : 'contain'})
 	
 		request = self.build_request(self.build_api_route('hosts/{0}/containment'.format(host_id)), method = 'PATCH', data = data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	def restRemoveContainment(self, host_id):
+	
+		request = self.build_request(self.build_api_route('hosts/{0}/containment'.format(host_id)), method = 'DELETE')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)

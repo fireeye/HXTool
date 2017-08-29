@@ -1,0 +1,28 @@
+<div class='tableTitle'>
+	Data Acquisition	
+</div>
+
+<form method='POST' action='/hosts' enctype="multipart/form-data">
+
+<span style='font-size: 14px; font-style: italic;'>Submit a data acquisition script. Will retreive the output of specified audit modules within your script.</span>
+
+<div style='margin: 20px; margin-top: 5px; padding: 10px;'>
+
+	<div style='margin-bottom: 20px;'>
+		<div style='font-size: 12px; font-weight: bold;'>Script name</div>
+		<input style='width: 460px;' type='text' id='name' name='name'>
+	</div>
+
+	<div style='font-size: 12px; font-weight: bold;'>Upload script (xml / json)</div>
+	<input type='file' id='script' name='script'>
+	
+</div>
+
+<div style='float: right;'>
+<input type='hidden' id='acq' name='acq' value='{% if hostid %}{{ hostid|safe }}{% endif %}'>
+<input type='hidden' id='url' name='url' value='{% if url %}{{ url|safe }}{% endif %}'>
+<input type='button' class='tableActionButton' id='popupCancel' value='cancel'>
+<input type='submit' class='tableActionButton' value='submit'>
+</div>
+
+</form>

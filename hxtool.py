@@ -29,6 +29,7 @@ import time
 from hxtool_process import *
 from hxtool_config import *
 import sys
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -180,10 +181,91 @@ def index():
 def hosts():
 	(ret, hx_api_object) = is_session_valid(session)
 	if ret:
+		# Host investigation panel
 		if 'host' in request.args.keys():
 			(ret, response_code, response_data) = hx_api_object.restGetHostSummary(request.args.get('host'))
 			myhosthtml = formatHostInfo(response_data, hx_api_object)
 			return render_template('ht_hostinfo.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostinfo=myhosthtml)
+		
+		# Host search returns table of hosts
+		elif 'q' in request.args.keys():
+			(ret, response_code, response_data) = hx_api_object.restFindHostsBySearchString(request.args.get('q'))
+			myhostlist = formatHostSearch(response_data, hx_api_object)
+			return render_template('ht_hostsearch.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), myhostlist=myhostlist)
+			
+		# Contain a host
+		elif 'contain' in request.args.keys():
+			(ret, response_code, response_data) = hx_api_object.restRequestContainment(request.args.get('contain'))
+			if ret:
+				app.logger.info('Containment request issued - User: %s@%s:%s - host: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('contain'))
+				(ret, response_code, response_data) = hx_api_object.restApproveContainment(request.args.get('contain'))
+				if ret:
+					app.logger.info('Containment request approved - User: %s@%s:%s - host: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('contain'))
+			return redirect(request.args.get('url'), code=302)
+		
+		# Uncontain a host
+		elif 'uncontain' in request.args.keys():
+			(ret, response_code, response_data) = hx_api_object.restRemoveContainment(request.args.get('uncontain'))
+			if ret:
+				print response_data
+				app.logger.info('Uncontained issued - User: %s@%s:%s - host: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('uncontain'))
+			return redirect(request.args.get('url'), code=302)
+		
+		# Approve containment
+		elif 'appcontain' in request.args.keys():
+			(ret, response_code, response_data) = hx_api_object.restApproveContainment(request.args.get('appcontain'))
+			if ret:
+				app.logger.info('Containment approval - User: %s@%s:%s - host: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('appcontain'))
+			return redirect(request.args.get('url'), code=302)
+			
+		# Requests triage
+		elif 'triage' in request.args.keys():
+		
+			# Standard triage
+			if request.args.get('type') == "standard":
+				(ret, response_code, response_data) = hx_api_object.restAcquireTriage(request.args.get('triage'))
+				if ret:
+					app.logger.info('Standard Triage requested - User: %s@%s:%s - host: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('triage'))
+			
+			# Triage with predetermined time
+			elif request.args.get('type') in ("1", "2", "4", "8"):
+					mytime = datetime.datetime.now() - timedelta(hours = int(request.args.get('type')))
+					(ret, response_code, response_data) = hx_api_object.restAcquireTriage(request.args.get('triage'), mytime.strftime('%Y-%m-%d %H:%M:%S'))
+					if ret:
+						app.logger.info('Triage requested around timestamp - User: %s@%s:%s - host: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('triage'))
+			
+			# Triage with custom timestamp
+			elif request.args.get('type') == "timestamp":
+				(ret, response_code, response_data) = hx_api_object.restAcquireTriage(request.args.get('triage'), request.args.get('timestampvalue'))
+				if ret:
+					app.logger.info('Triage requested around timestamp - User: %s@%s:%s - host: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('triage'))
+				
+			return redirect(request.args.get('url'), code=302)
+			
+		# File acquisition request
+		elif 'fileaq' in request.args.keys():
+			if request.args.get('type') and request.args.get('filepath') and request.args.get('filename'):
+				
+				if request.args.get('type') == "API":
+					mode = True
+				if request.args.get('type') == "RAW":
+					mode = False
+					
+				(ret, response_code, response_data) = hx_api_object.restAcquireFile(request.args.get('fileaq'), request.args.get('filepath'), request.args.get('filename'), mode)
+				if ret:
+					app.logger.info('File acquisition requested - User: %s@%s:%s - host: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('fileaq'))
+				
+			return redirect(request.args.get('url'), code=302)
+		elif 'acq' in request.form.keys():
+
+			fc = request.files['script']				
+			myscript = fc.read()
+			
+			(ret, response_code, response_data) = hx_api_object.restNewAcquisition(request.form.get('acq'), request.form.get('name'), myscript)
+			if ret:
+				app.logger.info('Data acquisition requested - User: %s@%s:%s - host: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('acq'))
+
+			return redirect(request.form.get('url'), code=302)
 		else:
 			return redirect('/', code=302)
 			
@@ -191,6 +273,36 @@ def hosts():
 		return redirect("/login", code=302)
 
 
+### Triage popup
+@app.route('/triage', methods=['GET'])
+def triage():
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+		triageid= request.args.get('host')
+		url = request.args.get('url')
+		mytime = datetime.datetime.now()
+		return render_template('ht_triage.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), triageid=triageid, url=url, now=mytime.strftime('%Y-%m-%d %H:%M:%S'))
+
+		
+### File acquisition popup
+@app.route('/fileaq', methods=['GET'])
+def fileaq():
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+		hostid = request.args.get('host')
+		url = request.args.get('url')
+		return render_template('ht_fileaq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
+
+		
+### Acquisition popup
+@app.route('/acq', methods=['GET'])
+def acq():
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+		hostid = request.args.get('host')
+		url = request.args.get('url')
+		return render_template('ht_acq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
+		
 ### Alerts Page
 ###################
 
@@ -538,7 +650,24 @@ def bulkdownload():
 	else:
 			return redirect("/login", code=302)
 
+			
+@app.route('/download')
+def download():
+	(ret, hx_api_object) = is_session_valid(session)
+	if ret:
+	
+		if request.args.get('id'):
+			urlhead, fname = os.path.split(request.args.get('id'))
+			(ret, response_code, response_data) = hx_api_object.restDownloadGeneric(request.args.get('id'))
+			if ret:
+				app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
+				return send_file(io.BytesIO(response_data), attachment_filename=fname, as_attachment=True)
+			else:
+				print response_data
+	else:
+			return redirect("/login", code=302)
 				
+
 @app.route('/bulkaction', methods=['GET'])
 def bulkaction():
 	(ret, hx_api_object) = is_session_valid(session)
@@ -548,12 +677,12 @@ def bulkaction():
 		c = conn.cursor()
 	
 		if request.args.get('action') == "stop":
-			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', request.args.get('id'))
+			(ret, response_code, response_data) = hx_api_object.restCancelJob('/hx/api/v2/acqs/bulk/', request.args.get('id'))
 			app.logger.info('Bulk acquisition action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/bulk", code=302)
 			
 		if request.args.get('action') == "remove":
-			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', request.args.get('id'))
+			(ret, response_code, response_data) = hx_api_object.restDeleteJob('/hx/api/v2/acqs/bulk/', request.args.get('id'))
 			app.logger.info('Bulk acquisition action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/bulk", code=302)	
 			
