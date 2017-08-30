@@ -290,7 +290,7 @@ class HXAPI:
 	def restCreateCategory(self, category_name):
 
 		request = self.build_request(self.build_api_route('indicator_categories/{0}'.format(category_name)), method = 'PUT', data = '{}')
-		request.add_header('If-None-Match', '*')
+		request.headers['If-None-Match'] = '*'
 		
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
