@@ -32,7 +32,7 @@ except ImportError:
 
 # Flask imports
 try:
-	from flask import Flask, request, session, redirect, render_template, send_file, g, url_for, abort
+	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort
 except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
@@ -605,11 +605,14 @@ def bulkdetails(hx_api_object):
 @valid_session_required
 def bulkdownload(hx_api_object):
 	if request.args.get('id'):
-		urlhead, fname = os.path.split(request.args.get('id'))
 		(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
 		if ret:
 			app.logger.info('Bulk acquisition download - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-			return send_file(response_data, attachment_filename=fname, as_attachment=True)
+			app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
+			flask_response = Response(iter_chunk(response_data))
+			flask_response.headers['Content-Type'] = response_data.headers['Content-Type']
+			flask_response.headers['Content-Disposition'] = response_data.headers['Content-Disposition']
+			return flask_response
 		else:
 			return "HX controller responded with code {0}: {1}".format(response_code, response_data)
 	else:
@@ -620,11 +623,13 @@ def bulkdownload(hx_api_object):
 @valid_session_required
 def download(hx_api_object):
 	if request.args.get('id'):
-		urlhead, fname = os.path.split(request.args.get('id'))
 		(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
 		if ret:
 			app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
-			return send_file(response_data, attachment_filename=fname, as_attachment=True)
+			flask_response = Response(iter_chunk(response_data))
+			flask_response.headers['Content-Type'] = response_data.headers['Content-Type']
+			flask_response.headers['Content-Disposition'] = response_data.headers['Content-Disposition']
+			return flask_response
 		else:
 			return "HX controller responded with code {0}: {1}".format(response_code, response_data)
 	else:
@@ -1012,6 +1017,14 @@ def b64(s, decode = False, decode_string = False):
 	if decode:
 		return base64.b64decode(s)
 	return base64.b64encode(s).decode('utf-8')
+	
+"""
+Iter over a Requests response object
+and yield the chunk
+"""
+def iter_chunk(r, chunk_size = 1024):
+	for chunk in r.iter_content(chunk_size = chunk_size):
+		yield chunk
 	
 ### background processing 
 #################################
