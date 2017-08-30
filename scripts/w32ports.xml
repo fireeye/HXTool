@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<command xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="AuditHostScriptCommand" id="urn:uuid:babd2119-df5e-4e45-ba1b-cc9c5c8005d8">
+  <input>
+    <type>application/vnd.mandiant.host+xml</type>
+  </input>
+  <result>
+    <type>application/vnd.mandiant.auditresult+xml</type>
+  </result>
+  <script id="urn:uuid:cd0356e0-7e06-4001-96b8-67451585d090" chaining="implicit">
+    <commands>
+      <command xsi:type="ExecuteModuleCommand" id="urn:uuid:e6b28e22-2fbe-4f27-8f13-8eeb20e64b45">
+        <module name="w32ports" version="1.4.36.0" />
+        <config xsi:type="ParameterListModuleConfig">
+          <parameters>
+            <param name="Filter Behavior" />
+            <param name="Prevent Hibernation">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+          </parameters>
+        </config>
+        <filters />
+      </command>
+    </commands>
+  </script>
+</command>

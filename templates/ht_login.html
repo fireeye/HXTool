@@ -1,20 +1,78 @@
 <html>
 <head>
 	<title>HXTool - Please Authenticate</title>
-	<link rel="stylesheet" type="text/css" href="static/ht.css">
-	<script type="text/javascript" src="/static/jquery-1.11.3.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="/static/ht.css">
+	<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
 </head>
 
-<script>
-	$(document).ready(function() {
-		$('#addController').click(function(){ 
-			$('#shader').show();
-			$('#profilePopup').show();
+<script language="JavaScript">
+	function deleteProfile(e) {
+		profile_id = $(e).attr("profile-id");
+		if (profile_id) {
+			$.ajax({
+				type: "DELETE",
+				url: "/api/v1/profile/" + profile_id,
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				success: function(r) {
+					bindData();
+				},
+				error: function(xhr) {
+					alert("Error: " + xhr.responseJSON);
+				}
+			});
+		}
+	}
+	
+	function bindData() {
+		$.ajax({
+			type: "GET",
+			url: "/api/v1/profile",
+			contentType: "application/json; charset=utf-8",
+			dataType: "json",
+			success: function(r) {
+				$("#controllerProfileDropdown").empty();
+				$("#controllerProfileTable tbody").empty();			
+				$.each(r.data, function() {
+					// TODO: implementing a string format function would be nicer...
+					$("#controllerProfileDropdown").append($("<option></option>").val(this.profile_id).text(this.hx_name + " - " + this.hx_host + ":" + this.hx_port));
+					$("#controllerProfileTable tbody").append("<tr><td>" + this.hx_name + "</td><td>" + this.hx_host + "</td><td>" + this.hx_port + "</td><td><a href='#' style='text-decoration: none;' onclick='JavaScript: deleteProfile(this);' profile-id='" + this.profile_id + "'>Delete</a></td></tr>");
+				});
+				
+			}
 		});
-
-		$('#controllerCancel').click(function(){
-			$('#profilePopup').hide();
-			$('#shader').hide();
+	}
+	
+	
+	$(document).ready(function() {
+		bindData();
+		
+		$("#controllerProfileManagerButton").click(function() {
+			$("#controllerProfileManagerPanel").show();
+		});
+		
+		$("#controllerProfileSaveButton").click(function() {			
+			var request_json = {};
+			$("*[data-key]").each(function(idx) {
+				request_json[$(this).attr("data-key")] = $(this).val();
+			});
+			request_json = JSON.stringify(request_json);
+			
+			$.ajax({
+				type: "PUT",
+				url: "/api/v1/profile",
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				data: request_json,
+				success: function(r) {
+					bindData();
+				},
+				error: function(xhr) {
+					alert("Error: " + xhr.responseJSON);
+				}
+			});
+			
+			$("#controllerProfileManagerAddProfilePanel").hide(200);
 		});
 	});
 </script>
@@ -40,12 +98,11 @@
 					<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='password' name='ht_pass' id='ht_pass'>
 					<br><br>
 					<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>CONTROLLER PROFILE</div>
-					<select style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' name='ht_ip' id='ht_ip'>
-						{% if controllers %} {{ controllers|safe }} {% endif %}
-					</select>
+					<select style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' name='controllerProfileDropdown' id='controllerProfileDropdown'>
+					</select>		
 					<br>
 					<div style='padding-top: 10px;'>
-						<a id='addController' class='tableActionButton' href='#'>Add new controller</a>
+						<a id='controllerProfileManagerButton' class='tableActionButton' href='#'>Controller Profile Manager</a>
 					</div>
 					<br><br>
 					
@@ -55,20 +112,38 @@
 			</div>
 		</div>
 	</div>
-<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
-<div class='profilePopup' id='profilePopup' style='display: none;'>
-	<form method='post' style='font-size: 14px; font-weight: bold;'>
-		<div class='tableTitle' style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 15px;'>Add new login profile</div>
-		Controller name<br>
-		<input type='text' name='cname' id='cname' style='width: 500px; border: 1px solid rgb(215,215,215); border-radius: 5px; font-size: 18px;'><br>
+	<div id='controllerProfileManagerPanel' class='controllerProfileManagerDialog' style='display: none;'>
+		<table class='genericTable' id='controllerProfileTable' style='width: 100%; text-align: center;'>
+			<thead>
+				<th>Name</th>
+				<th>Hostname/IP</th>
+				<th>Port</th>
+				<th></th>
+			</thead>
+			<tbody></tbody>
+			<tfoot>
+				
+			</tfoot>
+		</table>
 		<br>
-		Controller hostname<br>
-		<input type='text' name='chostname' id='chostname' style='width: 500px; border: 1px solid rgb(215,215,215); border-radius: 5px; font-size: 18px;'><br>
-		<br>
-		
-		<input type='submit' value='Create profile'>
-		<input type='button' value='Cancel' id='controllerCancel'>
-	</form>
-</div>
+		<input type='button' value='Close' onclick='JavaScript: $("#controllerProfileManagerPanel").hide(200);'  />
+		<input type='button' value='Create' onclick='JavaScript: $("#controllerProfileManagerAddProfilePanel").show();' />
+		<div id='controllerProfileManagerAddProfilePanel' class='controllerProfileAddDialog' style='display: none;'>
+			<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>Name</div>
+			<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfileName' data-key='hx_name'>
+			<br />
+			<br />
+			<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>Hostname/IP</div>
+			<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfileHost' data-key='hx_host'>
+			<br />
+			<br />
+			<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>Port</div>
+			<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfilePort' data-key='hx_port' value = '{{ hx_default_port }}'>
+			<br />
+			<br />
+			<input type='button' value='Cancel' onclick='JavaScript: $("#controllerProfileManagerAddProfilePanel").hide(200);' />
+			<input type='button' value='Save' id='controllerProfileSaveButton' />	
+		</div>
+	</div>
 </body>
 </html>

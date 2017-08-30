@@ -9,6 +9,9 @@ import sys, logging, logging.handlers, socket
 #TODO: Add config documentation
 
 class hxtool_config:
+	"""
+	Default hard coded config
+	"""
 	DEFAULT_CONFIG = {
 		'log_handlers' : {
 			'rotating_file_handler' : {
@@ -31,6 +34,7 @@ class hxtool_config:
 		'background_processor' : {
 			'downloads_per_poll' : 500,
 			'poll_interval' : 5,
+			'poll_threads'	: 4,
 			'stack_jobs_per_poll' : 500
 		},
 		'headers' : {
@@ -63,21 +67,14 @@ class hxtool_config:
 			self.logger.warning('Unable to open config file: %s, loading default config.', config_file)
 			self._config = self.DEFAULT_CONFIG
 
-	def __getitem__(self, key):
-		return self._config[key]
-				
+	def __getitem__(self, key, default = None):
+		v = self._config.get(key)
+		if not v:
+			v = default
+		return v
+		
 	def get_config(self):
 		return self._config
-	
-	def get_or_none(self, key, empty_is_none = True):
-		if key in self._config:
-			c = self._config[key]
-			if empty_is_none and len(c) == 0:
-				return None
-			else:
-				return c
-		else:
-			return None
 			
 	def log_handlers(self):
 		for handler_name in self._config['log_handlers']:

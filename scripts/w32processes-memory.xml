@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<command xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="AuditHostScriptCommand" id="urn:uuid:babd2119-df5e-4e45-ba1b-cc9c5c8005d8">
+  <input>
+    <type>application/vnd.mandiant.host+xml</type>
+  </input>
+  <result>
+    <type>application/vnd.mandiant.auditresult+xml</type>
+  </result>
+  <script id="urn:uuid:cd0356e0-7e06-4001-96b8-67451585d090" chaining="implicit">
+    <commands>
+      <command xsi:type="ExecuteModuleCommand" id="urn:uuid:8ee9865c-5a55-4799-98de-81a6e4d324ec">
+        <module name="w32processes-memory" version="2.1.8.0" />
+        <config xsi:type="ParameterListModuleConfig">
+          <parameters>
+            <param name="pid" />
+            <param name="process name" />
+            <param name="handles">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="sections">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="ports">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="enumerate imports">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="enumerate exports">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+            <param name="Content Regex" />
+            <param name="Preserve Times">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="MemD5">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="MD5">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="SHA1">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+            <param name="SHA256">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="Verify Digital Signatures">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+            <param name="raw mode">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="detect injected dlls">
+              <value xsi:type="xsd:boolean">true</value>
+            </param>
+            <param name="strings">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+            <param name="shortest matched string" />
+            <param name="memory file" />
+            <param name="Filter Behavior" />
+            <param name="Prevent Hibernation">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+          </parameters>
+        </config>
+        <filters />
+      </command>
+    </commands>
+  </script>
+</command>

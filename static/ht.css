@@ -264,19 +264,46 @@
 }
 
 
-.profilePopup {
+.stackingIndexPopup {
 	border: 2px solid rgb(215, 215, 215);
-	background: #ffffff;
-	border-radius: 5px;
-	padding: 30px;
-	position: fixed;
-	left: 50%;
-	top: 40%;
-	z-index: 10;
-	margin-left: -300px;
-	margin-top: -90px;
-	width: 500px;
-	height: 180px;
+    background: #ffffff;
+    border-radius: 5px;
+    z-index: 10;
+	padding: 20px;
+    width: 100px;
+    height: auto;
+	box-shadow: 5px 5px 5px rgb(215, 215, 215);
+}
+
+.controllerProfileManagerDialog {
+	border: 2px solid rgb(215, 215, 215);
+    background: #ffffff;
+    border-radius: 5px;
+    padding: 30px;
+    position: fixed;
+    left: 50%;
+    top: 40%;
+    z-index: 10;
+    margin-left: -400px;
+	margin-top: -175px;
+    width: 800px;
+    height: 350px;
+	box-shadow: 5px 5px 5px rgb(215, 215, 215);
+}
+
+.controllerProfileAddDialog {
+	border: 2px solid rgb(215, 215, 215);
+    background: #ffffff;
+    border-radius: 5px;
+    padding: 30px;
+    position: fixed;
+    left: 50%;
+    top: 40%;
+    z-index: 10;
+    margin-left: -250px;
+	margin-top: -110px;
+    width: 500px;
+    height: 220px;
 	box-shadow: 5px 5px 5px rgb(215, 215, 215);
 }
 
@@ -875,6 +902,10 @@
 	text-align: center;
 }
 
+.htDTButtons {
+	float: right;
+	padding-bottom: 3px;
+}
 
 	
 	

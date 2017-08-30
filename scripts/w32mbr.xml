@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<command xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="AuditHostScriptCommand" id="urn:uuid:5dbebb80-e88f-4593-92ef-7e97941c857c">
+  <input>
+    <type>application/vnd.mandiant.host+xml</type>
+  </input>
+  <result>
+    <type>application/vnd.mandiant.auditresult+xml</type>
+  </result>
+  <script id="urn:uuid:28231d0c-edb5-4d5f-8f36-de240c5043f2" chaining="implicit">
+    <commands>
+      <command xsi:type="ExecuteModuleCommand" id="urn:uuid:0ee38908-72ea-41dd-8b88-ffe4327c9f35">
+        <module name="w32disk-acquisition" version="1.4.36.0" />
+        <config xsi:type="ParameterListModuleConfig">
+          <parameters>
+            <param name="Path">
+              <value xsi:type="xsd:string">\\.\</value>
+            </param>
+            <param name="Filename">
+              <value xsi:type="xsd:string">PhysicalDrive0</value>
+            </param>
+            <param name="offset">
+              <value xsi:type="xsd:unsignedLong">0</value>
+            </param>
+            <param name="size">
+              <value xsi:type="xsd:unsignedLong">512</value>
+            </param>
+            <param name="Prevent Hibernation">
+              <value xsi:type="xsd:boolean">false</value>
+            </param>
+          </parameters>
+        </config>
+        <filters />
+      </command>
+    </commands>
+  </script>
+</command>

@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Stacking analysis{% endblock %}
+{% block navlocation %}Stacking analysis{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+		$.ajax({
+				type: "GET",
+				url: "/api/v1/stacking/{{ stack_id }}/results",
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				success: function(r) {
+					var columns = [];
+					// Dynamically create table column headers.
+					$.each(r[0], function(k, v) {
+						c = {'name' : k, 'title' : k, 'data' : k};
+						if ($.isArray(v) && v.length > 1) {
+							c['render'] = function(data, type, row, meta) {
+											if (type == 'display' && data.length > 1) {
+												return '<a href="#" style="text-decoration: none;" onclick="JavaScript: $(this).next().show()">Multiple</a>\
+												<div id="indexPopup" onclick="JavaScript: $(this).hide();" class="stackingIndexPopup" style="display:none;">'
+												+ data.join('<br />') + '</div>';
+											} else {
+												return data
+											}
+										}
+						}
+						columns.push(c);
+					});
+					
+					$('#stackResultsTable').DataTable({
+                        "info": false,
+						"columns": columns,
+						"data": r, 
+                        "pageLength": 25,
+                        "lengthChange": false,
+						"order": [],
+						"colReorder": true,
+						"dom": '<"htDTButtons"B>frtip',
+						"buttons": [
+							"copy",
+							"csv",
+							"excel",
+							"print"
+						]
+					});
+				},
+				error: function(xhr) {
+					alert("Error: " + xhr.responseJSON);
+				}
+		});
+		
+	});
+</script>
+
+<br>
+
+<div class='tableTitle'>
+        Stacking Results
+</div>
+<table id='stackResultsTable' class='genericTable dataTable no-footer' style='width: 100%;'>
+</table>
+{% endblock %}

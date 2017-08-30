@@ -30,8 +30,12 @@
 		
 	<div class='inputArea'>
 		Stack type: 
-	        <select name='stacktype' id='stacktype'>
-				<option value='services-md5'>Microsoft Windows: Services MD5
+	        <select name='stack_type' id='stack_type'>
+				{% if stack_types %}
+					{% for stack_type in stack_types %}
+						<option value='{{ stack_type }}'>{{ stack_types[stack_type].platform }}: {{ stack_types[stack_type].name }}
+					{% endfor %}			
+				{% endif %}
 			</select>
 		Host set: 
 		<select name='stackhostset' id='stackhostset'>

@@ -104,15 +104,15 @@ def formatListSearchesJobDash(s):
 
 def formatSearchResults(hostresults):
 
-	x = "<table id='resultsTable' class='genericTable' style='width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>host</td>"
-	x += "<td style='width: 180px;'>type</td>"
-	x += "<td>data</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x = "<table id='resultsTable' class='genericTable' style='width: 100%;'>" \
+		"<thead>" \
+		"<tr>" \
+		"<td style='width: 100px;'>host</td>" \
+		"<td style='width: 180px;'>type</td>" \
+		"<td>data</td>" \
+		"</tr>" \
+		"</thead>" \
+		"<tbody>"
 
 	for entry in hostresults['data']['entries']:
 		for result in entry['results']:
@@ -126,45 +126,50 @@ def formatSearchResults(hostresults):
 			for data in result['data']:
 				x += "<b>" + data + ":</b> " + str(result['data'][data]) + " "
 			x += "</td>"
-                	x += "</tr>"
+			x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
-        return (x)
+	x += "</tbody>"
+	x += "</table>"
+	return (x)
 
 
-def formatBulkTable(c, conn, bulktable, profileid):
+def formatBulkTable(ht_db, bulktable, profileid):
 
-        x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>id</td>"
-        x += "<td style='width: 100px;'>state</td>"
-        x += "<td>host set</td>"
-        x += "<td>New</td>"
-        x += "<td>Queued</td>"
-        x += "<td>Failed</td>"
-        x += "<td>Complete</td>"
-        x += "<td>Aborted</td>"
-        x += "<td>Deleted</td>"
-        x += "<td>Refresh</td>"
-        x += "<td>Cancelled</td>"
-        x += "<td style='width: 160px;'>Complete rate</td>"
-        x += "<td style='width: 160px;'>Download rate</td>"
-        x += "<td style='width: 260px;'>Actions</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>" \
+		"<thead>" \
+		"<tr>" \
+		"<td style='width: 100px;'>id</td>" \
+		"<td style='width: 100px;'>state</td>" \
+		"<td>Hostset ID</td>" \
+		"<td>New</td>" \
+		"<td>Queued</td>" \
+		"<td>Failed</td>" \
+		"<td>Complete</td>" \
+		"<td>Aborted</td>" \
+		"<td>Deleted</td>" \
+		"<td>Refresh</td>" \
+		"<td>Cancelled</td>" \
+		"<td style='width: 160px;'>Complete rate</td>" \
+		"<td style='width: 160px;'>Download rate</td>" \
+		"<td style='width: 260px;'>Actions</td>" \
+		"</tr>" \
+		"</thead>" \
+		"<tbody>"
 
 	for entry in bulktable['data']['entries']:
 
-
-		out = sqlGetStackJobsForBulkId(c, conn, profileid, entry['_id'])
-		bulkdl = sqlGetBulkDownloadStatus(c, conn, profileid, entry['_id'])
+	
+		bulk_download = ht_db.bulkDownloadGet(profileid, entry['_id'])
+		
 		x += "<tr class='clickable-row' data-href='/bulkdetails?id=" + str(entry['_id']) + "'>"
 		x += "<td>" + str(entry['_id']) + "</td>"
 		x += "<td>" + str(entry['state']) + "</td>"
-		x += "<td>" + '' + "</td>"
+		hostset_id = ""
+		if entry['host_set']:
+			hostset_id = entry['host_set']['_id']
+		elif entry['comment'] and 'hostset_id' in entry['comment']:
+			hostset_id = json.loads(entry['comment'])['hostset_id']
+		x += "<td>{0}</td>".format(hostset_id)
 		x += "<td>" + str(entry['stats']['running_state']['NEW']) + "</td>"
 		x += "<td>" + str(entry['stats']['running_state']['QUEUED']) + "</td>"
 		x += "<td>" + str(entry['stats']['running_state']['FAILED']) + "</td>"
@@ -187,10 +192,12 @@ def formatBulkTable(c, conn, bulktable, profileid):
 		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry['_id']) + "' data-percent='" + str(int(round(completerate))) + "'></div></div>"
 		x += "</td>"
 		
-		if (len(bulkdl) > 0):
-			if (bulkdl[0][3] != 0 or bulkdl[0][2] != 0):
+		if bulk_download:
+			total_hosts = len(bulk_download['hosts'])
+			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
+			if total_hosts > 0 and hosts_completed > 0:
 				
-				dlprogress = float(bulkdl[0][3]) / float(bulkdl[0][2]) * 100
+				dlprogress = int(float(hosts_completed) / total_hosts * 100)
 							
 				if dlprogress > 100:
 					dlprogress = 100
@@ -198,20 +205,19 @@ def formatBulkTable(c, conn, bulktable, profileid):
 			else:
 				dlprogress = 0
 			x += "<td>"
-			x += "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + str(entry['_id']) + "' data-percent='" + str(int(round(dlprogress))) + "'></div></div>"
+			x += "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + str(entry['_id']) + "' data-percent='" + str(dlprogress) + "'></div></div>"
 			x += "</td>"
 		else:
 			x += "<td>N/A</td>"
 			
 		x += "<td>" 
 		
-		if (len(out) > 0):
-			x += "Stacking job"
+		if bulk_download and bulk_download['post_download_handler']:
+			x += "Post-download handler: {0}".format(bulk_download['post_download_handler'])
 		else:
 			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
 			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
-			bulkdl = sqlGetBulkDownloadStatus(c, conn, profileid, str(entry['_id']))
-			if (len(bulkdl) == 0):
+			if not bulk_download:
 				x += "<a class='tableActionButton' href='/bulkaction?action=download&id=" + str(entry['_id']) + "'>download</a>"
 			else:
 				x += "<a class='tableActionButton' href='/bulkaction?action=stopdownload&id=" + str(entry['_id']) + "'>stop download</a>"
@@ -219,26 +225,26 @@ def formatBulkTable(c, conn, bulktable, profileid):
 		
 		x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
-        return (x)
+	x += "</tbody>"
+	x += "</table>"
+	return (x)
 
 # Renders the bulk table on the Jobs dashboard
-def formatBulkTableJobDash(c, conn, bulktable, profileid):
+def formatBulkTableJobDash(ht_db, bulktable, profileid):
 
-        x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>id</td>"
-        x += "<td style='width: 100px;'>state</td>"
-        x += "<td>host set</td>"
-        x += "<td>Queued</td>"
-        x += "<td>Complete</td>"
-        x += "<td>% Complete</td>"
-        x += "<td>Actions</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>" \
+		"<thead>" \
+		"<tr>" \
+		"<td style='width: 100px;'>id</td>" \
+		"<td style='width: 100px;'>state</td>" \
+		"<td>host set</td>" \
+		"<td>Queued</td>" \
+		"<td>Complete</td>" \
+		"<td>% Complete</td>" \
+		"<td>Actions</td>" \
+		"</tr>" \
+		"</thead>" \
+		"<tbody>"
 
 	for entry in bulktable['data']['entries']:
 	
@@ -269,24 +275,24 @@ def formatBulkTableJobDash(c, conn, bulktable, profileid):
 		
 		x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
-        return (x)
+	x += "</tbody>"
+	x += "</table>"
+	return (x)
 		
 		
 def formatBulkHostsTable(hoststable):
 
-        x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>hostname</td>"
-        x += "<td style='width: 100px;'>queued at</td>"
-        x += "<td style='width: 100px;'>completed at</td>"
-        x += "<td style='width: 100px;'>state</td>"
-        x += "<td>actions</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>" \
+		"<thead>" \
+		"<tr>" \
+		"<td style='width: 100px;'>hostname</td>" \
+		"<td style='width: 100px;'>queued at</td>" \
+		"<td style='width: 100px;'>completed at</td>" \
+		"<td style='width: 100px;'>state</td>" \
+		"<td>actions</td>" \
+		"</tr>" \
+		"</thead>" \
+		"<tbody>" 
 
 
 	for entry in hoststable['data']['entries']:
@@ -302,9 +308,9 @@ def formatBulkHostsTable(hoststable):
 		x += "</td>"
 		x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
-        return (x)
+	x += "</tbody>"
+	x += "</table>"
+	return (x)
 
 
 def formatIOCResults(iocs):
@@ -443,18 +449,18 @@ def formatHostsets(hs):
 	
 def formatDashAlerts(alerts, hx_api_object):
 
-	x = "<table id='dashAlerts' class='dashAlerts' style='width: 100%;'>"
-        x += "<thead>"
-        x += "<tr>"
-        x += "<td style='width: 100px;'>Host</td>"
-        x += "<td style='width: 100px;'>Domain</td>"
-        x += "<td style='width: 150px;'>Operating system</td>"
-	x += "<td style='width: 100px;'>Threat info</td>"
-        x += "<td style='width: 100px;'>Reported at</td>"
-        x += "<td style='width: 100px;'>Matched at</td>"
-        x += "</tr>"
-        x += "</thead>"
-        x += "<tbody>"
+	x = "<table id='dashAlerts' class='dashAlerts' style='width: 100%;'>" \
+		"<thead>" \
+		"<tr>" \
+		"<td style='width: 100px;'>Host</td>" \
+		"<td style='width: 100px;'>Domain</td>" \
+		"<td style='width: 150px;'>Operating system</td>" \
+		"<td style='width: 100px;'>Threat info</td>" \
+		"<td style='width: 100px;'>Reported at</td>" \
+		"<td style='width: 100px;'>Matched at</td>" \
+		"</tr>" \
+		"</thead>" \
+		"<tbody>"
 
 	for entry in alerts[:10]:
 		x += "<tr>"
@@ -478,12 +484,12 @@ def formatDashAlerts(alerts, hx_api_object):
 		x += "<td>" + str(entry['matched_at']) + "</td>"
 		x += "</tr>"
 
-        x += "</tbody>"
-        x += "</table>"
+	x += "</tbody>"
+	x += "</table>"
 
 	return(x)
 
-def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
+def formatAlertsTable(alerts, hx_api_object, profileid, ht_db):
 
 	x = "<table id='alertsTable' class='genericTable genericTableAlerts' style='width: 100%;'>"
 	x += "<thead>"
@@ -508,14 +514,18 @@ def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 	for entry in alerts['data']['entries']:
 		
 		# Get annotations
-		annotations = sqlGetAnnotationStats(c, conn, str(entry['_id']), profileid)
+		alert = ht_db.alertGet(profileid, entry['_id'])
+		annotation_count = 0
+		annotation_max_state = 0
+		if alert:
+			annotation_count = len(alert['annotations'])
+			annotation_max_state = int(max(alert['annotations'], key = (lambda k: k['state']))['state'])
 		
-		if (annotations[0][1] == 1):
+		bgcolor = "#ffffff"
+		if (annotation_max_state == 1):
 			bgcolor = "#fffce0"
-		elif (annotations[0][1] == 2):
-			bgcolor = "#e0ffe3"
-		else:
-			bgcolor = "#ffffff"
+		elif (annotation_max_state == 2):
+			bgcolor = "#e0ffe3"		
 	
 		x += "<tr>"
 	
@@ -588,9 +598,9 @@ def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 		x += "</td>"
 		
 		# State
-		if (annotations[0][1] == 1):
+		if (annotation_max_state == 1):
 			x += "<td style='text-align: center; background: " + bgcolor + ";'>Investigating</td>"
-		elif (annotations[0][1] == 2):
+		elif (annotation_max_state == 2):
 			x += "<td style='text-align: center; background: " + bgcolor + ";'>Completed</td>"
 		else:
 			x += "<td style='text-align: center; background: " + bgcolor + ";'>New</td>"
@@ -598,7 +608,7 @@ def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 		# Annotation status
 		x += "<td style='text-align: center;'>"
 			
-		x += "<a href='#' id='adisp_" + str(entry['_id']) + "' class='tableActionButton'>show (" + str(annotations[0][0]) + ")</a>"
+		x += "<a href='#' id='adisp_" + str(entry['_id']) + "' class='tableActionButton'>show (" + str(annotation_count) + ")</a>"
 		x += "</td>"
 		
 		# Actions
@@ -609,8 +619,7 @@ def formatAlertsTable(alerts, hx_api_object, profileid, c, conn):
 
 	x += "</tbody>"
 	x += "</table>"
-
-        return(x)
+	return(x)
 
 def formatAnnotationTable(an):
 
@@ -626,25 +635,26 @@ def formatAnnotationTable(an):
 	x += "<tbody>"
 
 
-	for item in an:
-	
-		atext = "<br />".join(item[0].split("\n"))
-	
-		x += "<tr>"
-		x += "<td>" + str(item[2]) + "</td>"
-		x += "<td>" + str(item[3]) + "</td>"
-		x += "<td>" + atext + "</td>"
-		x += "<td>"
+	if an:
+		for item in an:
 		
-		if item[1] == 1:
-			x += "Investigating"
-		elif item[1] == 2:
-			x += "Completed"
-		else:
-			x += "Unknown"
+			atext = "<br />".join(item['annotation'].split("\n"))
+		
+			x += "<tr>"
+			x += "<td>" + str(item['create_timestamp']) + "</td>"
+			x += "<td>" + str(item['create_user']) + "</td>"
+			x += "<td>" + atext + "</td>"
+			x += "<td>"
 			
-		x += "</td>"
-		x += "</tr>"
+			if item['state'] == 1:
+				x += "Investigating"
+			elif item['state'] == 2:
+				x += "Completed"
+			else:
+				x += "Unknown"
+				
+			x += "</td>"
+			x += "</tr>"
 		
 	x += "</tbody>"
 	x += "</table>"
@@ -671,14 +681,12 @@ def formatAlertsCsv(alertsjson, hx_api_object):
 	return (x)
 	
 
-def formatProfCredsInfo(c, conn, profileid):
+def formatProfCredsInfo(has_creds):
 
 	x = ""
 	
-	data = sqlGetProfCredTable(c, conn, profileid)
-	
-	if len(data) > 0:
-		x += "Background processing credentials are set <a href='/settings?unsetprofcreds=" + profileid + "'>Unset</a>"
+	if has_creds:
+		x += "Background processing credentials are set <a href='/settings?unset=1'>Unset</a>"
 	else:
 		x += "<form method='POST'>"
 		x += "<div>Username</div>"
@@ -727,57 +735,54 @@ def formatCustomConfigChannels(ch):
 	x += "</table>"
 	return(x)
 	
-def formatStackTable(c, conn, profileid, hs):
+def formatStackTable(ht_db, profile_id, hs):
 
 	x = ""
 	
-	data = sqlGetStackJobsProfile(c, conn, profileid)
+	stack_jobs = ht_db.stackJobList(profile_id)
 	
-	x += "<table id='stacktable' class='genericTable' style='width: 100%;'>"
+	x += "<table id='stacktable' class='genericTable dataTable no-footer' style='width: 100%;'>"
 	x += "<thead>"
 	x += "<tr>"
 	x += "<td>ID</td>"
 	x += "<td>Created</td>"
 	x += "<td>Last updated</td>"
-	x += "<td>Type</td>"
+	x += "<td>Stack Type</td>"
 	x += "<td>State</td>"
 	x += "<td>Profile ID</td>"
 	x += "<td>HX Bulk ID</td>"
-	x += "<td>Hostset</td>"
+	x += "<td>Hostset ID</td>"
 	x += "<td style='width: 160px;'>Completion rate</td>"
 	x += "<td style='width: 260px;'>Actions</td>"
 	x += "</tr>"
 	x += "</thead>"
 	x += "<tbody>"
 	
-	for entry in data:
+	for job in stack_jobs:
+		bulk_download = ht_db.bulkDownloadGet(job['profile_id'], job['bulk_download_id'])
 		x += "<tr>"
-		x += "<td>" + str(entry[0]) + "</td>"
-		x += "<td>" + str(entry[1]) + "</td>"
-		x += "<td>" + str(entry[2]) + "</td>"
-		x += "<td>" + str(entry[3]) + "</td>"
-		x += "<td>" + str(entry[4]) + "</td>"
-		x += "<td>" + str(entry[5]) + "</td>"
-		x += "<td>" + str(entry[6]) + "</td>"
-		
-		# Host set
-		for hsentry in hs['data']['entries']:
-			if hsentry['_id'] == entry[7]:
-				hsname = hsentry['name']
-				hstype = hsentry['type']
-				
-		x += "<td>" + hsname + " - (" + hstype + ")" + "</td>"
+		x += "<td>" + str(job.eid) + "</td>"
+		x += "<td>" + str(job['create_timestamp']) + "</td>"
+		x += "<td>" + str(job['update_timestamp']) + "</td>"
+		x += "<td>" + job['stack_type'] + "</td>"
+		x += "<td>" + ("STOPPED" if job['stopped'] else "RUNNING") + "</td>"
+		x += "<td>" + str(job['profile_id'])	+ "</td>"
+		x += "<td>" + str(job['bulk_download_id']) + "</td>"		
+		x += "<td>" + str(bulk_download['hostset_id']) + "</td>"
 		
 		# Completion rate
+		job_progress = 0
+		hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
+		job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
 		x += "<td>"
-		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry[0]) + "' data-percent='" + str(entry[8]) + "'></div></div>"
+		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(job.eid) + "' data-percent='" + str(job_progress) + "'></div></div>"
 		x += "</td>"
 		
 		# Actions
 		x += "<td>"
-		x += "<a href='/stacking?stop=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
-		x += "<a href='/stacking?remove=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
-		x += "<a href='/stackinganalyze?id=" +  str(entry[0]) + "' style='margin-right: 10px;' class='tableActionButton'>analyze</a>"
+		x += "<a href='/stacking?stop=" +  str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
+		x += "<a href='/stacking?remove=" +  str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
+		x += "<a href='/stackinganalyze?id=" +  str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>analyze</a>"
 		x += "</td>"
 		x += "</tr>"
 	
@@ -786,44 +791,7 @@ def formatStackTable(c, conn, profileid, hs):
 
 	return(x)
 
-def formatServiceMD5StackData(stacktable):
-
-	x = ""
-
-	x += "<table id='svcmd5' class='genericTable' style='width: 100%;'>"
-	x += "<thead>"
-	x += "<tr>"
-	x += "<td>Count</td>"
-	x += "<td>Hostname</td>"
-	x += "<td>Name</td>"
-	x += "<td>Path</td>"
-	x += "<td>Path MD5</td>"
-	x += "<td>Service DLL</td>"
-	x += "<td>Service DLL MD5</td>"
-	x += "</tr>"
-	x += "</thead>"
-	x += "<tbody>"
 	
-	for entry in stacktable:
-		x += "<tr>"
-		x += "<td>" + str(entry[0]) + "</td>"
-		# Name of endpoint
-		if (entry[0] == 1):
-			x += "<td>" + str(entry[6]) + "</td>"
-		else:
-			x += "<td>Multiple</td>"
-		x += "<td>" + str(entry[1]) + "</td>"
-		x += "<td>" + str(entry[2]) + "</td>"
-		x += "<td>" + str(entry[3]) + "</td>"
-		x += "<td>" + str(entry[4]) + "</td>"
-		x += "<td>" + str(entry[5]) + "</td>"
-		x += "</tr>"
-
-	x += "</tbody>"
-	x += "</table>"
-	
-	return(x)
-
 # This is the alert investigation viewer
 def formatHostInfo(response_data, hx_api_object):
 
