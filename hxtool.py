@@ -337,7 +337,7 @@ def alerts(hx_api_object):
 	if not 'render' in request.args:
 		return render_template('ht_alerts_ph.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 	else:
-		if 'acount' in request.args:
+		if 'acount' in request.args and request.args['acount']:
 			acount = int(request.args['acount'])
 		else:
 			acount = 50
