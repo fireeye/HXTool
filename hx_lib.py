@@ -418,7 +418,7 @@ class HXAPI:
 					shutil.copyfileobj(response.raw, f)
 				return(True, response.status_code, None)	
 			else:
-				return(True, response.status_code, response.raw)
+				return(True, response.status_code, response)
 				
 		except (requests.HTTPError, requests.ConnectionError) as e:
 			response_code = None
