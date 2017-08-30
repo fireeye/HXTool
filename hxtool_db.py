@@ -4,6 +4,7 @@
 import threading
 import datetime
 import uuid
+import logging
 
 try:
 	import tinydb
@@ -15,8 +16,16 @@ except ImportError:
 from hx_lib import *
 
 class hxtool_db:
-	def __init__(self, db_file):
-		self._db = tinydb.TinyDB(db_file)
+	def __init__(self, db_file, logger = logging.getLogger(__name__)):
+		self.logger = logger
+		# If we can't open the DB file, rename the existing one
+		try:
+			self._db = tinydb.TinyDB(db_file)
+		except ValueError:
+			logger.error("%s is not a TinyDB formatted database. Please move or rename this file before starting HXTool.", db_file)
+			exit(1)
+			
+		
 		self._lock = threading.Lock()
 		
 	def __exit__(self, exc_type, exc_value, traceback):

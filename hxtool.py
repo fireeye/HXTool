@@ -1066,7 +1066,7 @@ if __name__ == "__main__":
 	app.logger.info('Application starting')
 
 	# Init DB
-	ht_db = hxtool_db('hxtool.db')
+	ht_db = hxtool_db('hxtool.db', logger = app.logger)
 	
 	if ht_config['network']['ssl'] == "enabled":
 		context = (ht_config['ssl']['cert'], ht_config['ssl']['key'])
