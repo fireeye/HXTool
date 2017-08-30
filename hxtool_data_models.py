@@ -54,8 +54,6 @@ class hxtool_data_models:
 			
 		data_frame.replace('nan', '', inplace = True)
 		data_frame = data_frame.groupby(by = group_by, as_index = False).apply(lambda _: list(_[index])).reset_index(name = index)
-		# Drop duplicates
-		data_frame.drop_duplicates(subset = group_by, inplace = True)
 		data_frame['count'] = data_frame[index].apply(lambda _: len(_))
 		data_frame.sort_values(by = 'count', ascending = False, inplace = True)
 		return data_frame.to_json(orient = 'records')
