@@ -276,23 +276,21 @@
 }
 
 .controllerProfileManagerDialog {
-	border: 2px solid rgb(215, 215, 215);
+	border: 1px solid rgb(215, 215, 215);
     background: #ffffff;
     border-radius: 5px;
     padding: 30px;
     position: fixed;
     left: 50%;
-    top: 40%;
+    top: 50%;
     z-index: 10;
     margin-left: -400px;
-	margin-top: -175px;
     width: 800px;
-    height: 350px;
-	box-shadow: 5px 5px 5px rgb(215, 215, 215);
+	box-shadow: 2px 2px 5px rgb(115, 115, 115);
 }
 
 .controllerProfileAddDialog {
-	border: 2px solid rgb(215, 215, 215);
+	border: 1px solid rgb(215, 215, 215);
     background: #ffffff;
     border-radius: 5px;
     padding: 30px;
@@ -303,8 +301,8 @@
     margin-left: -250px;
 	margin-top: -110px;
     width: 500px;
-    height: 220px;
-	box-shadow: 5px 5px 5px rgb(215, 215, 215);
+    height: 240px;
+	box-shadow: 2px 2px 5px rgb(115, 115, 115);
 }
 
 .annotatePopup {

@@ -927,7 +927,7 @@ def profile_by_id(profile_id):
 				return make_response_by_code(200)
 	elif request.method == 'DELETE':
 		if ht_db.profileDelete(profile_id):
-			app.logger.info("Controller profile %d deleted.", profile_id)
+			app.logger.info("Controller profile %s deleted.", profile_id)
 			return make_response_by_code(200)
 		else:
 			return make_response_by_code(404)
