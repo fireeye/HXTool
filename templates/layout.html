@@ -63,12 +63,16 @@
 	}
 
 	function getQueryParam(param) {
+		var ret = '';
 		location.search.substr(1)
 			.split("&")
-			.some(function(item) { // returns first occurence and stops
-				return item.split("=")[0] == param && (param = item.split("=")[1])
+			.some(function(item) {
+				parts = item.split('=');
+				if (parts[0] == param) {
+					ret = parts[1];
+				}
 			})
-	return param
+		return ret;
 	}
 	
 	(function($){
