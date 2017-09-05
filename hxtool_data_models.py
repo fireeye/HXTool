@@ -62,7 +62,7 @@ class hxtool_data_models:
 			data_frame.sort_values(by = 'count', ascending = False, inplace = True)
 			return data_frame.to_json(orient = 'records')
 		else:
-			return None
+			return '{}'
 	
 	def w32mbr_post_process(mbr_data):
 		return {
