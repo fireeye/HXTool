@@ -908,7 +908,7 @@ def formatHostInfo(response_data, hx_api_object):
 					
 					x += "<div class='tableTitle'>Indicator type: " + str(alert['event_type']) + "</div>"
 					x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
-					for hitkey, hitdata in alert['event_values'].iteritems():
+					for hitkey, hitdata in alert['event_values'].items():
 						x += "<tr><td style='width: 300px;'>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
 					x += "</table>"
 					x += "</div>"
@@ -948,7 +948,7 @@ def formatHostInfo(response_data, hx_api_object):
 						x += "<td>" + data['detail_time'] + "</td>"
 						x += "<td>"
 						x += "<table class='genericTable genericTableSmall' style='width: 100%; border-top: 0; border-bottom: 0;'>"
-						for itemkey, itemdata in data[data['detail_type']].iteritems():
+						for itemkey, itemdata in data[data['detail_type']].items():
 							
 							if itemdata != "N/A" and itemkey not in skiplist:
 								x += "<tr>"
@@ -957,7 +957,7 @@ def formatHostInfo(response_data, hx_api_object):
 									x += "<div class='clt'>"
 									x += str(itemkey)
 									x += "<ul style='margin-top: 0;'>"
-									for dictkey, dictdetail in itemdata.iteritems():
+									for dictkey, dictdetail in itemdata.items():
 										x += "<li>" + str(dictkey) + ": " + str(dictdetail) + "</li>"
 									x += "</ul>"
 									x += "</div>"
@@ -985,9 +985,9 @@ def formatHostInfo(response_data, hx_api_object):
 				x += "<div style='display: none;' id='alertdetails_" + str(alert['_id']) + "'>"
 				x += "<div class='tableTitle'>Malware alert: " + alert['event_values']['detections']['detection'][0]['infection']['infection-type'] + "</div>"
 				x += "<table class='genericTable genericTableSmall' style='width: 100%;'>"
-				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infection'].iteritems():
+				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infection'].items():
 					x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
-				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infected-object']['file-object'].iteritems():
+				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infected-object']['file-object'].items():
 					x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
 				x += "</table>"
 				x += "</div>"
