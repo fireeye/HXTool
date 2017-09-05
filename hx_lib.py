@@ -25,7 +25,7 @@ import shutil
 
 class HXAPI:
 	HX_DEFAULT_PORT = 3000
-	HX_MIN_API_VERSION = 3
+	HX_MIN_API_VERSION = 2
 	
 	def __init__(self, hx_host, hx_port = HX_DEFAULT_PORT, headers = None, cookies = None, disable_certificate_verification = True, logger = logging.getLogger(__name__)):
 		self.logger = logger
@@ -177,6 +177,8 @@ class HXAPI:
 					self.api_version = 2
 				else:
 					self.api_version = 3
+			elif self.hx_version[0] == 4:
+				self.api_version = 3
 	
 	###################
 	## Generic GET
