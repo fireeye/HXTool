@@ -124,7 +124,7 @@ class hxtool_background_processor:
 		ret = False
 		try:
 			with zipfile.ZipFile(acquisition_package_path) as f:
-				acquisition_manifest = json.loads(f.read('manifest.json'))
+				acquisition_manifest = json.load(f.open('manifest.json'))
 				stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
 				if 'audits' in acquisition_manifest:
 					for result in [audit['results'] for audit in acquisition_manifest['audits'] if audit['generator'] in hxtool_data_models.stack_types[stack_job['stack_type']]['audit_module'] 
