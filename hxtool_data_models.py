@@ -41,24 +41,28 @@ class hxtool_data_models:
 
 	
 	def stack_data(self, data, index = None, group_by = None):
-		if not index:
-			index = self._stack_type['default_index']
-		if not group_by:
-			group_by = self._stack_type['default_groupby']
+		if len(data) > 0:
 			
-		try:
-			data_frame = DataFrame(data).astype(unicode)
-		except NameError:
-			# under Python 3, str is unicode
-			data_frame = DataFrame(data).astype(str)
-			
-		data_frame.replace('nan', '', inplace = True)
-		data_frame = data_frame.groupby(by = group_by, as_index = False).apply(lambda _: list(_[index])).reset_index(name = index)
-		# Drop duplicates
-		data_frame.drop_duplicates(subset = group_by, inplace = True)
-		data_frame['count'] = data_frame[index].apply(lambda _: len(_))
-		data_frame.sort_values(by = 'count', ascending = False, inplace = True)
-		return data_frame.to_json(orient = 'records')
+			if not index:
+				index = self._stack_type['default_index']
+			if not group_by:
+				group_by = self._stack_type['default_groupby']
+				
+			try:
+				data_frame = DataFrame(data).astype(unicode)
+			except NameError:
+				# under Python 3, str is unicode
+				data_frame = DataFrame(data).astype(str)
+				
+			data_frame.replace('nan', '', inplace = True)
+			data_frame = data_frame.groupby(by = group_by, as_index = False).apply(lambda _: list(_[index])).reset_index(name = index)
+			# Drop duplicates
+			data_frame.drop_duplicates(subset = group_by, inplace = True)
+			data_frame['count'] = data_frame[index].apply(lambda _: len(_))
+			data_frame.sort_values(by = 'count', ascending = False, inplace = True)
+			return data_frame.to_json(orient = 'records')
+		else:
+			return None
 	
 	def w32mbr_post_process(mbr_data):
 		return {
