@@ -654,7 +654,7 @@ def bulkaction(hx_api_object):
 		
 		hostset_id = -1
 		(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
-		if ret and 'hostset_id' in response_data['data']['comment']:
+		if ret and response_data['data']['comment'] and 'hostset_id' in response_data['data']['comment']:
 			hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
 			
 		ret = ht_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts, hostset_id = hostset_id)
@@ -955,7 +955,6 @@ def stack_job_results(hx_api_object, stack_id):
 
 def validate_json(keys, j):
 	for k in keys:
-		#if not j.has_key(k) or not j[k]:
 		if not k in j or not j[k]:
 			return False	
 	return True
