@@ -27,7 +27,7 @@ class HXAPI:
 	HX_DEFAULT_PORT = 3000
 	HX_MIN_API_VERSION = 2
 	
-	def __init__(self, hx_host, hx_port = HX_DEFAULT_PORT, headers = None, cookies = None, disable_certificate_verification = True, logger = logging.getLogger(__name__)):
+	def __init__(self, hx_host, hx_port = HX_DEFAULT_PORT, headers = None, cookies = None, disable_certificate_verification = True, logger = logging.getLogger(__name__), default_encoding = 'utf-8'):
 		self.logger = logger
 
 		self.logger.debug('__init__ start.')
@@ -57,6 +57,8 @@ class HXAPI:
 		self.api_version = self.HX_MIN_API_VERSION
 		self.hx_version = [0, 0, 0]
 		
+		self.default_encoding = default_encoding
+		self.logger.debug('Encoding set to: %s.', self.default_encoding)
 		
 		self.logger.debug('__init__ complete.')
 	
@@ -119,11 +121,13 @@ class HXAPI:
 
 			if not response.ok:
 				response.raise_for_status()
-
+			
+			if not response.encoding:
+				response.encoding = self.default_encoding
+				
 			content_type = response.headers.get('Content-Type')
 			if content_type:
 				if 'json' in content_type:
-					response.encoding = 'utf-8'
 					if multiline_json:
 						response_data = [json.loads(_) for _ in response.iter_lines(decode_unicode = True) if _.startswith('{')]
 					else:
@@ -415,6 +419,9 @@ class HXAPI:
 		request = self.build_request(url, accept = accept)
 		try:
 			response = self._session.send(request, stream = True)
+			
+			if not response.encoding:
+				response.encoding = self.default_encoding
 			
 			if destination_file_path: 
 				with open(destination_file_path, 'wb') as f:
