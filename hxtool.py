@@ -227,7 +227,6 @@ def hosts(hx_api_object):
 	elif 'uncontain' in request.args.keys():
 		(ret, response_code, response_data) = hx_api_object.restRemoveContainment(request.args.get('uncontain'))
 		if ret:
-			print response_data
 			app.logger.info('Uncontained issued - User: %s@%s:%s - host: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('uncontain'))
 		return redirect(request.args.get('url'), code=302)
 	
@@ -956,7 +955,8 @@ def stack_job_results(hx_api_object, stack_id):
 
 def validate_json(keys, j):
 	for k in keys:
-		if not j.has_key(k) or not j[k]:
+		#if not j.has_key(k) or not j[k]:
+		if not k in j or not j[k]:
 			return False	
 	return True
 	

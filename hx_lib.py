@@ -626,7 +626,7 @@ class HXAPI:
 		
 	def restFindHostsBySearchString(self, search_string, limit = 1000):
 	
-		request = self.build_request(self.build_api_route('hosts?limit={0}&search={1}'.format(limit, urllib.quote_plus(search_string))))
+		request = self.build_request(self.build_api_route('hosts?limit={0}&search={1}'.format(limit, requests.utils.requote_uri(search_string))))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
