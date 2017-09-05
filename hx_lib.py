@@ -123,8 +123,8 @@ class HXAPI:
 			content_type = response.headers.get('Content-Type')
 			if content_type:
 				if 'json' in content_type:
+					response.encoding = 'utf-8'
 					if multiline_json:
-						response.encoding = 'utf-8'
 						response_data = [json.loads(_) for _ in response.iter_lines(decode_unicode = True) if _.startswith('{')]
 					else:
 						response_data = response.json()

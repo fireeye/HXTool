@@ -654,7 +654,7 @@ def bulkaction(hx_api_object):
 		
 		hostset_id = -1
 		(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
-		if ret and 'hostset_id' in response_data['data']['comment']:
+		if ret and response_data['data']['comment'] and 'hostset_id' in response_data['data']['comment']:
 			hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
 			
 		ret = ht_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts, hostset_id = hostset_id)
@@ -770,7 +770,7 @@ def settings(hx_api_object):
 		salt = b64(session['salt'], True)
 		out = ht_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], b64(iv), b64(salt), encrypted_password)
 		app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-	
+		start_background_processor(ht_profile['profile_id'], request.form['bguser'], request.form['bgpass'])
 	if request.args.get('unset'):
 		out = ht_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
 		app.logger.info("Background Processing credentials unset profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
@@ -955,7 +955,6 @@ def stack_job_results(hx_api_object, stack_id):
 
 def validate_json(keys, j):
 	for k in keys:
-		#if not j.has_key(k) or not j[k]:
 		if not k in j or not j[k]:
 			return False	
 	return True
