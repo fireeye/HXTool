@@ -770,7 +770,7 @@ def settings(hx_api_object):
 		salt = b64(session['salt'], True)
 		out = ht_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], b64(iv), b64(salt), encrypted_password)
 		app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		start_background_processor(ht_profile['profile_id'], request.form['bguser'], request.form['bgpass'])
+		start_background_processor(session['ht_profileid'], request.form['bguser'], request.form['bgpass'])
 	if request.args.get('unset'):
 		out = ht_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
 		app.logger.info("Background Processing credentials unset profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
