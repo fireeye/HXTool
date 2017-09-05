@@ -35,6 +35,7 @@ class hxtool_background_processor:
 		# TODO: maybe replace with hx_hostname, hx_port variables in __init__
 		profile = self._ht_db.profileGet(profile_id)
 		self._hx_api_object = HXAPI(profile['hx_host'], profile['hx_port'])
+		self._hx_api_lock = threading.Lock()
 		self.profile_id = profile_id
 		self.thread_count = hxtool_config['background_processor']['poll_threads']
 		if not self.thread_count:
@@ -50,7 +51,9 @@ class hxtool_background_processor:
 		self.stop()
 		
 	def start(self, hx_api_username, hx_api_password):
-		(ret, response_code, response_data) = self._hx_api_object.restLogin(hx_api_username, hx_api_password)
+		self._hx_api_username = hx_api_username
+		self._hx_api_password = hx_api_password
+		(ret, response_code, response_data) = self.hx_api_object(renew_expired_token = False).restLogin(hx_api_username, hx_api_password)
 		if ret:
 			self._poll_thread.start()
 			for i in range(1, self.thread_count):
@@ -67,16 +70,24 @@ class hxtool_background_processor:
 			self._poll_thread.join()
 		for task_thread in [_ for _ in self._task_thread_list if _.is_alive()]:
 			task_thread.join()
-		if self._hx_api_object.restIsSessionValid():
-			(ret, response_code, response_data) = self._hx_api_object.restLogout()
+		if self.hx_api_object(renew_expired_token = False).restIsSessionValid():
+			(ret, response_code, response_data) = self.hx_api_object(renew_expired_token = False).restLogout()
 
+	def hx_api_object(self, renew_expired_token = True):
+		if renew_expired_token and not self._hx_api_object.restIsSessionValid():
+			with self._hx_api_lock:
+				(ret, response_code, response_data) = self._hx_api_object.restLogin(self._hx_api_username, self._hx_api_password)
+				if not ret:
+					raise ValueError("HX controller returned code: %s, message: %s.", response_code, response_data)
+		return self._hx_api_object
+		
 	def bulk_download_processor(self, poll_interval):
 		while not self._stop_event.is_set():
 			bulk_download_jobs = self._ht_db.bulkDownloadList(self.profile_id)
 			for job in [_ for _ in bulk_download_jobs if not _['stopped']]:
 				download_directory = self.make_download_directory(job['bulk_download_id'])
 				for host_id, host in [(_, job['hosts'][_]) for _ in job['hosts'] if not job['hosts'][_]['downloaded']]:
-					(ret, response_code, response_data) = self._hx_api_object.restGetBulkHost(job['bulk_download_id'], host_id)
+					(ret, response_code, response_data) = self.hx_api_object().restGetBulkHost(job['bulk_download_id'], host_id)
 					if ret:
 						if response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
 							full_path = os.path.join(download_directory, '{0}_{1}.zip'.format(host['hostname'], host_id))
@@ -91,13 +102,13 @@ class hxtool_background_processor:
 			
 	def download_task(self, bulk_download_id, host_id, hostname, post_download_handler, download_url, destination_path):
 		try:
-			(ret, response_code, response_data) = self._hx_api_object.restDownloadFile(download_url, destination_path)
+			(ret, response_code, response_data) = self.hx_api_object().restDownloadFile(download_url, destination_path)
 			if ret:
 				self._ht_db.bulkDownloadUpdateHost(self.profile_id, bulk_download_id, host_id)
 				# TODO: commenting out for now as a stopped bulk download job
 				# will still give the option to download the individual host
 				# acquisitions, which will result in a 404
-				# self._hx_api_object.restDeleteFile(download_url)
+				# self.hx_api_object().restDeleteFile(download_url)
 				if post_download_handler:
 					handler = self.post_download_handlers.get(post_download_handler)
 					if handler is not None:
@@ -133,7 +144,7 @@ class hxtool_background_processor:
 			return False
 	
 	def make_download_directory(self, bulk_download_id):
-		download_directory = os.path.join(self._download_directory_base, self._hx_api_object.hx_host, str(bulk_download_id))
+		download_directory = os.path.join(self._download_directory_base, self.hx_api_object().hx_host, str(bulk_download_id))
 		if not os.path.exists(download_directory):
 			os.makedirs(download_directory)
 		return download_directory
