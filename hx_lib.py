@@ -25,7 +25,7 @@ import shutil
 
 class HXAPI:
 	HX_DEFAULT_PORT = 3000
-	HX_MIN_API_VERSION = 2
+	HX_MIN_API_VERSION = 3
 	
 	def __init__(self, hx_host, hx_port = HX_DEFAULT_PORT, headers = None, cookies = None, disable_certificate_verification = True, logger = logging.getLogger(__name__)):
 		self.logger = logger
@@ -124,7 +124,8 @@ class HXAPI:
 			if content_type:
 				if 'json' in content_type:
 					if multiline_json:
-						response_data = [json.loads(_) for _ in response.iter_lines(decode_unicode = True) if _.startswith(b'{')]
+						response.encoding = 'utf-8'
+						response_data = [json.loads(_) for _ in response.iter_lines(decode_unicode = True) if _.startswith('{')]
 					else:
 						response_data = response.json()
 				elif 'text' in content_type:
