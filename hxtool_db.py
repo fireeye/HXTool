@@ -215,7 +215,7 @@ class hxtool_db:
 				element[list_name].extend(value)
 			else:
 				element[list_name].append(value)
-			if element.has_key('update_timestamp'):
+			if 'update_timestamp' in element:
 				element['update_timestamp'] =  str(datetime.datetime.utcnow())
 		return transform
 	
