@@ -395,12 +395,12 @@ def searchresult(hx_api_object):
 @valid_session_required
 def searchaction(hx_api_object):
 	if request.args.get('action') == "stop":
-		(ret, response_code, response_data) = hx_api_object.restCancelJob('/hx/api/v2/searches/', request.args.get('id'))
+		(ret, response_code, response_data) = hx_api_object.restCancelJob('searches', request.args.get('id'))
 		app.logger.info('User access: Enterprise Search action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/search", code=302)
 		
 	if request.args.get('action') == "remove":
-		(ret, response_code, response_data) = hx_api_object.restDeleteJob('/hx/api/v2/searches/', request.args.get('id'))
+		(ret, response_code, response_data) = hx_api_object.restDeleteJob('searches', request.args.get('id'))
 		app.logger.info('User access: Enterprise Search action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/search", code=302)	
 		
