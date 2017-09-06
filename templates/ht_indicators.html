@@ -16,7 +16,11 @@
 				var category = items[0];
 				var uuid = items[1];
 				
-				$('#indcond').load("/indicatorcondition?uuid=" + uuid + "&category=" + category);
+				enableStatusBar("<img style='height: 20px; margin-right: 10px; margin-bottom: -5px;' src='/static/spinner.svg'></img>Loading indicator", 200, "ht_statusbar_notifyBlue")
+				$('#indcond').load("/indicatorcondition?uuid=" + uuid + "&category=" + category, function(responseTxt, statusTxt, xhr){
+				if(statusTxt == "success")
+					disableStatusBar(200)
+				});
 		});
 		
 		$('#importIndicator').click(function(){ 
