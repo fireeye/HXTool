@@ -373,7 +373,7 @@ class HXAPI:
 
 	def restNewAcquisition(self, agent_id, scriptname, script):
 
-		data = json.dumps({'name' : scriptname, 'script' : {'b64' : base64.b64encode(script)}})
+		data = json.dumps({'name' : scriptname, 'script' : {'b64' : HXAPI.b64(script)}})
 		
 		request = self.build_request(self.build_api_route('hosts/{0}/live'.format(agent_id)), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
@@ -447,7 +447,7 @@ class HXAPI:
 	# New Bulk acquisition
 	def restNewBulkAcq(self, script, hostset_id = None, hosts = None, comment = None, platforms = '*'):
 		
-		script = base64.b64encode(script).decode('ascii')
+		script = HXAPI.b64(script)
 	
 		data = {'scripts' : [{'platform' : platforms, 'b64' : script}]}
 		if hostset_id:
@@ -522,7 +522,7 @@ class HXAPI:
 
 	def restSubmitSweep(self, indicator, host_set):
 		
-		indicator = base64.b64encode(indicator).decode('ascii')
+		indicator = HXAPI.b64(indicator)
 		
 		data = json.dumps({'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
 		
@@ -820,4 +820,13 @@ class HXAPI:
 		
 
 			
-		
+	"""
+	Base64 encoding/decoding - Python 2/3 compatibility
+	"""
+	@staticmethod
+	def b64(s, decode = False, decode_string = False, character_encoding = 'utf=8'):
+		if decode:
+			if decode_string:
+				return base64.b64decode(s).decode(character_encoding)
+			return base64.b64decode(s)
+		return base64.b64encode(s).decode(character_encoding)	
