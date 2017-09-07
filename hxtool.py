@@ -23,6 +23,9 @@ import threading
 import time
 from functools import wraps
 import xml.etree.ElementTree as ET
+from string import Template
+from xml.sax.saxutils import escape as xmlescape
+import re
 
 try:
 	import StringIO
@@ -33,6 +36,7 @@ except ImportError:
 # Flask imports
 try:
 	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort
+	from jinja2 import evalcontextfilter, Markup, escape
 except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
@@ -77,6 +81,18 @@ def valid_session_required(f):
 				
 		return f(*args, **kwargs)
 	return is_session_valid
+
+### Flask/Jinja Filters
+####################################
+
+_newline_re = re.compile(r'(?:\r\n|\r|\n){1,}')
+@app.template_filter()
+@evalcontextfilter
+def nl2br(eval_ctx, value):
+	result = '<br />\n'.join(escape(p) for p in _newline_re.split(value or ''))
+	if eval_ctx.autoescape:
+		result = Markup(result)
+	return result
 
 # Dashboard page
 ################
@@ -291,33 +307,30 @@ def hosts(hx_api_object):
 
 ### Triage popup
 @app.route('/triage', methods=['GET'])
-def triage():
-	(ret, hx_api_object) = is_session_valid(session)
-	if ret:
-		triageid= request.args.get('host')
-		url = request.args.get('url')
-		mytime = datetime.datetime.now()
-		return render_template('ht_triage.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), triageid=triageid, url=url, now=mytime.strftime('%Y-%m-%d %H:%M:%S'))
+@valid_session_required
+def triage(hx_api_object):
+	triageid= request.args.get('host')
+	url = request.args.get('url')
+	mytime = datetime.datetime.now()
+	return render_template('ht_triage.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), triageid=triageid, url=url, now=mytime.strftime('%Y-%m-%d %H:%M:%S'))
 
 		
 ### File acquisition popup
 @app.route('/fileaq', methods=['GET'])
-def fileaq():
-	(ret, hx_api_object) = is_session_valid(session)
-	if ret:
-		hostid = request.args.get('host')
-		url = request.args.get('url')
-		return render_template('ht_fileaq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
+@valid_session_required
+def fileaq(hx_api_object):
+	hostid = request.args.get('host')
+	url = request.args.get('url')
+	return render_template('ht_fileaq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
 
 		
 ### Acquisition popup
 @app.route('/acq', methods=['GET'])
-def acq():
-	(ret, hx_api_object) = is_session_valid(session)
-	if ret:
-		hostid = request.args.get('host')
-		url = request.args.get('url')
-		return render_template('ht_acq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
+@valid_session_required
+def acq(hx_api_object):
+	hostid = request.args.get('host')
+	url = request.args.get('url')
+	return render_template('ht_acq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
 		
 ### Alerts Page
 ###################
@@ -398,11 +411,11 @@ def searchaction(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restCancelJob('searches', request.args.get('id'))
 		app.logger.info('User access: Enterprise Search action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/search", code=302)
-		
+
 	if request.args.get('action') == "remove":
 		(ret, response_code, response_data) = hx_api_object.restDeleteJob('searches', request.args.get('id'))
 		app.logger.info('User access: Enterprise Search action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return redirect("/search", code=302)	
+		return redirect("/search", code=302)
 		
 #### Build a real-time indicator
 ####################################
@@ -631,6 +644,21 @@ def download(hx_api_object):
 	else:
 		abort(404)		
 
+@app.route('/download_file')
+@valid_session_required
+def download_multi_file_single(hx_api_object):
+	if 'mf_id' in request.args and 'acq_id' in request.args:
+		multi_file = ht_db.multiFileGetById(request.args.get('mf_id'))
+		if multi_file:
+			file_records = list(filter(lambda f: int(f['acquisition_id']) == int(request.args.get('acq_id')), multi_file['files']))
+			if file_records and file_records[0]:
+				path = get_download_full_path(hx_api_object.hx_host, request.args.get('mf_id'), 'multi_file', file_records[0]['hostname'], request.args.get('acq_id'))
+				app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('acq_id'))
+				return send_file(path, attachment_filename=path.rsplit('/',1)[-1], as_attachment=True)
+		else:
+			return "HX controller responded with code {0}: {1}".format(response_code, response_data)
+	abort(404)		
+
 @app.route('/bulkaction', methods=['GET'])
 @valid_session_required
 def bulkaction(hx_api_object):
@@ -693,12 +721,232 @@ def reportgen(hx_api_object):
 		
 		return send_file(io.BytesIO(reportdata), attachment_filename=fname, as_attachment=True)
 
+def submit_bulk_job(hx_api_object, hostset, script_xml, handler=None):
+	(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset)
+	hosts = []
+	bulk_download_entry_hosts = {}
+	for host in response_data['data']['entries']:
+		hosts.append({'_id' : host['_id']})
+		bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
+	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hosts = hosts)
+	if ret:
+		bulkid = response_data['data']['_id']
+		# Store Job Record
+		#TODO: Implement bulkDownloadCreate
+		bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], bulkid, bulk_download_entry_hosts, hostset, post_download_handler = handler)
+		return bulkid
+	return None
+
+@app.route('/multifile', methods=['GET', 'POST'])
+@valid_session_required
+def multifile(hx_api_object):
+	profile_id = session['ht_profileid']
+	if request.args.get('stop'):
+		mf_job = ht_db.multiFileGetById(request.args.get('stop'))
+		if mf_job:
+			success = True
+			#TODO: Stop each file acquisition or handle solely in remove?
+			if success:
+				ht_db.multiFileStop(mf_job.eid)
+				app.logger.info('MultiFile Job ID {0} action STOP - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, mf_job.eid))
+
+	elif request.args.get('remove'):
+		mf_job = ht_db.multiFileGetById(request.args.get('remove'))
+		if mf_job:
+			success = True
+			for f in mf_job['files']:
+				uri = 'acqs/files/{0}'.format(f['acquisition_id'])
+				(ret, response_code, response_data) = hx_api_object.restDeleteFile(uri)
+				#TODO: Replace with delete of file from record
+				if not f['downloaded']:
+					self._ht_db.multiFileUpdateFile(self.profile_id, f.eid, f['acquisition_id'])
+				if not ret:
+					app.logger.error("Failed to remove file acquisition {0}".format(f['acquisition_id']))
+					success = False
+			if success:
+				ht_db.multiFileDelete(mf_job.eid)
+				app.logger.info('MultiFile Job ID {0} action REMOVE - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, mf_job.eid))
+
+	#TODO: Make Configurable both from GUI and config file?
+	elif request.method == 'POST':
+		MAX_FILE_ACQUISITIONS = 50
+		
+		display_name = ('display_name' in request.form) and request.form['display_name'] or "{0} job at {1}".format(session['ht_user'], datetime.datetime.now())
+		# Collect User Selections
+		file_jobs, choices, listing_ids = [], {}, set([])
+		choice_re = re.compile('^choose_file_(\d+)_(\d+)$')
+		for k, v in list(request.form.items()):
+			m = choice_re.match(k)
+			if m:
+				fl_id = int(m.group(1))
+				listing_ids.add(fl_id)
+				choices.setdefault(fl_id, []).append(int(m.group(2)))
+		if choices:
+			choice_files, agent_ids = [], {}
+			for fl_id, file_ids in list(choices.items()):
+				# Gather the records for files to acquire from the file listing
+				file_listing = ht_db._db.table('file_listing').get(eid=int(fl_id))
+				if not file_listing:
+					app.logger.warn('File Listing %s does not exist - User: %s@%s:%s', session['ht_user'], fl_id, hx_api_object.hx_host, hx_api_object.hx_port)
+					continue
+				choice_files = [file_listing['files'][i] for i in file_ids if i <= len(file_listing['files'])]
+				multi_file_id = ht_db.multiFileCreate(session['ht_user'], profile_id, display_name=display_name, file_listing_id=file_listing.eid)
+				# Create a data acquisition for each file from its host
+				for cf in choice_files:
+					if cf['hostname'] in agent_ids:
+						agent_id = agent_ids[cf['hostname']]
+					else:
+						(ret, response_code, response_data) = hx_api_object.restFindHostsBySearchString(cf['hostname'])
+						agent_id = agent_ids[cf['hostname']] = response_data['data']['entries'][0]['_id']
+					path, filename = cf['FullPath'].rsplit('\\', 1)
+					(ret, response_code, response_data) = hx_api_object.restAcquireFile(agent_id, path, filename, False)
+					if ret:
+						acq_id = response_data['data']['_id']
+						job_record = {
+							'acquisition_id' : int(acq_id),
+							'hostname': cf['hostname'],
+							'path': cf['FullPath'],
+							'acquired': False,
+							'downloaded': False
+						}
+						ht_db.multiFileAddJob(multi_file_id, job_record)
+						app.logger.info('File acquisition requested from host %s at path %s- User: %s@%s:%s - host: %s', cf['hostname'], cf['FullPath'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, agent_id)
+						file_jobs.append(acq_id)
+						if len(file_jobs) >= MAX_FILE_ACQUISITIONS:
+							break
+					else:
+						#TODO: Handle fail
+						pass
+			if file_jobs:
+				app.logger.info('New Multi-File Download requested (profile %s) - User: %s@%s:%s', profile_id, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		
+	(ret, response_code, response_data) = hx_api_object.restListHostsets()
+	hostsets = formatHostsets(response_data)
+	return render_template('ht_multifile.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets)
+
+@app.route('/file_listing', methods=['GET', 'POST'])
+@valid_session_required
+def file_listing(hx_api_object):
+	if request.args.get('stop'):
+		fl_job = ht_db.fileListingGetById(request.args.get('stop'))
+		if fl_job:
+			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', fl_job['bulk_download_id'])
+			if ret:
+				ht_db.fileListingStop(fl_job.eid)
+				ht_db.bulkDownloadStop(session['ht_profileid'], fl_job['bulk_download_id'])
+				app.logger.info('File Listing ID {0} action STOP - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, fl_job.eid))
+		return redirect("/multifile", code=302)
+
+	elif request.args.get('remove'):
+		fl_job = ht_db.fileListingGetById(request.args.get('remove'))
+		if fl_job:
+			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', fl_job['bulk_download_id'])
+			if ret:
+				ht_db.fileListingDelete(fl_job.eid)
+				ht_db.bulkDownloadDelete(session['ht_profileid'], fl_job['bulk_download_id'])
+				app.logger.info('File Listing ID {0} action REMOVE - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, fl_job.eid))
+		return redirect("/multifile", code=302)
+
+	elif request.method == 'POST':
+		# Get Acquisition Options from Form
+		display_name = xmlescape(request.form['listing_name'])
+		regex = xmlescape(request.form['listing_regex'])
+		path = xmlescape(request.form['listing_path'])
+		hostset = xmlescape(request.form['hostset'])
+		depth = '-1'
+		# Build a script from the template
+		script_xml = None
+		try:
+			if regex:
+				re.compile(regex)
+			else:
+				app.logger.warn("Regex is empty!!")
+				regex = ''
+			with open('templates/file_listing_script_template.xml') as f:
+				t = Template(f.read())
+				script_xml = t.substitute(regex=regex, path=path, depth=depth)
+			if not display_name:
+				display_name = 'hostset: {0} path: {1} regex: {2}'.format(hostset, path, regex)
+		except re.error:
+			#TODO: Handle invalid regex with response. (Inline AJAX?)
+			raise
+		if script_xml:
+			bulkid = submit_bulk_job(hx_api_object, hostset, script_xml.encode('utf-8'), handler="file_listing")
+			ret = ht_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulkid, path, regex, depth, display_name)
+			app.logger.info('New File Listing - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			return redirect("/multifile", code=302)
+		else:
+			# TODO: Handle this condition 
+			abort(404)
+
+	#TODO: Modify template and move to Ajax
+	fl_id = request.args.get('id')
+	file_listing = ht_db.fileListingGetById(fl_id)
+	fl_results = file_listing['files']
+	display_fields = ['FullPath', 'Username', 'SizeInBytes', 'Modified', 'Sha256sum'] 
+
+	return render_template('ht_file_listing.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), file_listing=file_listing, fl_results=fl_results, display_fields=display_fields)
+
+@app.route('/_multi_files')
+@valid_session_required
+def get_multi_files(hx_api_object):
+	profile_id = session['ht_profileid']
+	data_rows = []
+	for mf in ht_db.multiFileList(profile_id):
+		job = dict(mf)
+		hosts_completed = len([_ for _ in job['files'] if _['downloaded']])
+		job.update({
+			'id': mf.eid,
+			'state': ("STOPPED" if job['stopped'] else "RUNNING"),
+			'file_count': len(job['files'])
+		})
+
+		# Completion rate
+		job_progress = int(hosts_completed / float(job['file_count']) * 100)
+		job['progress'] = "<div class='htMyBar htBarWrap'><div class='htBar' id='multi_file_prog_" + str(job['id']) + "' data-percent='" + str(job_progress) + "'></div></div>"
+		
+		# Actions
+		job['actions'] = "<a href='/multifile?stop=" +  str(job['id']) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
+		job['actions'] += "<a href='/multifile?remove=" +  str(job['id']) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
+		data_rows.append(job)
+	return json.dumps({'data': data_rows})
+
+@app.route('/_file_listings')
+@valid_session_required
+def get_file_listings(hx_api_object):
+	profile_id = session['ht_profileid']
+	data_rows = []
+	for j in ht_db.fileListingList(profile_id):
+		job = dict(j)
+		job.update({'id': j.eid})
+		job['state'] = ("STOPPED" if job['stopped'] else "RUNNING")
+		job['file_count'] = len(job.pop('files'))
+
+		# Completion rate
+		bulk_download = ht_db.bulkDownloadGet(profile_id, job['bulk_download_id'])
+		if bulk_download:
+			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
+			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
+			job['display_name'] = 'hostset {0}, path: {1} regex: {2}'.format(bulk_download['hostset_id'] , job['cfg']['path'], job['cfg']['regex'])
+		else:
+			job_progress = job['file_count'] > 1 and 100 or 0
+			job['display_name'] = 'path: {0} regex: {1}'.format(job['cfg']['path'], job['cfg']['regex'])
+		
+		job['progress'] = "<div class='htMyBar htBarWrap'><div class='htBar' id='file_listing_prog_" + str(job['id']) + "' data-percent='" + str(job_progress) + "'></div></div>"
+		
+		# Actions
+		job['actions'] = "<a href='/file_listing?stop=" +  str(job['id']) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
+		job['actions'] += "<a href='/file_listing?remove=" +  str(job['id']) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
+		if job_progress > 0:
+			job['actions'] += "<a href='/file_listing?id=" +  str(job['id']) + "' style='margin-right: 10px;' class='tableActionButton'>view</a>"
+		data_rows.append(job)
+	return json.dumps({'data': data_rows})
+
 ### Stacking
 ##########
 @app.route('/stacking', methods=['GET', 'POST'])
 @valid_session_required
 def stacking(hx_api_object):
-	
 	if request.args.get('stop'):
 		stack_job = ht_db.stackJobGetById(request.args.get('stop'))
 		if stack_job:
@@ -724,18 +972,11 @@ def stacking(hx_api_object):
 		stack_type = hxtool_data_models.stack_types.get(request.form['stack_type'])
 		if stack_type:
 			with open(os.path.join('scripts', stack_type['script']), 'rb') as f:
-				stack_script = f.read()
-			(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['stackhostset'])
-			hosts = []
-			bulk_download_entry_hosts = {}
-			for host in response_data['data']['entries']:
-				hosts.append({'_id' : host['_id']})
-				bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
-			(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(stack_script, hosts = hosts)
-			if ret:
+				script_xml = f.read()
+				hostset_id = request.form['stackhostset']
 				app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-				bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], response_data['data']['_id'], bulk_download_entry_hosts, hostset_id = request.form['stackhostset'], post_download_handler = "stacking")
-				ret = ht_db.stackJobCreate(session['ht_profileid'], response_data['data']['_id'], request.form['stack_type'])
+				bulk_id = submit_bulk_job(hx_api_object, hostset_id, script_xml, handler="stacking")
+				ret = ht_db.stackJobCreate(session['ht_profileid'], bulk_id, request.form['stack_type'])
 				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 	
@@ -858,7 +1099,7 @@ def login():
 						finally:
 							decrypted_background_password = None
 
-					session['key']= HXAPI.b64(key)					
+					session['key']= HXAPI.b64(key)
 					session['salt'] = HXAPI.b64(salt)
 
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)

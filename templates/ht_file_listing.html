@@ -1,0 +1,153 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - File Listing{% endblock %}
+{% block navlocation %}File Listing{% endblock %}
+{% block content %}
+
+<style>
+.dataTables_filter {
+	margin-top: 0;
+}
+.dataTables_length {
+	padding-bottom: 10;
+}
+.dataTables_info {
+	padding-top: 10;
+}
+.dataTables_paginate {
+	padding-bottom: 50;
+}
+#two-pane-page {
+	margin-left: 200px;
+}
+#floating-pane-left {
+	width: 200px;
+	margin-left: -200px;
+	float: left;
+}
+#floating-pane-right {
+	float: right;
+	width: 100%;
+}
+#clearing-div {
+	clear:both;
+}
+</style>
+
+<script>
+	$(document).ready(function() {
+		table = $('#file_table').DataTable( {
+			"info": false,
+			"pageLength": 20,
+			"lengthChange": false,
+			"order": [[1, 'asc'],[2, 'asc']],
+			"dom": 'Bfrtip',
+			"buttons": ['copyHtml5', 'csvHtml5', {
+				'text': 'Download Selected',
+				"action": function (e, dt, node, config) {
+					//alert('Clicked');
+					var has_selection = false;
+					table.$('input[type="checkbox"]').each(function(){
+						if(this.checked){
+							has_selection = true;
+						}
+					});
+					if(has_selection) $('#form_file_download').submit();
+					else alert("No selection made");
+				}
+			}]
+		});
+		// Handle click on "Select all" control
+		$('#file-select-all').on('click', function(){
+			// Get all rows with search applied
+			var rows = table.rows({ 'search': 'applied' }).nodes();
+			// Check/uncheck checkboxes for all rows in the table
+			$('input[type="checkbox"]', rows).prop('checked', this.checked);
+		});
+		// Handle click on checkbox to set state of "Select all" control
+		$('#file_table tbody').on('change', 'input[type="checkbox"]', function(){
+			// If checkbox is not checked
+			if(!this.checked){
+				var el = $('#file-select-all').get(0);
+				// If "Select all" control is checked and has 'indeterminate' property
+				if(el && el.checked && ('indeterminate' in el)){
+					// Set visual state of "Select all" control
+					// as 'indeterminate'
+					el.indeterminate = true;
+				}
+			}
+		});
+		// Handle form submission event
+		$('#form_file_download').on('submit', function(e){
+			var form = this;
+		
+			// Iterate over all checkboxes in the table
+			table.$('input[type="checkbox"]').each(function(){
+				// If checkbox doesn't exist in DOM
+				if(!$.contains(document, this)){
+					// If checkbox is checked
+					if(this.checked){
+						// Create a hidden element
+						$(form).append(
+							$('<input>')
+								.attr('type', 'hidden')
+								.attr('name', this.name)
+								.val(this.value)
+						);
+					}
+				}
+			});
+		});
+	});
+
+</script>
+
+<form id="form_file_download" action="{{ url_for('multifile') }}" method="POST">
+	<div id='two-pane-page'>
+		<div id='floating-pane-left'>
+			<div class='inputArea'>
+				<div class='tableTitle'>
+					File Listing
+				</div>
+				<div class='fileListingConfig'>
+					Path:	 {{ file_listing['cfg']['path'] }}<br/>
+					Regex:	{{ file_listing['cfg']['regex'] }}<br/>
+					Host Set: {{ file_listing['hostset'] }}<br/>
+					Depth:	{{ file_listing['cfg']['depth'] }}<br/>
+				</div>
+				<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
+				<div class='tableTitle'>
+					File Acquisition Name
+				</div>
+				<input type='text' id='display_name' name='display_name' style='width: 100%;'><br/></br>
+			</div>
+		</div>
+		<div id='floating-pane-right'>
+	{% if fl_results %}
+			<div id="listing_div" style="margin-left: 20px; margin-right:20px;">
+				<table id='file_table' class='genericTable' style='width: 100%;'>
+					<thead><tr>
+						<td><input name="select_all" value="1" id="file-select-all" type="checkbox"></td>
+						<td>Hostname</td>
+		{% for f in display_fields %}
+						<td>{{ f }}</td>
+		{% endfor %}
+					</tr></thead>
+					<tbody>
+		{% for fileitem in fl_results %}
+						<tr id='file_{{ loop.index0 }}'>
+							<td><input type='checkbox' name='choose_file_{{ file_listing.eid}}_{{ loop.index0 }}'></td>
+							<td>{{ fileitem['hostname'] }}</td>
+			{% for f in display_fields %}
+							<td>{{ fileitem[f]|nl2br }}</td>
+			{% endfor %}
+						</tr>
+		{% endfor %}
+					</tbody>
+				</table>
+			</div>
+	{% endif %}
+		</div>
+		<div id='clearing-div'></div>
+	</div>
+</form>
+{% endblock %}

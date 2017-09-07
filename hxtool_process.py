@@ -22,7 +22,29 @@ except ImportError:
 from hxtool_db import *
 from hx_lib import *
 from hxtool_data_models import *
+from hx_audit import *
 
+# TODO: should be configurable
+_download_directory_base = "bulkdownload"
+
+def get_download_directory(hx_host, download_id, job_type=None):
+	if job_type:
+		return os.path.join(_download_directory_base, hx_host, job_type, str(download_id))
+	else:
+		return os.path.join(_download_directory_base, hx_host, str(download_id))
+
+def get_download_filename(hostname, _id):
+	return '{0}_{1}.zip'.format(hostname, _id)
+
+def get_download_full_path(hx_host, download_id, job_type, hostname, _id):
+	return os.path.join(get_download_directory(hx_host, download_id, job_type), get_download_filename(hostname, _id))
+
+def make_download_directory(host, download_id, job_type=None):
+	download_directory = get_download_directory(host, download_id, job_type)
+	if not os.path.exists(download_directory):
+		os.makedirs(download_directory)
+	return download_directory
+		
 """
 Multi-threaded bulk download
 
@@ -44,8 +66,6 @@ class hxtool_background_processor:
 		self._task_thread_list = []
 		self._stop_event = threading.Event()
 		self._poll_thread = threading.Thread(target = self.bulk_download_processor, name = "hxtool_background_processor", args = (hxtool_config['background_processor']['poll_interval'], ))
-		# TODO: should be configurable
-		self._download_directory_base = "bulkdownload"
 		
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.stop()
@@ -85,13 +105,22 @@ class hxtool_background_processor:
 		while not self._stop_event.is_set():
 			bulk_download_jobs = self._ht_db.bulkDownloadList(self.profile_id)
 			for job in [_ for _ in bulk_download_jobs if not _['stopped']]:
-				download_directory = self.make_download_directory(job['bulk_download_id'])
+				download_directory = make_download_directory(self.hx_api_object().hx_host, job['bulk_download_id'])
 				for host_id, host in [(_, job['hosts'][_]) for _ in job['hosts'] if not job['hosts'][_]['downloaded']]:
 					(ret, response_code, response_data) = self.hx_api_object().restGetBulkHost(job['bulk_download_id'], host_id)
 					if ret:
 						if response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
-							full_path = os.path.join(download_directory, '{0}_{1}.zip'.format(host['hostname'], host_id))
+							full_path = os.path.join(download_directory, get_download_filename(host['hostname'], host_id))
 							self._task_queue.put((self.download_task, (job['bulk_download_id'], host_id, host['hostname'], job['post_download_handler'], response_data['data']['result']['url'], full_path)))
+			# Process Multi-File Acquisitions
+			for job in [_ for _ in self._ht_db.multiFileList(self.profile_id) if not _['stopped']]:
+				download_directory = make_download_directory(self.hx_api_object().hx_host, job.eid, job_type='multi_file')
+				for file_acq in [_ for _ in job['files'] if not _['downloaded']]:
+					(ret, response_code, response_data) = self._hx_api_object.restFileAcquisitionById(file_acq['acquisition_id'])
+					if ret:
+						if response_data['data']['state'] == "COMPLETE" and response_data['data']['url']:
+							full_path = os.path.join(download_directory, get_download_filename(file_acq['hostname'], file_acq['acquisition_id']))
+							self._task_queue.put((self.download_file, (job.eid, file_acq, response_data['data']['url']+'.zip', full_path)))
 			time.sleep(poll_interval)
 			
 	def await_task(self):
@@ -100,11 +129,20 @@ class hxtool_background_processor:
 			task[0](*task[1])
 			self._task_queue.task_done()
 			
+	def download_file(self, multi_file_id, file_acq, download_url, destination_path):
+		try:
+			(ret, response_code, response_data) = self._hx_api_object.restDownloadFile(download_url, destination_path)
+			if ret:
+				self._ht_db.multiFileUpdateFile(self.profile_id, multi_file_id, file_acq['acquisition_id'])
+				self.logger.info("File Acquisition download complete. Acquisition ID: {0}, Batch: {1}".format(file_acq['acquisition_id'], multi_file_id))
+		except:
+			# TODO: re-raise for now, need to handle specific errors
+			raise
+				
 	def download_task(self, bulk_download_id, host_id, hostname, post_download_handler, download_url, destination_path):
 		try:
 			(ret, response_code, response_data) = self.hx_api_object().restDownloadFile(download_url, destination_path)
 			if ret:
-				self._ht_db.bulkDownloadUpdateHost(self.profile_id, bulk_download_id, host_id)
 				# TODO: commenting out for now as a stopped bulk download job
 				# will still give the option to download the individual host
 				# acquisitions, which will result in a 404
@@ -112,44 +150,49 @@ class hxtool_background_processor:
 				if post_download_handler:
 					handler = self.post_download_handlers.get(post_download_handler)
 					if handler is not None:
+						self.logger.debug("Executing Post-Process Handler. bulk job: {0} host: {1}".format(bulk_download_id, hostname))
 						if handler(self, bulk_download_id, destination_path, hostname):
 							# TODO: check to see if the user chose to keep the bulk acquisition package
 							# even after post processing
 							os.remove(os.path.realpath(destination_path))
+				self._ht_db.bulkDownloadUpdateHost(self.profile_id, bulk_download_id, host_id)
+				self.logger.debug("Bulk Download complete. bulk job: {0} host: {1}".format(bulk_download_id, hostname))
 		except:
 			# TODO: re-raise for now, need to handle specific errors
 			raise
+				
+	def file_listing_handler(self, bulk_download_id, acquisition_package_path, hostname):
+		mime_type = get_mime_type('w32rawfiles')
+		audit_data = get_audit(acquisition_package_path, 'w32rawfiles')
+		if audit_data:
+			files = get_audit_records(hostname, audit_data, 'w32rawfiles', 'FileItem')
+			if files:
+				self._ht_db.fileListingAddResult(self.profile_id, bulk_download_id, files)
+				self.logger.debug("File Listing added to the database. bulk job: {0} host: {1}".format(bulk_download_id, hostname))
+		#TODO: What if no results?
+		return True
 	
 	def stacking_handler(self, bulk_download_id, acquisition_package_path, hostname):
 		ret = False
 		try:
-			with zipfile.ZipFile(acquisition_package_path) as f:
-				acquisition_manifest = json.loads(f.read('manifest.json').decode('utf-8'))
-				stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
-				if 'audits' in acquisition_manifest:
-					for result in [audit['results'] for audit in acquisition_manifest['audits'] if audit['generator'] in hxtool_data_models.stack_types[stack_job['stack_type']]['audit_module'] 
-					and 'results' in audit]:						
-						result = result[0]
-						results_file = result['payload']	
-						results = f.read(results_file)
-						data_model = hxtool_data_models(stack_job['stack_type'])
-						results_dict = data_model.process_results(hostname, results, result['type'])
-						if results_dict:
-							self._ht_db.stackJobAddResult(self.profile_id, bulk_download_id, results_dict)
-							ret = True
-			return ret
+			stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
+			stack_model = hxtool_data_models(stack_job['stack_type'])._stack_type
+			audit_data = get_audit(acquisition_package_path, stack_model['audit_module'])
+			if audit_data:
+				records = get_audit_records(hostname, audit_data, stack_model['audit_module'], stack_model['item_name'], stack_model['fields'], stack_model['post_process'])
+				if records:
+					self._ht_db.stackJobAddResult(self.profile_id, bulk_download_id, records)
+					self.logger.debug("Stacking Records added to the database for bulk job {0} host {1}".format(bulk_download_id, hostname))
+					return True
+			else:
+				self.logger.warning("WARNING: No audit data for hostname %s of stack_job %s", hostname, str(bulk_download_id))
 		except:
 			# TODO: re-raise for now, need to handle specific errors
 			raise
-			return False
+		#TODO: What if no results?
+		return False
 	
-	def make_download_directory(self, bulk_download_id):
-		download_directory = os.path.join(self._download_directory_base, self.hx_api_object().hx_host, str(bulk_download_id))
-		if not os.path.exists(download_directory):
-			os.makedirs(download_directory)
-		return download_directory
-	
-		
 	post_download_handlers = {
-		"stacking" : stacking_handler
+		"stacking" : stacking_handler,
+		"file_listing" : file_listing_handler
 	}	
