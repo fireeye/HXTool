@@ -396,12 +396,18 @@ def searchresult(hx_api_object):
 def searchaction(hx_api_object):
 	if request.args.get('action') == "stop":
 		(ret, response_code, response_data) = hx_api_object.restCancelJob('searches', request.args.get('id'))
-		app.logger.info('User access: Enterprise Search action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		if ret:
+			app.logger.info('User access: Enterprise Search action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		else:
+			app.logger.error("User access: Enterprise search action STOP failed with message: (%s)%s - User: %s@%s:%s", response_code, response_data, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port) 
 		return redirect("/search", code=302)
 		
 	if request.args.get('action') == "remove":
 		(ret, response_code, response_data) = hx_api_object.restDeleteJob('searches', request.args.get('id'))
-		app.logger.info('User access: Enterprise Search action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		if ret:
+			app.logger.info('User access: Enterprise Search action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		else:
+			app.logger.error("User access: Enterprise search action REMOVE failed with message: (%s)%s - User: %s@%s:%s", response_code, response_data, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port) 
 		return redirect("/search", code=302)	
 		
 #### Build a real-time indicator
