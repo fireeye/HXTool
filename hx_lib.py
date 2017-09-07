@@ -380,6 +380,36 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 		
+	# Get File Acquisition Status
+	def restFileAcquisitionById(self, acq_id):
+
+		data = None
+		
+		request = self.build_request(self.build_api_route('acqs/files/{0}'.format(acq_id)), method = 'GET', data = data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
+	# Get Data Acquisition Status
+	def restDataAcquisitionByID(self, acq_id):
+
+		data = None
+		
+		request = self.build_request(self.build_api_route('acqs/live/{0}'.format(acq_id)), method = 'GET', data = data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
+	# Get Data Acquisition Collection
+	def restDataCollectionByID(self, acq_id):
+
+		data = None
+		
+		request = self.build_request(self.build_api_route('acqs/live/{0}.mans'.format(acq_id)), method = 'GET', data = data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
 	# List Bulk Acquisitions
 	def restListBulkAcquisitions(self, limit=10000):
 
@@ -817,8 +847,6 @@ class HXAPI:
 		dt = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
 		us = int(us.rstrip("Z"), 10)
 		return dt + datetime.timedelta(microseconds=us)
-		
-
 			
 	"""
 	Base64 encoding/decoding - Python 2/3 compatibility
@@ -829,4 +857,4 @@ class HXAPI:
 			if decode_string:
 				return base64.b64decode(s).decode(character_encoding)
 			return base64.b64decode(s)
-		return base64.b64encode(s).decode(character_encoding)	
+		return base64.b64encode(s).decode(character_encoding)

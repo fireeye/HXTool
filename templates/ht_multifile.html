@@ -1,0 +1,226 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Multi-File Acquisitions{% endblock %}
+{% block navlocation %}Multi-File Acquisitions{% endblock %}
+{% block content %}
+
+<style>
+.dataTables_length {
+	padding-bottom: 10;
+}
+.dataTables_info {
+	padding-top: 10;
+}
+.dataTables_paginate {
+	padding-bottom: 50;
+}
+#two-pane-page {
+	margin-left: 400px;
+}
+#floating-pane-left {
+	width: 400px;
+	margin-left: -400px;
+	float: left;
+}
+#floating-pane-right {
+	float: right;
+	width: 100%;
+}
+#clearing-div {
+	clear:both;
+}
+#file-listing-form-div {
+	margin-right: 20px;
+	margin-bottom: 20px;
+}
+
+td.file-rows-control{
+	background: url("static/img/datatables/details_open.png") no-repeat center center;
+}
+tr.shown td.file-rows-control {
+	background: url("static/img/datatables/details_close.png") no-repeat center center;
+}
+
+table.nested_table th {
+	border-top: 1px solid #111;
+	border-bottom: 1px solid #111;
+}
+
+table.nested_table tr.even {
+	background-color: #E2E4FF;
+}
+
+table.nested_table tr.odd {
+	background-color: white;
+}
+
+table.nested_table tr:hover {
+	background-color: #acbad4;
+}
+</style>
+
+<script>
+	$(document).ready(function() {
+		var table = $('#fileListingTable').DataTable({
+			"info": false,
+			"pageLength": 15,
+			"lengthChange": false,
+			"ajax": "{{ url_for('get_file_listings') }}",
+			"columns": [
+				{ "data": "id" },
+				{ "data": "state" },
+				{ "data": "display_name" },
+				{ "data": "file_count" },
+				{ "data": "username" },
+				{ "data": "update_timestamp" },
+				{ "data": "progress" },
+				{ "data": "actions" }
+			],
+			"order": [[1, 'desc']],
+			"initComplete": function(settings, json) {
+		
+				$("div[id^='file_listing_prog_']").each(function() {
+					$(this).progress()
+				});
+			}
+		});
+		// Formatting function for File Acquisition nested table
+		function format_file_rows ( d ) {
+			// `d` is the original data object for the row
+			var file_table = '<table class="nested_table" cellpadding="5" cellspacing="0" border="0" style="width:100%; padding-left:50px; text-align:left; font-size: 12px"">'+
+				'<tr>'+
+					'<th>Hostname</th>'+
+					'<th>FullPath</th>'+
+					'<th></th>'+
+				'</tr>';
+			for(i = 0; i < d.files.length; i++) {
+				var row_class = (i%2) == 0 ? 'even' : 'odd';
+				file_table += '<tr class="'+row_class+'">'+
+					'<td style="width:150px;">'+d.files[i].hostname+'</td>'+
+					'<td>'+d.files[i].path+'</td>';
+				if(d.files[i].downloaded) {
+					var img_path='static/img/open-iconic-master/data-transfer-download.png';
+					var alt_text = 'Download Now';
+				}
+				else {
+					var img_path='static/img/open-iconic-master/clock.png';
+					var alt_text = 'Waiting for Acquisition';
+				}
+				file_table +='<td style="width:32px";><a href="{{ url_for('download_multi_file_single') }}?mf_id='+d.id+'&acq_id='+d.files[i]['acquisition_id']+'"><img src="'+img_path+'" alt="'+alt_text+'" style="display: block; margin: auto;"/></a></td>';
+				'</tr>';
+			}
+			return file_table + '</table>';
+		}
+		table = $('#fileAcquisitionTable').DataTable( {
+			"info": false,
+			"pageLength": 20,
+			"lengthChange": false,
+			"ajax": "{{ url_for('get_multi_files') }}",
+			"columns": [
+				{
+					"className": 'file-rows-control',
+					"orderable": false,
+					"data": null,
+					"defaultContent": ''
+				},
+				{ "data": "id" },
+				{ "data": "state" },
+				{ "data": "display_name" },
+				{ "data": "file_listing_id" },
+				{ "data": "username" },
+				{ "data": "create_timestamp" },
+				{ "data": "progress" },
+				{ "data": "actions" }
+			],
+			"order": [[1, 'desc']],
+			"initComplete": function(settings, json) {
+		
+				$("div[id^='multi_file_prog_']").each(function() {
+					$(this).progress()
+				});
+			}
+		});
+		// Show/Hide File Acquisition nested table
+		$('#fileAcquisitionTable tbody').on('click', 'td.file-rows-control', function () {
+			var tr = $(this).closest('tr');
+			var row = table.row( tr );
+	 
+			if ( row.child.isShown() ) {
+				// This row is already open - close it
+				row.child.hide();
+				tr.removeClass('shown');
+			}
+			else {
+				// Open this row
+				row.child( format_file_rows(row.data()) ).show();
+				tr.addClass('shown');
+			}
+		});
+		$('#file-listing-form').on('submit', function() {
+			//TODO: Validate Form.
+		});
+	});
+</script>
+<div id='two-pane-page'>
+	<div id='floating-pane-left'>
+		<div id='file-listing-form-div'>
+			<div class='inputArea'>
+				<form id='file-listing-form' method='POST' action='/file_listing' enctype='multipart/form-data'>
+					<h2 style='margin-top: 0px;'>Multi-file Listing Acquisition Request</h2>
+					<div style='font-style: italic;'>Request a file listing by providing a file path, regex, and a set of hosts to acquire from. Once acquired, you will be able to selectively acquire files from the hosts.</div>
+					<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
+
+					Name<br/>
+					<input type='text' id='listing_name' name='listing_name' style='width: 100%;'><br/></br>
+
+					File Listing Path<br/>
+					<input type='text' id='listing_path' name='listing_path' style='width: 100%;'><br/></br>
+
+					File Listing Regex<br/>
+					<input type='text' id='listing_regex' name='listing_regex' style='width: 100%;'><br/></br>
+
+					Host set<br/>
+					<select id='hostset' name='hostset'>
+						{% if hostsets %} {{ hostsets|safe }} {% endif %}
+					</select><br/><br/>
+
+					<input type='submit' value='Get File Listing' style='color: white; background-color: #008CBA; border: 2px solid #008CBA; border-radius: 4px; padding: 8px 16px; font-size: 14px;'>
+					<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
+
+					<div style='font-style: italic;'><b>Note</b>: The download feature is only available once you have set the background processing credentials on the "<a href='/settings'>settings</a>" page.</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<div id='floating-pane-right'>
+		<div class="tableTitle">File Listing Acquisitions</div>
+		<table id='fileListingTable' class='genericTable stripe' style='width: 100%;'>
+			<thead><tr>
+				<th>id</th>
+				<th>state</th>
+				<th>Name</th>
+				<th>#</th>
+				<th>User</th>
+				<th>Updated</th>
+				<th style='width: 160px;'>Progress</th>
+				<th style='width: 260px;'>Actions</th>
+			</tr></thead>
+		</table>
+		<div class="tableTitle">Multi-File Acquisitions</div>
+		<table id='fileAcquisitionTable' class='genericTable stripe' style='width: 100%;'>
+			<thead><tr>
+				<th></th>
+				<th>ID</th>
+				<th>state</th>
+				<th>Name</th>
+				<th>User</th>
+				<th>Listing</th>
+				<th>Created</th>
+				<th style='width: 160px;'>Progress</th>
+				<th style='width: 260px;'>Actions</th>
+			</tr></thead>
+		</table>
+	</div>
+	<div id='clearing-div'></div>
+</div>
+{% endblock %}
