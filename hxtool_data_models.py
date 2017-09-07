@@ -13,47 +13,20 @@ class hxtool_data_models:
 	def __init__(self, stack_type):
 		self._stack_type = self.stack_types[stack_type]
 	
-	def process_results(self, hostname, results_data, results_type):
-		items = []
-		if results_type == 'application/xml':		
-			xml_items = ET.fromstring(results_data).findall('./{0}'.format(self._stack_type['item_name']))
-			for xml_item in xml_items:
-				item = {'hostname' : hostname}
-				for e in xml_item:
-					if e.tag in self._stack_type['fields']:
-						# TODO: we only recurse 1 level deep - should recurse further
-						if len(list(e)) > 0:
-							item[e.tag] = []
-							item[e.tag].append({_.tag : _.text for _ in e[0]})
-						else:
-							item[e.tag] = e.text
-							
-				if self._stack_type['post_process']:
-					item.update(self._stack_type['post_process'](results_data))
-					
-				items.append(item)	
-		elif results_type == 'application/octet-stream':
-			item = {'hostname' : hostname}
-			item.update(self._stack_type['post_process'](results_data))
-			items.append(item)
-		
-		return items
-
-	
 	def stack_data(self, data, index = None, group_by = None):
 		if len(data) > 0:
-			
+	
 			if not index:
 				index = self._stack_type['default_index']
 			if not group_by:
 				group_by = self._stack_type['default_groupby']
-				
+ 
 			try:
 				data_frame = DataFrame(data).astype(unicode)
 			except NameError:
 				# under Python 3, str is unicode
 				data_frame = DataFrame(data).astype(str)
-				
+ 
 			data_frame.replace('nan', '', inplace = True)
 			data_frame = data_frame.groupby(by = group_by, as_index = False).apply(lambda _: list(_[index])).reset_index(name = index)
 			# Drop duplicates
