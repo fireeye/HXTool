@@ -183,7 +183,7 @@ table.nested_table tr:hover {
 						{% if hostsets %} {{ hostsets|safe }} {% endif %}
 					</select><br/><br/>
 
-					<input type='submit' value='Get File Listing' style='color: white; background-color: #008CBA; border: 2px solid #008CBA; border-radius: 4px; padding: 8px 16px; font-size: 14px;'>
+					<input type='submit' value='Get File Listing' class='tableActionButton' style='color: white; background-color: #008CBA; border: 2px solid #008CBA; border-radius: 4px; padding: 8px 16px; font-size: 14px;'>
 					<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
 
 					<div style='font-style: italic;'><b>Note</b>: The download feature is only available once you have set the background processing credentials on the "<a href='/settings'>settings</a>" page.</div>
@@ -213,8 +213,8 @@ table.nested_table tr:hover {
 				<th>ID</th>
 				<th>state</th>
 				<th>Name</th>
+				<th>ListingID</th>
 				<th>User</th>
-				<th>Listing</th>
 				<th>Created</th>
 				<th style='width: 160px;'>Progress</th>
 				<th style='width: 260px;'>Actions</th>
