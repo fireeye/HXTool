@@ -1095,7 +1095,7 @@ def login():
 							decrypted_background_password = crypt_aes(key, iv, background_credential['hx_api_encrypted_password'], decrypt = True)
 							start_background_processor(ht_profile['profile_id'], background_credential['hx_api_username'], decrypted_background_password)
 						except UnicodeDecodeError:
-							app.logger.error("Failed to decrypt background processor credential! Did you change recently change your password? If so, please unset and reset these credentials under Settings.")
+							app.logger.error("Failed to decrypt background processor credential! Did you recently change your password? If so, please unset and reset these credentials under Settings.")
 						finally:
 							decrypted_background_password = None
 
