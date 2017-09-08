@@ -63,6 +63,11 @@ class hxtool_config:
 					raise ValueError('Configuration file is missing key elements!')
 				else:
 					self.logger.info('Configuration file %s is OK.', config_file)
+				
+				if 'proxies' in self._config['network']:
+					if not {'http', 'https'} <= set(self._config['network']['proxies'].keys()):
+						self.logger.warning("Ignoring invalid proxy configuration! Please see http://docs.python-requests.org/en/master/user/advanced/")
+						del self._config['network']['proxies']
 		else:
 			self.logger.warning('Unable to open config file: %s, loading default config.', config_file)
 			self._config = self.DEFAULT_CONFIG

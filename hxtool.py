@@ -1071,7 +1071,7 @@ def login():
 			ht_profile = ht_db.profileGet(request.form['controllerProfileDropdown'])
 			if ht_profile:	
 
-				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger)
+				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = ht_config['network'].get('proxies'), headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger)
 
 				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
 				if ret:
