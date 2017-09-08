@@ -69,17 +69,18 @@ ht_db = None
 def valid_session_required(f):
 	@wraps(f)
 	def is_session_valid(*args, **kwargs):
-		if not (session and 'ht_user' in session and 'ht_api_object' in session):
-			return redirect(url_for('login', redirect_uri = request.path[1:]))
-		else:
-			o = HXAPI.deserialize(session['ht_api_object'])
-			if o.restIsSessionValid():	
-				kwargs['hx_api_object'] = o
-			else:
-				app.logger.info('The HX API token for the current session has expired, redirecting to the login page.')
-				return redirect(url_for('login', redirect_uri = request.path[1:]))
-				
-		return f(*args, **kwargs)
+		if (session and 'ht_user' in session and 'ht_api_object' in session):
+			try:
+				o = HXAPI.deserialize(session['ht_api_object'])
+				if o.restIsSessionValid():
+					kwargs['hx_api_object'] = o
+					return f(*args, **kwargs)
+				else:
+					app.logger.info('The HX API token for the current session has expired, redirecting to the login page.')
+			except:
+				app.logger.error("Failed to deserialize session object.")
+				pass
+		return redirect(url_for('login', redirect_uri = request.full_path))	
 	return is_session_valid
 
 ### Flask/Jinja Filters
