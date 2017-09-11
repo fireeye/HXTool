@@ -146,12 +146,11 @@ class hxtool_db:
 	
 	def bulkDownloadUpdateHost(self, profile_id, bulk_download_id, host_id):
 		with self._lock:
-			ts = str(datetime.datetime.utcnow())
 			e_id = self._db.table('bulk_download').update(self._db_update_nested_dict('hosts', host_id, {'downloaded' : True}), 
 														(tinydb.Query()['profile_id'] == profile_id) & 
 														(tinydb.Query()['bulk_download_id'] == int(bulk_download_id)) &
 														(tinydb.Query()['hosts'].any(host_id)))
-			return self._db.table('bulk_download').update({'update_timestamp' : ts}, eids = e_id)
+			return e_id
 																			
 	def bulkDownloadStop(self, profile_id, bulk_download_id):
 		with self._lock:
@@ -248,7 +247,7 @@ class hxtool_db:
 		try:
 			with self._lock:
 				eids = self._db.table('multi_file').update(self._db_update_dict_in_list('files', 'acquisition_id', acquisition_id, 'downloaded', True), eids=[int(multi_file_id)])
-				return self._db.table('multi_file').update({'update_timestamp' : str(datetime.datetime.utcnow())}, eids = eids)
+				return eids
 		except:
 			return None
 																			
@@ -295,9 +294,9 @@ class hxtool_db:
 	
 	def stackJobAddResult(self, profile_id, bulk_download_id, hostname, result):
 		with self._lock:
-			ts = str(datetime.datetime.utcnow())
 			e_id = self._db.table('stacking').update(self._db_append_to_list('results', result), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
-			return self._db.table('stacking').update(self._db_append_to_list('hosts', {'hostname' : hostname, 'processed' : true}), eids = e_ids)
+			return self._db.table('stacking').update(self._db_append_to_list('hosts', {'hostname' : hostname, 'processed' : True}), eids = e_id)
+			
 			
 	def stackJobUpdateIndex(self, profile_id, bulk_download_id, last_index = None, last_groupby = []):
 		with self._lock:
@@ -311,30 +310,34 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('stacking').remove(eids = [int(stack_job_id)])
 	
-	def _db_update_nested_dict(self, dict_name, dict_key, dict_values):
+	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
 			if type(dict_values) is dict:
 				element[dict_name][dict_key].update(dict_values)
 			else:
 				element[dict_name][dict_key] = dict_values
+			if update_timestamp and 'update_timestamp' in element:
+					element['update_timestamp'] =  str(datetime.datetime.utcnow())		
 		return transform
 	
-	def _db_append_to_list(self, list_name, value):
+	def _db_append_to_list(self, list_name, value, update_timestamp = True):
 		def transform(element):
 			if type(value) is list:
 				element[list_name].extend(value)
 			else:
 				element[list_name].append(value)
-			if 'update_timestamp' in element:
+			if update_timestamp and 'update_timestamp' in element:
 				element['update_timestamp'] =  str(datetime.datetime.utcnow())
 		return transform
 	
-	def _db_update_dict_in_list(self, list_name, query_key, query_value, k, v):
+	def _db_update_dict_in_list(self, list_name, query_key, query_value, k, v, update_timestamp = True):
 		def transform(element):
 			for i in element[list_name]:
 				if i[query_key] == query_value:
 					i[k] = v
 					break
+			if update_timestamp and 'update_timestamp' in element:
+				element['update_timestamp'] =  str(datetime.datetime.utcnow())		
 		return transform
 	
 	
