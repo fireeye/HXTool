@@ -176,7 +176,7 @@ class hxtool_background_processor:
 		ret = False
 		try:
 			stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
-			stack_model = hxtool_data_models(stack_job['stack_type'])._stack_type
+			stack_model = hxtool_data_models(stack_job['stack_type']).stack_type
 			audit_pkg = AuditPackage(acquisition_package_path)
 			audit_data = audit_pkg.get_audit(generator=stack_model['audit_module'])
 			if audit_data:

@@ -11,15 +11,15 @@ except ImportError:
 
 class hxtool_data_models:
 	def __init__(self, stack_type):
-		self._stack_type = self.stack_types[stack_type]
+		self.stack_type = self.stack_types[stack_type]
 	
 	def stack_data(self, data, index = None, group_by = None):
 		if len(data) > 0:
 	
 			if not index:
-				index = self._stack_type['default_index']
+				index = self.stack_type['default_index']
 			if not group_by:
-				group_by = self._stack_type['default_groupby']
+				group_by = self.stack_type['default_groupby']
  
 			try:
 				data_frame = DataFrame(data).astype(unicode)
