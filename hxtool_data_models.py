@@ -200,7 +200,7 @@ class hxtool_data_models:
 			"post_process" : w32mbr_post_process
 		},
 		"linux-ports": {
-			"audit_module" : "w32ports",
+			"audit_module" : "ports",
 			"script": "linux-ports.json",
 			"platform": "linux",
 			"name" : "Ports",
