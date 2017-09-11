@@ -69,17 +69,18 @@ ht_db = None
 def valid_session_required(f):
 	@wraps(f)
 	def is_session_valid(*args, **kwargs):
-		if not (session and 'ht_user' in session and 'ht_api_object' in session):
-			return redirect(url_for('login', redirect_uri = request.path[1:]))
-		else:
-			o = HXAPI.deserialize(session['ht_api_object'])
-			if o.restIsSessionValid():	
-				kwargs['hx_api_object'] = o
-			else:
-				app.logger.info('The HX API token for the current session has expired, redirecting to the login page.')
-				return redirect(url_for('login', redirect_uri = request.path[1:]))
-				
-		return f(*args, **kwargs)
+		if (session and 'ht_user' in session and 'ht_api_object' in session):
+			try:
+				o = HXAPI.deserialize(session['ht_api_object'])
+				if o.restIsSessionValid():
+					kwargs['hx_api_object'] = o
+					return f(*args, **kwargs)
+				else:
+					app.logger.info('The HX API token for the current session has expired, redirecting to the login page.')
+			except:
+				app.logger.error("Failed to deserialize session object.")
+				pass
+		return redirect(url_for('login', redirect_uri = request.full_path))	
 	return is_session_valid
 
 ### Flask/Jinja Filters
@@ -1070,7 +1071,7 @@ def login():
 			ht_profile = ht_db.profileGet(request.form['controllerProfileDropdown'])
 			if ht_profile:	
 
-				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger)
+				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = ht_config['network'].get('proxies'), headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger)
 
 				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
 				if ret:
@@ -1095,7 +1096,7 @@ def login():
 							decrypted_background_password = crypt_aes(key, iv, background_credential['hx_api_encrypted_password'], decrypt = True)
 							start_background_processor(ht_profile['profile_id'], background_credential['hx_api_username'], decrypted_background_password)
 						except UnicodeDecodeError:
-							app.logger.error("Failed to decrypt background processor credential! Did you change recently change your password? If so, please unset and reset these credentials under Settings.")
+							app.logger.error("Failed to decrypt background processor credential! Did you recently change your password? If so, please unset and reset these credentials under Settings.")
 						finally:
 							decrypted_background_password = None
 
@@ -1196,13 +1197,6 @@ def validate_json(keys, j):
 		if not k in j or not j[k]:
 			return False	
 	return True
-	
-def is_session_valid(session):
-	if session and 'ht_user' in session and 'ht_api_object' in session:
-		hx_api_object = HXAPI.deserialize(session['ht_api_object'])
-		return(hx_api_object.restIsSessionValid(), hx_api_object)
-	else:
-		return(False, None)
 		
 def make_response_by_code(code):
 	code_table = {200 : {'message' : 'OK'},

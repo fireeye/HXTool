@@ -27,7 +27,7 @@ class HXAPI:
 	HX_DEFAULT_PORT = 3000
 	HX_MIN_API_VERSION = 2
 	
-	def __init__(self, hx_host, hx_port = HX_DEFAULT_PORT, headers = None, cookies = None, disable_certificate_verification = True, logger = logging.getLogger(__name__), default_encoding = 'utf-8'):
+	def __init__(self, hx_host, hx_port = HX_DEFAULT_PORT, headers = None, cookies = None, proxies = None, disable_certificate_verification = True, logger = logging.getLogger(__name__), default_encoding = 'utf-8'):
 		self.logger = logger
 
 		self.logger.debug('__init__ start.')
@@ -51,6 +51,10 @@ class HXAPI:
 			self.logger.info('SSL/TLS certificate verification disabled.')
 			self._session.verify = False
 			requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+		
+		if proxies:
+			self._session.proxies = proxies
+			self.logger.info("Proxy support enabled.")
 		
 		self.hx_user = None
 		self.fe_token = None
