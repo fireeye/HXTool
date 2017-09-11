@@ -162,10 +162,10 @@ class hxtool_background_processor:
 			raise
 				
 	def file_listing_handler(self, bulk_download_id, acquisition_package_path, hostname):
-		mime_type = get_mime_type('w32rawfiles')
-		audit_data = get_audit(acquisition_package_path, 'w32rawfiles')
+		audit_pkg = AuditPackage(acquisition_package_path)
+		audit_data = audit_pkg.get_audit(generator='w32rawfiles')
 		if audit_data:
-			files = get_audit_records(hostname, audit_data, 'w32rawfiles', 'FileItem')
+			files = get_audit_records(audit_data, 'w32rawfiles', 'FileItem', hostname=hostname)
 			if files:
 				self._ht_db.fileListingAddResult(self.profile_id, bulk_download_id, files)
 				self.logger.debug("File Listing added to the database. bulk job: {0} host: {1}".format(bulk_download_id, hostname))
@@ -177,9 +177,10 @@ class hxtool_background_processor:
 		try:
 			stack_job = self._ht_db.stackJobGet(self.profile_id, bulk_download_id)
 			stack_model = hxtool_data_models(stack_job['stack_type'])._stack_type
-			audit_data = get_audit(acquisition_package_path, stack_model['audit_module'])
+			audit_pkg = AuditPackage(acquisition_package_path)
+			audit_data = audit_pkg.get_audit(generator=stack_model['audit_module'])
 			if audit_data:
-				records = get_audit_records(hostname, audit_data, stack_model['audit_module'], stack_model['item_name'], stack_model['fields'], stack_model['post_process'])
+				records = get_audit_records(audit_data, stack_model['audit_module'], stack_model['item_name'], fields=stack_model['fields'], post_process=stack_model['post_process'], hostname=hostname)
 				if records:
 					self._ht_db.stackJobAddResult(self.profile_id, bulk_download_id, records)
 					self.logger.debug("Stacking Records added to the database for bulk job {0} host {1}".format(bulk_download_id, hostname))

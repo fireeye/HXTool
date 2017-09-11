@@ -3,27 +3,15 @@ import zipfile
 import json
 
 def get_mime_type(generator):
-	return generator == 'w32disk-acquisition' and 'application/octet-stream' or 'application/xml'
+	return (generator in ['w32apifile-acquisition', 'w32disk-acquisition']) and 'application/octet-stream' or 'application/xml'
 
-def get_audit(acquisition_package_path, generator):
-	mime_type = get_mime_type(generator)
-	with zipfile.ZipFile(acquisition_package_path) as f:
-		acquisition_manifest = json.loads(f.read('manifest.json').decode('utf-8'))
-		if 'audits' in acquisition_manifest:
-			for audit in acquisition_manifest['audits']:
-				if audit['generator'] == generator and 'results' in audit:
-						for results in audit['results']:
-							if results['type'] == mime_type:
-								return f.read(results['payload'])
-	return None
-
-def get_audit_records(hostname, results_data, generator, item_name, fields=None, post_process=None):
+def get_audit_records(audit_data, generator, item_name, fields=None, post_process=None, **static_values):
 	items = []
 	mime_type = get_mime_type(generator)
 	if mime_type == 'application/xml':		
-		xml_items = ET.fromstring(results_data).findall('./{0}'.format(item_name))
+		xml_items = ET.fromstring(audit_data).findall('./{0}'.format(item_name))
 		for xml_item in xml_items:
-			item = {'hostname' : hostname}
+			item = dict(static_values)
 			for e in xml_item:
 				if fields and e.tag not in fields:
 					continue
@@ -35,15 +23,46 @@ def get_audit_records(hostname, results_data, generator, item_name, fields=None,
 					item[e.tag] = e.text
 						
 			if post_process:
-				item.update(post_process(results_data))
+				item.update(post_process(audit_data))
 				
 			items.append(item)	
 	elif mime_type == 'application/octet-stream' and post_process:
-		item = {'hostname' : hostname}
-		item.update(post_process(results_data))
+		item = dict(static_values)
+		item.update(post_process(audit_data))
 		items.append(item)
 	else:
 		#TODO: Unexpected mime_type?
 		pass
 	return items
 
+class AuditPackage:
+	def __init__(self, acquisition_package_path):
+		self.package = zipfile.ZipFile(acquisition_package_path)
+		self.manifest = ('manifest.json' in self.package.namelist()) and json.loads(self.package.read('manifest.json').decode('utf-8')) or {}
+		self.audits = ('audits' in self.manifest) and self.manifest['audits'] or []
+
+	def get_generators(self):
+		return [_['generator'] for _ in self.audits if 'generator' in _]
+
+	def get_audit_id(self, generator):
+		mime_type = get_mime_type(generator)
+		for audit in self.audits:
+			if audit['generator'] == generator and 'results' in audit:
+				for results in audit['results']:
+					if results['type'] == mime_type:
+						return results['payload']
+		return ''
+
+	def get_audit(self, payload_name=None, generator=None, destination_path=None):
+		if not payload_name:
+			if not generator:
+				return None
+			payload_name = self.get_audit_id(generator)
+		if payload_name not in self.package.namelist():
+			return None
+		payload = self.package.read(payload_name)
+		if destination_path:
+			with open(destination_path, 'wb') as f:
+				f.write(payload)
+				return None
+		return payload
