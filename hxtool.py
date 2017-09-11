@@ -773,6 +773,8 @@ def multifile(hx_api_object):
 		MAX_FILE_ACQUISITIONS = 50
 		
 		display_name = ('display_name' in request.form) and request.form['display_name'] or "{0} job at {1}".format(session['ht_user'], datetime.datetime.now())
+		use_api_mode = ('use_api_mode' in request.form)
+
 		# Collect User Selections
 		file_jobs, choices, listing_ids = [], {}, set([])
 		choice_re = re.compile('^choose_file_(\d+)_(\d+)$')
@@ -791,7 +793,7 @@ def multifile(hx_api_object):
 					app.logger.warn('File Listing %s does not exist - User: %s@%s:%s', session['ht_user'], fl_id, hx_api_object.hx_host, hx_api_object.hx_port)
 					continue
 				choice_files = [file_listing['files'][i] for i in file_ids if i <= len(file_listing['files'])]
-				multi_file_id = ht_db.multiFileCreate(session['ht_user'], profile_id, display_name=display_name, file_listing_id=file_listing.eid)
+				multi_file_id = ht_db.multiFileCreate(session['ht_user'], profile_id, display_name=display_name, file_listing_id=file_listing.eid, api_mode=use_api_mode)
 				# Create a data acquisition for each file from its host
 				for cf in choice_files:
 					if cf['hostname'] in agent_ids:
@@ -800,14 +802,13 @@ def multifile(hx_api_object):
 						(ret, response_code, response_data) = hx_api_object.restFindHostsBySearchString(cf['hostname'])
 						agent_id = agent_ids[cf['hostname']] = response_data['data']['entries'][0]['_id']
 					path, filename = cf['FullPath'].rsplit('\\', 1)
-					(ret, response_code, response_data) = hx_api_object.restAcquireFile(agent_id, path, filename, False)
+					(ret, response_code, response_data) = hx_api_object.restAcquireFile(agent_id, path, filename, use_api_mode)
 					if ret:
 						acq_id = response_data['data']['_id']
 						job_record = {
 							'acquisition_id' : int(acq_id),
 							'hostname': cf['hostname'],
 							'path': cf['FullPath'],
-							'acquired': False,
 							'downloaded': False
 						}
 						ht_db.multiFileAddJob(multi_file_id, job_record)
@@ -899,11 +900,12 @@ def get_multi_files(hx_api_object):
 		job.update({
 			'id': mf.eid,
 			'state': ("STOPPED" if job['stopped'] else "RUNNING"),
-			'file_count': len(job['files'])
+			'file_count': len(job['files']),
+			'mode': ('api_mode' in job and job['api_mode']) and 'API' or 'RAW'
 		})
 
 		# Completion rate
-		job_progress = int(hosts_completed / float(job['file_count']) * 100)
+		job_progress = (int(job['file_count']) > 0) and  int(hosts_completed / float(job['file_count']) * 100) or 0
 		job['progress'] = "<div class='htMyBar htBarWrap'><div class='htBar' id='multi_file_prog_" + str(job['id']) + "' data-percent='" + str(job_progress) + "'></div></div>"
 		
 		# Actions

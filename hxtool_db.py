@@ -205,7 +205,7 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('file_listing').remove(eids = [int(file_listing_id)])
 	
-	def multiFileCreate(self, username, profile_id, display_name=None, file_listing_id=None):
+	def multiFileCreate(self, username, profile_id, display_name=None, file_listing_id=None, api_mode=False):
 		r = None
 		with self._lock:
 			ts = str(datetime.datetime.utcnow())
@@ -216,6 +216,7 @@ class hxtool_db:
 					'profile_id' : profile_id,
 					'files': [],
 					'stopped' : False,
+					'api_mode': api_mode,
 					'create_timestamp' : ts, 
 					'update_timestamp' : ts,
 					'file_listing_id': file_listing_id
