@@ -41,6 +41,10 @@ class AuditPackage:
 		self.manifest = ('manifest.json' in self.package.namelist()) and json.loads(self.package.read('manifest.json').decode('utf-8')) or {}
 		self.audits = ('audits' in self.manifest) and self.manifest['audits'] or []
 
+	# Ensure that we close the zip file so we don't leak file handles
+	def __exit__(self, exc_type, exc_value, traceback):
+		self.package.close()
+		
 	def get_generators(self):
 		return [_['generator'] for _ in self.audits if 'generator' in _]
 
