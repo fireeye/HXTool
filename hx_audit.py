@@ -41,6 +41,10 @@ class AuditPackage:
 		self.manifest = ('manifest.json' in self.package.namelist()) and json.loads(self.package.read('manifest.json').decode('utf-8')) or {}
 		self.audits = ('audits' in self.manifest) and self.manifest['audits'] or []
 
+	# Ensure that we close the zip file so we don't leak file handles
+	def __exit__(self, exc_type, exc_value, traceback):
+		self.package.close()
+		
 	def get_generators(self):
 		return [_['generator'] for _ in self.audits if 'generator' in _]
 
@@ -54,15 +58,17 @@ class AuditPackage:
 		return ''
 
 	def get_audit(self, payload_name=None, generator=None, destination_path=None):
-		if not payload_name:
-			if not generator:
-				return None
-			payload_name = self.get_audit_id(generator)
-		if payload_name not in self.package.namelist():
+		if not payload_name and not generator:
+			raise ValueError("You must specify payload_name or generator.")
+		if payload_name and payload_name not in self.package.namelist():
 			return None
-		payload = self.package.read(payload_name)
-		if destination_path:
-			with open(destination_path, 'wb') as f:
-				f.write(payload)
+		elif generator:
+			payload_name = self.get_audit_id(generator)
+			if payload_name == '':
 				return None
-		return payload
+				
+		if destination_path:
+			self.package.extract(payload_name, destination_path)
+			return None
+		
+		return self.package.read(payload_name)

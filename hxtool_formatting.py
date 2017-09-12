@@ -772,7 +772,10 @@ def formatStackTable(ht_db, profile_id, hs):
 		
 		# Completion rate
 		job_progress = 0
-		hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
+		if 'hosts' in job:
+			hosts_completed = len([_ for _ in job['hosts'] if _['processed']])
+		else:
+			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
 		job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
 		x += "<td>"
 		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(job.eid) + "' data-percent='" + str(job_progress) + "'></div></div>"
