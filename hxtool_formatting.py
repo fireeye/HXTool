@@ -797,46 +797,78 @@ def formatHostInfo(response_data, hx_api_object):
 
 	x = ""
 
-	x += "<table id='hostinfo' class='genericTable' style='width: 100%; border-bottom: 0;'>"
+	x += "<table id='hostinfo' class='genericTable' style='width: 100%; border: 0; margin: 0;'>"
 	x += "<tbody>"
-	x += "<tr>"
+	x += "<tr style='border: 0;'>"
 
 	# First box
-	x += "<td style='width: 550px; border-right: 0;'>"
+	x += "<td colspan='2' style='width: 100%; border: 0; padding: 0;'>"
 	
+	
+	# HOSTINFO
+	x += "<table class='genericTable' style='width: 100%; border: 1px solid #dddddd; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
+	x += "<tr>"
+	
+	x += "<td style='vertical-align: center; text-align: center;'>"
 	if str(response_data['data']['os']['product_name']).startswith('Windows'):
-		x += "<img style='float: left; width: 100px;' src='/static/ico/windows.svg'>"
+		x += "<img style='width: 50px;' src='/static/ico/windows.svg'>"
 	else:
-		x += "<img style='float: left; width: 100px;' src='/static/ico/apple.svg'>"
-		
-	x += "<div style='float: left; padding-left: 10px;'>" 
-	x += "<b>Hostname:</b> " + str(response_data['data']['hostname'])  + "<br>" 
-	x += "<b>Domain:</b> " + str(response_data['data']['domain']) + "<br>"
+		x += "<img style='width: 50px;' src='/static/ico/apple.svg'>"
+	x += "</td>"
+	
+	x += "<td style='font-size: 14px;'>"
+	x += "<div style='font-weight: bold; font-size: 20px;'>" + str(response_data['data']['hostname'])  + "</div>" 
+	x += str(response_data['data']['domain']) + "<br>"
+	x += str(response_data['data']['os']['product_name']) + " " + str(response_data['data']['os']['patch_level']) + " " + str(response_data['data']['os']['bitness']) + "<br>"
+	x += "</td>"
+	
+	x += "<td rowspan='2' style='vertical-align: top; width: 300px;'>"
 	x += "<b>Last poll IP:</b> " + str(response_data['data']['last_poll_ip']) + "<br>"
 	x += "<b>Last poll Timestamp:</b> " + str(response_data['data']['last_poll_timestamp']) + "<br>"
+	x += "</td>"
+	
+	x += "<td rowspan='2' style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerting_conditions']) + "</span><br>Alerting conditions</td>"
+	x += "<td rowspan='2' style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_alerts']) + "</span><br>Exploit alerts</td>"
+	x += "<td rowspan='2' style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['acqs']) + "</span><br>Acquisitions</td>"
+	x += "<td rowspan='2' style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerts']) + "</span><br>Alerts</td>"
+	x += "<td rowspan='2' style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_blocks']) + "</span><br>Exploit blocks</td>"
+	x += "<td rowspan='2' style='width: 10%; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['malware_alerts']) + "</span><br>Malware alerts</td>"
+
+	
+	x += "</tr>"
+	x += "<tr><td colspan='2' style='width: 500px;'>"
+		
 	x += "<b>Timezone:</b> " + str(response_data['data']['timezone']) + "<br>"
-	x += "<b>Operating system:</b> " + str(response_data['data']['os']['product_name']) + " " + str(response_data['data']['os']['patch_level']) + " " + str(response_data['data']['os']['bitness']) + "<br>"
 	
 	(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(str(response_data['data']['_id']))
 	if sret:
 		x += "<b>Logged on user:</b> " + str(sresponse_data['data']['loggedOnUser']) + "<br>"
-	x += "</div>"
 	
+	x += "</td></tr>"
+	x += "</table>"
+	# HOSTINFO END
 	
-	x += "</td>"
+	#x += "</td>"
 	
 	# Second box
-	x += "<td>"
-	x += "<table style='width: 100%;'>"
-	x += "<tr>"
-	x += "<td style='width: 17%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerting_conditions']) + "</span><br>Alerting conditions</td>"
-	x += "<td style='width: 17%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_alerts']) + "</span><br>Exploit alerts</td>"
-	x += "<td style='width: 17%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['acqs']) + "</span><br>Acquisitions</td>"
-	x += "<td style='width: 17%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerts']) + "</span><br>Alerts</td>"
-	x += "<td style='width: 17%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_blocks']) + "</span><br>Exploit blocks</td>"
-	x += "<td style='width: 17%; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['malware_alerts']) + "</span><br>Malware alerts</td>"
-	x += "</tr>"
-	x += "</table>"
+	#x += "<td style='border: 0; margin: 0; height: 100%;'>"
+	
+	# HOSTINFO2
+	#x += "<table style='width: 100%; height: 100%; border: 1px solid #dddddd; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
+	#x += "<tr style='height: 100%;'>"
+	#x += "<td style='height: 100%;'>"
+	#x += "<div style='height: 100%;'>tada</div>"
+	#x += "</td>"
+	#x += "<td style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerting_conditions']) + "</span><br>Alerting conditions</td>"
+	#x += "<td style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_alerts']) + "</span><br>Exploit alerts</td>"
+	#x += "<td style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['acqs']) + "</span><br>Acquisitions</td>"
+	#x += "<td style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerts']) + "</span><br>Alerts</td>"
+	#x += "<td style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_blocks']) + "</span><br>Exploit blocks</td>"
+	#x += "<td style='width: 10%; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['malware_alerts']) + "</span><br>Malware alerts</td>"
+	#x += "</tr>"
+	#x += "</table>"
+	# HOSTINFO2 END
+	
 	x += "</td>"
 	x += "</tr>"
 	
@@ -845,7 +877,7 @@ def formatHostInfo(response_data, hx_api_object):
 	x += "<td style='width: 500px; padding: 0; vertical-align: top; border-right: 0; border-bottom: 1px solid #dddddd;'>"
 	
 	# Sub alert table start
-	x += "<table id='hostAlertTable' class='genericTable genericTableSmall' style='width: 100%; border-right: 1px solid #dddddd; border-left: 1px solid #dddddd; margin-top: 15px; box-shadow: 8px 8px 5px rgb(215,215,215); margin-bottom: 20px;'>"
+	x += "<table id='hostAlertTable' class='genericTable genericTableSmall' style='width: 500px; border-right: 1px solid #dddddd; border-left: 1px solid #dddddd; margin-top: 15px; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200); margin-bottom: 20px;'>"
 	x += "<thead>"
 	x += "<tr>"
 	x += "<td style='font-weight: bold; text-align: center;'>type</td>"
@@ -1017,8 +1049,8 @@ def formatHostInfo(response_data, hx_api_object):
 	# Sub alert table stop
 	
 	x += "</td>"
-	x += "<td style='vertical-align: top; padding-top: 15px;'>"
-	x += "<div id='alertcontent' style='margin-left: 10px; margin-bottom: 15px; padding: 15px; border: 1px solid #dddddd; box-shadow: 8px 8px 5px rgb(215,215,215);'></div>"
+	x += "<td style='vertical-align: top; padding-top: 15px; width: 100%;'>"
+	x += "<div id='alertcontent' style='margin-left: 10px; margin-bottom: 15px; padding: 15px; border: 1px solid #dddddd; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'></div>"
 	x += "</td>"
 	x += "</tr>"
 	
@@ -1034,7 +1066,7 @@ def formatHostInfo(response_data, hx_api_object):
 	if (atret):
 		if (len(atresponse_data['data']['entries']) > 0):
 			x += "<div class='tableTitle'>Triage acquisitions</div>"
-			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
+			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
 			x += "<thead>"
 			x += "<tr>"
 			x += "<td style='font-weight: bold;'>Acquisition</td>"
@@ -1062,7 +1094,7 @@ def formatHostInfo(response_data, hx_api_object):
 	if (afret):
 		if (len(afresponse_data['data']['entries']) > 0):
 			x += "<div class='tableTitle'>File acquisitions</div>"
-			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
+			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
 			x += "<thead>"
 			x += "<tr>"
 			x += "<td style='font-weight: bold;'>Path</td>"
@@ -1091,7 +1123,7 @@ def formatHostInfo(response_data, hx_api_object):
 	if (adret):
 		if (len(adresponse_data['data']['entries']) > 0):
 			x += "<div class='tableTitle'>Data acquisitions</div>"
-			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
+			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
 			x += "<thead>"
 			x += "<tr>"
 			x += "<td style='font-weight: bold;'>Name</td>"

@@ -99,8 +99,25 @@
 			window.location.replace("/" + url[1]);
 		});
 		
-		$("#navcategory_indicator").click(function() {
-			$("#dropdown-content-indicators").show(200);
+		$(document).click(function() {
+			$("#dropdown-content-indicators").hide();
+			$("#dropdown-content-admin").hide();
+		});
+		
+		$('[id^=dropdown-content]').click(function(e) {
+			 e.stopPropagation();
+		});
+		
+		$("#navcategory_indicator").click(function(e) {
+			$("#dropdown-content-admin").hide();
+			$("#dropdown-content-indicators").show(150);
+			e.stopPropagation();
+		});
+
+		$("#navcategory_admin").click(function(e) {
+			$("#dropdown-content-indicators").hide();
+			$("#dropdown-content-admin").show(150);
+			e.stopPropagation();
 		});
 		
 	});
@@ -116,26 +133,32 @@
 				<div style='position: absolute; left: 120px; top: 45px; font-size: 12px; font-weight: bold;'>HXTool v3.0</div>
 				
 				<div id='navbutton_?time=week' style='float: left;' class='ht_nav_table_cell'>Dashboard</div>
-				<div id='navbutton_alerts?acount=30' style='float: left;' class='ht_nav_table_cell'>Alerts</div>
+				<div id='navbutton_alerts?acount=20' style='float: left;' class='ht_nav_table_cell'>Alerts</div>
 				<div id='navbutton_search' style='float: left;' class='ht_nav_table_cell'>Enterprise Search</div>
 				<div id='navbutton_bulk' style='float: left;' class='ht_nav_table_cell'>Bulk Acquisitions</div>
 				<div id='navbutton_multifile' style='float: left;' class='ht_nav_table_cell'>File Acquisitions</div>
 				<div id='navbutton_stacking' style='float: left;' class='ht_nav_table_cell'>Data Stacking</div>
-				<div id='navbutton_channels' style='float: left;' class='ht_nav_table_cell'>Config Channels</div>
-				<div id='navcategory_indicator' style='float: left; position: relative; border-right: none;' class='ht_nav_table_cell'>Indicators
+				<!--<div id='navbutton_channels' style='float: left;' class='ht_nav_table_cell'>Config Channels</div>-->
+				
+				<div id='navcategory_indicator' style='float: left; position: relative;' class='ht_nav_table_cell'>Indicators
 					<div id='dropdown-content-indicators' class='dropdown-content'>
-						<div id='navbutton_buildioc' style='' class='ht_nav_table_cell_sub'>Build</div>
-						<div id='navbutton_indicators' style='' class='ht_nav_table_cell_sub'>Manage</div>
-						<div id='navbutton_categories' style='' class='ht_nav_table_cell_sub'>Categories</div>
+						<div id='navbutton_buildioc' style='' class='ht_nav_table_cell_sub'>Build Indicator</div>
+						<div id='navbutton_indicators' style='' class='ht_nav_table_cell_sub'>Manage Indicators</div>
+						<div id='navbutton_categories' style='' class='ht_nav_table_cell_sub'>Manage Categories</div>
 					</div>				
+				</div>
+				
+				<div id='navcategory_admin' style='float: left; position: relative; border-right: none;' class='ht_nav_table_cell'>Admin
+					<div id='dropdown-content-admin' class='dropdown-content'>
+						<div id='navbutton_channels' style='' class='ht_nav_table_cell_sub'>Custom Config Channels</div>
+						<div id='navbutton_settings' style='' class='ht_nav_table_cell_sub'>HXTool Settings</div>
+					</div>
 				</div>
 								
 				<div style='color: rgb(81, 87, 97); text-align: right; float: right;'>
 				
 				<span class='ht_nav_span'>Find a host</span>
 				<input type='text' id='findhost' style='width: 200px;'>
-				&nbsp;|&nbsp;
-				<a class='ht_nav_a' href='/settings'>Settings</a>
 				&nbsp;|&nbsp;
 				<b>User:</b> {{ user }}
 				&nbsp;&nbsp;
