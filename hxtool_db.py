@@ -298,9 +298,13 @@ class hxtool_db:
 			return self._db.table('stacking').update(self._db_append_to_list('hosts', {'hostname' : hostname, 'processed' : True}), eids = e_id)
 			
 			
-	def stackJobUpdateIndex(self, profile_id, bulk_download_id, last_index = None, last_groupby = []):
+	def stackJobUpdateIndex(self, profile_id, bulk_download_id, last_index):
 		with self._lock:
-			return self._db.table('stacking').update({'last_index' : last_index, 'last_groupby' : last_groupby, 'update_timestamp' : str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+			return self._db.table('stacking').update({'last_index' : last_index, 'update_timestamp' : str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+	
+	def stackJobUpdateGroupBy(self, profile_id, bulk_download_id, last_groupby):
+		with self._lock:
+			return self._db.table('stacking').update({'last_groupby' : last_groupby, 'update_timestamp' : str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
 	
 	def stackJobStop(self, stack_job_id):
 		with self._lock:
