@@ -1262,7 +1262,7 @@ def start_background_processor(profile_id, hx_api_username, hx_api_password):
 		
 if __name__ == "__main__":
 	app.secret_key = crypt_generate_random(32)
-	
+		
 	app.logger.setLevel(logging.INFO)
 	
 	# Log early init/failures to stdout
