@@ -607,6 +607,7 @@ def bulkdetails(hx_api_object):
 		abort(404)
 
 
+# TODO: These two functions should be merged at some point
 @app.route('/bulkdownload', methods = ['GET'])
 @valid_session_required
 def bulkdownload(hx_api_object):
