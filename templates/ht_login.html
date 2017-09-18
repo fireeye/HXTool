@@ -47,6 +47,8 @@
 	$(document).ready(function() {
 		bindData();
 		
+		$("#ht_user").focus();
+		
 		var myheight = ($("#mainLoginWindow").css('height').replace(/[^-\d\.]/g, ''));
 		($("#mainLoginWindow").css('margin-top', "-" + (myheight / 2) + "px" ));
 		

@@ -812,72 +812,74 @@ def formatHostInfo(response_data, hx_api_object):
 	x += "<table class='genericTable' style='width: 100%; border: 1px solid #dddddd; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
 	x += "<tr>"
 	
-	x += "<td style='vertical-align: center; text-align: center;'>"
+	x += "<td style='vertical-align: center; text-align: center; width: 60px;'>"
 	if str(response_data['data']['os']['product_name']).startswith('Windows'):
 		x += "<img style='width: 50px;' src='/static/ico/windows.svg'>"
 	else:
 		x += "<img style='width: 50px;' src='/static/ico/apple.svg'>"
 	x += "</td>"
 	
-	x += "<td style='font-size: 14px;'>"
+	x += "<td style='font-size: 14px; width: 406px;'>"
 	x += "<div style='font-weight: bold; font-size: 20px;'>" + str(response_data['data']['hostname'])  + "</div>" 
 	x += str(response_data['data']['domain']) + "<br>"
 	x += str(response_data['data']['os']['product_name']) + " " + str(response_data['data']['os']['patch_level']) + " " + str(response_data['data']['os']['bitness']) + "<br>"
+	x += str(response_data['data']['agent_version']) + "<br>"
 	x += "</td>"
 	
-	x += "<td rowspan='2' style='vertical-align: top; width: 300px;'>"
-	x += "<b>Last poll IP:</b> " + str(response_data['data']['last_poll_ip']) + "<br>"
-	x += "<b>Last poll Timestamp:</b> " + str(response_data['data']['last_poll_timestamp']) + "<br>"
+	x += "<td rowspan='2' style='vertical-align: top; width: auto;'>"
+	x += "<b>Timezone: </b> " + str(response_data['data']['timezone']) + "<br>"
+	t = HXAPI.gt(response_data['data']['last_poll_timestamp'])
+	x += "<b>Last poll Timestamp: </b> " + str(response_data['data']['last_poll_timestamp']) + " (" + HXAPI.prettyTime(t) + ")<br>"
+	x += "<b>Last poll IP: </b> " + str(response_data['data']['last_poll_ip']) + "<br>"
+
+	(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(str(response_data['data']['_id']))
+	if sret:
+		x += "<b>Primary IP: </b> " + str(sresponse_data['data']['primaryIpAddress']) + "<br>"
+		t = HXAPI.gtNoUs(sresponse_data['data']['installDate'])
+		x += "<b>Installed: </b> " + str(sresponse_data['data']['installDate']) + " (" + HXAPI.prettyTime(t) + ")<br>"
+		x += "<b>Processor: </b> " + str(sresponse_data['data']['processor']) + "<br>"
+		x += "<b>Memory Available: </b> " + str(round(int(sresponse_data['data']['availphysical']) / 1024 / 1024 / 1024, 2)) + " GB / "
+		x += str(round(int(sresponse_data['data']['totalphysical']) / 1024 / 1024 / 1024, 2)) + " GB<br>"
+		
+		x += "<b>Logged on user(s): </b> " + str(sresponse_data['data']['loggedOnUser']) + "<br>"
+
 	x += "</td>"
 	
-	x += "<td rowspan='2' style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerting_conditions']) + "</span><br>Alerting conditions</td>"
-	x += "<td rowspan='2' style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_alerts']) + "</span><br>Exploit alerts</td>"
-	x += "<td rowspan='2' style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['acqs']) + "</span><br>Acquisitions</td>"
-	x += "<td rowspan='2' style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerts']) + "</span><br>Alerts</td>"
-	x += "<td rowspan='2' style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_blocks']) + "</span><br>Exploit blocks</td>"
-	x += "<td rowspan='2' style='width: 10%; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['malware_alerts']) + "</span><br>Malware alerts</td>"
+	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['alerting_conditions']) + "</span><br>Alerting conditions</td>"
+	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_alerts']) + "</span><br>Exploit alerts</td>"
+	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['acqs']) + "</span><br>Acquisitions</td>"
+	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['alerts']) + "</span><br>Alerts</td>"
+	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_blocks']) + "</span><br>Exploit blocks</td>"
+	x += "<td rowspan='2' style='width: 80px; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['malware_alerts']) + "</span><br>Malware alerts</td>"
 
 	
 	x += "</tr>"
-	x += "<tr><td colspan='2' style='width: 500px;'>"
-		
-	x += "<b>Timezone:</b> " + str(response_data['data']['timezone']) + "<br>"
+	x += "<tr><td colspan='2'>"
 	
-	(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(str(response_data['data']['_id']))
-	if sret:
-		x += "<b>Logged on user:</b> " + str(sresponse_data['data']['loggedOnUser']) + "<br>"
+	x += "<div style='padding-top: 10px; padding-bottom: 10px;'>"
+	if response_data['data']['containment_state'] == "contained":
+		x += "<a class='tableActionButton' id='uncontain_" + str(response_data['data']['_id']) + "'>uncontain</a>"
+	elif (response_data['data']['containment_state'] == "normal") and (response_data['data']['containment_queued'] == False):
+		x += "<a class='tableActionButton' id='contain_" + str(response_data['data']['_id']) + "'>contain</a>"
+	elif (response_data['data']['containment_state'] == "normal") and (response_data['data']['containment_queued'] == True):
+		x += "<a class='tableActionButton' id='appcontain_" + str(response_data['data']['_id']) + "'>approve containment</a>"
+	
+	x += "<a class='tableActionButton' id='triage_" + str(response_data['data']['_id']) + "'>triage</a>"
+	x += "<a class='tableActionButton' id='fileaq_" + str(response_data['data']['_id']) + "'>file acq</a>"
+	x += "<a class='tableActionButton' id='acq_" + str(response_data['data']['_id']) + "'>acquisition</a>"
+	x += "</div>"
 	
 	x += "</td></tr>"
 	x += "</table>"
 	# HOSTINFO END
-	
-	#x += "</td>"
-	
-	# Second box
-	#x += "<td style='border: 0; margin: 0; height: 100%;'>"
-	
-	# HOSTINFO2
-	#x += "<table style='width: 100%; height: 100%; border: 1px solid #dddddd; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
-	#x += "<tr style='height: 100%;'>"
-	#x += "<td style='height: 100%;'>"
-	#x += "<div style='height: 100%;'>tada</div>"
-	#x += "</td>"
-	#x += "<td style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerting_conditions']) + "</span><br>Alerting conditions</td>"
-	#x += "<td style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_alerts']) + "</span><br>Exploit alerts</td>"
-	#x += "<td style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['acqs']) + "</span><br>Acquisitions</td>"
-	#x += "<td style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['alerts']) + "</span><br>Alerts</td>"
-	#x += "<td style='width: 10%; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_blocks']) + "</span><br>Exploit blocks</td>"
-	#x += "<td style='width: 10%; text-align: center;'><span style='font-size: 32px; font-weight: bold;'>" + str(response_data['data']['stats']['malware_alerts']) + "</span><br>Malware alerts</td>"
-	#x += "</tr>"
-	#x += "</table>"
-	# HOSTINFO2 END
+
 	
 	x += "</td>"
 	x += "</tr>"
 	
 	# Alerts view
-	x += "<tr>"
-	x += "<td style='width: 500px; padding: 0; vertical-align: top; border-right: 0; border-bottom: 1px solid #dddddd;'>"
+	x += "<tr style='border-bottom: none;'>"
+	x += "<td style='width: auto; padding: 0; vertical-align: top; border-right: 0; border-bottom: none; padding-right: 0;'>"
 	
 	# Sub alert table start
 	x += "<table id='hostAlertTable' class='genericTable genericTableSmall' style='width: 500px; border-right: 1px solid #dddddd; border-left: 1px solid #dddddd; margin-top: 15px; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200); margin-bottom: 20px;'>"
@@ -1052,8 +1054,8 @@ def formatHostInfo(response_data, hx_api_object):
 	# Sub alert table stop
 	
 	x += "</td>"
-	x += "<td style='vertical-align: top; padding-top: 15px; width: 100%;'>"
-	x += "<div id='alertcontent' style='margin-left: 10px; margin-bottom: 15px; padding: 15px; border: 1px solid #dddddd; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'></div>"
+	x += "<td style='vertical-align: top; padding-top: 15px; width: 100%; padding-right: 0;'>"
+	x += "<div id='alertcontent' style='display: none; margin-left: 10px; margin-bottom: 15px; padding: 15px; border: 1px solid #dddddd; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'></div>"
 	x += "</td>"
 	x += "</tr>"
 	
@@ -1062,14 +1064,14 @@ def formatHostInfo(response_data, hx_api_object):
 	# Acquisitions
 	
 	x += "<tr>"
-	x += "<td colspan='2'>"
+	x += "<td colspan='2' style='padding-left: 0; padding-right: 0;'>"
 
 	(atret, atresponse_code, atresponse_data) = hx_api_object.restListTriageAcquisitionsHost(response_data['data']['_id'])
 	
 	if (atret):
 		if (len(atresponse_data['data']['entries']) > 0):
 			x += "<div class='tableTitle'>Triage acquisitions</div>"
-			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
+			x += "<table class='genericTable  genericTableMedium' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
 			x += "<thead>"
 			x += "<tr>"
 			x += "<td style='font-weight: bold;'>Acquisition</td>"
@@ -1078,6 +1080,7 @@ def formatHostInfo(response_data, hx_api_object):
 			x += "<td style='font-weight: bold;'>Status</td>"
 			x += "<td style='width: 100px; font-weight: bold;'>Action</td>"
 			x += "</tr>"
+			x += "<tbody>"
 			for triage in atresponse_data['data']['entries']:
 				x += "<tr>"
 				x += "<td>"
@@ -1091,13 +1094,14 @@ def formatHostInfo(response_data, hx_api_object):
 				x += "<td>" + str(triage['state']) + "</td>"
 				x += "<td><a href='/download?id=" + str(triage['url']) + ".mans' class='tableActionButton'>download</a></td>"
 				x += "</tr>"
+			x += "</tbody>"
 			x += "</table>"
 
 	(afret, afresponse_code, afresponse_data) = hx_api_object.restListFileAcquisitionsHost(response_data['data']['_id'])
 	if (afret):
 		if (len(afresponse_data['data']['entries']) > 0):
 			x += "<div class='tableTitle'>File acquisitions</div>"
-			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
+			x += "<table class='genericTable genericTableMedium' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
 			x += "<thead>"
 			x += "<tr>"
 			x += "<td style='font-weight: bold;'>Path</td>"
@@ -1109,6 +1113,7 @@ def formatHostInfo(response_data, hx_api_object):
 			x += "<td style='font-weight: bold;'>Error message</td>"
 			x += "<td style='width: 100px; font-weight: bold;'>Action</td>"
 			x += "</tr>"
+			x += "<tbody>"
 			for fileaq in afresponse_data['data']['entries']:
 				x += "<tr>"
 				x += "<td>" + str(fileaq['req_path']) + "</td>"
@@ -1120,13 +1125,14 @@ def formatHostInfo(response_data, hx_api_object):
 				x += "<td>" + str(fileaq['error_message']) + "</td>"
 				x += "<td><a href='/download?id=" + str(fileaq['url']) + ".zip' class='tableActionButton'>download</a></td>"
 				x += "</tr>"
+			x += "</tbody>"
 			x += "</table>"
 		
 	(adret, adresponse_code, adresponse_data) = hx_api_object.restListDataAcquisitionsHost(response_data['data']['_id'])
 	if (adret):
 		if (len(adresponse_data['data']['entries']) > 0):
 			x += "<div class='tableTitle'>Data acquisitions</div>"
-			x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
+			x += "<table class='genericTable genericTableMedium' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
 			x += "<thead>"
 			x += "<tr>"
 			x += "<td style='font-weight: bold;'>Name</td>"
@@ -1135,6 +1141,7 @@ def formatHostInfo(response_data, hx_api_object):
 			x += "<td style='font-weight: bold;'>Status</td>"			
 			x += "<td style='width: 100px; font-weight: bold;'>Action</td>"
 			x += "</tr>"
+			x += "<tbody>"
 			for daq in adresponse_data['data']['entries']:
 				x += "<tr>"
 				x += "<td>" + str(daq['name']) + "</td>"
@@ -1143,6 +1150,7 @@ def formatHostInfo(response_data, hx_api_object):
 				x += "<td>" + str(daq['state']) + "</td>"
 				x += "<td><a href='/download?id=" + str(daq['url']) + ".mans' class='tableActionButton'>download</a></td>"
 				x += "</tr>"
+			x += "</tbody>"
 			x += "</table>"
 
 			

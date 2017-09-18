@@ -851,7 +851,14 @@ class HXAPI:
 		dt = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
 		us = int(us.rstrip("Z"), 10)
 		return dt + datetime.timedelta(microseconds=us)
-			
+
+	@staticmethod	
+	def gtNoUs(dt_str):
+		
+		dt = dt_str[0:(len(dt_str) - 1)]
+		dt = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
+		return dt
+		
 	"""
 	Base64 encoding/decoding - Python 2/3 compatibility
 	"""
