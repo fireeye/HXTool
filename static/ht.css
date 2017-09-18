@@ -166,6 +166,10 @@
 	padding: 5px;
 }
 
+.genericTableMedium tbody td {
+	padding: 8px;
+}
+
 .genericTableSelected {
 	background: #eeeeee;
 }

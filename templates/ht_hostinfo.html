@@ -8,9 +8,10 @@
 		
 		var alertid = getQueryParam('alertid')
 		
-		if (alertid !== "alertid") {
+		if (alertid !== "") {
 			$("#alertdetails_" + alertid).closest('tr').addClass('genericTableSelected');
 			$("#alertcontent").html($("#alertdetails_" + alertid).html());
+			$("#alertcontent").show();
 		}
 		
 		$('#hostAlertTable').on('click', '.clickable-row', function() {
@@ -25,9 +26,55 @@
 			$(this).addClass('genericTableSelected');
 			
 			$("#alertcontent").html($("#alertdetails_" + myid).html());
+			$("#alertcontent").show();
 			$("html, body").animate({ scrollTop: 0 }, 200);
 		});
 
+		$("a[id^='triage_']").click(function() {
+			var arrId = $(this).attr('id').split("_");
+			showPopup(305, 540, "/triage?host=" + arrId[1] + '&url=' + window.location.href);
+		});
+
+		$("a[id^='fileaq_']").click(function() {
+			var arrId = $(this).attr('id').split("_");
+			showPopup(270, 540, "/fileaq?host=" + arrId[1] + '&url=' + window.location.href);
+		});
+		
+		$("a[id^='acq_']").click(function() {
+			var arrId = $(this).attr('id').split("_");
+			showPopup(220, 540, "/acq?host=" + arrId[1] + '&url=' + window.location.href);
+		});
+		
+		$("a[id^='contain_']").click(function(e) {
+			var arrId = $(this).attr('id').split("_");
+			
+			e.preventDefault();
+			if (window.confirm("Are you sure?")) {
+				window.location = '/hosts?contain=' + arrId[1] + '&url=' + window.location.href
+			}
+			
+		});
+		
+		$("a[id^='uncontain_']").click(function(e) {
+			var arrId = $(this).attr('id').split("_");
+
+			e.preventDefault();
+			if (window.confirm("Are you sure?")) {
+				window.location = '/hosts?uncontain=' + arrId[1] + '&url=' + window.location.href
+			}
+
+		});
+		
+		$("a[id^='appcontain_']").click(function(e) {
+			var arrId = $(this).attr('id').split("_");
+
+			e.preventDefault();
+			if (window.confirm("Are you sure?")) {
+				window.location = '/hosts?appcontain=' + arrId[1] + '&url=' + window.location.href
+			}
+
+		});
+		
 	});
 </script>
 
