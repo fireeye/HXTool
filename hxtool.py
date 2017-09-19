@@ -32,6 +32,7 @@ try:
 except ImportError:
 	# Running on Python 3.x
 	from io import StringIO
+	from io import BytesIO
 
 # Flask imports
 try:
@@ -503,11 +504,11 @@ def indicators(hx_api_object):
 		else:
 			iocfname = "multiple_indicators.ioc"
 		
-		strIO = StringIO()
-		strIO.write(ioclist_json)
-		strIO.seek(0)
+		buffer = BytesIO()
+		buffer.write(ioclist_json.encode('utf-8'))
+		buffer.seek(0)
 		app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return send_file(strIO, attachment_filename=iocfname, as_attachment=True)
+		return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
 
 	(ret, response_code, response_data) = hx_api_object.restListIndicators()
 	indicators = formatIOCResults(response_data)
