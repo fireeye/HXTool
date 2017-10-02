@@ -556,7 +556,10 @@ def importioc(hx_api_object):
 		iocs = json.loads(fc.read())
 		
 		for iockey in iocs:
-			myplatforms = iocs[iockey]['platforms'].split(",")
+			myplatforms = iocs[iockey]['platforms']
+			if ',' in myplatforms:
+				myplatforms = myplatforms.split(",")
+	
 			(ret, response_code, response_data) = hx_api_object.restAddIndicator(session['ht_user'], iocs[iockey]['name'], myplatforms, iocs[iockey]['category'])
 
 			ioc_guid = response_data['data']['_id']
