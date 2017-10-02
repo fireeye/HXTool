@@ -504,7 +504,11 @@ def indicators(hx_api_object):
 		else:
 			iocfname = "multiple_indicators.ioc"
 		
-		buffer = BytesIO()
+		try:
+			buffer = BytesIO()
+		except NameError:
+			# Python 2.x, try StringIO
+			buffer = StringIO()
 		buffer.write(ioclist_json.encode('utf-8'))
 		buffer.seek(0)
 		app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
