@@ -214,11 +214,13 @@ class HXAPI:
 
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
-		if ret and response_code == 204:
+		if ret and response_code == 204 and 'X-FeApi-Token' in response_headers:
 			self.logger.debug('Token granted.')
 			self.set_token(response_headers.get('X-FeApi-Token'))
 			self.hx_user = hx_api_username
 			self._set_version()
+		else:
+			ret = False
 		
 		return(ret, response_code, response_data)
 
