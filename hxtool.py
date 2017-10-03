@@ -638,7 +638,10 @@ def bulkdownload(hx_api_object):
 @valid_session_required
 def download(hx_api_object):
 	if request.args.get('id'):
-		(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
+		if request.args.get('content') == "json":
+			(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'), accept = "application/json")
+		else:
+			(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
 		if ret:
 			app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
 			flask_response = Response(iter_chunk(response_data))
@@ -1270,7 +1273,7 @@ def start_background_processor(profile_id, hx_api_username, hx_api_password):
 		
 if __name__ == "__main__":
 	app.secret_key = crypt_generate_random(32)
-		
+			
 	app.logger.setLevel(logging.INFO)
 	
 	# Log early init/failures to stdout

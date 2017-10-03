@@ -1148,7 +1148,7 @@ def formatHostInfo(response_data, hx_api_object):
 				x += "<td>" + str(daq['request_actor']['username']) + "</td>"
 				x += "<td>" + str(daq['request_time']) + "</td>"
 				x += "<td>" + str(daq['state']) + "</td>"
-				x += "<td><a href='/download?id=" + str(daq['url']) + ".mans' class='tableActionButton'>download</a></td>"
+				x += "<td><a href='/download?id=" + str(daq['url']) + ".mans&content=json' class='tableActionButton'>download</a></td>"
 				x += "</tr>"
 			x += "</tbody>"
 			x += "</table>"
