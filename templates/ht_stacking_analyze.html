@@ -18,8 +18,8 @@
 						if ($.isArray(v) && v.length > 1) {
 							c['render'] = function(data, type, row, meta) {
 											if (type == 'display' && data.length > 1) {
-												return '<a href="#" style="text-decoration: none;" onclick="JavaScript: $(this).next().show()">Multiple</a>\
-												<div id="indexPopup" onclick="JavaScript: $(this).hide();" class="stackingIndexPopup" style="display:none;">'
+												return '<a href="#" class="tableActionButton" style="text-decoration: none;" onclick="JavaScript: $(this).next().show()">Multiple</a>\
+												<div id="indexPopup" onclick="JavaScript: $(this).hide();" class="stackingIndexPopup" style="display:none; position: absolute; cursor: pointer;">'
 												+ data.join('<br />') + '</div>';
 											} else {
 												return data
@@ -35,14 +35,14 @@
 						"data": r, 
                         "pageLength": 25,
                         "lengthChange": false,
-						"order": [],
+						"order": [columns.length - 1, "asc"],
 						"colReorder": true,
 						"dom": '<"htDTButtons"B>frtip',
 						"buttons": [
-							"copy",
-							"csv",
-							"excel",
-							"print"
+							{ extend: "copy", className: "myDTButton" },
+							{ extend: "csv", className: "myDTButton" },
+							{ extend: "excel", className: "myDTButton" },
+							{ extend: "print", className: "myDTButton" }
 						]
 					});
 				},

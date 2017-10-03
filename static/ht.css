@@ -135,10 +135,25 @@
         border-right: 1px solid rgb(215, 215, 215);
 }
 
+.genericTable thead th {
+        border-bottom: 2px solid rgb(215, 215, 215);
+        font-size: 13px;
+        background: none;
+        padding: 10px;
+        border-right: 1px solid rgb(215, 215, 215);
+}
+
+table.dataTable th {
+		border-bottom: 2px solid rgb(215, 215, 215);
+}
+
 .genericTable thead td:last-child {
         border-right: none;
 }
 
+.genericTable thead th:last-child {
+        border-right: none;
+}
 
 .genericTable tbody tr {
         border-bottom: 1px solid rgb(215, 215, 215);
@@ -152,10 +167,12 @@
         padding: 10px;
         font-weight: 400;
         border-right: 1px solid rgb(215, 215, 215);
+		border-bottom: 1px solid rgb(215, 215, 215);
 }
 
 .genericTable tbody td:last-child {
         border-right: none;
+		
 }
 
 .genericTableSmall thead td {
@@ -185,16 +202,51 @@
 	font-weight: bold;
 }
 
+.htDTButtons {
+	position: absolute;
+	right: 0;
+	top: -40px;
+}
+
+.myDTButton {
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-size: 12px;
+	background: rgb(121, 161, 190);
+	font-weight: bold;
+	color: #ffffff;
+	border: #eeeeee;
+	border-radius: 5px;
+	padding: 4px;
+	padding-left: 10px;
+	padding-right: 10px;
+	margin-right: 10px;
+	box-shadow: 3px 3px 3px rgb(215, 215, 215);
+}
+
+.myDTButton:hover {
+	custor: pointer;
+}
+
 .dataTables_filter {
-        margin-bottom: 10px;
+    margin-bottom: 10px;
 	position: absolute;
 	right: 0;
 	margin-top: -30px;
-	margin-right: 25px;
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-weight: 400;
 	color: #444;
 	font-size: 12px;
+}
+
+#stackResultsTable_filter {
+    margin-bottom: 10px;
+	position: absolute;
+	right: 300px;
+	margin-top: -30px;
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-weight: 400;
+	color: #444;
+	font-size: 12px;	
 }
 
 .paginate_button {
