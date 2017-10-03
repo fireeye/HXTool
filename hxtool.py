@@ -504,7 +504,11 @@ def indicators(hx_api_object):
 		else:
 			iocfname = "multiple_indicators.ioc"
 		
-		buffer = BytesIO()
+		try:
+			buffer = BytesIO()
+		except NameError:
+			# Python 2.x, try StringIO
+			buffer = StringIO()
 		buffer.write(ioclist_json.encode('utf-8'))
 		buffer.seek(0)
 		app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
@@ -552,7 +556,10 @@ def importioc(hx_api_object):
 		iocs = json.loads(fc.read())
 		
 		for iockey in iocs:
-			myplatforms = iocs[iockey]['platforms'].split(",")
+			myplatforms = iocs[iockey]['platforms']
+			if ',' in myplatforms:
+				myplatforms = myplatforms.split(",")
+	
 			(ret, response_code, response_data) = hx_api_object.restAddIndicator(session['ht_user'], iocs[iockey]['name'], myplatforms, iocs[iockey]['category'])
 
 			ioc_guid = response_data['data']['_id']
