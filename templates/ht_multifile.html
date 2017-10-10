@@ -171,18 +171,21 @@ table.nested_table tr:hover {
 					<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
 
 					Name<br/>
-					<input type='text' id='listing_name' name='listing_name' style='width: 100%;'><br/></br>
+					<input type='text' id='listing_name' name='listing_name' style='width: 100%;'><br/><br/>
 
 					File Listing Path<br/>
-					<input type='text' id='listing_path' name='listing_path' style='width: 100%;'><br/></br>
+					<input type='text' id='listing_path' name='listing_path' style='width: 100%;'><br/><br/>
 
 					File Listing Regex<br/>
-					<input type='text' id='listing_regex' name='listing_regex' style='width: 100%;'><br/></br>
+					<input type='text' id='listing_regex' name='listing_regex' style='width: 100%;'><br/><br/>
 
 					Host set<br/>
 					<select id='hostset' name='hostset'>
 						{% if hostsets %} {{ hostsets|safe }} {% endif %}
-					</select><br/><br/>
+					</select>
+					<input type='checkBox' id='use_raw_mode' name='use_raw_mode'/>
+					<label for='use_raw_mode'>Use Raw Mode?</label><br/><br/>
+					Default is API mode. Raw mode should not be used when disk encryption is enabled on endpoint.<br/><br/>
 
 					<input type='submit' value='Get File Listing' class='tableActionButton' style='color: white; background-color: #008CBA; border: 2px solid #008CBA; border-radius: 4px; padding: 8px 16px; font-size: 14px;'>
 					<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
