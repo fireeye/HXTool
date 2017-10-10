@@ -42,13 +42,13 @@ except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
 	
-# pycrypto imports
+# pycryptodome imports
 try:
 	from Crypto.Cipher import AES
 	from Crypto.Protocol.KDF import PBKDF2
 	from Crypto.Hash import HMAC, SHA256
 except ImportError:
-	print("hxtool requires the 'pycrypto' module, please install it.")
+	print("hxtool requires the 'pycryptodome' module, please install it.")
 	exit(1)
 	
 # hx_tool imports
