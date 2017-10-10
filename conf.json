@@ -19,7 +19,7 @@
    },
    "background_processor":{  
       "poll_interval":30,
-	  "poll_threads":4,
+	  "poll_threads":4
    },
    "headers":{
    },

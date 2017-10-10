@@ -781,7 +781,7 @@ def multifile(hx_api_object):
 		MAX_FILE_ACQUISITIONS = 50
 		
 		display_name = ('display_name' in request.form) and request.form['display_name'] or "{0} job at {1}".format(session['ht_user'], datetime.datetime.now())
-		use_api_mode = ('use_api_mode' in request.form)
+		use_api_mode = ('use_raw_mode' not in request.form)
 
 		# Collect User Selections
 		file_jobs, choices, listing_ids = [], {}, set([])
@@ -863,6 +863,7 @@ def file_listing(hx_api_object):
 		regex = xmlescape(request.form['listing_regex'])
 		path = xmlescape(request.form['listing_path'])
 		hostset = xmlescape(request.form['hostset'])
+		use_api_mode = ('use_raw_mode' not in request.form)
 		depth = '-1'
 		# Build a script from the template
 		script_xml = None
@@ -872,7 +873,11 @@ def file_listing(hx_api_object):
 			else:
 				app.logger.warn("Regex is empty!!")
 				regex = ''
-			with open('templates/file_listing_script_template.xml') as f:
+			if use_api_mode:
+				template_path = 'templates/api_file_listing_script_template.xml'
+			else:
+				template_path = 'templates/file_listing_script_template.xml'
+			with open(template_path) as f:
 				t = Template(f.read())
 				script_xml = t.substitute(regex=regex, path=path, depth=depth)
 			if not display_name:
@@ -882,7 +887,7 @@ def file_listing(hx_api_object):
 			raise
 		if script_xml:
 			bulkid = submit_bulk_job(hx_api_object, hostset, script_xml.encode('utf-8'), handler="file_listing")
-			ret = ht_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulkid, path, regex, depth, display_name)
+			ret = ht_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulkid, path, regex, depth, display_name, api_mode=use_api_mode)
 			app.logger.info('New File Listing - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/multifile", code=302)
 		else:
@@ -938,10 +943,12 @@ def get_file_listings(hx_api_object):
 		if bulk_download:
 			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
 			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
-			job['display_name'] = 'hostset {0}, path: {1} regex: {2}'.format(bulk_download['hostset_id'] , job['cfg']['path'], job['cfg']['regex'])
+			if 'display_name' not in job:
+				job['display_name'] = 'hostset {0}, path: {1} regex: {2}'.format(bulk_download['hostset_id'] , job['cfg']['path'], job['cfg']['regex'])
 		else:
 			job_progress = job['file_count'] > 1 and 100 or 0
-			job['display_name'] = 'path: {0} regex: {1}'.format(job['cfg']['path'], job['cfg']['regex'])
+			if 'display_name' not in job:
+				job['display_name'] = 'path: {0} regex: {1}'.format(job['cfg']['path'], job['cfg']['regex'])
 		
 		job['progress'] = "<div class='htMyBar htBarWrap'><div class='htBar' id='file_listing_prog_" + str(job['id']) + "' data-percent='" + str(job_progress) + "'></div></div>"
 		

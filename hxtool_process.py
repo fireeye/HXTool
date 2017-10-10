@@ -162,10 +162,14 @@ class hxtool_background_processor:
 			raise
 				
 	def file_listing_handler(self, bulk_download_id, acquisition_package_path, hostname):
+		fl = self._ht_db.fileListingGetByBulkId(self.profile_id, bulk_download_id)
+		generator='w32rawfiles'
+		if fl and 'api_mode' in fl['cfg'] and fl['cfg']['api_mode']:
+			generator = 'w32apifiles'
 		audit_pkg = AuditPackage(acquisition_package_path)
-		audit_data = audit_pkg.get_audit(generator='w32rawfiles')
+		audit_data = audit_pkg.get_audit(generator=generator)
 		if audit_data:
-			files = get_audit_records(audit_data, 'w32rawfiles', 'FileItem', hostname=hostname)
+			files = get_audit_records(audit_data, generator, 'FileItem', hostname=hostname)
 			if files:
 				self._ht_db.fileListingAddResult(self.profile_id, bulk_download_id, files)
 				self.logger.debug("File Listing added to the database. bulk job: {0} host: {1}".format(bulk_download_id, hostname))
