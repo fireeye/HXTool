@@ -32,10 +32,8 @@ class hxtool_config:
 			'key' : 'hxtool.key'
 		},
 		'background_processor' : {
-			'downloads_per_poll' : 500,
-			'poll_interval' : 5,
+			'poll_interval' : 30,
 			'poll_threads'	: 4,
-			'stack_jobs_per_poll' : 500
 		},
 		'headers' : {
 		},
