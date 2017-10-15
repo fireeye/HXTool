@@ -56,7 +56,7 @@ class hxtool_background_processor:
 		self._ht_db = hxtool_db
 		# TODO: maybe replace with hx_hostname, hx_port variables in __init__
 		profile = self._ht_db.profileGet(profile_id)
-		self._hx_api_object = HXAPI(profile['hx_host'], profile['hx_port'], proxies = ht_config['network'].get('proxies'), headers = ht_config['headers'], cookies = ht_config['cookies'], logger = self.logger)
+		self._hx_api_object = HXAPI(profile['hx_host'], profile['hx_port'], proxies = hxtool_config['network'].get('proxies'), headers = hxtool_config['headers'], cookies = hxtool_config['cookies'], logger = self.logger)
 		self._hx_api_lock = threading.Lock()
 		self.profile_id = profile_id
 		self.thread_count = hxtool_config['background_processor']['poll_threads']
