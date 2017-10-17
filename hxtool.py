@@ -1061,9 +1061,9 @@ def channels(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
 		hostsets = formatHostsets(response_data)
 		
-		return render_template('ht_configchannel.html', channels=channels, hostsets=hostsets)
+		return render_template('ht_configchannel.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), channels=channels, hostsets=hostsets)
 	else:
-		return render_template('ht_noaccess.html')
+		return render_template('ht_noaccess.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 			
 
 @app.route('/channelinfo', methods=['GET'])
