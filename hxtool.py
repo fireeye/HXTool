@@ -102,7 +102,7 @@ def index(hx_api_object):
 		return render_template('ht_index_ph.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 	else:
 	
-		mytime = "week"
+		mytime = "today"
 		time_matrix = {
 			"today"	:	datetime.datetime.now(),
 			"week"	:	datetime.datetime.now() - datetime.timedelta(days=7),
@@ -1123,7 +1123,7 @@ def login():
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
-						redirect_uri = "/?time=week"
+						redirect_uri = "/?time=today"
 					return redirect(redirect_uri, code=302)
 				else:
 					return render_template('ht_login.html', fail=response_data)		
