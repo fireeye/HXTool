@@ -663,6 +663,13 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	def restListHostsFilter(self, filter, limit=100000):
+
+		request = self.build_request(self.build_api_route('hosts?limit={0}&{1}'.format(limit, requests.utils.requote_uri(filter))))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)	
+		
 	def restDeleteHostByID(self, agent_id):
 		
 		request = self.build_request(self.build_api_route('hosts/{0}'.format(agent_id)), method = 'DELETE')
