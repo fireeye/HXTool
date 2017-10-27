@@ -220,5 +220,26 @@ class hxtool_data_models:
 			"default_groupby": ['path', 'localIP', 'localPort', 'state', 'remoteIP', 'remotePort'],			
 			"post_process": None
 		},
+		"windows-appcompat": {
+			"audit_module" : "w32scripting-persistence",
+			"script": "appcompat.xml",
+			"platform": "windows",
+			"name" : "AppCompat Cache",
+			"item_name": "AppCompatItemExtended",
+			"fields": [
+				"PersistenceType",
+				"AppCompatPath",
+				"LastModified",
+				"ControlSetSeq",
+				"Sequence",
+				"ExecutionFlag",
+				"SignatureExists",
+				"SignatureVerified",
+				"CertificateSubject"
+			],
+			"default_index": "hostname",
+			"default_groupby": ["AppCompatPath"],
+			"post_process": None
+		},
 	}
 	
