@@ -1264,8 +1264,10 @@ def iter_chunk(r, chunk_size = 1024):
 #################################
 def start_background_processor(profile_id, hx_api_username, hx_api_password):
 	p = hxtool_background_processor(ht_config, ht_db, profile_id, logger = app.logger)
-	p.start(hx_api_username, hx_api_password)
-	app.logger.info('Background processor started.')	
+	if p.start(hx_api_username, hx_api_password):
+		app.logger.info('Background processor started.')
+	else:
+		p = None
 		
 ###########
 ### Main ####
