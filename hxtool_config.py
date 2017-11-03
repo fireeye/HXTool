@@ -70,6 +70,8 @@ class hxtool_config:
 			self.logger.warning('Unable to open config file: %s, loading default config.', config_file)
 			self._config = self.DEFAULT_CONFIG
 
+		self.set_svg_mimetype()	
+			
 	def __getitem__(self, key, default = None):
 		v = self._config.get(key)
 		if not v:
@@ -125,3 +127,9 @@ class hxtool_config:
 		
 		if 'format' in handler_config:
 			handler.setFormatter(logging.Formatter(handler_config['format']))
+			
+	# Workaround https://bugs.python.org/issue19377 on older Python versions		
+	def set_svg_mimetype(self):
+		import mimetypes
+		if not '.svg' in mimetypes.types_map:
+			mimetypes.add_type('image/svg+xml', '.svg')
