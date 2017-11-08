@@ -274,9 +274,16 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# List all IOCs
-	def restListIndicators(self, limit=10000):
-
-		request = self.build_request(self.build_api_route('indicators?limit={0}'.format(limit)))
+	def restListIndicators(self, limit=10000, offset=0, search_term=None, sort_term=None, filter_term=None):
+		base_endpoint = "indicators?limit={0}&offset={1}".format(limit, offset)
+		if search_term:
+			base_endpoint = "{0}&search={1}".format(base_endpoint, requests.utils.requote_uri(search_term))
+		if sort_term:
+			base_endpoint = "{0}&sort={1}".format(base_endpoint, requests.utils.requote_uri(sort_term))
+		if filter_term:
+			base_endpoint = "{0}&{1}".format(base_endpoint, requests.utils.requote_uri(filter_term))
+			
+		request = self.build_request(self.build_api_route(base_endpoint))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
