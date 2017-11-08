@@ -311,7 +311,7 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# List categories
-	def restListCategories(self, limit=1000, offset=0, sort='DESC', search_term=None, filter_term=None):
+	def restListCategories(self, limit=1000, offset=0, sort='ASC', search_term=None, filter_term=None):
 		base_endpoint = "indicator_categories?limit={0}&offset={1}&sort={2}".format(limit, offset, sort)
 		if search_term:
 			base_endpoint = "{0}&search={1}".format(base_endpoint, requests.utils.requote_uri(search_term))
