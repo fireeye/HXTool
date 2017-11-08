@@ -301,15 +301,28 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# Submit a new category
-	def restCreateCategory(self, category_name):
+	def restCreateCategory(self, category_name, category_options = {}):
 
-		request = self.build_request(self.build_api_route('indicator_categories/{0}'.format(category_name)), method = 'PUT', data = '{}')
+		request = self.build_request(self.build_api_route('indicator_categories/{0}'.format(category_name)), method = 'PUT', data = category_options)
 		request.headers['If-None-Match'] = '*'
 		
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
+	# List categories
+	def restListCategories(self, limit=1000, offset=0, sort='DESC', search_term=None, filter_term=None):
+		base_endpoint = "indicator_categories?limit={0}&offset={1}&sort={2}".format(limit, offset, sort)
+		if search_term:
+			base_endpoint = "{0}&search={1}".format(base_endpoint, requests.utils.requote_uri(search_term))
+		if filter_term:
+			base_endpoint = "{0}&{1}".format(base_endpoint, requests.utils.requote_uri(filter_term)
+			
+		request = self.build_request(self.build_api_route(base_endpoint))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
 	# Grab conditions from an indicator
 	def restGetCondition(self, ioc_category, ioc_uri, condition_class, limit=10000):
 
