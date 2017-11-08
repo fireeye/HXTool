@@ -429,7 +429,7 @@ def buildioc(hx_api_object):
 		else:
 			myplatforms = request.form['platform'].split(",")
 			
-		(ret, response_code, response_data) = hx_api_object.restAddIndicator(session['ht_user'], request.form['iocname'], myplatforms, request.form['cats'])
+		(ret, response_code, response_data) = hx_api_object.restAddIndicator(request.form['cats'], request.form['iocname'], platforms=myplatforms, create_text=hx_api_object.hx_user)
 		app.logger.info('New indicator created - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		
 		ioc_guid = response_data['data']['_id']

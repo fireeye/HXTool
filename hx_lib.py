@@ -298,11 +298,19 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# Add a new indicator
-	def restAddIndicator(self, create_user, display_name, platforms, ioc_category):
+	def restAddIndicator(self, ioc_category, display_name, create_text=None, platforms=None, description=None):
 
-		data = json.dumps({"create_text" : create_user, "display_name" : display_name, "platforms" : platforms})
+		data = {
+			'display_name' : display_name
+		}
+		if create_text:
+			data['create_text'] = create_text
+		if platforms:
+			data['platforms'] = platforms
+		if description:
+			data['description'] = description
 		
-		request = self.build_request(self.build_api_route('indicators/{0}'.format(ioc_category)), method = 'POST', data = data)
+		request = self.build_request(self.build_api_route('indicators/{0}'.format(ioc_category)), method = 'POST', data = json.dumps(data))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
