@@ -21,6 +21,7 @@ import logging
 import datetime
 import pickle
 import shutil
+import bz2
 
 
 class HXAPI:
@@ -73,11 +74,11 @@ class HXAPI:
 	
 	# Mmmm, base64 flavored pickles...
 	def serialize(self):
-		return base64.b64encode(pickle.dumps(self, pickle.HIGHEST_PROTOCOL))
+		return base64.b64encode(bz2.compress(pickle.dumps(self, pickle.HIGHEST_PROTOCOL)))
 	
 	@staticmethod
 	def deserialize(base64_pickle):
-		return pickle.loads(base64.b64decode(base64_pickle))
+		return pickle.loads(bz2.decompress(base64.b64decode(base64_pickle)))
 	
 	# Loggers don't pickle nicely	
 	def __getstate__(self):
@@ -273,9 +274,16 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# List all IOCs
-	def restListIndicators(self, limit=10000):
-
-		request = self.build_request(self.build_api_route('indicators?limit={0}'.format(limit)))
+	def restListIndicators(self, limit=10000, offset=0, search_term=None, sort_term=None, filter_term=None):
+		base_endpoint = "indicators?limit={0}&offset={1}".format(limit, offset)
+		if search_term:
+			base_endpoint = "{0}&search={1}".format(base_endpoint, requests.utils.requote_uri(search_term))
+		if sort_term:
+			base_endpoint = "{0}&sort={1}".format(base_endpoint, requests.utils.requote_uri(sort_term))
+		if filter_term:
+			base_endpoint = "{0}&{1}".format(base_endpoint, requests.utils.requote_uri(filter_term))
+			
+		request = self.build_request(self.build_api_route(base_endpoint))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -290,25 +298,48 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# Add a new indicator
-	def restAddIndicator(self, create_user, display_name, platforms, ioc_category):
+	def restAddIndicator(self, ioc_category, display_name, create_text=None, platforms=None, description=None):
 
-		data = json.dumps({"create_text" : create_user, "display_name" : display_name, "platforms" : platforms})
+		data = {
+			'display_name' : display_name
+		}
+		if create_text:
+			data['create_text'] = create_text
+		if platforms:
+			data['platforms'] = platforms
+		if description:
+			data['description'] = description
 		
-		request = self.build_request(self.build_api_route('indicators/{0}'.format(ioc_category)), method = 'POST', data = data)
+		request = self.build_request(self.build_api_route('indicators/{0}'.format(ioc_category)), method = 'POST', data = json.dumps(data))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
 	# Submit a new category
-	def restCreateCategory(self, category_name):
+	def restCreateCategory(self, category_name, category_options = {}):
 
-		request = self.build_request(self.build_api_route('indicator_categories/{0}'.format(category_name)), method = 'PUT', data = '{}')
+		request = self.build_request(self.build_api_route('indicator_categories/{0}'.format(category_name)), method = 'PUT', data = json.dumps(category_options))
 		request.headers['If-None-Match'] = '*'
 		
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
+	# List categories
+	def restListCategories(self, limit=1000, offset=0, sort_term=None, search_term=None, filter_term=None):
+		base_endpoint = "indicator_categories?limit={0}&offset={1}".format(limit, offset)
+		if search_term:
+			base_endpoint = "{0}&search={1}".format(base_endpoint, requests.utils.requote_uri(search_term))
+		if sort_term:
+			base_endpoint = "{0}&sort={1}".format(base_endpoint, requests.utils.requote_uri(sort_term))
+		if filter_term:
+			base_endpoint = "{0}&{1}".format(base_endpoint, requests.utils.requote_uri(filter_term))
+			
+		request = self.build_request(self.build_api_route(base_endpoint))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
 	# Grab conditions from an indicator
 	def restGetCondition(self, ioc_category, ioc_uri, condition_class, limit=10000):
 
@@ -663,6 +694,13 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	def restListHostsFilter(self, filter, limit=100000):
+
+		request = self.build_request(self.build_api_route('hosts?limit={0}&{1}'.format(limit, requests.utils.requote_uri(filter))))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)	
+		
 	def restDeleteHostByID(self, agent_id):
 		
 		request = self.build_request(self.build_api_route('hosts/{0}'.format(agent_id)), method = 'DELETE')
@@ -733,9 +771,16 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 		
-	def restListHostsInHostset(self, host_set_id):
+	def restListHostsInHostset(self, host_set_id, limit=10000, offset=0, sort_term=None, search_term=None, filter_term=None):
+		base_endpoint = 'host_sets/{0}/hosts?limit={1}&offset={2}'.format(host_set_id, limit, offset)
+		if search_term:
+			base_endpoint = "{0}&search={1}".format(base_endpoint, requests.utils.requote_uri(search_term))
+		if sort_term:
+			base_endpoint = "{0}&sort={1}".format(base_endpoint, requests.utils.requote_uri(sort_term))
+		if filter_term:
+			base_endpoint = "{0}&{1}".format(base_endpoint, requests.utils.requote_uri(filter_term))
 
-		request = self.build_request(self.build_api_route('host_sets/{0}/hosts'.format(host_set_id)))
+		request = self.build_request(self.build_api_route())
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)

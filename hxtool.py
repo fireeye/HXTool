@@ -429,7 +429,7 @@ def buildioc(hx_api_object):
 		else:
 			myplatforms = request.form['platform'].split(",")
 			
-		(ret, response_code, response_data) = hx_api_object.restAddIndicator(session['ht_user'], request.form['iocname'], myplatforms, request.form['cats'])
+		(ret, response_code, response_data) = hx_api_object.restAddIndicator(request.form['cats'], request.form['iocname'], platforms=myplatforms, create_text=hx_api_object.hx_user)
 		app.logger.info('New indicator created - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		
 		ioc_guid = response_data['data']['_id']
@@ -1271,8 +1271,10 @@ def iter_chunk(r, chunk_size = 1024):
 #################################
 def start_background_processor(profile_id, hx_api_username, hx_api_password):
 	p = hxtool_background_processor(ht_config, ht_db, profile_id, logger = app.logger)
-	p.start(hx_api_username, hx_api_password)
-	app.logger.info('Background processor started.')	
+	if p.start(hx_api_username, hx_api_password):
+		app.logger.info('Background processor started.')
+	else:
+		p = None
 		
 ###########
 ### Main ####

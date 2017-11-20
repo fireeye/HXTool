@@ -439,8 +439,8 @@ def formatCategories(cats):
 	return(x)
 	
 def formatHostsets(hs):
-	
-	x = ""
+	# The hidden/secret All Hosts host set
+	x = "<option value='9'>All Hosts"
 	
 	for entry in hs['data']['entries']:
 		x += "<option value='" + str(entry['_id']) + "'>" + entry['name']

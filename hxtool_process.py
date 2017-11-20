@@ -65,12 +65,16 @@ class hxtool_background_processor:
 		self._task_queue = queue.Queue()
 		self._task_thread_list = []
 		self._stop_event = threading.Event()
-		self._poll_thread = threading.Thread(target = self.bulk_download_processor, name = "hxtool_background_processor", args = (hxtool_config['background_processor']['poll_interval'], ))
+		self._poll_thread = threading.Thread(target = self.bulk_download_processor, name = "hxtool_background_processor - {0}".format(profile_id), args = (hxtool_config['background_processor']['poll_interval'], ))
 		
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.stop()
 		
 	def start(self, hx_api_username, hx_api_password):
+		for t in threading.enumerate():
+			if self.profile_id in t.name and t.is_alive():
+				self.logger.info("A background processor thread is already running for profile id: {0}".format(self.profile_id))
+				return False
 		self._hx_api_username = hx_api_username
 		self._hx_api_password = hx_api_password
 		(ret, response_code, response_data) = self.hx_api_object(renew_expired_token = False).restLogin(hx_api_username, hx_api_password)
@@ -80,9 +84,11 @@ class hxtool_background_processor:
 				task_thread = threading.Thread(target = self.await_task)
 				self._task_thread_list.append(task_thread)
 				task_thread.start()
+			return True	
 		else:
 			self.logger.error("Failed to login to the HX controller! Error: {0}".format(response_data))
 			self.stop()
+			return False
 		
 	def stop(self):
 		self._stop_event.set()
