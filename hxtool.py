@@ -223,7 +223,7 @@ def hosts(hx_api_object):
 	
 	# Host search returns table of hosts
 	elif 'q' in request.args.keys():
-		(ret, response_code, response_data) = hx_api_object.restFindHostsBySearchString(request.args.get('q'))
+		(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = request.args.get('q'))
 		myhostlist = formatHostSearch(response_data, hx_api_object)
 		return render_template('ht_hostsearch.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), myhostlist=myhostlist)
 		
@@ -455,7 +455,7 @@ def buildioc(hx_api_object):
 			data = data.replace('\\', '\\\\')
 			(ret, response_code, response_data) = hx_api_object.restAddCondition(request.form['cats'], ioc_guid, 'execution', data)
 			
-	(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
+	(ret, response_code, response_data) = hx_api_object.restListCategories()
 	cats = formatCategoriesSelect(response_data)
 	return render_template('ht_buildioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), cats=cats)
 
@@ -540,7 +540,7 @@ def categories(hx_api_object):
 		app.logger.info('New indicator category created - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 
-	(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
+	(ret, response_code, response_data) = hx_api_object.restListCategories()
 	categories = formatCategories(response_data)
 	
 	return render_template('ht_categories.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories)
@@ -586,7 +586,7 @@ def rtioc(hx_api_object):
 				uuid = request.args.get('indicator')
 				category = request.args.get('category')
 
-				(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
+				(ret, response_code, response_data) = hx_api_object.restListCategories()
 				categories = formatCategoriesSelect(response_data)
 
 				(ret, response_code, response_data) = hx_api_object.restGetIndicator(category, uuid)
@@ -603,7 +603,7 @@ def rtioc(hx_api_object):
 
 				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, ioccategory=ioccategory, platform=platform, mypre=mypre, myexec=myexec)
 			else:
-				(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
+				(ret, response_code, response_data) = hx_api_object.restListCategories()
 				categories = formatCategoriesSelect(response_data)
 				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories)
 		elif request.method == 'POST':
@@ -864,7 +864,7 @@ def multifile(hx_api_object):
 					if cf['hostname'] in agent_ids:
 						agent_id = agent_ids[cf['hostname']]
 					else:
-						(ret, response_code, response_data) = hx_api_object.restFindHostsBySearchString(cf['hostname'])
+						(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = cf['hostname'])
 						agent_id = agent_ids[cf['hostname']] = response_data['data']['entries'][0]['_id']
 					path, filename = cf['FullPath'].rsplit('\\', 1)
 					(ret, response_code, response_data) = hx_api_object.restAcquireFile(agent_id, path, filename, use_api_mode)
