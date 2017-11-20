@@ -485,7 +485,7 @@ def indicators(hx_api_object):
 			ioclist[ioc['uuid']]['presence'] = []
 			ioclist[ioc['uuid']]['name'] = ioc['name']
 			ioclist[ioc['uuid']]['category'] = ioc['category']
-			ioclist[ioc['uuid']]['platforms'] = ioc['platforms']
+			ioclist[ioc['uuid']]['platforms'] = ioc['platforms'].split(',')
 
 			#Grab execution indicators
 			(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], ioc['uuid'], 'execution')
