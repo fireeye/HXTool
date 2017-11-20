@@ -49,6 +49,14 @@
 	padding-bottom: 5px;
 }
 
+.inputTitle {
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-weight: 700;
+	color: #444;
+	font-size: 11px;
+	margin-bottom: 3px;
+}
+
 .tableActionButton {
 	text-decoration: none;
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
@@ -67,6 +75,12 @@
 
 .tableActionButton:hover {
 	cursor: pointer;
+}
+
+.tableActionButtonSmall {
+	font-size: 11px;
+	font-weight: 400;
+	margin: 0;
 }
 
 .tableActionIcon {
@@ -182,6 +196,76 @@ table.dataTable th {
 .genericTableSmall tbody td {
 	padding: 5px;
 }
+
+.genericTableIOC thead th {
+	padding: 5px;
+}
+
+.genericTableIOC tbody td {
+	padding: 5px;
+}
+
+.genericTableIOC tbody td:nth-child(1) {
+	width: 180px;
+	text-align: left;
+}
+
+.genericTableIOC tbody td:nth-child(2) {
+	width: 150px;
+	text-align: left;
+}
+
+.genericTableIOC tbody td:nth-child(3) {
+	width: 120px;
+	text-align: center;
+}
+
+.genericTableIOC tbody td:nth-child(4) {
+	width: 100px;
+	text-align: center;
+}
+
+.genericTableIOC tbody td:nth-child(5) {
+	width: 100px;
+	text-align: center;
+}
+
+.genericTableIOC tbody td:nth-child(7) {
+	width: 150px;
+	text-align: center;
+}
+
+
+.genericTableIOC thead th:nth-child(1) {
+	width: 180px;
+	text-align: center;
+}
+
+.genericTableIOC thead th:nth-child(2) {
+	width: 140px;
+	text-align: center;
+}
+
+.genericTableIOC thead th:nth-child(3) {
+	width: 120px;
+	text-align: center;
+}
+
+.genericTableIOC thead th:nth-child(4) {
+	width: 100px;
+	text-align: center;
+}
+
+.genericTableIOC thead th:nth-child(5) {
+	width: 100px;
+	text-align: center;
+}
+
+.genericTableIOC thead th:nth-child(7) {
+	width: 150px;
+	text-align: center;
+}
+
 
 .genericTableMedium tbody td {
 	padding: 8px;

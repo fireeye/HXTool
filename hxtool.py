@@ -579,6 +579,65 @@ def importioc(hx_api_object):
 	return redirect("/indicators", code=302)
 
 
+@app.route('/rtioc', methods=['POST', 'GET'])
+@valid_session_required
+def rtioc(hx_api_object):
+		if request.method == 'GET':
+			if request.args.get('indicator'):
+
+				uuid = request.args.get('indicator')
+				category = request.args.get('category')
+
+				(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
+				categories = formatCategoriesSelect(response_data)
+
+				(ret, response_code, response_data) = hx_api_object.restGetIndicator(category, uuid)
+				if ret:
+					iocname = response_data['data']['name']
+					ioccategory = response_data['data']['category']['name']
+					platform = response_data['data']['platforms'][0]
+
+					(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, uuid, 'presence')
+					(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, uuid, 'execution')
+
+					mypre = json.dumps(condition_class_presence['data']['entries'])
+					myexec = json.dumps(condition_class_execution['data']['entries'])
+
+				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, ioccategory=ioccategory, platform=platform, mypre=mypre, myexec=myexec)
+			else:
+				(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
+				categories = formatCategoriesSelect(response_data)
+				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories)
+		elif request.method == 'POST':
+			mydata = request.get_json(silent=True)
+
+			(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], [mydata['platform']])
+			if ret:
+				ioc_guid = response_data['data']['_id']
+
+				for key, value in mydata.items():
+					if key not in ['name', 'category', 'platform']:
+						(iocguid, ioctype) = key.split("_")
+						mytests = {"tests": []}
+						for entry in value:
+							if not entry['negate'] and not entry['case']:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
+							elif entry['negate'] and not entry['case']:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
+							elif entry['case'] and not entry['negate']:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+							else:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
+
+						(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], ioc_guid, ioctype, json.dumps(mytests))
+						print(response_data)
+						if not ret:
+							return ('', 500)
+
+				return ('', 204)
+			else:
+				print(response_data)
+				return ('', 500)
 
 ### Bulk Acqusiitions
 #########################
@@ -1281,7 +1340,8 @@ def start_background_processor(profile_id, hx_api_username, hx_api_password):
 ###########			
 		
 if __name__ == "__main__":
-	app.secret_key = crypt_generate_random(32)
+	#app.secret_key = crypt_generate_random(32)
+	app.secret_key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa55"
 	
 	app.logger.setLevel(logging.INFO)
 	
