@@ -772,15 +772,15 @@ class HXAPI:
 		return(ret, response_code, response_data)
 		
 	def restListHostsInHostset(self, host_set_id, limit=10000, offset=0, sort_term=None, search_term=None, filter_term=None):
-		base_endpoint = 'host_sets/{0}/hosts?limit={1}&offset={2}'.format(host_set_id, limit, offset)
+		endpoint_url = 'host_sets/{0}/hosts?limit={1}&offset={2}'.format(host_set_id, limit, offset)
 		if search_term:
-			base_endpoint = "{0}&search={1}".format(base_endpoint, requests.utils.requote_uri(search_term))
+			endpoint_url = "{0}&search={1}".format(endpoint_url, requests.utils.requote_uri(search_term))
 		if sort_term:
-			base_endpoint = "{0}&sort={1}".format(base_endpoint, requests.utils.requote_uri(sort_term))
+			endpoint_url = "{0}&sort={1}".format(endpoint_url, requests.utils.requote_uri(sort_term))
 		if filter_term:
-			base_endpoint = "{0}&{1}".format(base_endpoint, requests.utils.requote_uri(filter_term))
+			endpoint_url = "{0}&{1}".format(endpoint_url, requests.utils.requote_uri(filter_term))
 
-		request = self.build_request(self.build_api_route())
+		request = self.build_request(self.build_api_route(endpoint_url))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
