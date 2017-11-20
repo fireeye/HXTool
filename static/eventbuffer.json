@@ -1,0 +1,97 @@
+{
+  "imageLoadEvent": [
+    { "name": "fullPath", "fullname": "imageLoadEvent/fullPath", "type": "text"},
+    { "name": "devicePath", "fullname": "imageLoadEvent/devicePath", "type": "text"},
+    { "name": "drive", "fullname": "imageLoadEvent/drive", "type": "text"},
+    { "name": "filePath", "fullname": "imageLoadEvent/filePath", "type": "text"},
+    { "name": "fileName", "fullname": "imageLoadEvent/fileName", "type": "text"},
+    { "name": "fileExtension", "fullname": "imageLoadEvent/fileExtension", "type": "text"},
+    { "name": "pid", "fullname": "imageLoadEvent/pid", "type": "integer"},
+    { "name": "process", "fullname": "imageLoadEvent/process", "type": "text"},
+    { "name": "parentPid", "fullname": "imageLoadEvent/parentPid", "type": "text"},
+    { "name": "username", "fullname": "imageLoadEvent/username", "type": "text"},
+    { "name": "error", "fullname": "imageLoadEvent/error", "type": "text"}
+  ],
+  "processEvent": [
+    { "name": "eventType", "fullname": "processEvent/eventType", "type": "text"},
+    { "name": "processPath", "fullname": "processEvent/processPath", "type": "text"},
+    { "name": "process", "fullname": "processEvent/process", "type": "text"},
+    { "name": "parentPid", "fullname": "processEvent/parentPid", "type": "integer"},
+    { "name": "parentProcessPath", "fullname": "processEvent/parentProcessPath", "type": "text"},
+    { "name": "parentProcess", "fullname": "processEvent/parentProcess", "type": "text"},
+    { "name": "username", "fullname": "processEvent/username", "type": "text"},
+    { "name": "startTime", "fullname": "processEvent/startTime", "type": "text"},
+    { "name": "processCmdLine", "fullname": "processEvent/processCmdLine", "type": "text"},
+    { "name": "md5", "fullname": "processEvent/md5", "type": "md5"}
+  ],
+  "fileWriteEvent": [
+    { "name": "fullPath", "fullname": "fileWriteEvent/fullPath", "type": "text"},
+    { "name": "devicePath", "fullname": "fileWriteEvent/devicePath", "type": "text"},
+    { "name": "drive", "fullname": "fileWriteEvent/drive", "type": "text"},
+    { "name": "filePath", "fullname": "fileWriteEvent/filePath", "type": "text"},
+    { "name": "fileName", "fullname": "fileWriteEvent/fileName", "type": "text"},
+    { "name": "fileExtension", "fullname": "fileWriteEvent/fileExtension", "type": "text"},
+    { "name": "size", "fullname": "fileWriteEvent/size", "type": "integer"},
+    { "name": "md5", "fullname": "fileWriteEvent/md5", "type": "md5"},
+    { "name": "pid", "fullname": "fileWriteEvent/pid", "type": "integer"},
+    { "name": "process", "fullname": "fileWriteEvent/process", "type": "text"},
+    { "name": "writes", "fullname": "fileWriteEvent/writes", "type": "integer"},
+    { "name": "numBytesSeenWritten", "fullname": "fileWriteEvent/numBytesSeenWritten", "type": "integer"},
+    { "name": "lowestFileOffsetSeen", "fullname": "fileWriteEvent/lowestFileOffsetSeen", "type": "integer"},
+    { "name": "dataAtLowestOffset", "fullname": "fileWriteEvent/dataAtLowestOffset", "type": "text"},
+    { "name": "textAtLowestOffset", "fullname": "fileWriteEvent/textAtLowestOffset", "type": "text"},
+    { "name": "closed", "fullname": "fileWriteEvent/closed", "type": "bool"},
+    { "name": "error", "fullname": "fileWriteEvent/error", "type": "text"}
+  ],
+  "regKeyEvent": [
+    { "name": "path", "fullname": "regKeyEvent/path", "type": "text"},
+    { "name": "hive", "fullname": "regKeyEvent/hive", "type": "text"},
+    { "name": "keyPath", "fullname": "regKeyEvent/keyPath", "type": "text"},
+    { "name": "eventType", "fullname": "regKeyEvent/eventType", "type": "text"},
+    { "name": "valueName", "fullname": "regKeyEvent/valueName", "type": "text"},
+    { "name": "valueType", "fullname": "regKeyEvent/valueType", "type": "text"},
+    { "name": "value", "fullname": "regKeyEvent/value", "type": "text"},
+    { "name": "username", "fullname": "regKeyEvent/username", "type": "text"},
+    { "name": "originalPath", "fullname": "regKeyEvent/originalPath", "type": "text"},
+    { "name": "process", "fullname": "regKeyEvent/process", "type": "text"},
+    { "name": "processPath", "fullname": "regKeyEvent/processPath", "type": "text"},
+    { "name": "pid", "fullname": "regKeyEvent/pid", "type": "integer"},
+    { "name": "text", "fullname": "regKeyEvent/text", "type": "text"}
+  ],
+  "dnsLookupEvent": [
+    { "name": "hostname", "fullname": "dnsLookupEvent/hostname", "type": "text"},
+    { "name": "pid", "fullname": "dnsLookupEvent/pid", "type": "integer"},
+    { "name": "process", "fullname": "dnsLookupEvent/process", "type": "text"},
+    { "name": "processPath", "fullname": "dnsLookupEvent/processPath", "type": "text"},
+    { "name": "username", "fullname": "dnsLookupEvent/username", "type": "text"}
+  ],
+  "ipv4NetworkEvent": [
+    { "name": "remoteIP", "fullname": "ipv4NetworkEvent/remoteIP", "type": "text"},
+    { "name": "remotePort", "fullname": "ipv4NetworkEvent/remotePort", "type": "integer"},
+    { "name": "localIP", "fullname": "ipv4NetworkEvent/localIP", "type": "text"},
+    { "name": "localPort", "fullname": "ipv4NetworkEvent/localPort", "type": "integer"},
+    { "name": "protocol", "fullname": "ipv4NetworkEvent/protocol", "type": "text"},
+    { "name": "pid", "fullname": "ipv4NetworkEvent/pid", "type": "integer"},
+    { "name": "username", "fullname": "ipv4NetworkEvent/username", "type": "text"},
+    { "name": "processPath", "fullname": "ipv4NetworkEvent/processPath", "type": "text"},
+    { "name": "process", "fullname": "ipv4NetworkEvent/process", "type": "text"}
+  ],
+  "urlMonitorEvent": [
+    { "name": "hostname", "fullname": "urlMonitorEvent/hostname", "type": "text"},
+    { "name": "requestUrl", "fullname": "urlMonitorEvent/requestUrl", "type": "text"},
+    { "name": "urlMethod", "fullname": "urlMonitorEvent/urlMethod", "type": "text"},
+    { "name": "userAgent", "fullname": "urlMonitorEvent/userAgent", "type": "text"},
+    { "name": "httpHeader", "fullname": "urlMonitorEvent/httpHeader", "type": "text"},
+    { "name": "remoteIpAddress", "fullname": "urlMonitorEvent/remoteIpAddress", "type": "text"},
+    { "name": "remotePort", "fullname": "urlMonitorEvent/remotePort", "type": "integer"},
+    { "name": "localPort", "fullname": "urlMonitorEvent/localPort", "type": "integer"},
+    { "name": "pid", "fullname": "urlMonitorEvent/pid", "type": "integer"},
+    { "name": "process", "fullname": "urlMonitorEvent/process", "type": "text"},
+    { "name": "processPath", "fullname": "urlMonitorEvent/processPath", "type": "text"},
+    { "name": "username", "fullname": "urlMonitorEvent/username", "type": "text"},
+    { "name": "error", "fullname": "urlMonitorEvent/error", "type": "text"}
+  ],
+  "addressNotificationEvent": [
+    { "name": "address", "fullname": "addressNotificationEvent/address", "type": "text"}
+  ]
+}

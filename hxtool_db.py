@@ -162,12 +162,13 @@ class hxtool_db:
 														(tinydb.Query()['bulk_download_id'] == int(bulk_download_id)) & 
 														(tinydb.Query()['stopped'] == True))
 	
-	def fileListingCreate(self, profile_id, username, bulk_download_id, path, regex, depth, display_name):
+	def fileListingCreate(self, profile_id, username, bulk_download_id, path, regex, depth, display_name, api_mode=False):
 		r = None
 		with self._lock:
 			ts = str(datetime.datetime.utcnow())
 			try:
 				r = self._db.table('file_listing').insert({'profile_id' : profile_id, 
+														'display_name': display_name,
 														'bulk_download_id' : int(bulk_download_id),
 														'username': username,
 														'stopped' : False,
@@ -175,7 +176,8 @@ class hxtool_db:
 														'cfg': {
 															'path': path,
 															'regex': regex,
-															'depth': depth
+															'depth': depth,
+															'api_mode': api_mode
 														},
 														'create_timestamp' : ts, 
 														'update_timestamp' : ts
@@ -188,6 +190,11 @@ class hxtool_db:
 	def fileListingAddResult(self, profile_id, bulk_download_id, result):
 		with self._lock:
 			return self._db.table('file_listing').update(self._db_append_to_list('files', result), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+	
+	def fileListingGetByBulkId(self, profile_id, bulk_download_id):
+		with self._lock:
+			result = self._db.table('file_listing').search((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+			return result and result[0] or None
 	
 	def fileListingGetById(self, flid):
 		with self._lock:

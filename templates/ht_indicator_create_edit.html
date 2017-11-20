@@ -1,0 +1,264 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Indicator{% endblock %}
+{% block navlocation %}Indicator{% endblock %}
+{% block content %}
+
+	<script>
+
+
+		function guid() {
+		    function _p8(s) {
+		        var p = (Math.random().toString(16)+"000000000").substr(2,8);
+		        return s ? "-" + p.substr(0,4) + "-" + p.substr(4,4) : p ;
+		    }
+	    	return _p8() + _p8(true) + _p8(true) + _p8();
+		}
+
+		function getFields(mytype, targetelement, myguid) {
+			$.getJSON('/static/eventbuffer.json', function(data) {
+				var myhtml = "<select id=field_" + myguid + ">";
+				$.each(data[mytype], function(index, field) {
+					myhtml += "<option data-type='" + field.type + "' name='" + field.fullname + "'>" + field.name;
+				});
+				myhtml += "</select>";
+				$(targetelement).html(myhtml);
+				// Load operators into next cell
+				getOperators($(targetelement).find('select').find("option:first-child").data('type'), $(targetelement).next(), myguid);
+			});
+		}
+
+		function getOperators(mytype, targetelement, myguid) {
+			var myhtml = "<select id='operator_" + myguid + "'>";
+			if (mytype == "text") {
+				myhtml += "<option value='contains'>contains";
+				myhtml += "<option value='equal'>equal";
+				myhtml += "<option value='matches'>matches";
+				myhtml += "<option value='starts-with'>starts-with";
+				myhtml += "<option value='ends-with'>ends-with";
+			}
+			if (mytype == "integer") {
+				myhtml += "<option value='equal'>equal";
+				myhtml += "<option value='greater-than'>greater-than";
+				myhtml += "<option value='less-than'>less-than";
+			}
+			if (mytype == "md5") {
+				myhtml += "<option value='md5'>md5";
+			}
+			if (mytype == "range") {
+				myhtml += "<option value='between'>between";
+			}
+			myhtml += "</select>";
+			$(targetelement).html(myhtml);
+		}
+
+		function getGroups(targetelement, myguid) {
+			$.getJSON('/static/eventbuffer.json', function(data) {
+				var myhtml = "<select id=group_" + myguid + ">";
+				$.each(data, function(index, field) {
+					myhtml += "<option name='" + index + "'>" + index;
+				});
+				myhtml += "</select>";
+				$(targetelement).html(myhtml);
+				// Load fields into next cell
+				getFields($(targetelement).find('select').find("option:first-child").val(), $(targetelement).next(), myguid);
+			});
+		}
+
+		function addCondition() {
+			myguid = guid();
+			mytypehtml = "<select id='ioctype'><option value='presence'>presence<option value='execution'>execution</select>";
+			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td style=\'background: #eeeeee; text-align: left; border-right: none; font-weight: bold; font-size: 14px;\' colspan=\'6\'>Condition ' +  mytypehtml + '</td><td style=\'border-left: none; background: #eeeeee; text-align: center;\'><input id=\'gdelete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall\' type=\'button\' value=\'remove\'></td></tr>');
+		}
+
+		$(document).ready(function() {
+
+			$('#add_cond').click(function() {
+
+				if (typeof $('#ioctable').find('tr').last().attr('id') !== 'undefined') {
+					if ($('#ioctable').find('tr').last().attr('id').startsWith('condition_') ) {
+						alert("Add elements to your condition before adding a new condition");
+					}
+					else {
+						// Last row is not a new condition
+						addCondition();
+						$("html, body").animate({ scrollTop: $(document).height() }, 1);
+					}
+				}
+				else {
+					// First row
+					addCondition();
+				}
+
+				// Delete rows of condition when clicked
+				$("input[id^='gdelete_']").click(function() {
+					currguid = ($(this).parent().parent().data('id'));
+					$('#ioctable tr[data-id="' + currguid + '"]').css('background-color', '#f49c89');
+					$('#ioctable tr[data-id="' + currguid + '"]').fadeTo(600,0.1, function(){
+						$(this).remove();
+					})
+				});
+			});
+
+
+
+			$('#add_element').click(function() {
+
+				if ($('#ioctable tr').length != 1) {
+					// Get the condition internal ID from the previous row
+					myguid = ($('#ioctable tr:last').data('id'));
+					// Add a new row to the table
+					$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><input id=\'delete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall\' type=\'button\' value=\'remove\'></td></tr>');
+
+					// Load the content into columns
+					getGroups($('#ioctable').closest('table').find('tr:last td:first'), myguid);
+					$("html, body").animate({ scrollTop: $(document).height() }, 1);
+				}
+				else {
+					alert("You need to add a condition before you can add elements");
+				}
+
+				// Delete row when clicked
+				$("input[id^='delete_']").click(function() {
+
+					// Get the guid from the row
+					currguid = ($(this).parent().parent().data('id'));
+
+					// Last row in condition - need to remove the entire condition
+					if ($('#ioctable tr[data-id="' + currguid + '"]').length == 2) {
+						$('#ioctable tr[data-id="' + currguid + '"]').css('background-color', '#f49c89');
+						$('#ioctable tr[data-id="' + currguid + '"]').fadeTo(200,0.1, function(){
+							$(this).remove();
+						})
+					}
+					// Just remove the row there are other rows left in the condition
+					else {
+						$(this).parent().parent().css('background-color', '#f49c89');
+						$(this).parent().parent().fadeTo(200,0.1, function(){
+							$(this).remove();
+						})
+					}
+				});
+			});
+
+			$('body').on('change','select',function(){
+				// Get the guid from the row
+				myguid = ($(this).parent().parent().data('id'));
+
+				// Trigger on change in group selector and load new dropdown into column 2
+				if ($(this).attr('id').startsWith('group_')) {
+					getFields($(this).val(), $(this).closest("td").next(), myguid);
+				}
+				// Trigger on change in field selector and load new dropdown into column 3
+				if ($(this).attr('id').startsWith('field_')) {
+					getOperators($(this).find(':selected').data('type'), $(this).closest("td").next(), myguid);
+				}
+			});
+
+			$('#postbutton').click(function() {
+
+				var data = {};
+
+				data['name'] = $('#indicator_name').val();
+				data['category'] = $('#cats').val();
+				data['platform'] = $('#indicator_platform').val();				
+
+				var myioctype;
+
+				$("#ioctable tr:gt(0)").each(function () {
+
+					if ($(this).attr('id').startsWith('condition_')) {
+						myioctype = $(this).find('td:eq(0)').find('select').val();
+						currguid = $(this).data('id') + "_" + myioctype;
+						data[currguid] = [];
+					}
+
+					if ($(this).attr('id').startsWith('element_')) {
+						currguid = $(this).data('id') + "_" + myioctype;
+						var mygroup = $(this).find('td:eq(0)').find('select').val();
+						var myfield = $(this).find('td:eq(1)').find('select').val();
+						var mytype = $(this).find('td:eq(1)').find('select').find(":selected").data('type');
+						var myoper = $(this).find('td:eq(2)').find('select').val();
+
+						if ($(this).find('td:eq(3)').find('input').is(':checked'))
+							{ myneg = true; }
+						else 
+							{ myneg = false; }
+
+						if ($(this).find('td:eq(4)').find('input').is(':checked'))
+							{ mycase = true; }
+						else 
+							{ mycase = false; }
+
+						var mydata = $(this).find('td:eq(5)').find('input').val();
+						var mydict = {"group": mygroup, "field": myfield, "type": mytype, "operator": myoper, "negate": myneg, "case": mycase, "data": mydata};
+						data[currguid].push(mydict);
+					}
+
+				});
+				
+				if ($('#indicator_name').val() !== "") {
+					$.ajax
+					({
+						type: "POST",
+						url: '/rtioc',
+						dataType: 'json',
+						contentType: 'application/json',
+						data: JSON.stringify(data),
+						success: function () {
+							window.location.href = "/indicators";
+						},
+						error: function (xhr, status) {
+							alert("One or more conditions are invalid. Please resolve conditions and resubmit.");
+						}
+					})
+				}
+				else {
+					alert("Enter an indicator name!");
+				}
+
+				//$('#temp').html(JSON.stringify(data));
+			});
+
+		});
+	</script>
+
+<form>
+	<div class='tableTitle'>New Indicator</div>
+
+	<div style='background: #eeeeee; border: 1px solid #dddddd; border-radius: 5px; padding: 20px; margin-bottom: 10px; float: left;'>
+		<div class='inputTitle'>Indicator name</div>
+		<input style='margin-bottom: 7px; width: 300px;' type='text' id='indicator_name' name='indicator_name' value='{% if iocname %} {{iocname|safe}} {% endif %}'>
+
+		<div class='inputTitle'>Indicator Category</div>
+		{% if categories %} {{categories|safe}} {% endif %}
+
+		<div class='inputTitle'>Platform</div>
+		<select id='indicator_platform'>
+			<option value='win'>Microsoft Windows
+			<option value='osx'>Apple MacOS
+			<option value='all'>All
+		</select>
+	</div>
+
+	<table id='ioctable' class='genericTable genericTableIOC' style='width: 100%;'>
+		<thead>
+			<th>Group</th>
+			<th>Field</th>
+			<th>Operator</th>
+			<th>Negate</th>
+			<th>Case</th>
+			<th>Data</th>
+			<th>Delete</th>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+
+	<br>
+	<input type='button' class='tableActionButton' id='add_cond' value='add condition'>
+	<input type='button' class='tableActionButton' id='add_element' value='add element'>
+	<br><br>
+	<input type='button' class='tableActionButton' id='postbutton' value='submit'>
+</form>
+
+{% endblock %}

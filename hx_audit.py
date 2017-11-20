@@ -17,8 +17,7 @@ def get_audit_records(audit_data, generator, item_name, fields=None, post_proces
 					continue
 				# TODO: we only recurse 1 level deep - should recurse further
 				if len(list(e)) > 0:
-					item[e.tag] = []
-					item[e.tag].append({_.tag : _.text for _ in e[0]})
+					item[e.tag] = [(_.tag, _.text) for _ in e[0]]
 				else:
 					item[e.tag] = e.text
 						

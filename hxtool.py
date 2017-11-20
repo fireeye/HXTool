@@ -102,7 +102,7 @@ def index(hx_api_object):
 		return render_template('ht_index_ph.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 	else:
 	
-		mytime = "week"
+		mytime = "today"
 		time_matrix = {
 			"today"	:	datetime.datetime.now(),
 			"week"	:	datetime.datetime.now() - datetime.timedelta(days=7),
@@ -579,6 +579,65 @@ def importioc(hx_api_object):
 	return redirect("/indicators", code=302)
 
 
+@app.route('/rtioc', methods=['POST', 'GET'])
+@valid_session_required
+def rtioc(hx_api_object):
+		if request.method == 'GET':
+			if request.args.get('indicator'):
+
+				uuid = request.args.get('indicator')
+				category = request.args.get('category')
+
+				(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
+				categories = formatCategoriesSelect(response_data)
+
+				(ret, response_code, response_data) = hx_api_object.restGetIndicator(category, uuid)
+				if ret:
+					iocname = response_data['data']['name']
+					ioccategory = response_data['data']['category']['name']
+					platform = response_data['data']['platforms'][0]
+
+					(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, uuid, 'presence')
+					(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, uuid, 'execution')
+
+					mypre = json.dumps(condition_class_presence['data']['entries'])
+					myexec = json.dumps(condition_class_execution['data']['entries'])
+
+				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, ioccategory=ioccategory, platform=platform, mypre=mypre, myexec=myexec)
+			else:
+				(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
+				categories = formatCategoriesSelect(response_data)
+				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories)
+		elif request.method == 'POST':
+			mydata = request.get_json(silent=True)
+
+			(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], [mydata['platform']])
+			if ret:
+				ioc_guid = response_data['data']['_id']
+
+				for key, value in mydata.items():
+					if key not in ['name', 'category', 'platform']:
+						(iocguid, ioctype) = key.split("_")
+						mytests = {"tests": []}
+						for entry in value:
+							if not entry['negate'] and not entry['case']:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
+							elif entry['negate'] and not entry['case']:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
+							elif entry['case'] and not entry['negate']:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+							else:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
+
+						(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], ioc_guid, ioctype, json.dumps(mytests))
+						print(response_data)
+						if not ret:
+							return ('', 500)
+
+				return ('', 204)
+			else:
+				print(response_data)
+				return ('', 500)
 
 ### Bulk Acqusiitions
 #########################
@@ -781,7 +840,7 @@ def multifile(hx_api_object):
 		MAX_FILE_ACQUISITIONS = 50
 		
 		display_name = ('display_name' in request.form) and request.form['display_name'] or "{0} job at {1}".format(session['ht_user'], datetime.datetime.now())
-		use_api_mode = ('use_api_mode' in request.form)
+		use_api_mode = ('use_raw_mode' not in request.form)
 
 		# Collect User Selections
 		file_jobs, choices, listing_ids = [], {}, set([])
@@ -863,6 +922,7 @@ def file_listing(hx_api_object):
 		regex = xmlescape(request.form['listing_regex'])
 		path = xmlescape(request.form['listing_path'])
 		hostset = xmlescape(request.form['hostset'])
+		use_api_mode = ('use_raw_mode' not in request.form)
 		depth = '-1'
 		# Build a script from the template
 		script_xml = None
@@ -872,7 +932,11 @@ def file_listing(hx_api_object):
 			else:
 				app.logger.warn("Regex is empty!!")
 				regex = ''
-			with open('templates/file_listing_script_template.xml') as f:
+			if use_api_mode:
+				template_path = 'templates/api_file_listing_script_template.xml'
+			else:
+				template_path = 'templates/file_listing_script_template.xml'
+			with open(template_path) as f:
 				t = Template(f.read())
 				script_xml = t.substitute(regex=regex, path=path, depth=depth)
 			if not display_name:
@@ -882,7 +946,7 @@ def file_listing(hx_api_object):
 			raise
 		if script_xml:
 			bulkid = submit_bulk_job(hx_api_object, hostset, script_xml.encode('utf-8'), handler="file_listing")
-			ret = ht_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulkid, path, regex, depth, display_name)
+			ret = ht_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulkid, path, regex, depth, display_name, api_mode=use_api_mode)
 			app.logger.info('New File Listing - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/multifile", code=302)
 		else:
@@ -938,10 +1002,12 @@ def get_file_listings(hx_api_object):
 		if bulk_download:
 			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
 			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
-			job['display_name'] = 'hostset {0}, path: {1} regex: {2}'.format(bulk_download['hostset_id'] , job['cfg']['path'], job['cfg']['regex'])
+			if 'display_name' not in job:
+				job['display_name'] = 'hostset {0}, path: {1} regex: {2}'.format(bulk_download['hostset_id'] , job['cfg']['path'], job['cfg']['regex'])
 		else:
 			job_progress = job['file_count'] > 1 and 100 or 0
-			job['display_name'] = 'path: {0} regex: {1}'.format(job['cfg']['path'], job['cfg']['regex'])
+			if 'display_name' not in job:
+				job['display_name'] = 'path: {0} regex: {1}'.format(job['cfg']['path'], job['cfg']['regex'])
 		
 		job['progress'] = "<div class='htMyBar htBarWrap'><div class='htBar' id='file_listing_prog_" + str(job['id']) + "' data-percent='" + str(job_progress) + "'></div></div>"
 		
@@ -1054,9 +1120,9 @@ def channels(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
 		hostsets = formatHostsets(response_data)
 		
-		return render_template('ht_configchannel.html', channels=channels, hostsets=hostsets)
+		return render_template('ht_configchannel.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), channels=channels, hostsets=hostsets)
 	else:
-		return render_template('ht_noaccess.html')
+		return render_template('ht_noaccess.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 			
 
 @app.route('/channelinfo', methods=['GET'])
@@ -1116,7 +1182,7 @@ def login():
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
-						redirect_uri = "/?time=week"
+						redirect_uri = "/?time=today"
 					return redirect(redirect_uri, code=302)
 				else:
 					return render_template('ht_login.html', fail=response_data)		
@@ -1274,8 +1340,9 @@ def start_background_processor(profile_id, hx_api_username, hx_api_password):
 ###########			
 		
 if __name__ == "__main__":
-	app.secret_key = crypt_generate_random(32)
-			
+	#app.secret_key = crypt_generate_random(32)
+	app.secret_key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa55"
+	
 	app.logger.setLevel(logging.INFO)
 	
 	# Log early init/failures to stdout
