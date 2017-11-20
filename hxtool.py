@@ -496,9 +496,7 @@ def indicators(hx_api_object):
 			(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], ioc['uuid'], 'presence')
 			for item in response_data['data']['entries']:
 				ioclist[ioc['uuid']]['presence'].append(item['tests'])
-					
-		ioclist_json = json.dumps(ioclist, indent=4)
-		
+							
 		if len(iocs) == 1:
 			iocfname = iocs[0]['name'] + ".ioc"
 		else:
@@ -509,7 +507,7 @@ def indicators(hx_api_object):
 		except NameError:
 			# Python 2.x, try StringIO
 			buffer = StringIO()
-		buffer.write(ioclist_json.encode('utf-8'))
+		json.dump(ioclist, buffer, indent = 4, encoding = 'utf-8')
 		buffer.seek(0)
 		app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
