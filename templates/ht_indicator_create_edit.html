@@ -14,20 +14,25 @@
 	    	return _p8() + _p8(true) + _p8(true) + _p8();
 		}
 
-		function getFields(mytype, targetelement, myguid) {
+		function getFields(mytype, targetelement, myguid, myField, myOperator) {
 			$.getJSON('/static/eventbuffer.json', function(data) {
 				var myhtml = "<select id=field_" + myguid + ">";
 				$.each(data[mytype], function(index, field) {
-					myhtml += "<option data-type='" + field.type + "' name='" + field.fullname + "'>" + field.name;
+					myhtml += "<option data-type='" + field.type + "' value='" + field.fullname + "'>" + field.name;
 				});
 				myhtml += "</select>";
 				$(targetelement).html(myhtml);
-				// Load operators into next cell
-				getOperators($(targetelement).find('select').find("option:first-child").data('type'), $(targetelement).next(), myguid);
+
+				if (myField) {
+					getOperators($(targetelement).find('select').find("option:first-child").data('type'), $(targetelement).next(), myguid, myOperator);
+				}
+				else {
+					getOperators($(targetelement).find('select').find("option:first-child").data('type'), $(targetelement).next(), myguid);
+				}
 			});
 		}
 
-		function getOperators(mytype, targetelement, myguid) {
+		function getOperators(mytype, targetelement, myguid, myOperator) {
 			var myhtml = "<select id='operator_" + myguid + "'>";
 			if (mytype == "text") {
 				myhtml += "<option value='contains'>contains";
@@ -49,9 +54,14 @@
 			}
 			myhtml += "</select>";
 			$(targetelement).html(myhtml);
+
+			if (myOperator) {
+//				alert(myOperator);
+//				$(targetelement).find('select').val(myOperator).change();
+			}
 		}
 
-		function getGroups(targetelement, myguid) {
+		function getGroups(targetelement, myguid, myGroup, myField, myOperator) {
 			$.getJSON('/static/eventbuffer.json', function(data) {
 				var myhtml = "<select id=group_" + myguid + ">";
 				$.each(data, function(index, field) {
@@ -59,18 +69,61 @@
 				});
 				myhtml += "</select>";
 				$(targetelement).html(myhtml);
-				// Load fields into next cell
-				getFields($(targetelement).find('select').find("option:first-child").val(), $(targetelement).next(), myguid);
+
+				// Check if we need to populate fields
+				if (myGroup) {
+					// Set the group
+					$(targetelement).find('select').val(myGroup).change();
+					getFields($(targetelement).find('select').find("option:first-child").val(), $(targetelement).next(), myguid, myField, myOperator);
+				}
+				else {
+					// Load fields into next cell
+					getFields($(targetelement).find('select').find("option:first-child").val(), $(targetelement).next(), myguid);
+				}
 			});
 		}
 
-		function addCondition() {
-			myguid = guid();
+		function addCondition(myguid) {
+//			myguid = guid();
 			mytypehtml = "<select id='ioctype'><option value='presence'>presence<option value='execution'>execution</select>";
 			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td style=\'background: #eeeeee; text-align: left; border-right: none; font-weight: bold; font-size: 14px;\' colspan=\'6\'>Condition ' +  mytypehtml + '</td><td style=\'border-left: none; background: #eeeeee; text-align: center;\'><input id=\'gdelete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall\' type=\'button\' value=\'remove\'></td></tr>');
 		}
 
+		function addElement(myguid) {
+			$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><input id=\'delete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall\' type=\'button\' value=\'remove\'></td></tr>');
+		}
+
 		$(document).ready(function() {
+
+			// IF edit mode we will need to import all the conditions
+			{% if mypre %}
+				var mypresence = JSON.parse({{mypre|tojson|safe}});
+				$.each( mypresence, function( ikey, ivalue ) {
+					addCondition(ivalue['uuid']);
+					$.each( ivalue['tests'], function( key, value ) {
+						myguid = ($('#ioctable tr:last').data('id'));
+						myTokenInfo = value['token'].split("/");
+
+						addElement(myguid);
+						getGroups($('#ioctable').closest('table').find('tr:last td:first'), myguid, myTokenInfo[0], myTokenInfo[1], value['operator']);
+						
+						$('#ioctable').closest('table').find('tr:last td:eq(0)').find('select').val(myTokenInfo[1]).change();
+						$('#ioctable').closest('table').find('tr:last td:eq(2)').find('select').val(value['operator']).change();
+						$('#ioctable').closest('table').find('tr:last td:eq(5)').find('input').val(value['value']);
+						// alert(value['token']);
+					});
+				});
+			{% endif %}
+
+			{% if myexec %}
+				var myexecution = JSON.parse({{myexec|tojson|safe}});
+			{% endif %}
+
+//			$.each( mypresence, function( key, value ) {
+//			    alert(value);
+//			});
+
+			//alert(JSON.stringify(mypresence));
 
 			$('#add_cond').click(function() {
 
@@ -80,13 +133,15 @@
 					}
 					else {
 						// Last row is not a new condition
-						addCondition();
+						myguid = guid();
+						addCondition(myguid);
 						$("html, body").animate({ scrollTop: $(document).height() }, 1);
 					}
 				}
 				else {
 					// First row
-					addCondition();
+					myguid = guid();
+					addCondition(myguid);
 				}
 
 				// Delete rows of condition when clicked
@@ -107,7 +162,8 @@
 					// Get the condition internal ID from the previous row
 					myguid = ($('#ioctable tr:last').data('id'));
 					// Add a new row to the table
-					$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><input id=\'delete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall\' type=\'button\' value=\'remove\'></td></tr>');
+					// $('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><input id=\'delete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall\' type=\'button\' value=\'remove\'></td></tr>');
+					addElement(myguid);
 
 					// Load the content into columns
 					getGroups($('#ioctable').closest('table').find('tr:last td:first'), myguid);

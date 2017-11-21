@@ -591,7 +591,7 @@ def rtioc(hx_api_object):
 				(ret, response_code, response_data) = hx_api_object.restListIndicatorCategories()
 				categories = formatCategoriesSelect(response_data)
 
-				(ret, response_code, response_data) = hx_api_object.restGetIndicator(category, uuid)
+				(ret, response_code, response_data) = hx_api_object.restGetIndicatorName(category, uuid)
 				if ret:
 					iocname = response_data['data']['name']
 					ioccategory = response_data['data']['category']['name']
