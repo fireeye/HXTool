@@ -1338,15 +1338,24 @@ def start_background_processor(profile_id, hx_api_username, hx_api_password):
 ###########			
 		
 if __name__ == "__main__":
-	#app.secret_key = crypt_generate_random(32)
-	app.secret_key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa55"
+	debug_mode = False
+	if len(sys.argv) == 2 and sys.argv[1] == '-debug':
+		debug_mode = True
 	
-	app.logger.setLevel(logging.INFO)
 	
 	# Log early init/failures to stdout
 	console_log = logging.StreamHandler(sys.stdout)
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
+	
+	# If we're debugging use a static key
+	if debug_mode:
+		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'
+		app.logger.setLevel(logging.DEBUG)
+		app.logger.debug("Running in debugging mode.")
+	else:
+		app.secret_key = crypt_generate_random(32)
+		app.logger.setLevel(logging.INFO)
 	
 	ht_config = hxtool_config('conf.json', logger = app.logger)
 	
@@ -1357,7 +1366,7 @@ if __name__ == "__main__":
 	# WSGI request log - when not running under gunicorn or mod_wsgi
 	logger = logging.getLogger('werkzeug')
 	if logger:
-		logger.setLevel(logging.INFO)
+		logger.setLevel(app.logger.level)
 		request_log_handler = logging.handlers.RotatingFileHandler('log/access.log', maxBytes=50000, backupCount=5)
 		request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
 		request_log_handler.setFormatter(request_log_formatter)	
