@@ -58,6 +58,7 @@ from hxtool_db import *
 from hxtool_process import *
 from hxtool_config import *
 from hxtool_data_models import *
+from hxtool_session import *
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -1376,6 +1377,8 @@ if __name__ == "__main__":
 
 	# Init DB
 	ht_db = hxtool_db('hxtool.db', logger = app.logger)
+	
+	app.session_interface = hxtool_session_interface(ht_db, app.logger)
 	
 	if ht_config['network']['ssl'] == "enabled":
 		context = (ht_config['ssl']['cert'], ht_config['ssl']['key'])
