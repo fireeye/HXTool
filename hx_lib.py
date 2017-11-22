@@ -73,11 +73,11 @@ class HXAPI:
 	
 	# Mmmm, base64 flavored pickles...
 	def serialize(self):
-		return base64.b64encode(pickle.dumps(self, pickle.HIGHEST_PROTOCOL))
+		return HXAPI.b64(pickle.dumps(self, pickle.HIGHEST_PROTOCOL))
 	
 	@staticmethod
 	def deserialize(base64_pickle):
-		return pickle.loads(base64.b64decode(base64_pickle))
+		return pickle.loads(HXAPI.b64(base64_pickle, True))
 	
 	# Loggers don't pickle nicely	
 	def __getstate__(self):
