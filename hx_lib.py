@@ -943,7 +943,7 @@ class HXAPI:
 	Base64 encoding/decoding - Python 2/3 compatibility
 	"""
 	@staticmethod
-	def b64(s, decode = False, decode_string = False, character_encoding = 'utf=8'):
+	def b64(s, decode = False, decode_string = False, character_encoding = 'utf-8'):
 		if decode:
 			if decode_string:
 				return base64.b64decode(s).decode(character_encoding)
