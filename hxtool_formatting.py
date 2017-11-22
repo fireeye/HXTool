@@ -326,6 +326,7 @@ def formatIOCResults(iocs):
 	x += "<td style='width: 80px;'>Platforms</td>"
 	x += "<td style='width: 80px;'>Conditions</td>"
 	x += "<td style='width: 60px;'>Hosts</td>"
+	x += "<td style='width: 60px;'>Action</td>"
 	x += "</tr>"
 	x += "</thead>"
 	x += "<tbody>"
@@ -337,7 +338,7 @@ def formatIOCResults(iocs):
 			p += platform + ","
 		p = p[:-1]
 		
-		x += "<tr class='clickable-row' data-value='" + str(entry['category']['uri_name']) + "___" + str(entry['uri_name']) + "'>"
+		x += "<tr data-value='" + str(entry['category']['uri_name']) + "___" + str(entry['uri_name']) + "'>"
 		x += "<td><input type='checkbox' name='ioc___" + str(entry['display_name']) + "___" + str(entry['category']['uri_name']) + "___" + str(p) + "' value='" + str(entry['uri_name']) + "'></td>"
 		x += "<td>" + str(entry['name']) + "</td>"
 		x += "<td>" + str(entry['active_since']) + "</td>"
@@ -349,6 +350,7 @@ def formatIOCResults(iocs):
 		x += "</td>"
 		x += "<td>" + str(entry['stats']['active_conditions']) + "</td>"
 		x += "<td>" + str(entry['stats']['alerted_agents']) + "</td>"
+		x += "<td><a class='tableActionButton' href='/rtioc?indicator=" + str(entry['uri_name']) + "'>edit</a></td>"
 		x += "</tr>"
 
 	x += "</tbody>"

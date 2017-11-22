@@ -581,19 +581,24 @@ def importioc(hx_api_object):
 @valid_session_required
 def rtioc(hx_api_object):
 		if request.method == 'GET':
+			
+			myEventFile = open('static/eventbuffer.json', 'r')
+			eventspace = myEventFile.read()
+			myEventFile.close()
+
 			if request.args.get('indicator'):
 
 				uuid = request.args.get('indicator')
-				category = request.args.get('category')
+				# category = request.args.get('category')
 
 				(ret, response_code, response_data) = hx_api_object.restListCategories()
 				categories = formatCategoriesSelect(response_data)
 
-				(ret, response_code, response_data) = hx_api_object.restGetIndicatorName(category, uuid)
+				(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term='uri_name={0}'.format(uuid))
 				if ret:
-					iocname = response_data['data']['name']
-					ioccategory = response_data['data']['category']['name']
-					platform = response_data['data']['platforms'][0]
+					iocname = response_data['data']['entries'][0]['name']
+					ioccategory = response_data['data']['entries'][0]['category']['uri_name']
+					platform = response_data['data']['entries'][0]['platforms'][0]
 
 					(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, uuid, 'presence')
 					(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, uuid, 'execution')
@@ -601,41 +606,48 @@ def rtioc(hx_api_object):
 					mypre = json.dumps(condition_class_presence['data']['entries'])
 					myexec = json.dumps(condition_class_execution['data']['entries'])
 
-				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, ioccategory=ioccategory, platform=platform, mypre=mypre, myexec=myexec)
+				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
 			else:
 				(ret, response_code, response_data) = hx_api_object.restListCategories()
 				categories = formatCategoriesSelect(response_data)
-				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories)
+				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, eventspace=eventspace)
 		elif request.method == 'POST':
 			mydata = request.get_json(silent=True)
 
-			(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], [mydata['platform']])
-			if ret:
-				ioc_guid = response_data['data']['_id']
+			if (request.args.get('mode') == "new"):
+				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], [mydata['platform']])
+				if ret:
+					ioc_guid = response_data['data']['_id']
 
-				for key, value in mydata.items():
-					if key not in ['name', 'category', 'platform']:
-						(iocguid, ioctype) = key.split("_")
-						mytests = {"tests": []}
-						for entry in value:
-							if not entry['negate'] and not entry['case']:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
-							elif entry['negate'] and not entry['case']:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
-							elif entry['case'] and not entry['negate']:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
-							else:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
+					for key, value in mydata.items():
+						if key not in ['name', 'category', 'platform']:
+							(iocguid, ioctype) = key.split("_")
+							mytests = {"tests": []}
+							for entry in value:
+								if not entry['negate'] and not entry['case']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
+								elif entry['negate'] and not entry['case']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
+								elif entry['case'] and not entry['negate']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+								else:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
 
-						(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], ioc_guid, ioctype, json.dumps(mytests))
-						print(response_data)
-						if not ret:
-							return ('', 500)
+							(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], ioc_guid, ioctype, json.dumps(mytests))
+							if not ret:
+								# Remove the indicator if condition push was unsuccessful
+								(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(mydata['category'], ioc_guid)
+								return ('', 500)
 
-				return ('', 204)
+					return ('', 204)
+				else:
+					return ('', 500)
+			elif (request.args.get('mode') == "edit"):
+				# Edit mode
+				return('', 500)
 			else:
-				print(response_data)
-				return ('', 500)
+				# Invalid request
+				return('', 500)
 
 ### Bulk Acqusiitions
 #########################

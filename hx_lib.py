@@ -385,13 +385,6 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
-	def restGetIndicatorName(self, category, iocuri):
-
-		request = self.build_request(self.build_api_route('indicators/{0}/{1}'.format(category, iocuri)))
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-
-		return(ret, response_code, response_data)
-
 
 	## Acquisitions
 	###############
