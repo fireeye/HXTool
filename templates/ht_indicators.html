@@ -22,6 +22,12 @@
 					disableStatusBar(200)
 				});
 		});
+
+		$("#iocTable").on('click', 'button', function(e) {
+			e.preventDefault();
+			myuuid = $(this).data('id');
+			showPopup(500, 900, "/indicatorcondition?uuid=" + myuuid, "myindicatorconditions");
+		});
 		
 		$('#importIndicator').click(function(){ 
 			$('#shader').show();
@@ -41,13 +47,16 @@
 <input type='button' value='Import indicators...' name='importIndicator' id='importIndicator'>
 <br><br>
 
+<!--
 <table style='margin: 0; width: 100%;'>
 	<div class='tableTitle'>
 			Indicators on the controller
 	</div>
 
 	<td style='vertical-align: top;'>
+-->
 	{% if indicators %} {{ indicators|safe }} {% endif %}
+<!--
 	</td>
 	<td style='width: 30%; vertical-align: top;'>
 		<div style='border-top: 2px solid rgb(215,215,215); border-bottom: 2px solid rgb(215,215,215); padding: 10px; font: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 13px; font-weight: 700;'>
@@ -56,6 +65,7 @@
 		<div id='indcond' style='padding: 10px; padding-top: none;'></div>
 	</td>
 </table>
+-->
 </form>
 
 <div class='shader' id='shader' style='display: none;'>&nbsp;</div>

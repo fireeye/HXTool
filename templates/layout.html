@@ -30,15 +30,21 @@
 
 <script>
 
-	function showPopup(height, width, url) {
+	function showPopup(height, width, url, elementToRestrict) {
 		$('#shader').show();
 		$('#ht_popup_div').css({height : height });
 		$('#ht_popup_div').css({width : width });
 		$('#ht_popup_div').center();
 		$('#ht_popup_div').load(url, function( response, status, xhr ) {
 			$('#ht_popup_div').show(200);
+			// Force passed div to fit inside the popup
+			if ('#' + elementToRestrict) {
+				$('#' + elementToRestrict).css('height', height - 30);
+				$('#' + elementToRestrict).css('overflowY', 'auto');
+			}
 			$('#popupCancel').click(function(e) {
 				$('#ht_popup_div').hide();
+				$('#ht_popup_div').empty();
 				$('#shader').hide();
 			});
 		});

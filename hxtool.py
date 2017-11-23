@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 ##################################################
 # hxTool - 3rd party user-interface for FireEye HX 
 #
@@ -517,11 +516,13 @@ def indicators(hx_api_object):
 	indicators = formatIOCResults(response_data)
 	return render_template('ht_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), indicators=indicators)
 
-@app.route('/indicatorcondition')
+@app.route('/indicatorcondition', methods=['GET'])
 @valid_session_required
 def indicatorcondition(hx_api_object):
 	uuid = request.args.get('uuid')
-	category = request.args.get('category')
+
+	(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term='uri_name={0}'.format(uuid))
+	category = response_data['data']['entries'][0]['category']['uri_name']
 
 	(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(category, uuid, 'presence')
 	(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(category, uuid, 'execution')
