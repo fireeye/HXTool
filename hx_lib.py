@@ -21,7 +21,6 @@ import logging
 import datetime
 import pickle
 import shutil
-import bz2
 
 
 class HXAPI:
@@ -74,11 +73,11 @@ class HXAPI:
 	
 	# Mmmm, base64 flavored pickles...
 	def serialize(self):
-		return base64.b64encode(bz2.compress(pickle.dumps(self, pickle.HIGHEST_PROTOCOL)))
+		return HXAPI.b64(pickle.dumps(self, pickle.HIGHEST_PROTOCOL))
 	
 	@staticmethod
 	def deserialize(base64_pickle):
-		return pickle.loads(bz2.decompress(base64.b64decode(base64_pickle)))
+		return pickle.loads(HXAPI.b64(base64_pickle, True))
 	
 	# Loggers don't pickle nicely	
 	def __getstate__(self):
@@ -937,7 +936,7 @@ class HXAPI:
 	Base64 encoding/decoding - Python 2/3 compatibility
 	"""
 	@staticmethod
-	def b64(s, decode = False, decode_string = False, character_encoding = 'utf=8'):
+	def b64(s, decode = False, decode_string = False, character_encoding = 'utf-8'):
 		if decode:
 			if decode_string:
 				return base64.b64decode(s).decode(character_encoding)

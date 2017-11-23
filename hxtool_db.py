@@ -321,6 +321,26 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('stacking').remove(eids = [int(stack_job_id)])
 	
+	def sessionCreate(self, session_id, session_nonce):
+		with self._lock:
+			return self._db.table('session').insert({'session_id' 		: session_id,
+													'session_nonce' 	: session_nonce,
+													'session_signature'	: None,
+													'session_data'		: None,
+													'update_timestamp'	: None})
+	
+	def sessionGet(self, session_id):
+		with self._lock:
+			return self._db.table('session').get((tinydb.Query()['session_id'] == session_id))
+		
+	def sessionUpdate(self, session_id, session_data, session_signature):
+		with self._lock:
+			return self._db.table('session').update({'session_data' : session_data, 'session_signature' : session_signature, 'update_timestamp' : str(datetime.datetime.utcnow())}, (tinydb.Query()['session_id'] == session_id))
+		
+	def sessionDelete(self, session_id):
+		with self._lock:
+			return self._db.table('session').remove((tinydb.Query()['session_id'] == session_id))
+	
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
 			if type(dict_values) is dict:
