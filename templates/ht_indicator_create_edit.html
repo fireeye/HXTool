@@ -64,9 +64,10 @@
 				myhtml += "<option value='equal'>equal";
 				myhtml += "<option value='greater-than'>greater-than";
 				myhtml += "<option value='less-than'>less-than";
+				myhtml += "<option value='between'>between";
 			}
 			if (mytype == "md5") {
-				myhtml += "<option value='md5'>md5";
+				myhtml += "<option value='equal'>equal";
 			}
 			if (mytype == "range") {
 				myhtml += "<option value='between'>between";
@@ -250,7 +251,14 @@
 
 				data['name'] = $('#indicator_name').val();
 				data['category'] = $('#cats').val();
-				data['platform'] = $('#indicator_platform').val();				
+				data['platform'] = $('#indicator_platform').val();
+
+				// Need to add original name and category if we are in edit mode
+				if ($('#myTitle').data('id') == "edit") {
+					data['originalname'] = $('#myTitle').data('iocname');
+					data['originalcategory'] = $('#myTitle').data('category');
+					data['iocuri'] = $('#myTitle').data('iocuri');
+				}
 
 				var myioctype;
 
@@ -339,7 +347,7 @@
 
 <form>
 	{% if iocname %}
-		<div id='myTitle' data-id='edit' class='tableTitle'>Edit Indicator - {{iocname|safe}}</div>
+		<div id='myTitle' data-id='edit' data-category='{{myioccategory|safe}}' data-iocname='{{iocname|safe}}' data-iocuri='{{myiocuri|safe}}' class='tableTitle'>Edit Indicator - {{iocname|safe}}</div>
 	{% else %}
 		<div id='myTitle' data-id='new' class='tableTitle'>New Indicator</div>
 	{% endif %}

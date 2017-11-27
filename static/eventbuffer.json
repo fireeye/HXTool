@@ -35,6 +35,7 @@
     { "name": "md5", "fullname": "fileWriteEvent/md5", "type": "md5"},
     { "name": "pid", "fullname": "fileWriteEvent/pid", "type": "integer"},
     { "name": "process", "fullname": "fileWriteEvent/process", "type": "text"},
+    { "name": "processPath", "fullname": "fileWriteEvent/processPath", "type": "text"},
     { "name": "writes", "fullname": "fileWriteEvent/writes", "type": "integer"},
     { "name": "numBytesSeenWritten", "fullname": "fileWriteEvent/numBytesSeenWritten", "type": "integer"},
     { "name": "lowestFileOffsetSeen", "fullname": "fileWriteEvent/lowestFileOffsetSeen", "type": "integer"},

@@ -582,6 +582,8 @@ def importioc(hx_api_object):
 @app.route('/rtioc', methods=['POST', 'GET'])
 @valid_session_required
 def rtioc(hx_api_object):
+
+		# New indicator mode
 		if request.method == 'GET':
 			
 			myEventFile = open('static/eventbuffer.json', 'r')
@@ -599,6 +601,7 @@ def rtioc(hx_api_object):
 				(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term='uri_name={0}'.format(uuid))
 				if ret:
 					iocname = response_data['data']['entries'][0]['name']
+					myiocuri = response_data['data']['entries'][0]['uri_name']
 					ioccategory = response_data['data']['entries'][0]['category']['uri_name']
 					platform = response_data['data']['entries'][0]['platforms'][0]
 
@@ -608,14 +611,17 @@ def rtioc(hx_api_object):
 					mypre = json.dumps(condition_class_presence['data']['entries'])
 					myexec = json.dumps(condition_class_execution['data']['entries'])
 
-				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
+				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, myiocuri=myiocuri, myioccategory=ioccategory, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
 			else:
 				(ret, response_code, response_data) = hx_api_object.restListCategories()
 				categories = formatCategoriesSelect(response_data)
 				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, eventspace=eventspace)
+
+		# New indicator created or edit mode engaged!		
 		elif request.method == 'POST':
 			mydata = request.get_json(silent=True)
 
+			# New indicator to be created (new mode)
 			if (request.args.get('mode') == "new"):
 				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], [mydata['platform']])
 				if ret:
@@ -644,9 +650,40 @@ def rtioc(hx_api_object):
 					return ('', 204)
 				else:
 					return ('', 500)
+
+			# Edit indicator
 			elif (request.args.get('mode') == "edit"):
-				# Edit mode
-				return('', 500)
+			
+				# TEMP TEMP TEMP	
+				ioc_guid = mydata['iocuri']
+
+				# Check if we have a new name
+				if mydata['originalname'] != mydata['name']:
+					print("name changed")
+
+				# Check if we have a new category
+				if mydata['originalcategory'] != mydata['category']:
+					print("category changed")
+
+				for key, value in mydata.items():
+					if key not in ['name', 'category', 'platform', 'originalname', 'originalcategory', 'iocuri']:
+						(iocguid, ioctype) = key.split("_")
+						mytests = {"tests": []}
+						for entry in value:
+							print({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
+							if not entry['negate'] and not entry['case']:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
+							elif entry['negate'] and not entry['case']:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
+							elif entry['case'] and not entry['negate']:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+							else:
+								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
+
+						(ret, response_code, response_data) = hx_api_object.restChangeCondition(mydata['category'], ioc_guid, ioctype, json.dumps(mytests), iocguid)
+						print(response_data)
+
+				return('', 204)
 			else:
 				# Invalid request
 				return('', 500)

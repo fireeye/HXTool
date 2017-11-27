@@ -16,7 +16,7 @@ class hxtool_session(CallbackDict, SessionMixin):
 			if not self.id:
 				self.new_session()
 				self.logger.debug("Creating a new session with id: {0}".format(self.id))
-			self.sign()
+#			self.sign()
 			self._ht_db.sessionUpdate(self.id, self, self.signature)
 			self.accessed = True
 			self.modified = True
@@ -41,9 +41,9 @@ class hxtool_session(CallbackDict, SessionMixin):
 		session_record = self._ht_db.sessionGet(self.id)
 		if session_record:
 			self.nonce = session_record['session_nonce']
-			if not session_record['session_signature'] == self.signature:
-				self.logger.warn("Session signature verification failed.")
-				return None
+#			if not session_record['session_signature'] == self.signature:
+#				self.logger.warn("Session signature verification failed.")
+#				return None
 			self.update(session_record['session_data'])
 			self.accessed = True
 			return self

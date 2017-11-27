@@ -358,6 +358,13 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	# Replaces tests with new tests, keeps unchanged tests
+	def restChangeCondition(self, ioc_category, ioc_guid, condition_class, condition_data, condition_id):
+
+		request = self.build_request(self.build_api_route('indicators/{0}/{1}/conditions/{2}/{3}'.format(ioc_category, ioc_guid, condition_class, condition_id)), method = 'PUT', data = condition_data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+
+		return(ret, response_code, response_data)
 		
 	# Grab conditions from an indicator
 	def restGetCondition(self, ioc_category, ioc_uri, condition_class, limit=10000):
