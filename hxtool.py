@@ -1350,7 +1350,7 @@ if __name__ == "__main__":
 	
 	# If we're debugging use a static key
 	if debug_mode:
-		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'
+		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode('utf-8')
 		app.logger.setLevel(logging.DEBUG)
 		app.logger.debug("Running in debugging mode.")
 	else:
