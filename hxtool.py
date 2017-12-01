@@ -593,7 +593,6 @@ def rtioc(hx_api_object):
 			if request.args.get('indicator'):
 
 				uuid = request.args.get('indicator')
-				# category = request.args.get('category')
 
 				(ret, response_code, response_data) = hx_api_object.restListCategories()
 				categories = formatCategoriesSelect(response_data)
@@ -612,6 +611,10 @@ def rtioc(hx_api_object):
 					myexec = json.dumps(condition_class_execution['data']['entries'])
 
 				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, myiocuri=myiocuri, myioccategory=ioccategory, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
+			elif request.args.get('delete'):
+				(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(request.args.get('category'), request.args.get('delete'))
+				if ret:
+					return redirect("/indicators", code=302)
 			else:
 				(ret, response_code, response_data) = hx_api_object.restListCategories()
 				categories = formatCategoriesSelect(response_data)
@@ -646,44 +649,47 @@ def rtioc(hx_api_object):
 								# Remove the indicator if condition push was unsuccessful
 								(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(mydata['category'], ioc_guid)
 								return ('', 500)
-
+					# All OK
 					return ('', 204)
 				else:
+					# Failed to create indicator
 					return ('', 500)
 
 			# Edit indicator
 			elif (request.args.get('mode') == "edit"):
-			
-				# TEMP TEMP TEMP	
-				ioc_guid = mydata['iocuri']
 
-				# Check if we have a new name
-				if mydata['originalname'] != mydata['name']:
-					print("name changed")
+				# Get the original URI
+				myOriginalURI = mydata['iocuri']
 
-				# Check if we have a new category
-				if mydata['originalcategory'] != mydata['category']:
-					print("category changed")
+				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], [mydata['platform']])
+				if ret:
+					myNewURI = response_data['data']['_id']
+					for key, value in mydata.items():
+						if key not in ['name', 'category', 'platform', 'originalname', 'originalcategory', 'iocuri']:
+							(iocguid, ioctype) = key.split("_")
+							mytests = {"tests": []}
+							for entry in value:
+								if not entry['negate'] and not entry['case']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
+								elif entry['negate'] and not entry['case']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
+								elif entry['case'] and not entry['negate']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+								else:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
 
-				for key, value in mydata.items():
-					if key not in ['name', 'category', 'platform', 'originalname', 'originalcategory', 'iocuri']:
-						(iocguid, ioctype) = key.split("_")
-						mytests = {"tests": []}
-						for entry in value:
-							print({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
-							if not entry['negate'] and not entry['case']:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
-							elif entry['negate'] and not entry['case']:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
-							elif entry['case'] and not entry['negate']:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+							(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], myNewURI, ioctype, json.dumps(mytests))
+							if ret:
+								# Remove the indicator if condition push was unsuccessful
+								(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(mydata['category'], myOriginalURI)
 							else:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
-
-						(ret, response_code, response_data) = hx_api_object.restChangeCondition(mydata['category'], ioc_guid, ioctype, json.dumps(mytests), iocguid)
-						print(response_data)
-
-				return('', 204)
+								# Failed to create indicator condition
+								return('', 500)
+					# Everything is OK
+					return('', 204)
+				else:
+					# Failed to create indicator
+					return('',500)
 			else:
 				# Invalid request
 				return('', 500)
