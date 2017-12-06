@@ -239,6 +239,11 @@ table.dataTable th {
 }
 
 .genericTableIOC tbody td:nth-child(7) {
+	width: 50px;
+	text-align: center;
+}
+
+.genericTableIOC tbody td:nth-child(8) {
 	width: 150px;
 	text-align: center;
 }
@@ -270,6 +275,11 @@ table.dataTable th {
 }
 
 .genericTableIOC thead th:nth-child(7) {
+	width: 50px;
+	text-align: center;
+}
+
+.genericTableIOC thead th:nth-child(8) {
 	width: 150px;
 	text-align: center;
 }

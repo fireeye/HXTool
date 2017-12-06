@@ -99,13 +99,17 @@
 			}
 			
 			// Append row to table
-			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td style=\'background: #eeeeee; text-align: left; border-right: none; font-weight: bold; font-size: 14px;\' colspan=\'6\'>Condition ' +  mytypehtml + '</td><td style=\'border-left: none; background: #eeeeee; text-align: center;\'><input id=\'gdelete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall\' type=\'button\' value=\'remove\'></td></tr>');
+			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td style=\'background: #eeeeee; text-align: left; border-right: none; font-weight: bold; font-size: 14px;\' colspan=\'7\'>Condition ' +  mytypehtml + '</td><td style=\'border-left: none; background: #eeeeee; text-align: center;\'><input id=\'gdelete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall conditionDeleteButton\' type=\'button\' value=\'remove\'></td></tr>');
 		}
 
-		function addElement(myguid) {
-
+		function addElement(myguid, optionalElement) {
 			//Append row to table
-			$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><input id=\'delete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall\' type=\'button\' value=\'remove\'></td></tr>');
+			if (optionalElement == undefined) {
+				$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><input type=\'button\' class=\'tableActionButton tableActionButtonSmall elementAddButton\' value=\'+\' id=\'add_' + myguid + '\'></td><td><input id=\'delete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall elementDeleteButton\' type=\'button\' value=\'remove\'></td></tr>');
+			}
+			else {
+				$('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><input type=\'button\' class=\'tableActionButton tableActionButtonSmall elementAddButton\' value=\'+\' id=\'add_' + myguid + '\'></td><td><input id=\'delete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall elementDeleteButton\' type=\'button\' value=\'remove\'></td></tr>').insertAfter($(optionalElement)).closest('tr');
+			}
 		}
 
 		function renderConditions(myconditions, myioctype, eventspace) {
@@ -196,49 +200,35 @@
 						// Last row is not a new condition
 						myguid = guid();
 						addCondition(myguid);
-						$("html, body").animate({ scrollTop: $(document).height() }, 1);
+						addElement(myguid);
+						getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
+						// $("html, body").animate({ scrollTop: $(document).height() }, 1);
 					}
 				}
 				else {
 					// First row
 					myguid = guid();
 					addCondition(myguid);
-				}
-
-				$("input[id^='gdelete_']").click(function() {
-					removeElements($(this));
-				});
-			});
-
-			// Adds new condition element
-			$('#add_element').click(function() {
-
-				if ($('#ioctable tr').length != 1) {
-					// Get the condition internal ID from the previous row
-					myguid = ($('#ioctable tr:last').data('id'));
-					// Add a new row to the table
 					addElement(myguid);
-
-					// Load the content into columns
-					$.getJSON('/static/eventbuffer.json', function(data) {
-						getGroups(data, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
-						$("html, body").animate({ scrollTop: $(document).height() }, 1);
-					});
+					getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
 				}
-				else {
-					enableStatusBarLive("You need to add a condition before you can add elements", 200, "ht_statusbar_notifyRed");
-				}
-
-				$("input[id^='delete_']").click(function() {
-					removeElements($(this));
-				});
 
 			});
 
-			$("input[id^='delete_']").click(function() {
+			// + button clicked - need to add new element on the next row
+			$('#ioctable').on('click', 'input.elementAddButton', function() {
+				myguid = ($(this).parent().parent().data('id'));
+				addElement(myguid, $(this).parent().parent());
+				getGroups(eventspace, $(this).parent().parent().next().find('td:first'), myguid);
+			});
+
+			// Delete button clicked - remove the element
+			$('#ioctable').on('click', 'input.elementDeleteButton', function() {
 				removeElements($(this));
 			});
-			$("input[id^='gdelete_']").click(function() {
+
+			// Condition delete button clicked
+			$('#ioctable').on('click', 'input.conditionDeleteButton', function() {
 				removeElements($(this));
 			});
 
@@ -351,10 +341,7 @@
 						enableStatusBarLive("Enter an indicator name!", 200, "ht_statusbar_notifyRed");
 					}
 				}
-
-				//$('#temp').html(JSON.stringify(data));
 			});
-
 		});
 	</script>
 
@@ -388,6 +375,7 @@
 			<th>Negate</th>
 			<th>Preserve Case</th>
 			<th>Matching Value</th>
+			<th>&nbsp;</th>
 			<th>Delete</th>
 		</thead>
 		<tbody>
@@ -396,7 +384,6 @@
 
 	<br>
 	<input type='button' class='tableActionButton' id='add_cond' value='add condition'>
-	<input type='button' class='tableActionButton' id='add_element' value='add element'>
 	<br><br>
 	<input type='button' class='tableActionButton' id='postbutton' value='submit'>
 </form>
