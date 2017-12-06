@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 ##################################################
 # hxTool - 3rd party user-interface for FireEye HX 
 #
@@ -505,15 +504,23 @@ def indicators(hx_api_object):
 		app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
 
+	(ret, response_code, response_data) = hx_api_object.restListCategories()
+	if ret:
+		mycategories = {}
+		for category in response_data['data']['entries']:
+			mycategories[category['_id']] = category['ui_edit_policy']
+
 	(ret, response_code, response_data) = hx_api_object.restListIndicators()
-	indicators = formatIOCResults(response_data)
+	indicators = formatIOCResults(response_data, mycategories)
 	return render_template('ht_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), indicators=indicators)
 
-@app.route('/indicatorcondition')
+@app.route('/indicatorcondition', methods=['GET'])
 @valid_session_required
 def indicatorcondition(hx_api_object):
 	uuid = request.args.get('uuid')
-	category = request.args.get('category')
+
+	(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term='uri_name={0}'.format(uuid))
+	category = response_data['data']['entries'][0]['category']['uri_name']
 
 	(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(category, uuid, 'presence')
 	(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(category, uuid, 'execution')
@@ -573,20 +580,30 @@ def importioc(hx_api_object):
 @app.route('/rtioc', methods=['POST', 'GET'])
 @valid_session_required
 def rtioc(hx_api_object):
+
+		# New indicator mode
 		if request.method == 'GET':
+			
+			myEventFile = open('static/eventbuffer.json', 'r')
+			eventspace = myEventFile.read()
+			myEventFile.close()
+
 			if request.args.get('indicator'):
 
 				uuid = request.args.get('indicator')
-				category = request.args.get('category')
 
 				(ret, response_code, response_data) = hx_api_object.restListCategories()
 				categories = formatCategoriesSelect(response_data)
 
-				(ret, response_code, response_data) = hx_api_object.restGetIndicatorName(category, uuid)
+				(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term='uri_name={0}'.format(uuid))
 				if ret:
-					iocname = response_data['data']['name']
-					ioccategory = response_data['data']['category']['name']
-					platform = response_data['data']['platforms'][0]
+					iocname = response_data['data']['entries'][0]['name']
+					myiocuri = response_data['data']['entries'][0]['uri_name']
+					ioccategory = response_data['data']['entries'][0]['category']['uri_name']
+					if len(response_data['data']['entries'][0]['platforms']) == 1:
+						platform = response_data['data']['entries'][0]['platforms'][0]
+					else:
+						platform = "all"
 
 					(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, uuid, 'presence')
 					(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, uuid, 'execution')
@@ -594,41 +611,100 @@ def rtioc(hx_api_object):
 					mypre = json.dumps(condition_class_presence['data']['entries'])
 					myexec = json.dumps(condition_class_execution['data']['entries'])
 
-				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, ioccategory=ioccategory, platform=platform, mypre=mypre, myexec=myexec)
+				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, myiocuri=myiocuri, myioccategory=ioccategory, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
+			elif request.args.get('delete'):
+				(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(request.args.get('category'), request.args.get('delete'))
+				if ret:
+					return redirect("/indicators", code=302)
 			else:
 				(ret, response_code, response_data) = hx_api_object.restListCategories()
 				categories = formatCategoriesSelect(response_data)
-				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories)
+				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, eventspace=eventspace)
+
+		# New indicator created or edit mode engaged!		
 		elif request.method == 'POST':
 			mydata = request.get_json(silent=True)
 
-			(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], [mydata['platform']])
-			if ret:
-				ioc_guid = response_data['data']['_id']
+			# New indicator to be created (new mode)
+			if (request.args.get('mode') == "new"):
 
-				for key, value in mydata.items():
-					if key not in ['name', 'category', 'platform']:
-						(iocguid, ioctype) = key.split("_")
-						mytests = {"tests": []}
-						for entry in value:
-							if not entry['negate'] and not entry['case']:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
-							elif entry['negate'] and not entry['case']:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
-							elif entry['case'] and not entry['negate']:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+				if mydata['platform'] == "all":
+					chosenplatform = ['win', 'osx']
+				else:
+					chosenplatform = [mydata['platform']]
+
+				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform)
+				if ret:
+					ioc_guid = response_data['data']['_id']
+
+					for key, value in mydata.items():
+						if key not in ['name', 'category', 'platform']:
+							(iocguid, ioctype) = key.split("_")
+							mytests = {"tests": []}
+							for entry in value:
+								if not entry['negate'] and not entry['case']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
+								elif entry['negate'] and not entry['case']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
+								elif entry['case'] and not entry['negate']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+								else:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
+
+							(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], ioc_guid, ioctype, json.dumps(mytests))
+							if not ret:
+								# Remove the indicator if condition push was unsuccessful
+								(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(mydata['category'], ioc_guid)
+								return ('', 500)
+					# All OK
+					return ('', 204)
+				else:
+					# Failed to create indicator
+					return ('', 500)
+
+			# Edit indicator
+			elif (request.args.get('mode') == "edit"):
+
+				# Get the original URI
+				myOriginalURI = mydata['iocuri']
+
+				if mydata['platform'] == "all":
+					chosenplatform = ['win', 'osx']
+				else:
+					chosenplatform = [mydata['platform']]
+
+				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform)
+				if ret:
+					myNewURI = response_data['data']['_id']
+					for key, value in mydata.items():
+						if key not in ['name', 'category', 'platform', 'originalname', 'originalcategory', 'iocuri']:
+							(iocguid, ioctype) = key.split("_")
+							mytests = {"tests": []}
+							for entry in value:
+								if not entry['negate'] and not entry['case']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
+								elif entry['negate'] and not entry['case']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
+								elif entry['case'] and not entry['negate']:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+								else:
+									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
+
+							(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], myNewURI, ioctype, json.dumps(mytests))
+							if ret:
+								# Remove the indicator if condition push was unsuccessful
+								(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(mydata['category'], myOriginalURI)
 							else:
-								mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
-
-						(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], ioc_guid, ioctype, json.dumps(mytests))
-						print(response_data)
-						if not ret:
-							return ('', 500)
-
-				return ('', 204)
+								# Failed to create indicator condition
+								return('', 500)
+					# Everything is OK
+					return('', 204)
+				else:
+					# Failed to create indicator
+					return('',500)
 			else:
-				print(response_data)
-				return ('', 500)
+				# Invalid request
+				return('', 500)
 
 ### Bulk Acqusiitions
 #########################

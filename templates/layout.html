@@ -30,15 +30,21 @@
 
 <script>
 
-	function showPopup(height, width, url) {
+	function showPopup(height, width, url, elementToRestrict) {
 		$('#shader').show();
 		$('#ht_popup_div').css({height : height });
 		$('#ht_popup_div').css({width : width });
 		$('#ht_popup_div').center();
 		$('#ht_popup_div').load(url, function( response, status, xhr ) {
 			$('#ht_popup_div').show(200);
+			// Force passed div to fit inside the popup
+			if ('#' + elementToRestrict) {
+				$('#' + elementToRestrict).css('height', height - 30);
+				$('#' + elementToRestrict).css('overflowY', 'auto');
+			}
 			$('#popupCancel').click(function(e) {
 				$('#ht_popup_div').hide();
+				$('#ht_popup_div').empty();
 				$('#shader').hide();
 			});
 		});
@@ -54,6 +60,18 @@
 		$("#ht_statusbar_div").html(text);
 		$("#ht_statusbar_div").addClass(myClass);
 		$("#ht_statusbar_div").slideDown(showTimer);
+	}
+
+	function enableStatusBarLive(text, showTimer, myClass) {
+		$("#ht_statusbar_div").html(text);
+		$("#ht_statusbar_div").addClass(myClass);
+		$("#ht_statusbar_div").slideDown(showTimer, function() {
+			setTimeout(function(){
+				$("#ht_statusbar_div").slideUp(showTimer, function() {
+					$("#ht_statusbar_div").html("");
+				});
+			}, 3000);
+		});
 	}
 	
 	function disableStatusBar(hideTimer) {
@@ -140,7 +158,7 @@
 		<tr>
 			<td class='ht_main_table_top_td'>
 				<a href='/?time=today'><img style='height: 58px; margin-left: 25px; margin-right: 20px; float: left;' src='/static/fireeye.svg'></a>
-				<div style='position: absolute; left: 120px; top: 45px; font-size: 12px; font-weight: bold;'>HXTool v3.0</div>
+				<div style='position: absolute; left: 120px; top: 45px; font-size: 12px; font-weight: bold;'>HXTool v3.1</div>
 				
 				<div id='navbutton_?time=today' style='float: left;' class='ht_nav_table_cell'>Dashboard</div>
 				<div id='navbutton_alerts?acount=20' style='float: left;' class='ht_nav_table_cell'>Alerts</div>

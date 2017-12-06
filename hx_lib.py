@@ -364,8 +364,7 @@ class HXAPI:
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
-
-		
+	
 	# Grab conditions from an indicator
 	def restGetCondition(self, ioc_category, ioc_uri, condition_class, limit=10000):
 
@@ -374,6 +373,12 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	def restDeleteCondition(self, ioc_category, ioc_uri, condition_class, condition_uuid):
+
+		request = self.build_request(self.build_api_route('indicators/{0}/{1}/conditions/{2}/{3}'.format(ioc_category, ioc_uri, condition_class, condition_uuid)), method = 'DELETE')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+
+		return(ret, response_code, response_data)
 
 	# Get indicator based on condition
 	def restGetIndicatorFromCondition(self, condition_id):
@@ -389,13 +394,6 @@ class HXAPI:
 		request = self.build_request(self.build_api_route('conditions/{0}'.format(condition_id)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
-		return(ret, response_code, response_data)
-
-	def restGetIndicatorName(self, category, iocuri):
-
-		request = self.build_request(self.build_api_route('indicators/{0}/{1}'.format(category, iocuri)))
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-
 		return(ret, response_code, response_data)
 
 
