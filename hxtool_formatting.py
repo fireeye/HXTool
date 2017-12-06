@@ -392,8 +392,12 @@ def formatConditions(cond_pre, cond_ex):
 			x += "<li>and"
 			x += "<ul>"
 			for test in entry['tests']:
-				if 'negate' in test:
+				if 'negate' in test and 'preservecase' in test:
+					x += "<li style=''>" + test['token'] + " <i><span style='color: red; font-weight: 700;'>not</span> " + test['operator'] + "</i> <b>preservecase(" + test['value'] + ")</b></li>"
+				elif 'negate' in test:
 					x += "<li style=''>" + test['token'] + " <i><span style='color: red; font-weight: 700;'>not</span> " + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+				elif 'preservecase' in test:
+					x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>preservecase(" + test['value'] + ")</b></li>"
 				else:
 					x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
 			x += "</ul>"
@@ -414,7 +418,14 @@ def formatConditions(cond_pre, cond_ex):
 			x += "<li>and"
 			x += "<ul>"
 			for test in entry['tests']:
-				x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+				if 'negate' in test and 'preservecase' in test:
+					x += "<li style=''>" + test['token'] + " <i><span style='color: red; font-weight: 700;'>not</span> " + test['operator'] + "</i> <b>preservecase(" + test['value'] + ")</b></li>"
+				elif 'negate' in test:
+					x += "<li style=''>" + test['token'] + " <i><span style='color: red; font-weight: 700;'>not</span> " + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
+				elif 'preservecase' in test:
+					x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>preservecase(" + test['value'] + ")</b></li>"
+				else:
+					x += "<li style=''>" + test['token'] + " <i>" + test['operator'] + "</i> <b>" + test['value'] + "</b></li>"
 			x += "</ul>"
 			x += "</li>"
 		
