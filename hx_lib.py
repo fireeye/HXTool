@@ -949,3 +949,10 @@ class HXAPI:
 				return base64.b64decode(s).decode(character_encoding)
 			return base64.b64decode(s)
 		return base64.b64encode(s).decode(character_encoding)
+		
+	@staticmethod
+	def compat_str(s):
+		try:
+			return unicode(s)
+		except NameError:
+			return str(s)
