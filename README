@@ -8,7 +8,7 @@ hxTool is a standalone tool that can be used with FireEye HX endpoint technology
 HXTool is a web based application that allows users to utilize functionality in the FireEye HX API.
 
 * Version
-3.0
+3.1
 
 ### How do I get set up? ###
 
@@ -26,6 +26,10 @@ Python Requests library
 Python Pycrypto library
 Python TinyDB library
 Python Pandas library
+
+Dependencies can be installed via 'pip install -r requirements.txt'. 
+On Windows systems, pip.exe can be found in the Scripts folder under your Python installation directory.
+
 
 ### Contribution guidelines ###
 
