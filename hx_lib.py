@@ -130,7 +130,12 @@ class HXAPI:
 			
 			if not response.encoding:
 				response.encoding = self.default_encoding
-				
+		
+			# The HX API documentations states that the controller will include a new
+			# token in the response when the existing token is nearing expiration
+			if 'X-FeApi-Token' in response.headers:
+				self.set_token(response_headers.get('X-FeApi-Token'))
+		
 			content_type = response.headers.get('Content-Type')
 			if content_type:
 				if 'json' in content_type:
