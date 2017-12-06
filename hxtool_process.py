@@ -60,16 +60,19 @@ class hxtool_background_processor:
 		self.profile_id = profile_id
 		self.thread_count = hxtool_config['background_processor']['poll_threads']
 		if not self.thread_count:
+			self.logger.debug("thread_count not specified, using the default of 4.")
 			self.thread_count = 4
 		self._task_queue = queue.Queue()
 		self._task_thread_list = []
 		self._stop_event = threading.Event()
 		self._poll_thread = threading.Thread(target = self.bulk_download_processor, name = "hxtool_background_processor - {0}".format(profile_id), args = (hxtool_config['background_processor']['poll_interval'], ))
+		self.logger.debug("__init__() complete")
 		
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.stop()
 		
 	def start(self, hx_api_username, hx_api_password):
+		self.logger.debug("start() called.")
 		for t in threading.enumerate():
 			if self.profile_id in t.name and t.is_alive():
 				self.logger.info("A background processor thread is already running for profile id: {0}".format(self.profile_id))
@@ -88,41 +91,46 @@ class hxtool_background_processor:
 			return False
 		
 	def stop(self):
+		self.logger.debug("stop() called.")
 		self._stop_event.set()
 		if self._poll_thread.is_alive():
 			self._poll_thread.join()
 		for task_thread in [_ for _ in self._task_thread_list if _.is_alive()]:
 			task_thread.join()
-		(ret, response_code, response_data) = self.hx_api_object.restLogout()
-
-	def bulk_download_processor(self, poll_interval):
-		while not self._stop_event.is_set():
-			bulk_download_jobs = self._ht_db.bulkDownloadList(self.profile_id)
-			for job in [_ for _ in bulk_download_jobs if not _['stopped']]:
-				download_directory = make_download_directory(self.hx_api_object.hx_host, job['bulk_download_id'])
-				for host_id, host in [(_, job['hosts'][_]) for _ in job['hosts'] if not job['hosts'][_]['downloaded']]:
-					(ret, response_code, response_data) = self.hx_api_object.restGetBulkHost(job['bulk_download_id'], host_id)
-					if ret:
-						if response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
-							full_path = os.path.join(download_directory, get_download_filename(host['hostname'], host_id))
-							self._task_queue.put((self.download_task, (job['bulk_download_id'], host_id, host['hostname'], job['post_download_handler'], response_data['data']['result']['url'], full_path)))
-			# Process Multi-File Acquisitions
-			for job in [_ for _ in self._ht_db.multiFileList(self.profile_id) if not _['stopped']]:
-				download_directory = make_download_directory(self.hx_api_object.hx_host, job.eid, job_type='multi_file')
-				for file_acq in [_ for _ in job['files'] if not _['downloaded']]:
-					(ret, response_code, response_data) = self.hx_api_object.restFileAcquisitionById(file_acq['acquisition_id'])
-					if ret:
-						if response_data['data']['state'] == "COMPLETE" and response_data['data']['url']:
-							full_path = os.path.join(download_directory, get_download_filename(file_acq['hostname'], file_acq['acquisition_id']))
-							self._task_queue.put((self.download_file, (job.eid, file_acq, response_data['data']['url']+'.zip', full_path)))
-			time.sleep(poll_interval)
-			
+		(ret, response_code, response_data) = self.hx_api_object.restLogout()	
+	
 	def await_task(self):
 		while not self._stop_event.is_set():
 			task = self._task_queue.get()
 			task[0](*task[1])
 			self._task_queue.task_done()
-			
+	
+	def bulk_download_processor(self, poll_interval):
+		while not self._stop_event.is_set():
+			bulk_download_jobs = self._ht_db.bulkDownloadList(self.profile_id)
+			for job in [_ for _ in bulk_download_jobs if not _['stopped']]:
+				self.logger.debug("Processing bulk download job id: {0}, post download handler: {1}.".format(job['bulk_download_id'], job['post_download_handler']))
+				download_directory = make_download_directory(self.hx_api_object.hx_host, job['bulk_download_id'])
+				for host_id, host in [(_, job['hosts'][_]) for _ in job['hosts'] if not job['hosts'][_]['downloaded']]:
+					(ret, response_code, response_data) = self.hx_api_object.restGetBulkHost(job['bulk_download_id'], host_id)
+					if ret:
+						if response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
+							self.logger.debug("Processing bulk download host: {0}".format(host['hostname']))
+							full_path = os.path.join(download_directory, get_download_filename(host['hostname'], host_id))
+							self._task_queue.put((self.download_task, (job['bulk_download_id'], host_id, host['hostname'], job['post_download_handler'], response_data['data']['result']['url'], full_path)))
+			# Process Multi-File Acquisitions
+			for job in [_ for _ in self._ht_db.multiFileList(self.profile_id) if not _['stopped']]:
+				self.logger.debug("Processing multi file acquisition job: {0}.".format(job.eid))
+				download_directory = make_download_directory(self.hx_api_object.hx_host, job.eid, job_type='multi_file')
+				for file_acq in [_ for _ in job['files'] if not _['downloaded']]:
+					(ret, response_code, response_data) = self.hx_api_object.restFileAcquisitionById(file_acq['acquisition_id'])
+					if ret:
+						if response_data['data']['state'] == "COMPLETE" and response_data['data']['url']:
+							self.logger.debug("Processing multi file acquisition host: {0}".format(file_acq['hostname']))
+							full_path = os.path.join(download_directory, get_download_filename(file_acq['hostname'], file_acq['acquisition_id']))
+							self._task_queue.put((self.download_file, (job.eid, file_acq, response_data['data']['url']+'.zip', full_path)))
+			time.sleep(poll_interval)
+	
 	def download_file(self, multi_file_id, file_acq, download_url, destination_path):
 		try:
 			(ret, response_code, response_data) = self.hx_api_object.restDownloadFile(download_url, destination_path)
@@ -150,7 +158,7 @@ class hxtool_background_processor:
 							# even after post processing
 							os.remove(os.path.realpath(destination_path))
 				self._ht_db.bulkDownloadUpdateHost(self.profile_id, bulk_download_id, host_id)
-				self.logger.debug("Bulk Download complete. bulk job: {0} host: {1}".format(bulk_download_id, hostname))
+				self.logger.debug("Bulk download complete. bulk job: {0} host: {1}".format(bulk_download_id, hostname))
 		except:
 			# TODO: re-raise for now, need to handle specific errors
 			raise
