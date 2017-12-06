@@ -6,7 +6,9 @@ from flask.sessions import SessionInterface, SessionMixin
 import os
 import hmac
 import hashlib
+
 from hx_lib import *
+
 
 class hxtool_session(CallbackDict, SessionMixin):
 	def __init__(self, app_secret, logger):
@@ -36,12 +38,16 @@ class hxtool_session(CallbackDict, SessionMixin):
 			self.update(session_record['session_data'])
 			self.accessed = False
 	
-		
+# expiration_delta is in minutes		
 class hxtool_session_interface(SessionInterface):
-	def __init__(self, hxtool_db_instance, logger):
+	def __init__(self, hxtool_db_instance, logger, expiration_delta=30):
 		self._ht_db = hxtool_db_instance
 		self.logger = logger
 		self.session_cache = {}
+		self.expiration_delta = expiration_delta
+	
+	def get_expiration_time(app, session):
+		return datetime.datetime.now() + datetime.timedelta(minutes=self.expiration_delta)
 		
 	def open_session(self, app, request):
 		session = hxtool_session(app.secret_key, self.logger)
@@ -91,4 +97,4 @@ class hxtool_session_interface(SessionInterface):
 		cookie_path = self.get_cookie_path(app)
 		http_only = self.get_cookie_httponly(app)
 		secure = self.get_cookie_secure(app)	
-		response.set_cookie(app.session_cookie_name, session.id, path=cookie_path, httponly=http_only, secure=secure, domain=cookie_domain)	
+		response.set_cookie(app.session_cookie_name, session.id, expires=self.get_expiration_time(app, session), path=cookie_path, httponly=http_only, secure=secure, domain=cookie_domain)	
