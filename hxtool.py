@@ -64,7 +64,7 @@ from hxtool_session import *
 app = Flask(__name__, static_url_path='/static')
 
 HXTOOL_API_VERSION = 1
-
+default_encoding = 'utf-8'
 ht_config = None
 ht_db = None
 
