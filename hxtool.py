@@ -26,13 +26,7 @@ import xml.etree.ElementTree as ET
 from string import Template
 from xml.sax.saxutils import escape as xmlescape
 import re
-
-try:
-	import StringIO
-except ImportError:
-	# Running on Python 3.x
-	from io import StringIO
-	from io import BytesIO
+from io import BytesIO
 
 # Flask imports
 try:
@@ -942,7 +936,7 @@ def file_listing(hx_api_object):
 			#TODO: Handle invalid regex with response. (Inline AJAX?)
 			raise
 		if script_xml:
-			bulkid = submit_bulk_job(hx_api_object, hostset, script_xml.encode('utf-8'), handler="file_listing")
+			bulkid = submit_bulk_job(hx_api_object, hostset, script_xml.encode(default_encoding), handler="file_listing")
 			ret = ht_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulkid, path, regex, depth, display_name, api_mode=use_api_mode)
 			app.logger.info('New File Listing - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/multifile", code=302)
@@ -1144,7 +1138,7 @@ def login():
 			ht_profile = ht_db.profileGet(request.form['controllerProfileDropdown'])
 			if ht_profile:	
 
-				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = ht_config['network'].get('proxies'), headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger)
+				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = ht_config['network'].get('proxies'), headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger, default_encoding = default_encoding)
 
 				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
 				if ret:
@@ -1348,7 +1342,7 @@ if __name__ == "__main__":
 	
 	# If we're debugging use a static key
 	if debug_mode:
-		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode('utf-8')
+		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
 		app.logger.setLevel(logging.DEBUG)
 		app.logger.debug("Running in debugging mode.")
 	else:
