@@ -174,7 +174,7 @@ def index(hx_api_object):
 		
 		talerts_list = []
 		for key in talert_dates:
-			talerts_list.append({"date": str(key), "count": talert_dates[key]})
+			talerts_list.append({"date": HXAPI.compat_str(key), "count": talert_dates[key]})
 
 		# Info table
 		(ret, response_code, response_data) = hx_api_object.restListHosts()
@@ -529,7 +529,7 @@ def indicatorcondition(hx_api_object):
 def categories(hx_api_object):
 	if request.method == 'POST':
 		catname = request.form.get('catname')
-		(ret, response_code, response_data) = hx_api_object.restCreateCategory(str(catname))
+		(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(catname))
 		app.logger.info('New indicator category created - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 
@@ -641,7 +641,7 @@ def listbulk(hx_api_object):
 		bulk_acquisition_script = f.read()
 		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['bulkhostset'])
 		hosts = [{'_id' : host['_id']} for host in response_data['data']['entries']]
-		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts, comment = json.dumps({'hostset_id' : str(request.form['bulkhostset'])}))
+		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts, comment = json.dumps({'hostset_id' : HXAPI.compat_str(request.form['bulkhostset'])}))
 		app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
@@ -770,7 +770,7 @@ def reportgen(hx_api_object):
 			(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(reportFrom, reportTo)
 			
 			if request.args.get('type') == "csv":
-				reportdata = str(formatAlertsCsv(response_data, hx_api_object))
+				reportdata = HXAPI.compat_str(formatAlertsCsv(response_data, hx_api_object))
 				fname = 'report.csv'
 				
 		if request.args.get('id') == "2":
