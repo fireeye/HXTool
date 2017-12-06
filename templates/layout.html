@@ -61,6 +61,18 @@
 		$("#ht_statusbar_div").addClass(myClass);
 		$("#ht_statusbar_div").slideDown(showTimer);
 	}
+
+	function enableStatusBarLive(text, showTimer, myClass) {
+		$("#ht_statusbar_div").html(text);
+		$("#ht_statusbar_div").addClass(myClass);
+		$("#ht_statusbar_div").slideDown(showTimer, function() {
+			setTimeout(function(){
+				$("#ht_statusbar_div").slideUp(showTimer, function() {
+					$("#ht_statusbar_div").html("");
+				});
+			}, 3000);
+		});
+	}
 	
 	function disableStatusBar(hideTimer) {
 		$("#ht_statusbar_div").slideUp(hideTimer, function() {

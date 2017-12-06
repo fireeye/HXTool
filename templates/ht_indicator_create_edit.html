@@ -129,6 +129,34 @@
 			});
 		}
 
+		function removeElements(startElement) {
+			// Get the guid from the row
+			currguid = ($(startElement).parent().parent().data('id'));
+
+			// Delete the whole condition
+			if ($(startElement).attr('id').startsWith('gdelete_')) {
+				$('#ioctable tr[data-id="' + currguid + '"]').css('background-color', '#f49c89');
+				$('#ioctable tr[data-id="' + currguid + '"]').fadeTo(200,0.1, function(){
+					$(this).remove();
+				})
+			}
+
+			// Last row in condition - need to remove the entire condition
+			if ($('#ioctable tr[data-id="' + currguid + '"]').length == 2) {
+				$('#ioctable tr[data-id="' + currguid + '"]').css('background-color', '#f49c89');
+				$('#ioctable tr[data-id="' + currguid + '"]').fadeTo(200,0.1, function(){
+					$(this).remove();
+				})
+			}
+			// Just remove the row there are other rows left in the condition
+			else {
+				$(startElement).parent().parent().css('background-color', '#f49c89');
+				$(startElement).parent().parent().fadeTo(200,0.1, function(){
+					$(this).remove();
+				})
+			}
+		}
+
 		$(document).ready(function() {
 
 			// Import event space
@@ -162,7 +190,7 @@
 
 				if (typeof $('#ioctable').find('tr').last().attr('id') !== 'undefined') {
 					if ($('#ioctable').find('tr').last().attr('id').startsWith('condition_') ) {
-						alert("Add elements to your condition before adding a new condition");
+						enableStatusBarLive("Add elements to your condition before adding a new condition", 200, "ht_statusbar_notifyRed");
 					}
 					else {
 						// Last row is not a new condition
@@ -177,13 +205,8 @@
 					addCondition(myguid);
 				}
 
-				// Delete rows of condition when clicked
 				$("input[id^='gdelete_']").click(function() {
-					currguid = ($(this).parent().parent().data('id'));
-					$('#ioctable tr[data-id="' + currguid + '"]').css('background-color', '#f49c89');
-					$('#ioctable tr[data-id="' + currguid + '"]').fadeTo(600,0.1, function(){
-						$(this).remove();
-					})
+					removeElements($(this));
 				});
 			});
 
@@ -203,30 +226,20 @@
 					});
 				}
 				else {
-					alert("You need to add a condition before you can add elements");
+					enableStatusBarLive("You need to add a condition before you can add elements", 200, "ht_statusbar_notifyRed");
 				}
 
-				// Delete row when clicked
 				$("input[id^='delete_']").click(function() {
-
-					// Get the guid from the row
-					currguid = ($(this).parent().parent().data('id'));
-
-					// Last row in condition - need to remove the entire condition
-					if ($('#ioctable tr[data-id="' + currguid + '"]').length == 2) {
-						$('#ioctable tr[data-id="' + currguid + '"]').css('background-color', '#f49c89');
-						$('#ioctable tr[data-id="' + currguid + '"]').fadeTo(200,0.1, function(){
-							$(this).remove();
-						})
-					}
-					// Just remove the row there are other rows left in the condition
-					else {
-						$(this).parent().parent().css('background-color', '#f49c89');
-						$(this).parent().parent().fadeTo(200,0.1, function(){
-							$(this).remove();
-						})
-					}
+					removeElements($(this));
 				});
+
+			});
+
+			$("input[id^='delete_']").click(function() {
+				removeElements($(this));
+			});
+			$("input[id^='gdelete_']").click(function() {
+				removeElements($(this));
 			});
 
 			$('body').on('change','select',function(){
@@ -308,12 +321,12 @@
 								window.location.href = "/indicators";
 							},
 							error: function (xhr, status) {
-								alert("One or more conditions are invalid. Please resolve conditions and resubmit.");
+								enableStatusBarLive("One or more conditions are invalid. Please resolve conditions and resubmit.", 200, "ht_statusbar_notifyRed");
 							}
 						})
 					}
 					else {
-						alert("Enter an indicator name!");
+						enableStatusBarLive("Enter an indicator name!", 200, "ht_statusbar_notifyRed");
 					}
 				}
 				// Post new indicator edit request (edit mode)
@@ -330,12 +343,12 @@
 								window.location.href = "/indicators";
 							},
 							error: function (xhr, status) {
-								alert("One or more conditions are invalid. Please resolve conditions and resubmit.");
+								enableStatusBarLive("One or more conditions are invalid. Please resolve conditions and resubmit.", 200, "ht_statusbar_notifyRed");
 							}
 						})
 					}
 					else {
-						alert("Enter an indicator name!");
+						enableStatusBarLive("Enter an indicator name!", 200, "ht_statusbar_notifyRed");
 					}
 				}
 

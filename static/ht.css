@@ -33,6 +33,14 @@
 	color: #ffffff;
 }
 
+.ht_statusbar_notifyRed {
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-size: 14px;
+	background: rgb(219, 24, 24);
+	font-weight: bold;
+	color: #ffffff;
+}
+
 .morris-hover {
 	position: absolute;
 	padding: 20px;

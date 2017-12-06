@@ -512,8 +512,14 @@ def indicators(hx_api_object):
 		app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
 
+	(ret, response_code, response_data) = hx_api_object.restListCategories()
+	if ret:
+		mycategories = {}
+		for category in response_data['data']['entries']:
+			mycategories[category['_id']] = category['ui_edit_policy']
+
 	(ret, response_code, response_data) = hx_api_object.restListIndicators()
-	indicators = formatIOCResults(response_data)
+	indicators = formatIOCResults(response_data, mycategories)
 	return render_template('ht_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), indicators=indicators)
 
 @app.route('/indicatorcondition', methods=['GET'])
@@ -602,7 +608,10 @@ def rtioc(hx_api_object):
 					iocname = response_data['data']['entries'][0]['name']
 					myiocuri = response_data['data']['entries'][0]['uri_name']
 					ioccategory = response_data['data']['entries'][0]['category']['uri_name']
-					platform = response_data['data']['entries'][0]['platforms'][0]
+					if len(response_data['data']['entries'][0]['platforms']) == 1:
+						platform = response_data['data']['entries'][0]['platforms'][0]
+					else:
+						platform = "all"
 
 					(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, uuid, 'presence')
 					(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, uuid, 'execution')
@@ -626,7 +635,13 @@ def rtioc(hx_api_object):
 
 			# New indicator to be created (new mode)
 			if (request.args.get('mode') == "new"):
-				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], [mydata['platform']])
+
+				if mydata['platform'] == "all":
+					chosenplatform = ['win', 'osx']
+				else:
+					chosenplatform = [mydata['platform']]
+
+				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform)
 				if ret:
 					ioc_guid = response_data['data']['_id']
 
@@ -661,7 +676,12 @@ def rtioc(hx_api_object):
 				# Get the original URI
 				myOriginalURI = mydata['iocuri']
 
-				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], [mydata['platform']])
+				if mydata['platform'] == "all":
+					chosenplatform = ['win', 'osx']
+				else:
+					chosenplatform = [mydata['platform']]
+
+				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform)
 				if ret:
 					myNewURI = response_data['data']['_id']
 					for key, value in mydata.items():

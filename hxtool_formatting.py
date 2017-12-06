@@ -313,7 +313,7 @@ def formatBulkHostsTable(hoststable):
 	return (x)
 
 
-def formatIOCResults(iocs):
+def formatIOCResults(iocs, mycategories):
 
 	x = "<table id='iocTable' class='genericTable' style='width: 100%;'>"
 	x += "<thead>"
@@ -332,7 +332,7 @@ def formatIOCResults(iocs):
 	x += "<tbody>"
 	
 	for entry in iocs['data']['entries']:
-		
+
 		p = ""
 		for platform in entry['platforms']:
 			p += platform + ","
@@ -351,9 +351,11 @@ def formatIOCResults(iocs):
 		x += "<td>" + str(entry['stats']['active_conditions']) + "</td>"
 		x += "<td>" + str(entry['stats']['alerted_agents']) + "</td>"
 		x += "<td>"
-		x += "<a class='tableActionButton' href='/rtioc?indicator=" + str(entry['uri_name']) + "'>edit</a>"
+		if (mycategories[entry['category']['_id']] in ['full', 'edit_delete']):
+			x += "<a class='tableActionButton' href='/rtioc?indicator=" + str(entry['uri_name']) + "'>edit</a>"
 		x += "<button class='tableActionButton' id='iocview_{0}' data-id='{0}'>view</button>".format(entry['uri_name'])
-		x += "<a class='tableActionButton' href='/rtioc?delete=" + str(entry['uri_name']) + "&category=" + str(entry['category']['name']) + "'>delete</a>"
+		if (mycategories[entry['category']['_id']] in ['full', 'edit_delete', 'delete']):
+			x += "<a class='tableActionButton' href='/rtioc?delete=" + str(entry['uri_name']) + "&category=" + str(entry['category']['name']) + "'>delete</a>"
 		x += "</td>"
 		x += "</tr>"
 
