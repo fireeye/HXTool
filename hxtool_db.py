@@ -327,6 +327,10 @@ class hxtool_db:
 													'session_data'		: None,
 													'update_timestamp'	: None})
 	
+	def sessionList(self):
+		with self._lock:
+			return self._db.table('session').all()
+	
 	def sessionGet(self, session_id):
 		with self._lock:
 			return self._db.table('session').get((tinydb.Query()['session_id'] == session_id))

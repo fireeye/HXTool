@@ -1446,8 +1446,9 @@ if __name__ == "__main__":
 	# Init DB
 	ht_db = hxtool_db('hxtool.db', logger = app.logger)
 	
-	app.session_interface = hxtool_session_interface(ht_db, app.logger, expiration_delta=ht_config['network']['session_timeout'])
+	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	
+	app.session_interface = hxtool_session_interface(ht_db, app.logger, expiration_delta=ht_config['network']['session_timeout'])
 	if ht_config['network']['ssl'] == "enabled":
 		context = (ht_config['ssl']['cert'], ht_config['ssl']['key'])
 		app.run(host=ht_config['network']['listen_address'], port=ht_config['network']['port'], ssl_context=context, threaded=True)
