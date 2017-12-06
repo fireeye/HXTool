@@ -338,39 +338,25 @@ def formatIOCResults(iocs, mycategories):
 			p += platform + ","
 		p = p[:-1]
 		
-<<<<<<< HEAD
-		x += "<tr class='clickable-row' data-value='" + HXAPI.compat_str(entry['category']['uri_name']) + "___" + HXAPI.compat_str(entry['uri_name']) + "'>"
+		x += "<tr data-value='" + HXAPI.compat_str(entry['category']['uri_name']) + "___" + HXAPI.compat_str(entry['uri_name']) + "'>"
 		x += "<td><input type='checkbox' name='ioc___" + HXAPI.compat_str(entry['display_name']) + "___" + HXAPI.compat_str(entry['category']['uri_name']) + "___" + HXAPI.compat_str(p) + "' value='" + HXAPI.compat_str(entry['uri_name']) + "'></td>"
 		x += "<td>" + HXAPI.compat_str(entry['name']) + "</td>"
 		x += "<td>" + HXAPI.compat_str(entry['active_since']) + "</td>"
 		x += "<td>" + HXAPI.compat_str(entry['create_actor']['username']) + "</td>"
 		x += "<td>" + HXAPI.compat_str(entry['category']['name']) + "</td>"
-=======
-		x += "<tr data-value='" + str(entry['category']['uri_name']) + "___" + str(entry['uri_name']) + "'>"
-		x += "<td><input type='checkbox' name='ioc___" + str(entry['display_name']) + "___" + str(entry['category']['uri_name']) + "___" + str(p) + "' value='" + str(entry['uri_name']) + "'></td>"
-		x += "<td>" + str(entry['name']) + "</td>"
-		x += "<td>" + str(entry['active_since']) + "</td>"
-		x += "<td>" + str(entry['create_actor']['username']) + "</td>"
-		x += "<td>" + str(entry['category']['name']) + "</td>"
->>>>>>> origin/master
 		x += "<td>"
 		for platform in entry['platforms']:
 			x += HXAPI.compat_str(platform) + "&nbsp"
 		x += "</td>"
-<<<<<<< HEAD
 		x += "<td>" + HXAPI.compat_str(entry['stats']['active_conditions']) + "</td>"
 		x += "<td>" + HXAPI.compat_str(entry['stats']['alerted_agents']) + "</td>"
-=======
-		x += "<td>" + str(entry['stats']['active_conditions']) + "</td>"
-		x += "<td>" + str(entry['stats']['alerted_agents']) + "</td>"
 		x += "<td>"
 		if (mycategories[entry['category']['_id']] in ['full', 'edit_delete']):
-			x += "<a class='tableActionButton' href='/rtioc?indicator=" + str(entry['uri_name']) + "'>edit</a>"
+			x += "<a class='tableActionButton' href='/rtioc?indicator=" + HXAPI.compat_str(entry['uri_name']) + "'>edit</a>"
 		x += "<button class='tableActionButton' id='iocview_{0}' data-id='{0}'>view</button>".format(entry['uri_name'])
 		if (mycategories[entry['category']['_id']] in ['full', 'edit_delete', 'delete']):
-			x += "<a class='tableActionButton' href='/rtioc?delete=" + str(entry['uri_name']) + "&category=" + str(entry['category']['name']) + "'>delete</a>"
+			x += "<a class='tableActionButton' href='/rtioc?delete=" + HXAPI.compat_str(entry['uri_name']) + "&category=" + HXAPI.compat_str(entry['category']['name']) + "'>delete</a>"
 		x += "</td>"
->>>>>>> origin/master
 		x += "</tr>"
 
 	x += "</tbody>"
