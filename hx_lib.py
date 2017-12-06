@@ -57,6 +57,8 @@ class HXAPI:
 			self.logger.info("Proxy support enabled.")
 		
 		self.hx_user = None
+		self._hx_password = None
+		self.auto_renew_token = False
 		self.fe_token = None
 		self.api_version = self.HX_MIN_API_VERSION
 		self.hx_version = [0, 0, 0]
@@ -208,7 +210,7 @@ class HXAPI:
 	# A response code of 401 means that the
 	# authentication request failed.
 	# See page 47 in the API guide
-	def restLogin(self, hx_api_username, hx_api_password):
+	def restLogin(self, hx_api_username, hx_api_password, auto_renew_token = False):
 	
 		request = self.build_request(self.build_api_route('token', min_api_version = 1), auth = (hx_api_username, hx_api_password))
 
@@ -218,6 +220,9 @@ class HXAPI:
 			self.logger.debug('Token granted.')
 			self.set_token(response_headers.get('X-FeApi-Token'))
 			self.hx_user = hx_api_username
+			self.auto_renew_token = auto_renew_token
+			if self.auto_renew_token:
+				self._hx_password = hx_api_password
 			self._set_version()
 		else:
 			ret = False
@@ -242,16 +247,18 @@ class HXAPI:
 	# or 2.5 hours, whichever comes first.
 	# See page 47 of the API guide
 	def restIsSessionValid(self):
-		
+		is_valid = False
 		current_token = self.get_token(update_last_use_timestamp=False)
 		if current_token:
 			last_use_delta = (datetime.datetime.utcnow() - datetime.datetime.strptime(current_token['last_use_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds / 60
 			grant_time_delta = (datetime.datetime.utcnow() - datetime.datetime.strptime(current_token['grant_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds / 60
-			return(last_use_delta < 15 and grant_time_delta < 150) 
-		else:
-			return(False)
+			is_valid = (last_use_delta < 15 and grant_time_delta < 150)
+		
+		if self.auto_renew_token and not is_valid:
+			(is_valid, response_code, response_data) = self.restLogin(self.hx_user, self._hx_password, self.auto_renew_token)
 			
-			
+		return is_valid
+		
 	def restGetControllerVersion(self):
 
 		request = self.build_request(self.build_api_route('version', min_api_version = 1))
