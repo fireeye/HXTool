@@ -46,7 +46,7 @@ class hxtool_session_interface(SessionInterface):
 		self.session_cache = {}
 		self.expiration_delta = expiration_delta
 	
-	def get_expiration_time(app, session):
+	def get_expiration_time(self, app, session):
 		return datetime.datetime.now() + datetime.timedelta(minutes=self.expiration_delta)
 		
 	def open_session(self, app, request):
