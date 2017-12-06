@@ -25,7 +25,8 @@ class hxtool_config:
 		'network' : {
 			'ssl' : 'enabled',
 			'port' : 8080,
-			'listen_address' : '0.0.0.0'
+			'listen_address' : '0.0.0.0',
+			'session_timeout' : 30
 		},
 		'ssl' : {
 			'cert' : 'hxtool.crt',

@@ -11,7 +11,8 @@
    "network":{  
       "ssl":"enabled",
       "port":8080,
-      "listen_address":"0.0.0.0"
+      "listen_address":"0.0.0.0",
+	  "session_timout":30
    },
    "ssl":{ 
       "cert":"hxtool.crt",
