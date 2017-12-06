@@ -56,8 +56,7 @@ class hxtool_background_processor:
 		self._ht_db = hxtool_db
 		# TODO: maybe replace with hx_hostname, hx_port variables in __init__
 		profile = self._ht_db.profileGet(profile_id)
-		self._hx_api_object = HXAPI(profile['hx_host'], profile['hx_port'], proxies = hxtool_config['network'].get('proxies'), headers = hxtool_config['headers'], cookies = hxtool_config['cookies'], logger = self.logger)
-		self._hx_api_lock = threading.Lock()
+		self.hx_api_object = HXAPI(profile['hx_host'], profile['hx_port'], proxies = hxtool_config['network'].get('proxies'), headers = hxtool_config['headers'], cookies = hxtool_config['cookies'], logger = self.logger)
 		self.profile_id = profile_id
 		self.thread_count = hxtool_config['background_processor']['poll_threads']
 		if not self.thread_count:
@@ -75,9 +74,7 @@ class hxtool_background_processor:
 			if self.profile_id in t.name and t.is_alive():
 				self.logger.info("A background processor thread is already running for profile id: {0}".format(self.profile_id))
 				return False
-		self._hx_api_username = hx_api_username
-		self._hx_api_password = hx_api_password
-		(ret, response_code, response_data) = self.hx_api_object(renew_expired_token = False).restLogin(hx_api_username, hx_api_password)
+		(ret, response_code, response_data) = self.hx_api_object.restLogin(hx_api_username, hx_api_password, auto_renew_token = True)
 		if ret:
 			self._poll_thread.start()
 			for i in range(1, self.thread_count):
@@ -96,33 +93,24 @@ class hxtool_background_processor:
 			self._poll_thread.join()
 		for task_thread in [_ for _ in self._task_thread_list if _.is_alive()]:
 			task_thread.join()
-		if self.hx_api_object(renew_expired_token = False).restIsSessionValid():
-			(ret, response_code, response_data) = self.hx_api_object(renew_expired_token = False).restLogout()
+		(ret, response_code, response_data) = self.hx_api_object.restLogout()
 
-	def hx_api_object(self, renew_expired_token = True):
-		if renew_expired_token and not self._hx_api_object.restIsSessionValid():
-			with self._hx_api_lock:
-				(ret, response_code, response_data) = self._hx_api_object.restLogin(self._hx_api_username, self._hx_api_password)
-				if not ret:
-					raise ValueError("HX controller returned code: %s, message: %s.", response_code, response_data)
-		return self._hx_api_object
-		
 	def bulk_download_processor(self, poll_interval):
 		while not self._stop_event.is_set():
 			bulk_download_jobs = self._ht_db.bulkDownloadList(self.profile_id)
 			for job in [_ for _ in bulk_download_jobs if not _['stopped']]:
-				download_directory = make_download_directory(self.hx_api_object().hx_host, job['bulk_download_id'])
+				download_directory = make_download_directory(self.hx_api_object.hx_host, job['bulk_download_id'])
 				for host_id, host in [(_, job['hosts'][_]) for _ in job['hosts'] if not job['hosts'][_]['downloaded']]:
-					(ret, response_code, response_data) = self.hx_api_object().restGetBulkHost(job['bulk_download_id'], host_id)
+					(ret, response_code, response_data) = self.hx_api_object.restGetBulkHost(job['bulk_download_id'], host_id)
 					if ret:
 						if response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
 							full_path = os.path.join(download_directory, get_download_filename(host['hostname'], host_id))
 							self._task_queue.put((self.download_task, (job['bulk_download_id'], host_id, host['hostname'], job['post_download_handler'], response_data['data']['result']['url'], full_path)))
 			# Process Multi-File Acquisitions
 			for job in [_ for _ in self._ht_db.multiFileList(self.profile_id) if not _['stopped']]:
-				download_directory = make_download_directory(self.hx_api_object().hx_host, job.eid, job_type='multi_file')
+				download_directory = make_download_directory(self.hx_api_object.hx_host, job.eid, job_type='multi_file')
 				for file_acq in [_ for _ in job['files'] if not _['downloaded']]:
-					(ret, response_code, response_data) = self._hx_api_object.restFileAcquisitionById(file_acq['acquisition_id'])
+					(ret, response_code, response_data) = self.hx_api_object.restFileAcquisitionById(file_acq['acquisition_id'])
 					if ret:
 						if response_data['data']['state'] == "COMPLETE" and response_data['data']['url']:
 							full_path = os.path.join(download_directory, get_download_filename(file_acq['hostname'], file_acq['acquisition_id']))
@@ -137,7 +125,7 @@ class hxtool_background_processor:
 			
 	def download_file(self, multi_file_id, file_acq, download_url, destination_path):
 		try:
-			(ret, response_code, response_data) = self._hx_api_object.restDownloadFile(download_url, destination_path)
+			(ret, response_code, response_data) = self.hx_api_object.restDownloadFile(download_url, destination_path)
 			if ret:
 				self._ht_db.multiFileUpdateFile(self.profile_id, multi_file_id, file_acq['acquisition_id'])
 				self.logger.info("File Acquisition download complete. Acquisition ID: {0}, Batch: {1}".format(file_acq['acquisition_id'], multi_file_id))
@@ -147,12 +135,12 @@ class hxtool_background_processor:
 				
 	def download_task(self, bulk_download_id, host_id, hostname, post_download_handler, download_url, destination_path):
 		try:
-			(ret, response_code, response_data) = self.hx_api_object().restDownloadFile(download_url, destination_path)
+			(ret, response_code, response_data) = self.hx_api_object.restDownloadFile(download_url, destination_path)
 			if ret:
 				# TODO: commenting out for now as a stopped bulk download job
 				# will still give the option to download the individual host
 				# acquisitions, which will result in a 404
-				# self.hx_api_object().restDeleteFile(download_url)
+				# self.hx_api_object.restDeleteFile(download_url)
 				if post_download_handler:
 					handler = self.post_download_handlers.get(post_download_handler)
 					if handler is not None:

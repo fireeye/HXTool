@@ -26,28 +26,28 @@ def formatListSearches(s):
 	x += "<tbody>"
 
 	for entry in s['data']['entries']:
-		x += "<tr class='clickable-row' data-href='/searchresult?id=" + str(entry['_id']) + "'>"
-		x += "<td>" + str(entry['_id']) + "</td>"
+		x += "<tr class='clickable-row' data-href='/searchresult?id=" + HXAPI.compat_str(entry['_id']) + "'>"
+		x += "<td>" + HXAPI.compat_str(entry['_id']) + "</td>"
 		x += "<td>" + entry['input_type'] + "</td>"
 		x += "<td>" + entry['create_time'] + "</td>"
 		x += "<td>" + entry['host_set']['name'] + "</td>"
 		x += "<td>" + entry['state'] + "</td>"
-		x += "<td>" + str(entry['stats']['hosts']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['COMPLETE']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['QUEUED']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['FAILED']) + "</td>"
-		x += "<td>" + str(entry['stats']['search_state']['MATCHED']) + "</td>"
-		x += "<td>" + str(entry['stats']['search_state']['NOT_MATCHED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['hosts']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['COMPLETE']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['QUEUED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['FAILED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['search_state']['MATCHED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['search_state']['NOT_MATCHED']) + "</td>"
 		x += "<td>"
 		if entry['stats']['hosts'] > 0:
 			completerate = (float(entry['stats']['running_state']['COMPLETE']) / float(entry['stats']['hosts'])) * 100
 		else:
 			completerate = 0
-		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry['_id']) + "' data-percent='" + str(int(round(completerate))) + "'></div></div>"
+		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + HXAPI.compat_str(entry['_id']) + "' data-percent='" + HXAPI.compat_str(int(round(completerate))) + "'></div></div>"
 		x += "</td>"
 		x += "<td>" 
-		x += "<a class='tableActionButton' href='/searchaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
-		x += "<a class='tableActionButton' href='/searchaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
+		x += "<a class='tableActionButton' href='/searchaction?action=stop&id=" + HXAPI.compat_str(entry['_id']) + "'>stop</a>"
+		x += "<a class='tableActionButton' href='/searchaction?action=remove&id=" + HXAPI.compat_str(entry['_id']) + "'>remove</a>"
 		x += "</td>"
 		x += "</tr>"
 
@@ -86,15 +86,15 @@ def formatListSearchesJobDash(s):
 		x += "<td>" + entry['create_time'] + "</td>"
 		x += "<td>" + entry['host_set']['name'] + "</td>"
 		x += "<td>" + entry['state'] + "</td>"
-		x += "<td>" + str(entry['stats']['hosts']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['COMPLETE']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['hosts']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['COMPLETE']) + "</td>"
 		
 		
-		x += "<td>" + str(entry['stats']['search_state']['MATCHED']) + "</td>"
-		x += "<td>" + str(entry['stats']['search_state']['NOT_MATCHED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['search_state']['MATCHED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['search_state']['NOT_MATCHED']) + "</td>"
 		x += "<td>" 
-		x += "<a class='tableActionButton' href='/searchaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
-		x += "<a class='tableActionButton' href='/searchaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
+		x += "<a class='tableActionButton' href='/searchaction?action=stop&id=" + HXAPI.compat_str(entry['_id']) + "'>stop</a>"
+		x += "<a class='tableActionButton' href='/searchaction?action=remove&id=" + HXAPI.compat_str(entry['_id']) + "'>remove</a>"
 		x += "</td>"
 		x += "</tr>"
 
@@ -124,7 +124,7 @@ def formatSearchResults(hostresults):
 			x += "<td>" + result['type'] + "</td>"
 			x += "<td>"
 			for data in result['data']:
-				x += "<b>" + data + ":</b> " + str(result['data'][data]) + " "
+				x += "<b>" + data + ":</b> " + HXAPI.compat_str(result['data'][data]) + " "
 			x += "</td>"
 			x += "</tr>"
 
@@ -161,23 +161,23 @@ def formatBulkTable(ht_db, bulktable, profileid):
 	
 		bulk_download = ht_db.bulkDownloadGet(profileid, entry['_id'])
 		
-		x += "<tr class='clickable-row' data-href='/bulkdetails?id=" + str(entry['_id']) + "'>"
-		x += "<td>" + str(entry['_id']) + "</td>"
-		x += "<td>" + str(entry['state']) + "</td>"
+		x += "<tr class='clickable-row' data-href='/bulkdetails?id=" + HXAPI.compat_str(entry['_id']) + "'>"
+		x += "<td>" + HXAPI.compat_str(entry['_id']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['state']) + "</td>"
 		hostset_id = ""
 		if entry['host_set']:
 			hostset_id = entry['host_set']['_id']
 		elif entry['comment'] and 'hostset_id' in entry['comment']:
 			hostset_id = json.loads(entry['comment'])['hostset_id']
 		x += "<td>{0}</td>".format(hostset_id)
-		x += "<td>" + str(entry['stats']['running_state']['NEW']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['QUEUED']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['FAILED']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['COMPLETE']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['ABORTED']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['DELETED']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['REFRESH']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['CANCELLED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['NEW']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['QUEUED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['FAILED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['COMPLETE']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['ABORTED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['DELETED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['REFRESH']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['CANCELLED']) + "</td>"
 		x += "<td>"
 
 		total_size = entry['stats']['running_state']['NEW'] + entry['stats']['running_state']['QUEUED'] + entry['stats']['running_state']['FAILED'] + entry['stats']['running_state']['ABORTED'] + entry['stats']['running_state']['DELETED'] + entry['stats']['running_state']['REFRESH'] + entry['stats']['running_state']['CANCELLED'] + entry['stats']['running_state']['COMPLETE']
@@ -189,7 +189,7 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		if completerate > 100:
 			completerate = 100
 		
-		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(entry['_id']) + "' data-percent='" + str(int(round(completerate))) + "'></div></div>"
+		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + HXAPI.compat_str(entry['_id']) + "' data-percent='" + HXAPI.compat_str(int(round(completerate))) + "'></div></div>"
 		x += "</td>"
 		
 		if bulk_download:
@@ -205,7 +205,7 @@ def formatBulkTable(ht_db, bulktable, profileid):
 			else:
 				dlprogress = 0
 			x += "<td>"
-			x += "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + str(entry['_id']) + "' data-percent='" + str(dlprogress) + "'></div></div>"
+			x += "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + HXAPI.compat_str(entry['_id']) + "' data-percent='" + HXAPI.compat_str(dlprogress) + "'></div></div>"
 			x += "</td>"
 		else:
 			x += "<td>N/A</td>"
@@ -215,12 +215,12 @@ def formatBulkTable(ht_db, bulktable, profileid):
 		if bulk_download and bulk_download['post_download_handler']:
 			x += "Post-download handler: {0}".format(bulk_download['post_download_handler'])
 		else:
-			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
-			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
+			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + HXAPI.compat_str(entry['_id']) + "'>stop</a>"
+			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + HXAPI.compat_str(entry['_id']) + "'>remove</a>"
 			if not bulk_download:
-				x += "<a class='tableActionButton' href='/bulkaction?action=download&id=" + str(entry['_id']) + "'>download</a>"
+				x += "<a class='tableActionButton' href='/bulkaction?action=download&id=" + HXAPI.compat_str(entry['_id']) + "'>download</a>"
 			else:
-				x += "<a class='tableActionButton' href='/bulkaction?action=stopdownload&id=" + str(entry['_id']) + "'>stop download</a>"
+				x += "<a class='tableActionButton' href='/bulkaction?action=stopdownload&id=" + HXAPI.compat_str(entry['_id']) + "'>stop download</a>"
 		x += "</td>"
 		
 		x += "</tr>"
@@ -258,19 +258,19 @@ def formatBulkTableJobDash(ht_db, bulktable, profileid):
 			completerate = (entry['stats']['running_state']['COMPLETE'] / float(total_size)) * 100
 
 		x += "<tr>"
-		x += "<td>" + str(entry['_id']) + "</td>"
-		x += "<td>" + str(entry['state']) + "</td>"
-		x += "<td>" + str(entry['host_set']['name']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['QUEUED']) + "</td>"
-		x += "<td>" + str(entry['stats']['running_state']['COMPLETE']) + "</td>"
-		x += "<td>" + str(completerate) + " %</td>"
+		x += "<td>" + HXAPI.compat_str(entry['_id']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['state']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['host_set']['name']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['QUEUED']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['COMPLETE']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(completerate) + " %</td>"
 		x += "<td>" 
 		out = sqlGetStackJobsForBulkId(c, conn, profileid, entry['_id'])
 		if (len(out) > 0):
 			x += "Stacking job"
 		else:
-			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + str(entry['_id']) + "'>stop</a>"
-			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + str(entry['_id']) + "'>remove</a>"
+			x += "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + HXAPI.compat_str(entry['_id']) + "'>stop</a>"
+			x += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + HXAPI.compat_str(entry['_id']) + "'>remove</a>"
 		x += "</td>"
 		
 		x += "</tr>"
@@ -297,14 +297,14 @@ def formatBulkHostsTable(hoststable):
 
 	for entry in hoststable['data']['entries']:
 		x += "<tr>"
-		x += "<td>" + str(entry['host']['hostname']) + "</td>"
-		#x += "<td>" + str(entry['host']['_id']) + "</td>"
-		x += "<td>" + str(entry['queued_at']) + "</td>"
-		x += "<td>" + str(entry['complete_at']) + "</td>"
-		x += "<td>" + str(entry['state']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['host']['hostname']) + "</td>"
+		#x += "<td>" + HXAPI.compat_str(entry['host']['_id']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['queued_at']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['complete_at']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['state']) + "</td>"
 		x += "<td>"
-		if str(entry['state']) == "COMPLETE":
-			x += "<a class='tableActionButton' href='/bulkdownload?id=" + str(entry['result']['url']) + "'>Download acquisition</a>"
+		if HXAPI.compat_str(entry['state']) == "COMPLETE":
+			x += "<a class='tableActionButton' href='/bulkdownload?id=" + HXAPI.compat_str(entry['result']['url']) + "'>Download acquisition</a>"
 		x += "</td>"
 		x += "</tr>"
 
@@ -338,24 +338,24 @@ def formatIOCResults(iocs, mycategories):
 			p += platform + ","
 		p = p[:-1]
 		
-		x += "<tr data-value='" + str(entry['category']['uri_name']) + "___" + str(entry['uri_name']) + "'>"
-		x += "<td><input type='checkbox' name='ioc___" + str(entry['display_name']) + "___" + str(entry['category']['uri_name']) + "___" + str(p) + "' value='" + str(entry['uri_name']) + "'></td>"
-		x += "<td>" + str(entry['name']) + "</td>"
-		x += "<td>" + str(entry['active_since']) + "</td>"
-		x += "<td>" + str(entry['create_actor']['username']) + "</td>"
-		x += "<td>" + str(entry['category']['name']) + "</td>"
+		x += "<tr data-value='" + HXAPI.compat_str(entry['category']['uri_name']) + "___" + HXAPI.compat_str(entry['uri_name']) + "'>"
+		x += "<td><input type='checkbox' name='ioc___" + HXAPI.compat_str(entry['display_name']) + "___" + HXAPI.compat_str(entry['category']['uri_name']) + "___" + HXAPI.compat_str(p) + "' value='" + HXAPI.compat_str(entry['uri_name']) + "'></td>"
+		x += "<td>" + HXAPI.compat_str(entry['name']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['active_since']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['create_actor']['username']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['category']['name']) + "</td>"
 		x += "<td>"
 		for platform in entry['platforms']:
-			x += str(platform) + "&nbsp"
+			x += HXAPI.compat_str(platform) + "&nbsp"
 		x += "</td>"
-		x += "<td>" + str(entry['stats']['active_conditions']) + "</td>"
-		x += "<td>" + str(entry['stats']['alerted_agents']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['active_conditions']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['stats']['alerted_agents']) + "</td>"
 		x += "<td>"
 		if (mycategories[entry['category']['_id']] in ['full', 'edit_delete']):
-			x += "<a class='tableActionButton' href='/rtioc?indicator=" + str(entry['uri_name']) + "'>edit</a>"
+			x += "<a class='tableActionButton' href='/rtioc?indicator=" + HXAPI.compat_str(entry['uri_name']) + "'>edit</a>"
 		x += "<button class='tableActionButton' id='iocview_{0}' data-id='{0}'>view</button>".format(entry['uri_name'])
 		if (mycategories[entry['category']['_id']] in ['full', 'edit_delete', 'delete']):
-			x += "<a class='tableActionButton' href='/rtioc?delete=" + str(entry['uri_name']) + "&category=" + str(entry['category']['name']) + "'>delete</a>"
+			x += "<a class='tableActionButton' href='/rtioc?delete=" + HXAPI.compat_str(entry['uri_name']) + "&category=" + HXAPI.compat_str(entry['category']['name']) + "'>delete</a>"
 		x += "</td>"
 		x += "</tr>"
 
@@ -445,11 +445,11 @@ def formatCategories(cats):
 	
 	for entry in cats['data']['entries']:
 		x += "<tr>"
-		x += "<td>" + str(entry['name']) + "</td>"
-		x += "<td>" + str(entry['retention_policy']) + "</td>"
-		x += "<td>" + str(entry['ui_edit_policy']) + "</td>"
-		x += "<td>" + str(entry['ui_source_alerts_enabled']) + "</td>"
-		x += "<td>" + str(entry['ui_signature_enabled']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['name']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['retention_policy']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['ui_edit_policy']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['ui_source_alerts_enabled']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['ui_signature_enabled']) + "</td>"
 		x += "</tr>"
 		
 	x += "</tbody>"
@@ -462,7 +462,7 @@ def formatHostsets(hs):
 	x = "<option value='9'>All Hosts"
 	
 	for entry in hs['data']['entries']:
-		x += "<option value='" + str(entry['_id']) + "'>" + entry['name']
+		x += "<option value='" + HXAPI.compat_str(entry['_id']) + "'>" + entry['name']
 	
 	return(x)
 	
@@ -483,24 +483,24 @@ def formatDashAlerts(alerts, hx_api_object):
 
 	for entry in alerts[:10]:
 		x += "<tr>"
-		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(str(entry['agent']['_id']))
-		x += "<td><a class='hostLink' href='/hosts?host=" + str(response_data['data']['_id']) + "&alertid=" + str(entry['_id']) + "'>" + str(response_data['data']['hostname']) + "</a></td>"
-		x += "<td>" + str(response_data['data']['domain']) + "</td>"
-		x += "<td>" + str(response_data['data']['os']['product_name']) + " " + str(response_data['data']['os']['patch_level']) + " " + str(response_data['data']['os']['bitness']) + "</td>"
+		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(HXAPI.compat_str(entry['agent']['_id']))
+		x += "<td><a class='hostLink' href='/hosts?host=" + HXAPI.compat_str(response_data['data']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>" + HXAPI.compat_str(response_data['data']['hostname']) + "</a></td>"
+		x += "<td>" + HXAPI.compat_str(response_data['data']['domain']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(response_data['data']['os']['product_name']) + " " + HXAPI.compat_str(response_data['data']['os']['patch_level']) + " " + HXAPI.compat_str(response_data['data']['os']['bitness']) + "</td>"
 		x += "<td>"
-		if str(entry['source']) == "IOC":
-			(ret, response_code, response_data) = hx_api_object.restGetIndicatorFromCondition(str(entry['condition']['_id']))
+		if HXAPI.compat_str(entry['source']) == "IOC":
+			(ret, response_code, response_data) = hx_api_object.restGetIndicatorFromCondition(HXAPI.compat_str(entry['condition']['_id']))
 			for indicator in response_data['data']['entries']:
 				x += "<b>Indicator:</b> " + indicator['name'] + " (" + indicator['category']['name'] + ")<br>"
-		elif str(entry['source']) == "MAL":
+		elif HXAPI.compat_str(entry['source']) == "MAL":
 			x += "<b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][0].upper() + entry['event_values']['detections']['detection'][0]['infection']['infection-type'][1:] + ": </b>" + entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (" + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
-		elif str(entry['source']) == "EXD":
-			x += "<b>Exploit:</b> " + str(len(entry['event_values']['messages'])) + " malicous behaviors"
+		elif HXAPI.compat_str(entry['source']) == "EXD":
+			x += "<b>Exploit:</b> " + HXAPI.compat_str(len(entry['event_values']['messages'])) + " malicous behaviors"
 		else:
 			x += "Unknown alert"
 		x += "</td>"
-		x += "<td>" + str(entry['reported_at']) + "</td>"
-		x += "<td>" + str(entry['matched_at']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['reported_at']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['matched_at']) + "</td>"
 		x += "</tr>"
 
 	x += "</tbody>"
@@ -548,21 +548,21 @@ def formatAlertsTable(alerts, hx_api_object, profileid, ht_db):
 	
 		x += "<tr>"
 	
-		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(str(entry['agent']['_id']))
+		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(HXAPI.compat_str(entry['agent']['_id']))
 		
 		# OS
 		x += "<td><center>"
-		if str(response_data['data']['os']['product_name']).startswith('Windows'):
+		if HXAPI.compat_str(response_data['data']['os']['product_name']).startswith('Windows'):
 			x += "<img style='width: 20px;' src='/static/ico/windows.svg'>"
 		else:
 			x += "<img style='width: 20px;' src='/static/ico/apple.svg'>"
 		x += "</center></td>"
 		
 		# Host
-		x += "<td><a class='hostLink' href='/hosts?host=" + str(response_data['data']['_id']) + "&alertid=" + str(entry['_id']) + "'>" + str(response_data['data']['hostname']) + "</a></td>"
+		x += "<td><a class='hostLink' href='/hosts?host=" + HXAPI.compat_str(response_data['data']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>" + HXAPI.compat_str(response_data['data']['hostname']) + "</a></td>"
 		
 		# Domain
-		x += "<td>" + str(response_data['data']['domain']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(response_data['data']['domain']) + "</td>"
 		
 		# Alerted
 		import datetime
@@ -570,23 +570,23 @@ def formatAlertsTable(alerts, hx_api_object, profileid, ht_db):
 		x += "<td style='text-align: center; font-weight: 700;'>" + HXAPI.prettyTime(t) + "</td>"
 
 		# Reported at
-		x += "<td>" + str(entry['reported_at']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['reported_at']) + "</td>"
 		
 		# Matched at
-		x += "<td>" + str(entry['matched_at']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['matched_at']) + "</td>"
 		
 		# Containment state
 		x += "<td style='text-align: center;'>"
-		x += str(entry['agent']['containment_state'])
+		x += HXAPI.compat_str(entry['agent']['containment_state'])
 		x += "</td>"
 		
 		# Event type
 		x += "<td style='text-align: center;'>"
-		if str(entry['source']) == "EXD":
+		if HXAPI.compat_str(entry['source']) == "EXD":
 			x += "<div class='tableActionIcon'>EXD</div>"
-		elif (str(entry['source']) == "MAL"):
+		elif (HXAPI.compat_str(entry['source']) == "MAL"):
 			x += "<div class='tableActionIcon'>MAL</div>"
-		elif (str(entry['source']) == "IOC"):
+		elif (HXAPI.compat_str(entry['source']) == "IOC"):
 			x += "<div class='tableActionIcon'>IOC</div>"
 		else:
 			x +="N/A"
@@ -595,25 +595,25 @@ def formatAlertsTable(alerts, hx_api_object, profileid, ht_db):
 		# Event name
 		x += "<td>"
 		
-		if str(entry['source']) == "EXD":
-			x += str(entry['event_values']['process_name']) + " (pid: " + str(entry['event_values']['process_id']) + ") (count: " + str(len(entry['event_values']['messages'])) + ")"
-			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + str(entry['agent']['_id']) + "&alertid=" + str(entry['_id']) + "'>Details</a>"
+		if HXAPI.compat_str(entry['source']) == "EXD":
+			x += HXAPI.compat_str(entry['event_values']['process_name']) + " (pid: " + HXAPI.compat_str(entry['event_values']['process_id']) + ") (count: " + HXAPI.compat_str(len(entry['event_values']['messages'])) + ")"
+			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + HXAPI.compat_str(entry['agent']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>Details</a>"
 			
-		elif (str(entry['source']) == "MAL"):
+		elif (HXAPI.compat_str(entry['source']) == "MAL"):
 			x += entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (severity: " + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
-			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + str(entry['agent']['_id']) + "&alertid=" + str(entry['_id']) + "'>Details</a>"
+			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + HXAPI.compat_str(entry['agent']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>Details</a>"
 			
-		elif (str(entry['source']) == "IOC"):
-			(ret, response_code, response_data) = hx_api_object.restGetIndicatorFromCondition(str(entry['condition']['_id']))
+		elif (HXAPI.compat_str(entry['source']) == "IOC"):
+			(ret, response_code, response_data) = hx_api_object.restGetIndicatorFromCondition(HXAPI.compat_str(entry['condition']['_id']))
 			for indicator in response_data['data']['entries']:
 				x += indicator['name'] + " (category: " + indicator['category']['name'] + ")"
 						
-			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + str(entry['agent']['_id']) + "&alertid=" + str(entry['_id']) + "'>Details</a>"
+			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + HXAPI.compat_str(entry['agent']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>Details</a>"
 			
 		else:
 			x += "Unknown alert"
 		
-		x += "<a target='_blank' class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='https://" + hx_api_object.hx_host + ":" + str(hx_api_object.hx_port) + "/hx/hosts/" + entry['agent']['_id'] + "/alerts/" + str(entry['_id']) + "'>HX</a>"
+		x += "<a target='_blank' class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='https://" + hx_api_object.hx_host + ":" + HXAPI.compat_str(hx_api_object.hx_port) + "/hx/hosts/" + entry['agent']['_id'] + "/alerts/" + HXAPI.compat_str(entry['_id']) + "'>HX</a>"
 		x += "</td>"
 		
 		# State
@@ -627,12 +627,12 @@ def formatAlertsTable(alerts, hx_api_object, profileid, ht_db):
 		# Annotation status
 		x += "<td style='text-align: center;'>"
 			
-		x += "<a href='#' id='adisp_" + str(entry['_id']) + "' class='tableActionButton'>show (" + str(annotation_count) + ")</a>"
+		x += "<a href='#' id='adisp_" + HXAPI.compat_str(entry['_id']) + "' class='tableActionButton'>show (" + HXAPI.compat_str(annotation_count) + ")</a>"
 		x += "</td>"
 		
 		# Actions
 		x += "<td>"
-		x += "<input class='tableActionButton' id='annotate_" + str(entry['_id']) + "' type='button' value='Annotate'>"
+		x += "<input class='tableActionButton' id='annotate_" + HXAPI.compat_str(entry['_id']) + "' type='button' value='Annotate'>"
 		x += "</td>"
 		x += "</tr>"
 
@@ -660,8 +660,8 @@ def formatAnnotationTable(an):
 			atext = "<br />".join(item['annotation'].split("\n"))
 		
 			x += "<tr>"
-			x += "<td>" + str(item['create_timestamp']) + "</td>"
-			x += "<td>" + str(item['create_user']) + "</td>"
+			x += "<td>" + HXAPI.compat_str(item['create_timestamp']) + "</td>"
+			x += "<td>" + HXAPI.compat_str(item['create_user']) + "</td>"
 			x += "<td>" + atext + "</td>"
 			x += "<td>"
 			
@@ -685,16 +685,16 @@ def formatAlertsCsv(alertsjson, hx_api_object):
 	x = "reported_at;matched_at;event_at;hostname;domain;source;productname;event_type;event_id\r\n"
 	
 	for entry in alertsjson:
-		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(str(entry['agent']['_id']))
+		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(HXAPI.compat_str(entry['agent']['_id']))
 		x += entry['reported_at'] + ";"
 		x += entry['matched_at'] + ";"
 		x += entry['event_at'] + ";"
 		x += response_data['data']['hostname'] + ";"
 		x += response_data['data']['domain'] + ";"
-		x += str(entry['source']) + ";"
+		x += HXAPI.compat_str(entry['source']) + ";"
 		x += response_data['data']['os']['product_name'] + " " + response_data['data']['os']['patch_level'] + " " + response_data['data']['os']['bitness'] + ";"
-		x += str(entry['event_type']) + ";"
-		x += str(entry['event_id'])
+		x += HXAPI.compat_str(entry['event_type']) + ";"
+		x += HXAPI.compat_str(entry['event_id'])
 		x += "\r\n"
 
 	return (x)
@@ -735,18 +735,18 @@ def formatCustomConfigChannels(ch):
 	x += "</thead>"
 	x += "<tbody>"
 	for entry in ch['data']['entries']:
-		x += "<tr class='clickable-row' data-href='/channelinfo?id=" + str(entry['_id']) + "'>"
+		x += "<tr class='clickable-row' data-href='/channelinfo?id=" + HXAPI.compat_str(entry['_id']) + "'>"
 		x += "<td>" + entry['name'] + "</td>"
 		x += "<td>" + entry['description'] + "</td>"
 		x += "<td>" + entry['create_time'] + "<//td>"
 		x += "<td>" + entry['create_actor']['username'] + "</td>"
-		x += "<td>" + str(entry['priority']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['priority']) + "</td>"
 		x += "<td>"
 		for hset in entry['host_sets']:
 			x += hset['name'] + "<br>"
 		x += "</td>"
 		x += "<td>"
-		x += "<a href='/channels?delete=" +  str(entry['_id']) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
+		x += "<a href='/channels?delete=" +  HXAPI.compat_str(entry['_id']) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
 		x += "</td>"
 		x += "</tr>"
 		
@@ -780,14 +780,14 @@ def formatStackTable(ht_db, profile_id, hs):
 	for job in stack_jobs:
 		bulk_download = ht_db.bulkDownloadGet(job['profile_id'], job['bulk_download_id'])
 		x += "<tr>"
-		x += "<td>" + str(job.eid) + "</td>"
-		x += "<td>" + str(job['create_timestamp']) + "</td>"
-		x += "<td>" + str(job['update_timestamp']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(job.eid) + "</td>"
+		x += "<td>" + HXAPI.compat_str(job['create_timestamp']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(job['update_timestamp']) + "</td>"
 		x += "<td>" + job['stack_type'] + "</td>"
 		x += "<td>" + ("STOPPED" if job['stopped'] else "RUNNING") + "</td>"
-		x += "<td>" + str(job['profile_id'])	+ "</td>"
-		x += "<td>" + str(job['bulk_download_id']) + "</td>"		
-		x += "<td>" + str(bulk_download['hostset_id']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(job['profile_id'])	+ "</td>"
+		x += "<td>" + HXAPI.compat_str(job['bulk_download_id']) + "</td>"		
+		x += "<td>" + HXAPI.compat_str(bulk_download['hostset_id']) + "</td>"
 		
 		# Completion rate
 		job_progress = 0
@@ -797,14 +797,14 @@ def formatStackTable(ht_db, profile_id, hs):
 			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
 		job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
 		x += "<td>"
-		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + str(job.eid) + "' data-percent='" + str(job_progress) + "'></div></div>"
+		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + HXAPI.compat_str(job.eid) + "' data-percent='" + HXAPI.compat_str(job_progress) + "'></div></div>"
 		x += "</td>"
 		
 		# Actions
 		x += "<td>"
-		x += "<a href='/stacking?stop=" +  str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
-		x += "<a href='/stacking?remove=" +  str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
-		x += "<a href='/stackinganalyze?id=" +  str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>analyze</a>"
+		x += "<a href='/stacking?stop=" +  HXAPI.compat_str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
+		x += "<a href='/stacking?remove=" +  HXAPI.compat_str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
+		x += "<a href='/stackinganalyze?id=" +  HXAPI.compat_str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>analyze</a>"
 		x += "</td>"
 		x += "</tr>"
 	
@@ -832,44 +832,44 @@ def formatHostInfo(response_data, hx_api_object):
 	x += "<tr>"
 	
 	x += "<td style='vertical-align: center; text-align: center; width: 60px;'>"
-	if str(response_data['data']['os']['product_name']).startswith('Windows'):
+	if HXAPI.compat_str(response_data['data']['os']['product_name']).startswith('Windows'):
 		x += "<img style='width: 50px;' src='/static/ico/windows.svg'>"
 	else:
 		x += "<img style='width: 50px;' src='/static/ico/apple.svg'>"
 	x += "</td>"
 	
 	x += "<td style='font-size: 14px; width: 406px;'>"
-	x += "<div style='font-weight: bold; font-size: 20px;'>" + str(response_data['data']['hostname'])  + "</div>" 
-	x += str(response_data['data']['domain']) + "<br>"
-	x += str(response_data['data']['os']['product_name']) + " " + str(response_data['data']['os']['patch_level']) + " " + str(response_data['data']['os']['bitness']) + "<br>"
-	x += str(response_data['data']['agent_version']) + "<br>"
+	x += "<div style='font-weight: bold; font-size: 20px;'>" + HXAPI.compat_str(response_data['data']['hostname'])  + "</div>" 
+	x += HXAPI.compat_str(response_data['data']['domain']) + "<br>"
+	x += HXAPI.compat_str(response_data['data']['os']['product_name']) + " " + HXAPI.compat_str(response_data['data']['os']['patch_level']) + " " + HXAPI.compat_str(response_data['data']['os']['bitness']) + "<br>"
+	x += HXAPI.compat_str(response_data['data']['agent_version']) + "<br>"
 	x += "</td>"
 	
 	x += "<td rowspan='2' style='vertical-align: top; width: auto;'>"
-	x += "<b>Timezone: </b> " + str(response_data['data']['timezone']) + "<br>"
+	x += "<b>Timezone: </b> " + HXAPI.compat_str(response_data['data']['timezone']) + "<br>"
 	t = HXAPI.gt(response_data['data']['last_poll_timestamp'])
-	x += "<b>Last poll Timestamp: </b> " + str(response_data['data']['last_poll_timestamp']) + " (" + HXAPI.prettyTime(t) + ")<br>"
-	x += "<b>Last poll IP: </b> " + str(response_data['data']['last_poll_ip']) + "<br>"
+	x += "<b>Last poll Timestamp: </b> " + HXAPI.compat_str(response_data['data']['last_poll_timestamp']) + " (" + HXAPI.prettyTime(t) + ")<br>"
+	x += "<b>Last poll IP: </b> " + HXAPI.compat_str(response_data['data']['last_poll_ip']) + "<br>"
 
-	(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(str(response_data['data']['_id']))
+	(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(HXAPI.compat_str(response_data['data']['_id']))
 	if sret:
-		x += "<b>Primary IP: </b> " + str(sresponse_data['data']['primaryIpAddress']) + "<br>"
+		x += "<b>Primary IP: </b> " + HXAPI.compat_str(sresponse_data['data']['primaryIpAddress']) + "<br>"
 		t = HXAPI.gtNoUs(sresponse_data['data']['installDate'])
-		x += "<b>Installed: </b> " + str(sresponse_data['data']['installDate']) + " (" + HXAPI.prettyTime(t) + ")<br>"
-		x += "<b>Processor: </b> " + str(sresponse_data['data']['processor']) + "<br>"
-		x += "<b>Memory Available: </b> " + str(round(int(sresponse_data['data']['availphysical']) / 1024 / 1024 / 1024, 2)) + " GB / "
-		x += str(round(int(sresponse_data['data']['totalphysical']) / 1024 / 1024 / 1024, 2)) + " GB<br>"
+		x += "<b>Installed: </b> " + HXAPI.compat_str(sresponse_data['data']['installDate']) + " (" + HXAPI.prettyTime(t) + ")<br>"
+		x += "<b>Processor: </b> " + HXAPI.compat_str(sresponse_data['data']['processor']) + "<br>"
+		x += "<b>Memory Available: </b> " + HXAPI.compat_str(round(int(sresponse_data['data']['availphysical']) / 1024 / 1024 / 1024, 2)) + " GB / "
+		x += HXAPI.compat_str(round(int(sresponse_data['data']['totalphysical']) / 1024 / 1024 / 1024, 2)) + " GB<br>"
 		
-		x += "<b>Logged on user(s): </b> " + str(sresponse_data['data']['loggedOnUser']) + "<br>"
+		x += "<b>Logged on user(s): </b> " + HXAPI.compat_str(sresponse_data['data']['loggedOnUser']) + "<br>"
 
 	x += "</td>"
 	
-	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['alerting_conditions']) + "</span><br>Alerting conditions</td>"
-	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_alerts']) + "</span><br>Exploit alerts</td>"
-	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['acqs']) + "</span><br>Acquisitions</td>"
-	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['alerts']) + "</span><br>Alerts</td>"
-	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['exploit_blocks']) + "</span><br>Exploit blocks</td>"
-	x += "<td rowspan='2' style='width: 80px; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + str(response_data['data']['stats']['malware_alerts']) + "</span><br>Malware alerts</td>"
+	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + HXAPI.compat_str(response_data['data']['stats']['alerting_conditions']) + "</span><br>Alerting conditions</td>"
+	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + HXAPI.compat_str(response_data['data']['stats']['exploit_alerts']) + "</span><br>Exploit alerts</td>"
+	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + HXAPI.compat_str(response_data['data']['stats']['acqs']) + "</span><br>Acquisitions</td>"
+	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + HXAPI.compat_str(response_data['data']['stats']['alerts']) + "</span><br>Alerts</td>"
+	x += "<td rowspan='2' style='width: 80px; border-right: 1px solid #dddddd; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + HXAPI.compat_str(response_data['data']['stats']['exploit_blocks']) + "</span><br>Exploit blocks</td>"
+	x += "<td rowspan='2' style='width: 80px; text-align: center;'><span style='font-size: 22px; font-weight: bold;'>" + HXAPI.compat_str(response_data['data']['stats']['malware_alerts']) + "</span><br>Malware alerts</td>"
 
 	
 	x += "</tr>"
@@ -877,15 +877,15 @@ def formatHostInfo(response_data, hx_api_object):
 	
 	x += "<div style='padding-top: 10px; padding-bottom: 10px;'>"
 	if response_data['data']['containment_state'] == "contained":
-		x += "<a class='tableActionButton' id='uncontain_" + str(response_data['data']['_id']) + "'>uncontain</a>"
+		x += "<a class='tableActionButton' id='uncontain_" + HXAPI.compat_str(response_data['data']['_id']) + "'>uncontain</a>"
 	elif (response_data['data']['containment_state'] == "normal") and (response_data['data']['containment_queued'] == False):
-		x += "<a class='tableActionButton' id='contain_" + str(response_data['data']['_id']) + "'>contain</a>"
+		x += "<a class='tableActionButton' id='contain_" + HXAPI.compat_str(response_data['data']['_id']) + "'>contain</a>"
 	elif (response_data['data']['containment_state'] == "normal") and (response_data['data']['containment_queued'] == True):
-		x += "<a class='tableActionButton' id='appcontain_" + str(response_data['data']['_id']) + "'>approve containment</a>"
+		x += "<a class='tableActionButton' id='appcontain_" + HXAPI.compat_str(response_data['data']['_id']) + "'>approve containment</a>"
 	
-	x += "<a class='tableActionButton' id='triage_" + str(response_data['data']['_id']) + "'>triage</a>"
-	x += "<a class='tableActionButton' id='fileaq_" + str(response_data['data']['_id']) + "'>file acq</a>"
-	x += "<a class='tableActionButton' id='acq_" + str(response_data['data']['_id']) + "'>acquisition</a>"
+	x += "<a class='tableActionButton' id='triage_" + HXAPI.compat_str(response_data['data']['_id']) + "'>triage</a>"
+	x += "<a class='tableActionButton' id='fileaq_" + HXAPI.compat_str(response_data['data']['_id']) + "'>file acq</a>"
+	x += "<a class='tableActionButton' id='acq_" + HXAPI.compat_str(response_data['data']['_id']) + "'>acquisition</a>"
 	x += "</div>"
 	
 	x += "</td></tr>"
@@ -914,14 +914,14 @@ def formatHostInfo(response_data, hx_api_object):
 	(aret, aresponse_code, aresponse_data) = hx_api_object.restGetAlertsHost(response_data['data']['_id'])
 	if aret:
 		for alert in aresponse_data[0:15]:
-			x += "<tr class='clickable-row' id='alert_" + str(alert['_id']) + "'>"
+			x += "<tr class='clickable-row' id='alert_" + HXAPI.compat_str(alert['_id']) + "'>"
 					
 			x += "<td style='text-align: center; width: 40px;'>"
-			if str(alert['source']) == "EXD":
+			if HXAPI.compat_str(alert['source']) == "EXD":
 				x += "<div class='tableActionIcon'>EXD</div>"
-			elif (str(alert['source']) == "MAL"):
+			elif (HXAPI.compat_str(alert['source']) == "MAL"):
 				x += "<div class='tableActionIcon'>MAL</div>"
-			elif (str(alert['source']) == "IOC"):
+			elif (HXAPI.compat_str(alert['source']) == "IOC"):
 				x += "<div class='tableActionIcon'>IOC</div>"
 			else:
 				x +="N/A"
@@ -930,16 +930,16 @@ def formatHostInfo(response_data, hx_api_object):
 			x += "<td>"
 			
 			# IOC
-			if str(alert['source']) == "IOC":
-				(iret, iresponse_code, iresponse_data) = hx_api_object.restGetIndicatorFromCondition(str(alert['condition']['_id']))
+			if HXAPI.compat_str(alert['source']) == "IOC":
+				(iret, iresponse_code, iresponse_data) = hx_api_object.restGetIndicatorFromCondition(HXAPI.compat_str(alert['condition']['_id']))
 				if iret:
 					for indicator in iresponse_data['data']['entries']:
 						x += indicator['name']
 					
 					# Alert details hidden div
-					x += "<div style='display: none;' id='alertdetails_" + str(alert['_id']) + "'>"
+					x += "<div style='display: none;' id='alertdetails_" + HXAPI.compat_str(alert['_id']) + "'>"
 					
-					(cret, cresponse_code, cresponse_data) = hx_api_object.restGetConditionDetails(str(alert['condition']['_id']))
+					(cret, cresponse_code, cresponse_data) = hx_api_object.restGetConditionDetails(HXAPI.compat_str(alert['condition']['_id']))
 					if cret:
 						x += "<div class='tableTitle'>Matching condition</div>"
 		
@@ -962,19 +962,19 @@ def formatHostInfo(response_data, hx_api_object):
 						x += "</div>"
 		
 					
-					x += "<div class='tableTitle'>Indicator type: " + str(alert['event_type']) + "</div>"
+					x += "<div class='tableTitle'>Indicator type: " + HXAPI.compat_str(alert['event_type']) + "</div>"
 					x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
 					for hitkey, hitdata in alert['event_values'].items():
-						x += "<tr><td style='width: 300px;'>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
+						x += "<tr><td style='width: 300px;'>" + HXAPI.compat_str(hitkey) + "</td><td>" + HXAPI.compat_str(hitdata) + "</td></tr>"
 					x += "</table>"
 					x += "</div>"
 			
 			# EXG
-			elif str(alert['source']) == "EXD":
-				x += str(alert['event_values']['process_name']) + " (pid: " + str(alert['event_values']['process_id']) + ")"
+			elif HXAPI.compat_str(alert['source']) == "EXD":
+				x += HXAPI.compat_str(alert['event_values']['process_name']) + " (pid: " + HXAPI.compat_str(alert['event_values']['process_id']) + ")"
 			
 				# Alert details hidden div
-				x += "<div style='display: none;' id='alertdetails_" + str(alert['_id']) + "'>"
+				x += "<div style='display: none;' id='alertdetails_" + HXAPI.compat_str(alert['_id']) + "'>"
 				x += "<div class='tableTitle'>Observed behavior</div>"
 				x += "<ul>"
 				for behavior in alert['event_values']['messages']:
@@ -1011,16 +1011,16 @@ def formatHostInfo(response_data, hx_api_object):
 								if type(itemdata) is dict:
 									x += "<td colspan='2'>"
 									x += "<div class='clt'>"
-									x += str(itemkey)
+									x += HXAPI.compat_str(itemkey)
 									x += "<ul style='margin-top: 0;'>"
 									for dictkey, dictdetail in itemdata.items():
-										x += "<li>" + str(dictkey) + ": " + str(dictdetail) + "</li>"
+										x += "<li>" + HXAPI.compat_str(dictkey) + ": " + HXAPI.compat_str(dictdetail) + "</li>"
 									x += "</ul>"
 									x += "</div>"
 									x += "</td>"
 								else:
-									x += "<td style='width: 100px;'>" + str(itemkey) + "</td>"
-									x += "<td>" + str(itemdata) + "</td>"
+									x += "<td style='width: 100px;'>" + HXAPI.compat_str(itemkey) + "</td>"
+									x += "<td>" + HXAPI.compat_str(itemdata) + "</td>"
 								
 								x += "</tr>"
 						x += "</table>"
@@ -1034,17 +1034,17 @@ def formatHostInfo(response_data, hx_api_object):
 				x += "</div>"
 			
 			# MAL
-			elif str(alert['source']) == "MAL":
+			elif HXAPI.compat_str(alert['source']) == "MAL":
 				x += alert['event_values']['detections']['detection'][0]['infection']['infection-name']
 			
 				# Alert details hidden div
-				x += "<div style='display: none;' id='alertdetails_" + str(alert['_id']) + "'>"
+				x += "<div style='display: none;' id='alertdetails_" + HXAPI.compat_str(alert['_id']) + "'>"
 				x += "<div class='tableTitle'>Malware alert: " + alert['event_values']['detections']['detection'][0]['infection']['infection-type'] + "</div>"
 				x += "<table class='genericTable genericTableSmall' style='width: 100%;'>"
 				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infection'].items():
-					x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
+					x += "<tr><td>" + HXAPI.compat_str(hitkey) + "</td><td>" + HXAPI.compat_str(hitdata) + "</td></tr>"
 				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infected-object']['file-object'].items():
-					x += "<tr><td>" + str(hitkey) + "</td><td>" + str(hitdata) + "</td></tr>"
+					x += "<tr><td>" + HXAPI.compat_str(hitkey) + "</td><td>" + HXAPI.compat_str(hitdata) + "</td></tr>"
 				x += "</table>"
 				x += "</div>"
 
@@ -1064,7 +1064,7 @@ def formatHostInfo(response_data, hx_api_object):
 			
 	
 			x += "<td style='text-align: center; width: 60px;'>"
-			x += str(alert['resolution'])
+			x += HXAPI.compat_str(alert['resolution'])
 			x += "</td>"
 			
 			x += "</tr>"
@@ -1108,10 +1108,10 @@ def formatHostInfo(response_data, hx_api_object):
 				else:
 					x += "Normal triage"
 				x += "</td>"
-				x += "<td>" + str(triage['request_actor']['username']) + "</td>"
-				x += "<td>" + str(triage['request_time']) + "</td>"
-				x += "<td>" + str(triage['state']) + "</td>"
-				x += "<td><a href='/download?id=" + str(triage['url']) + ".mans' class='tableActionButton'>download</a></td>"
+				x += "<td>" + HXAPI.compat_str(triage['request_actor']['username']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(triage['request_time']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(triage['state']) + "</td>"
+				x += "<td><a href='/download?id=" + HXAPI.compat_str(triage['url']) + ".mans' class='tableActionButton'>download</a></td>"
 				x += "</tr>"
 			x += "</tbody>"
 			x += "</table>"
@@ -1135,14 +1135,14 @@ def formatHostInfo(response_data, hx_api_object):
 			x += "<tbody>"
 			for fileaq in afresponse_data['data']['entries']:
 				x += "<tr>"
-				x += "<td>" + str(fileaq['req_path']) + "</td>"
-				x += "<td>" + str(fileaq['req_filename']) + "</td>"
-				x += "<td>" + str(fileaq['request_actor']['username']) + "</td>"
-				x += "<td>" + str(fileaq['request_time']) + "</td>"
-				x += "<td>" + str(fileaq['zip_passphrase']) + "</td>"
-				x += "<td>" + str(fileaq['state']) + "</td>"
-				x += "<td>" + str(fileaq['error_message']) + "</td>"
-				x += "<td><a href='/download?id=" + str(fileaq['url']) + ".zip' class='tableActionButton'>download</a></td>"
+				x += "<td>" + HXAPI.compat_str(fileaq['req_path']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(fileaq['req_filename']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(fileaq['request_actor']['username']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(fileaq['request_time']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(fileaq['zip_passphrase']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(fileaq['state']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(fileaq['error_message']) + "</td>"
+				x += "<td><a href='/download?id=" + HXAPI.compat_str(fileaq['url']) + ".zip' class='tableActionButton'>download</a></td>"
 				x += "</tr>"
 			x += "</tbody>"
 			x += "</table>"
@@ -1163,11 +1163,11 @@ def formatHostInfo(response_data, hx_api_object):
 			x += "<tbody>"
 			for daq in adresponse_data['data']['entries']:
 				x += "<tr>"
-				x += "<td>" + str(daq['name']) + "</td>"
-				x += "<td>" + str(daq['request_actor']['username']) + "</td>"
-				x += "<td>" + str(daq['request_time']) + "</td>"
-				x += "<td>" + str(daq['state']) + "</td>"
-				x += "<td><a href='/download?id=" + str(daq['url']) + ".mans&content=json' class='tableActionButton'>download</a></td>"
+				x += "<td>" + HXAPI.compat_str(daq['name']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(daq['request_actor']['username']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(daq['request_time']) + "</td>"
+				x += "<td>" + HXAPI.compat_str(daq['state']) + "</td>"
+				x += "<td><a href='/download?id=" + HXAPI.compat_str(daq['url']) + ".mans&content=json' class='tableActionButton'>download</a></td>"
 				x += "</tr>"
 			x += "</tbody>"
 			x += "</table>"
@@ -1204,24 +1204,24 @@ def formatHostSearch(response_data, hx_api_object):
 	for host in response_data['data']['entries']:
 		
 		x += "<tr>"
-		x += "<td><a class='hostLink' href='/hosts?host=" + str(host['_id']) + "'>" + str(host['hostname']) + "</a></td>"
-		x += "<td>" + str(host['domain']) + "</td>"
-		x += "<td>" + str(host['primary_ip_address']) + "</td>"
-		x += "<td>" + str(host['last_poll_ip']) + "</td>"
-		x += "<td>" + str(host['last_poll_timestamp']) + "</td>"
+		x += "<td><a class='hostLink' href='/hosts?host=" + HXAPI.compat_str(host['_id']) + "'>" + HXAPI.compat_str(host['hostname']) + "</a></td>"
+		x += "<td>" + HXAPI.compat_str(host['domain']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(host['primary_ip_address']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(host['last_poll_ip']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(host['last_poll_timestamp']) + "</td>"
 		
 		x += "<td>"
 		if (host['containment_state'] == "normal") and (host['containment_queued'] == True):
 			x += "requested"
 		else:
-			x += str(host['containment_state'])
+			x += HXAPI.compat_str(host['containment_state'])
 		x += "<div style='float: right;'>"
 		if host['containment_state'] == "contained":
-			x += "<a class='tableActionButton' id='uncontain_" + str(host['_id']) + "'>uncontain</a>"
+			x += "<a class='tableActionButton' id='uncontain_" + HXAPI.compat_str(host['_id']) + "'>uncontain</a>"
 		elif (host['containment_state'] == "normal") and (host['containment_queued'] == False):
-			x += "<a class='tableActionButton' id='contain_" + str(host['_id']) + "'>contain</a>"
+			x += "<a class='tableActionButton' id='contain_" + HXAPI.compat_str(host['_id']) + "'>contain</a>"
 		elif (host['containment_state'] == "normal") and (host['containment_queued'] == True):
-			x += "<a class='tableActionButton' id='appcontain_" + str(host['_id']) + "'>approve</a>"
+			x += "<a class='tableActionButton' id='appcontain_" + HXAPI.compat_str(host['_id']) + "'>approve</a>"
 		x += "</div>"
 		x += "</td>"
 		
@@ -1229,13 +1229,13 @@ def formatHostSearch(response_data, hx_api_object):
 		t = HXAPI.gt(host['initial_agent_checkin'])
 		x += "<td>" + HXAPI.prettyTime(t) + "</td>"
 				
-		x += "<td>" + str(host['os']['product_name']) + " " + str(host['os']['patch_level']) + " " + str(host['os']['bitness']) + "</td>"
-		x += "<td>" + str(host['agent_version']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(host['os']['product_name']) + " " + HXAPI.compat_str(host['os']['patch_level']) + " " + HXAPI.compat_str(host['os']['bitness']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(host['agent_version']) + "</td>"
 		
 		x += "<td>"
-		x += "<a class='tableActionButton' id='triage_" + str(host['_id']) + "'>triage</a>"
-		x += "<a class='tableActionButton' id='fileaq_" + str(host['_id']) + "'>file acq</a>"
-		x += "<a class='tableActionButton' id='acq_" + str(host['_id']) + "'>acquisition</a>"
+		x += "<a class='tableActionButton' id='triage_" + HXAPI.compat_str(host['_id']) + "'>triage</a>"
+		x += "<a class='tableActionButton' id='fileaq_" + HXAPI.compat_str(host['_id']) + "'>file acq</a>"
+		x += "<a class='tableActionButton' id='acq_" + HXAPI.compat_str(host['_id']) + "'>acquisition</a>"
 		x += "</td>"
 		
 		x += "</tr>"
