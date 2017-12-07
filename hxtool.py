@@ -598,6 +598,7 @@ def rtioc(hx_api_object):
 					iocname = response_data['data']['entries'][0]['name']
 					myiocuri = response_data['data']['entries'][0]['uri_name']
 					ioccategory = response_data['data']['entries'][0]['category']['uri_name']
+					mydescription = response_data['data']['entries'][0]['description']
 					if len(response_data['data']['entries'][0]['platforms']) == 1:
 						platform = response_data['data']['entries'][0]['platforms'][0]
 					else:
@@ -609,7 +610,7 @@ def rtioc(hx_api_object):
 					mypre = json.dumps(condition_class_presence['data']['entries'])
 					myexec = json.dumps(condition_class_execution['data']['entries'])
 
-				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, myiocuri=myiocuri, myioccategory=ioccategory, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
+				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, myiocuri=myiocuri, myioccategory=ioccategory, mydescription=mydescription, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
 			elif request.args.get('delete'):
 				(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(request.args.get('category'), request.args.get('delete'))
 				if ret:
@@ -631,12 +632,12 @@ def rtioc(hx_api_object):
 				else:
 					chosenplatform = [mydata['platform']]
 
-				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform)
+				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform, description=mydata['description'])
 				if ret:
 					ioc_guid = response_data['data']['_id']
 
 					for key, value in mydata.items():
-						if key not in ['name', 'category', 'platform']:
+						if key not in ['name', 'category', 'platform', 'description']:
 							(iocguid, ioctype) = key.split("_")
 							mytests = {"tests": []}
 							for entry in value:
@@ -671,11 +672,11 @@ def rtioc(hx_api_object):
 				else:
 					chosenplatform = [mydata['platform']]
 
-				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform)
+				(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform, description=mydata['description'])
 				if ret:
 					myNewURI = response_data['data']['_id']
 					for key, value in mydata.items():
-						if key not in ['name', 'category', 'platform', 'originalname', 'originalcategory', 'iocuri']:
+						if key not in ['name', 'category', 'platform', 'originalname', 'originalcategory', 'iocuri', 'description']:
 							(iocguid, ioctype) = key.split("_")
 							mytests = {"tests": []}
 							for entry in value:

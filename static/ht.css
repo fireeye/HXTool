@@ -297,6 +297,14 @@ table.dataTable th {
 		padding: 5px;
 }
 
+.indicatorDescription {
+	width: 650px;
+	height: 100px;
+	border: 1px solid #dddddd;
+	margin-bottom: 7px;
+	resize: none;
+}
+
 .hostLink {
 	text-decoration: none;
 	cursor: pointer;
