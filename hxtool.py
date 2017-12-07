@@ -1226,7 +1226,7 @@ def login():
 
 				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = ht_config['network'].get('proxies'), headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger, default_encoding = default_encoding)
 
-				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
+				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'], auto_renew_token = True)
 				if ret:
 					# Set session variables
 					session['ht_user'] = request.form['ht_user']
@@ -1459,9 +1459,16 @@ if __name__ == "__main__":
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	
 	app.session_interface = hxtool_session_interface(ht_db, app.logger, expiration_delta=ht_config['network']['session_timeout'])
+
+	# TODO: This should really be after app.run, but you cannot run code after app.run, so we'll leave this here for now.
+	app.logger.info("Application is running. Please point your browser to http{0}://{1}:{2}. Press Ctrl+C to exit.".format(
+																							's' if ht_config['network']['ssl'] == 'enabled' else '',
+																							ht_config['network']['listen_address'], 
+																							ht_config['network']['port']))
 	if ht_config['network']['ssl'] == "enabled":
+		app.config['SESSION_COOKIE_SECURE'] = True
 		context = (ht_config['ssl']['cert'], ht_config['ssl']['key'])
 		app.run(host=ht_config['network']['listen_address'], port=ht_config['network']['port'], ssl_context=context, threaded=True)
-		app.config['SESSION_COOKIE_SECURE'] = True
 	else:
 		app.run(host=ht_config['network']['listen_address'], port=ht_config['network']['port'])
+

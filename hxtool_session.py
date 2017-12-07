@@ -49,11 +49,6 @@ class hxtool_session_interface(SessionInterface):
 		self.expiration_delta = expiration_delta
 		# Run session_reaper at __init__
 		self.session_reaper()
-		# Then set it to run in intervals
-		self.start_session_reaper()
-	
-	def __exit__(self, exc_type, exc_value, traceback):
-		self.session_reaper_timer.cancel()
 	
 	def get_expiration_time(self, app, session):
 		return datetime.datetime.utcnow() + datetime.timedelta(minutes=self.expiration_delta)
@@ -80,10 +75,7 @@ class hxtool_session_interface(SessionInterface):
 		cookie_domain = self.get_cookie_domain(app)
 		if not session:
 			if not session.new:
-				self.logger.debug("Deleting session with id: {0}".format(session.id))
-				self._ht_db.sessionDelete(session.id)
-				if id in self.session_cache:
-					del self.session_cache[session.id]
+				self.delete_session(session.id)
 			if session.modified:
 				response.delete_cookie(app.session_cookie_name, domain=cookie_domain)
 			return
@@ -108,18 +100,16 @@ class hxtool_session_interface(SessionInterface):
 		secure = self.get_cookie_secure(app)	
 		response.set_cookie(app.session_cookie_name, session.id, expires=self.get_expiration_time(app, session), path=cookie_path, httponly=http_only, secure=secure, domain=cookie_domain)	
 
-	def start_session_reaper(self, interval=600):
-		self.session_reaper_timer = threading.Timer(interval, self.session_reaper)
-		self.session_reaper_timer.start()
-	
+	def delete_session(self, session_id):
+		self.logger.debug("Deleting session with id: {0}".format(session_id))
+		self._ht_db.sessionDelete(session_id)
+		if session_id in self.session_cache:
+			del self.session_cache[session_id]
+			
 	def session_reaper(self):
 		self.logger.debug("session_reaper() called.")
 		for s in self._ht_db.sessionList():
 			if not s['update_timestamp'] or (datetime.datetime.utcnow() - datetime.datetime.strptime(s['update_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds > (self.expiration_delta * 60):
-				self.logger.debug("Deleting session with id: {0}, update_timestamp: {1}".format(s['session_id'], s['update_timestamp']))
-				self._ht_db.sessionDelete(s['session_id'])
-				if s['session_id'] in self.session_cache:
-					del self.session_cache[s['session_id']]
-		self.start_session_reaper()			
-	
+				self.logger.debug("update_timestamp: {0}".format(s['update_timestamp']))
+				self.delete_session(s['session_id'])
 	

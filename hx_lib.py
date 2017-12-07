@@ -260,6 +260,10 @@ class HXAPI:
 			is_valid = (last_use_delta < 15 and grant_time_delta < 150)
 		
 		if self.auto_renew_token and not is_valid:
+			self.logger.debug("Token has expired and auto_renew_token is set, renewing token.")
+			if current_token:
+				# Make sure we delete/logout the existing token so we don't leave stale ones on the controller
+				(ret, response_code, response_data) = self.restLogout()
 			(is_valid, response_code, response_data) = self.restLogin(self.hx_user, self._hx_password, self.auto_renew_token)
 			
 		return is_valid
