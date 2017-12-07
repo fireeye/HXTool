@@ -29,7 +29,7 @@
 
 <form method='POST' action='/bulk' enctype="multipart/form-data">
         <div class='tableTitle'>
-                Bulk acquisition script (xml)
+                Bulk acquisition
         </div>
 	<div class='inputArea'>
 	        <input type='file' id='bulkscript' name='bulkscript'>
@@ -40,7 +40,7 @@
 		<br>
 		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>A bulk acquisition is similar to a normal forensic acquisition in HX but is targeting a list of hosts instead of individual hosts. You need to provide a compatible acquisition script and select a target host-set.<br>Also note that the download feature is only available once you have set the background processing credentials on the "<a href='/settings'>settings</a>" page.</div>
 		
-	        <input type='submit' value='Start Bulk Acquisition...'>
+	        <input class='tableActionButton' type='submit' value='Start Bulk Acquisition'>
 	</div>
 </form>
 
