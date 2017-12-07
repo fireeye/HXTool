@@ -513,9 +513,9 @@ table.dataTable th {
     top: 40%;
     z-index: 10;
     margin-left: -200px;
-	margin-top: -90px;
+	margin-top: -130px;
     width: 400px;
-    height: 180px;
+    height: 260px;
 	box-shadow: 5px 5px 5px rgb(215, 215, 215);
 }
 

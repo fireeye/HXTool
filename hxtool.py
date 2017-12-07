@@ -536,8 +536,10 @@ def indicatorcondition(hx_api_object):
 def categories(hx_api_object):
 	if request.method == 'POST':
 		catname = request.form.get('catname')
-		(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(catname))
-		app.logger.info('New indicator category created - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+
+		(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(catname), category_options={"ui_edit_policy": HXAPI.compat_str(request.form.get('editpolicy')), "retention_policy": HXAPI.compat_str(request.form.get('retentionpolicy'))})
+		if ret:
+			app.logger.info('New indicator category created - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 
 	(ret, response_code, response_data) = hx_api_object.restListCategories()
@@ -554,7 +556,7 @@ def importioc(hx_api_object):
 		iocs = json.loads(fc.read())
 		
 		for iockey in iocs:
-			
+
 			# Check if category exists
 			(ret, response_code, response_data) = hx_api_object.restListCategories(filter_term='name={0}'.format(iocs[iockey]['category']))
 			if ret:

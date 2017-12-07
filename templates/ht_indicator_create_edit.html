@@ -369,6 +369,9 @@
 			<option value='osx'>Apple MacOS
 			<option value='all'>All
 		</select>
+		{% if iocname %}
+			<div style='width: 650px; font-style: italic; font-size: 11px; margin-top: 10px;'>Note: Due to limitations in the HX API indicator conditions cannot be edited. When you use HXTool to edit an indicator a new indicator will be created and the old indicator will be removed. Make sure to backup your indicators before proceeding</div>
+		{% endif %}
 	</div>
 
 	<table id='ioctable' class='genericTable genericTableIOC' style='width: 100%;'>

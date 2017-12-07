@@ -20,7 +20,7 @@
 </script>
 
 <form style='margin: 0;' method='post'>
-<input type='button' value='Create new category...' name='createCategory' id='createCategory'>
+<input class='tableActionButton' type='button' value='Create new category' name='createCategory' id='createCategory'>
 <br><br>
 
 <div class='tableTitle'>
@@ -36,11 +36,26 @@
 		<div class='tableTitle' style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 15px;'>Create new category</div>
 		<div class='descr'>- Create a new category for real-time indicators</div>
 		<br>
-		<div>Category name</div>
+		<div class='inputTitle'>Category name</div>
 		<input type='text' name='catname' id='catname' style='width: 400px;'><br>
 		<br>
-		<input type='submit' value='Create'>
-		<input type='button' value='Cancel' id='createCategoryCancel'>
+		<div class='inputTitle'>Retention policy</div>
+		<select name='retentionpolicy' id='retentionpolicy'>
+			<option value='manual'>manual
+			<option value='auto'>auto
+			<option value='intel'>intel
+		</select>
+		<br><br>
+		<div class='inputTitle'>Edit policy</div>
+		<select name='editpolicy' id='editpolicy'>
+			<option value='full'>full
+			<option value='edit_delete'>edit_delete
+			<option value='delete'>delete
+			<option value='read_only'>read-only
+		</select>
+		<br><br>
+		<input class='tableActionButton' type='submit' value='Create'>
+		<input class='tableActionButton' type='button' value='Cancel' id='createCategoryCancel'>
 	</form>
 </div>
 
