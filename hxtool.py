@@ -554,6 +554,15 @@ def importioc(hx_api_object):
 		iocs = json.loads(fc.read())
 		
 		for iockey in iocs:
+			
+			# Check if category exists
+			(ret, response_code, response_data) = hx_api_object.restListCategories(filter_term='name={0}'.format(iocs[iockey]['category']))
+			if ret:
+				if len(response_data['data']['entries']) == 0:
+					app.logger.info('Adding new IOC category as part of import: %s - User: %s@%s:%s', iocs[iockey]['category'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+					(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(iocs[iockey]['category']))
+
+
 			(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
 			if ret:
 				ioc_guid = response_data['data']['_id']
