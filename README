@@ -14,7 +14,7 @@ HXTool is a web based application that allows users to utilize functionality in 
 
 * Summary of set up
 To install HXTool unzip or fetch the repo and place the files in a directory.
-After installation run "python hxtool.py" and the server will start listening to tcp port 8080. Access the web user interface via a browser (tested with google chrome and firefox)
+After installation run "python hxtool.py" and the server will start listening to tcp port 8080 (HTTPS). Access the web user interface via a browser (tested with google chrome and firefox)
 
 * Configuration
 Configuration for HXTool is held in the conf.json file
@@ -23,7 +23,7 @@ Configuration for HXTool is held in the conf.json file
 Python 2.7 or 3.x
 Python Flask library
 Python Requests library
-Python Pycrypto library
+Python Pycryptodome library
 Python TinyDB library
 Python Pandas library
 
