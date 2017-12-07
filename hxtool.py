@@ -1226,7 +1226,7 @@ def login():
 
 				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = ht_config['network'].get('proxies'), headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger, default_encoding = default_encoding)
 
-				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'])
+				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'], auto_renew_token = True)
 				if ret:
 					# Set session variables
 					session['ht_user'] = request.form['ht_user']
