@@ -554,25 +554,23 @@ def importioc(hx_api_object):
 		iocs = json.loads(fc.read())
 		
 		for iockey in iocs:
-			myplatforms = iocs[iockey]['platforms']
-			if ',' in myplatforms:
-				myplatforms = myplatforms.split(",")
-	
-			(ret, response_code, response_data) = hx_api_object.restAddIndicator(session['ht_user'], iocs[iockey]['name'], myplatforms, iocs[iockey]['category'])
+			(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
+			if ret:
+				ioc_guid = response_data['data']['_id']
+				
+				for p_cond in iocs[iockey]['presence']:
+					data = json.dumps(p_cond)
+					data = """{"tests":""" + data + """}"""
+					(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
 
-			ioc_guid = response_data['data']['_id']
-			
-			for p_cond in iocs[iockey]['presence']:
-				data = json.dumps(p_cond)
-				data = """{"tests":""" + data + """}"""
-				(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
-
-			for e_cond in iocs[iockey]['execution']:
-				data = json.dumps(e_cond)
-				data = """{"tests":""" + data + """}"""
-				(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
+				for e_cond in iocs[iockey]['execution']:
+					data = json.dumps(e_cond)
+					data = """{"tests":""" + data + """}"""
+					(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
 		
-		app.logger.info('New indicator imported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				app.logger.info('New indicator imported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			else:
+				app.logger.warn('Unable to import indicator - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
 	return redirect("/indicators", code=302)
 
