@@ -424,11 +424,14 @@ def formatConditions(cond_pre, cond_ex):
 		
 	return (x)
 	
-def formatCategoriesSelect(cats):
+def formatCategoriesSelect(cats, setdefault="Custom"):
 
 	x = "<select name='cats' id='cats'>"
 	for entry in cats['data']['entries']:
-		x += "<option value='" + entry['uri_name'] + "'>" + entry['name']
+		if entry['name'] == setdefault:
+			x += "<option value='" + entry['uri_name'] + "' selected>" + entry['name']
+		else:
+			x += "<option value='" + entry['uri_name'] + "'>" + entry['name']
 	x += "</select>"
 	return(x)
 
