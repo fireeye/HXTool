@@ -966,6 +966,8 @@ class HXAPI:
 		
 	@staticmethod
 	def compat_str(s):
+		if s is None:
+			return ''
 		try:
 			return unicode(s)
 		except NameError:

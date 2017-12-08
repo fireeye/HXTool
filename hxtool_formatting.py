@@ -736,8 +736,8 @@ def formatCustomConfigChannels(ch):
 	x += "<tbody>"
 	for entry in ch['data']['entries']:
 		x += "<tr class='clickable-row' data-href='/channelinfo?id=" + HXAPI.compat_str(entry['_id']) + "'>"
-		x += "<td>" + entry['name'] + "</td>"
-		x += "<td>" + entry['description'] + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['name']) + "</td>"
+		x += "<td>" + HXAPI.compat_str(entry['description']) + "</td>"
 		x += "<td>" + entry['create_time'] + "<//td>"
 		x += "<td>" + entry['create_actor']['username'] + "</td>"
 		x += "<td>" + HXAPI.compat_str(entry['priority']) + "</td>"
