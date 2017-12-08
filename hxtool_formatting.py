@@ -358,7 +358,7 @@ def formatIOCResults(iocs, mycategories):
 			# Cant clone to custom if the category is already custom
 			x += "<a class='tableActionButton' href='/rtioc?indicator=" + HXAPI.compat_str(entry['uri_name']) + "&clone=true'>clone</a>"
 		if (mycategories[entry['category']['_id']] in ['full', 'edit_delete', 'delete']):
-			x += "<a class='tableActionButton' href='/rtioc?delete=" + HXAPI.compat_str(entry['uri_name']) + "&category=" + HXAPI.compat_str(entry['category']['name']) + "'>delete</a>"
+			x += "<a class='tableActionButton' href='/rtioc?delete=" + HXAPI.compat_str(entry['uri_name']) + "&category=" + HXAPI.compat_str(entry['category']['name']) + "' onclick=\"return confirm('Are you sure?')\">delete</a>"
 		x += "</td>"
 		x += "</tr>"
 
