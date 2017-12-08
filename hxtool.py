@@ -621,6 +621,9 @@ def rtioc(hx_api_object):
 					mypre = json.dumps(condition_class_presence['data']['entries'])
 					myexec = json.dumps(condition_class_execution['data']['entries'])
 
+					if request.args.get('clone'):
+						ioccategory = "Custom"
+
 				return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, myiocuri=myiocuri, myioccategory=ioccategory, mydescription=mydescription, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
 			elif request.args.get('delete'):
 				(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(request.args.get('category'), request.args.get('delete'))
@@ -677,6 +680,8 @@ def rtioc(hx_api_object):
 
 				# Get the original URI
 				myOriginalURI = mydata['iocuri']
+				myOriginalCategory = mydata['originalcategory']
+				myState = True
 
 				if mydata['platform'] == "all":
 					chosenplatform = ['win', 'osx']
@@ -701,13 +706,14 @@ def rtioc(hx_api_object):
 									mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
 
 							(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], myNewURI, ioctype, json.dumps(mytests))
-							if ret:
-								# Remove the indicator if condition push was unsuccessful
-								(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(mydata['category'], myOriginalURI)
-							else:
-								# Failed to create indicator condition
+							if not ret:
+								# Condition was not added successfully set state to False to prevent the original indicator from being removed
+								myState = False
 								return('', 500)
 					# Everything is OK
+					if myState:
+						# Remove the original indicator
+						(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(myOriginalCategory, myOriginalURI)
 					return('', 204)
 				else:
 					# Failed to create indicator
