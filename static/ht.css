@@ -73,16 +73,19 @@
 	font-weight: bold;
 	color: #ffffff;
 	border: #eeeeee;
-	border-radius: 5px;
+	border-radius: 4px;
 	padding: 4px;
 	padding-left: 10px;
 	padding-right: 10px;
-	margin-right: 10px;
-	box-shadow: 3px 3px 3px rgb(215, 215, 215);
+	margin-right: 5px;
+	box-shadow: 2px 2px 4px rgb(195, 195, 195);
+	text-shadow: 2px 2px 4px rgb(140, 140, 140);
 }
 
 .tableActionButton:hover {
 	cursor: pointer;
+	background: rgb(101, 141, 170);
+
 }
 
 .tableActionButtonSmall {
