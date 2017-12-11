@@ -354,8 +354,11 @@ def formatIOCResults(iocs, mycategories):
 		if (mycategories[entry['category']['_id']] in ['full', 'edit_delete']):
 			x += "<a class='tableActionButton' href='/rtioc?indicator=" + HXAPI.compat_str(entry['uri_name']) + "'>edit</a>"
 		x += "<button class='tableActionButton' id='iocview_{0}' data-id='{0}'>view</button>".format(entry['uri_name'])
+		if not HXAPI.compat_str(entry['category']['name']) == "Custom":
+			# Cant clone to custom if the category is already custom
+			x += "<a class='tableActionButton' href='/rtioc?indicator=" + HXAPI.compat_str(entry['uri_name']) + "&clone=true'>clone</a>"
 		if (mycategories[entry['category']['_id']] in ['full', 'edit_delete', 'delete']):
-			x += "<a class='tableActionButton' href='/rtioc?delete=" + HXAPI.compat_str(entry['uri_name']) + "&category=" + HXAPI.compat_str(entry['category']['name']) + "'>delete</a>"
+			x += "<a class='tableActionButton' href='/rtioc?delete=" + HXAPI.compat_str(entry['uri_name']) + "&category=" + HXAPI.compat_str(entry['category']['name']) + "' onclick=\"return confirm('Are you sure?')\">delete</a>"
 		x += "</td>"
 		x += "</tr>"
 
@@ -421,11 +424,14 @@ def formatConditions(cond_pre, cond_ex):
 		
 	return (x)
 	
-def formatCategoriesSelect(cats):
+def formatCategoriesSelect(cats, setdefault="Custom"):
 
 	x = "<select name='cats' id='cats'>"
 	for entry in cats['data']['entries']:
-		x += "<option value='" + entry['uri_name'] + "'>" + entry['name']
+		if entry['name'] == setdefault:
+			x += "<option value='" + entry['uri_name'] + "' selected>" + entry['name']
+		else:
+			x += "<option value='" + entry['uri_name'] + "'>" + entry['name']
 	x += "</select>"
 	return(x)
 
@@ -597,18 +603,18 @@ def formatAlertsTable(alerts, hx_api_object, profileid, ht_db):
 		
 		if HXAPI.compat_str(entry['source']) == "EXD":
 			x += HXAPI.compat_str(entry['event_values']['process_name']) + " (pid: " + HXAPI.compat_str(entry['event_values']['process_id']) + ") (count: " + HXAPI.compat_str(len(entry['event_values']['messages'])) + ")"
-			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + HXAPI.compat_str(entry['agent']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>Details</a>"
+			#x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + HXAPI.compat_str(entry['agent']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>Details</a>"
 			
 		elif (HXAPI.compat_str(entry['source']) == "MAL"):
 			x += entry['event_values']['detections']['detection'][0]['infection']['infection-name'] + " (severity: " + entry['event_values']['detections']['detection'][0]['infection']['confidence-level'] + ")"
-			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + HXAPI.compat_str(entry['agent']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>Details</a>"
+			#x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + HXAPI.compat_str(entry['agent']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>Details</a>"
 			
 		elif (HXAPI.compat_str(entry['source']) == "IOC"):
 			(ret, response_code, response_data) = hx_api_object.restGetIndicatorFromCondition(HXAPI.compat_str(entry['condition']['_id']))
 			for indicator in response_data['data']['entries']:
 				x += indicator['name'] + " (category: " + indicator['category']['name'] + ")"
 						
-			x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + HXAPI.compat_str(entry['agent']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>Details</a>"
+			#x += "<a class='tableActionButton' style='float: right; position: relative; right: 0; color: #ffffff; padding-left: 5px; padding-right: 5px;' href='/hosts?host=" + HXAPI.compat_str(entry['agent']['_id']) + "&alertid=" + HXAPI.compat_str(entry['_id']) + "'>Details</a>"
 			
 		else:
 			x += "Unknown alert"
