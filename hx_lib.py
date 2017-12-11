@@ -151,9 +151,11 @@ class HXAPI:
 			return(True, response.status_code, response_data, response.headers)	
 		except (requests.HTTPError, requests.ConnectionError) as e:
 			response_code = None
+			response_data = None
 			if e.response:
-				response_code = e.response.status_code
-			return(False, response_code, e, None)
+				# TODO: Maybe return based on Content-Type
+				return(False, e.response.status_code, e.response.text, e.response.headers)
+			return(False, None, e, None)
 		
 		
 
