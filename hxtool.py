@@ -378,6 +378,9 @@ def search(hx_api_object):
 		f = request.files['newioc']
 		rawioc = f.read()
 		(ret, response_code, response_data) = hx_api_object.restSubmitSweep(rawioc, request.form['sweephostset'])
+		print("##########################")
+		print(response_data.text)
+		print(response_data)
 		app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 	(ret, response_code, response_data) = hx_api_object.restListSearches()
@@ -1288,7 +1291,27 @@ def logout():
 #
 #	HXTool API
 #	
-####################################	
+####################################
+
+# Hosts not that have not polled in X minutes
+@app.route('/api/v{0}/inactive_hosts/<int:seconds>'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def inactive_hosts(hx_api_object, seconds):
+	if request.method == 'GET':
+		myhosts = []
+		(ret, response_code, response_data) = hx_api_object.restListHosts()
+		now = datetime.datetime.utcnow()
+		if ret:
+			for host in response_data['data']['entries']:
+				x = (HXAPI.gt(host['last_poll_timestamp']))
+				if (int((now - x).total_seconds())) > seconds:
+					myhosts.append(host)
+				
+			response = app.response_class(response=json.dumps(myhosts), status=200, mimetype='application/json')
+			return(response)
+		else:
+			return('Internal server error',500)
+
 	
 ####################
 # Profile Management
