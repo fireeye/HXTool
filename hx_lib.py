@@ -727,7 +727,7 @@ class HXAPI:
 	# Hosts
 	########
 		
-	def restListHosts(self, limit=10000, offset=0, search_term=None, sort_term=None, filter_term=None):
+	def restListHosts(self, limit=10000, offset=0, search_term=None, sort_term=None, filter_term=None, hostset_id=None):
 		
 		endpoint_url = "hosts?limit={0}&offset={1}".format(limit, offset)
 		if search_term:
@@ -736,7 +736,9 @@ class HXAPI:
 			endpoint_url = "{0}&sort={1}".format(endpoint_url, requests.utils.requote_uri(sort_term))
 		if filter_term:
 			endpoint_url = "{0}&{1}".format(endpoint_url, requests.utils.requote_uri(filter_term))
-			
+		if hostset_id:
+			endpoint_url = "{0}&host_sets._id={1}".format(endpoint_url, hostset_id)
+		
 		request = self.build_request(self.build_api_route(endpoint_url))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		

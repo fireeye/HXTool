@@ -1294,25 +1294,52 @@ def logout():
 ####################################
 
 # Hosts not that have not polled in X minutes
-@app.route('/api/v{0}/inactive_hosts/<int:seconds>'.format(HXTOOL_API_VERSION), methods=['GET'])
+@app.route('/api/v{0}/hosts'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
-def inactive_hosts(hx_api_object, seconds):
+def api_hosts(hx_api_object):
 	if request.method == 'GET':
 		myhosts = []
-		(ret, response_code, response_data) = hx_api_object.restListHosts()
-		now = datetime.datetime.utcnow()
-		if ret:
-			for host in response_data['data']['entries']:
-				x = (HXAPI.gt(host['last_poll_timestamp']))
-				if (int((now - x).total_seconds())) > seconds:
-					myhosts.append(host)
-				
-			response = app.response_class(response=json.dumps(myhosts), status=200, mimetype='application/json')
-			return(response)
-		else:
-			return('Internal server error',500)
+		if request.args.get('hostset.id'):
+		
+			(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000, hostset_id=request.args.get('hostset.id'))
 
-	
+			now = datetime.datetime.utcnow()
+			if ret:
+				for host in response_data['data']['entries']:
+					print(host['hostname'])
+					x = (HXAPI.gt(host['last_poll_timestamp']))
+					if (int((now - x).total_seconds())) > int(request.args.get('seconds')):
+						myhosts.append(host)
+					
+				return(app.response_class(response=json.dumps(myhosts), status=200, mimetype='application/json'))
+		else:
+			(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+			if ret:
+				return(app.response_class(response=json.dumps(response_data['data']['entries']), status=200, mimetype='application/json'))
+
+
+@app.route('/api/v{0}/vega_inactive_hosts_per_hostset'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def vega_inactive_hosts_per_hostset(hx_api_object):
+	if request.method == 'GET':
+		myhosts = []
+		
+		(ret, response_code, response_data) = hx_api_object.restListHostsets()
+		if ret:
+			for hostset in response_data['data']['entries']:
+				(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(limit=100000, hostset_id=hostset['_id'])
+				if ret:
+					now = datetime.datetime.utcnow()
+					hcount = 0
+					for host in hresponse_data['data']['entries']:
+						x = (HXAPI.gt(host['last_poll_timestamp']))
+						if (int((now - x).total_seconds())) > int(request.args.get('seconds')):
+							hcount += 1
+					myhosts.append({"name": hostset['name'], "count": hcount})
+					
+			return(app.response_class(response=json.dumps(myhosts), status=200, mimetype='application/json'))
+
+
 ####################
 # Profile Management
 ####################
