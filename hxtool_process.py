@@ -7,6 +7,7 @@ import zipfile
 import json	
 import xml.etree.ElementTree as ET
 import os
+import atexit
 
 try:
 	import Queue as queue
@@ -66,6 +67,7 @@ class hxtool_background_processor:
 		self._task_thread_list = []
 		self._stop_event = threading.Event()
 		self._poll_thread = threading.Thread(target = self.bulk_download_processor, name = "hxtool_background_processor - {0}".format(profile_id), args = (hxtool_config['background_processor']['poll_interval'], ))
+		atexit.register(self.stop)
 		self.logger.debug("__init__() complete")
 		
 	def __exit__(self, exc_type, exc_value, traceback):
@@ -91,20 +93,30 @@ class hxtool_background_processor:
 			return False
 		
 	def stop(self):
-		self.logger.debug("stop() called.")
-		self._stop_event.set()
-		if self._poll_thread.is_alive():
-			self._poll_thread.join()
-		for task_thread in [_ for _ in self._task_thread_list if _.is_alive()]:
-			task_thread.join()
-		(ret, response_code, response_data) = self.hx_api_object.restLogout()	
+		try:
+			self.logger.debug("stop() called.")
+			self._stop_event.set()
+			if self._poll_thread.is_alive():
+				self.logger.debug("Poll thread is alive, joining.")
+				self._poll_thread.join()
+			for task_thread in [_ for _ in self._task_thread_list if _.is_alive()]:
+				self.logger.debug("Joining task threads.") 
+				task_thread.join()
+			self.logger.debug("Logging out of the HX controller.")	
+			(ret, response_code, response_data) = self.hx_api_object.restLogout()
+		except:
+			pass
+		
+		return
 	
 	def await_task(self):
 		while not self._stop_event.is_set():
-			task = self._task_queue.get()
-			task[0](*task[1])
-			self._task_queue.task_done()
-	
+			if not self._task_queue.empty():
+				task = self._task_queue.get()
+				task[0](*task[1])
+				self._task_queue.task_done()
+			self._stop_event.wait(1)
+			
 	def bulk_download_processor(self, poll_interval):
 		while not self._stop_event.is_set():
 			bulk_download_jobs = self._ht_db.bulkDownloadList(self.profile_id)
@@ -129,7 +141,8 @@ class hxtool_background_processor:
 							self.logger.debug("Processing multi file acquisition host: {0}".format(file_acq['hostname']))
 							full_path = os.path.join(download_directory, get_download_filename(file_acq['hostname'], file_acq['acquisition_id']))
 							self._task_queue.put((self.download_file, (job.eid, file_acq, response_data['data']['url']+'.zip', full_path)))
-			time.sleep(poll_interval)
+			
+			self._stop_event.wait(poll_interval)
 	
 	def download_file(self, multi_file_id, file_acq, download_url, destination_path):
 		try:
