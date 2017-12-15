@@ -21,7 +21,6 @@ import logging
 import datetime
 import pickle
 import shutil
-import atexit
 
 class HXAPI:
 	HX_DEFAULT_PORT = 3000
@@ -66,25 +65,7 @@ class HXAPI:
 		self.default_encoding = default_encoding
 		self.logger.debug('Encoding set to: %s.', self.default_encoding)
 		
-		atexit.register(self.cleanup)
-		
 		self.logger.debug('__init__ complete.')
-	
-	def __exit__(self, type, value, traceback):
-		self.cleanup()
-		
-	def cleanup(self):
-		try:
-			self.logger.debug('cleanup() called.')
-			if self.get_token(update_last_use_timestamp=False):
-				self.logger.debug('We have an active token, calling restLogout().')
-				(ret, response_code, response_data) = self.restLogout()
-				if ret:
-					self.logger.debug('restLogout() on cleanup() successful.')
-		except:
-			pass
-		
-		return
 	
 	###################
 	## Generic functions
