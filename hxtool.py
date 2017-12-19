@@ -1291,7 +1291,7 @@ def api_hosts(hx_api_object):
 		myhosts = []
 		if request.args.get('hostset.id'):
 		
-			(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000, hostset_id=request.args.get('hostset.id'))
+			(ret, response_code, response_data) = hx_api_object.restListHosts(query_terms = {'host_sets._id' : request.args.get('hostset.id')})
 
 			now = datetime.datetime.utcnow()
 			if ret:
@@ -1303,7 +1303,7 @@ def api_hosts(hx_api_object):
 					
 				return(app.response_class(response=json.dumps(myhosts), status=200, mimetype='application/json'))
 		else:
-			(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+			(ret, response_code, response_data) = hx_api_object.restListHosts()
 			if ret:
 				return(app.response_class(response=json.dumps(response_data['data']['entries']), status=200, mimetype='application/json'))
 
@@ -1317,7 +1317,7 @@ def vega_inactive_hosts_per_hostset(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
 		if ret:
 			for hostset in response_data['data']['entries']:
-				(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(limit=100000, hostset_id=hostset['_id'])
+				(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(query_terms = {'host_sets._id' : request.args.get('hostset.id')})
 				if ret:
 					now = datetime.datetime.utcnow()
 					hcount = 0
