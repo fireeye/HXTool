@@ -736,9 +736,7 @@ def listbulk(hx_api_object):
 	if request.method == 'POST':
 		f = request.files['bulkscript']
 		bulk_acquisition_script = f.read()
-		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['bulkhostset'])
-		hosts = [{'_id' : host['_id']} for host in response_data['data']['entries']]
-		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts, comment = json.dumps({'hostset_id' : HXAPI.compat_str(request.form['bulkhostset'])}))
+		bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
 		app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
@@ -835,9 +833,12 @@ def bulkaction(hx_api_object):
 		
 		hostset_id = -1
 		(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
-		if ret and response_data['data']['comment'] and 'hostset_id' in response_data['data']['comment']:
-			hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
-			
+		if ret:
+			if response_data['data']['comment'] and 'hostset_id' in response_data['data']['comment']:
+				hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
+			elif 'host_set' in response_data['data']:
+				hostset_id = int(response_data['data']['host_set']['_id'])
+		
 		ret = ht_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts, hostset_id = hostset_id)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
@@ -876,22 +877,6 @@ def reportgen(hx_api_object):
 			# add code here for report type 2
 		
 		return send_file(io.BytesIO(reportdata), attachment_filename=fname, as_attachment=True)
-
-def submit_bulk_job(hx_api_object, hostset, script_xml, handler=None):
-	(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset)
-	hosts = []
-	bulk_download_entry_hosts = {}
-	for host in response_data['data']['entries']:
-		hosts.append({'_id' : host['_id']})
-		bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
-	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hosts = hosts)
-	if ret:
-		bulkid = response_data['data']['_id']
-		# Store Job Record
-		#TODO: Implement bulkDownloadCreate
-		bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], bulkid, bulk_download_entry_hosts, hostset, post_download_handler = handler)
-		return bulkid
-	return None
 
 @app.route('/multifile', methods=['GET', 'POST'])
 @valid_session_required
@@ -1009,7 +994,7 @@ def file_listing(hx_api_object):
 		display_name = xmlescape(request.form['listing_name'])
 		regex = xmlescape(request.form['listing_regex'])
 		path = xmlescape(request.form['listing_path'])
-		hostset = xmlescape(request.form['hostset'])
+		hostset = int(xmlescape(request.form['hostset']))
 		use_api_mode = ('use_raw_mode' not in request.form)
 		depth = '-1'
 		# Build a script from the template
@@ -1138,7 +1123,7 @@ def stacking(hx_api_object):
 		if stack_type:
 			with open(os.path.join('scripts', stack_type['script']), 'rb') as f:
 				script_xml = f.read()
-				hostset_id = request.form['stackhostset']
+				hostset_id = int(request.form['stackhostset'])
 				app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 				bulk_id = submit_bulk_job(hx_api_object, hostset_id, script_xml, handler="stacking")
 				ret = ht_db.stackJobCreate(session['ht_profileid'], bulk_id, request.form['stack_type'])
@@ -1354,7 +1339,22 @@ def stack_job_results(hx_api_object, stack_id):
 ####################
 # Utility Functions
 ####################
-
+def submit_bulk_job(hx_api_object, hostset, script_xml, download = True, handler=None):
+	bulk_id = None
+	
+	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hostset_id = hostset)
+	if ret:
+		bulk_id = response_data['data']['_id']
+		
+	if download:
+		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset)
+		bulk_download_entry_hosts = {}
+		for host in response_data['data']['entries']:
+			bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
+		
+		bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], bulkid, bulk_download_entry_hosts, hostset, post_download_handler = handler)
+	return bulk_id
+	
 def validate_json(keys, j):
 	for k in keys:
 		if not k in j or not j[k]:
