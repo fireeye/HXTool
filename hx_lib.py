@@ -25,6 +25,7 @@ import shutil
 class HXAPI:
 	HX_DEFAULT_PORT = 3000
 	HX_MIN_API_VERSION = 2
+	DEFAULT_LIMIT = 100000
 	
 	def __init__(self, hx_host, hx_port = HX_DEFAULT_PORT, headers = None, cookies = None, proxies = None, disable_certificate_verification = True, logger = logging.getLogger(__name__), default_encoding = 'utf-8'):
 		self.logger = logger
@@ -281,7 +282,7 @@ class HXAPI:
 	#############
 
 	# List indicator categories
-	def restListCategories(self, limit=10000, offset=0, share_mode=None, sort_term=None, search_term=None, filter_term=None):
+	def restListCategories(self, limit=DEFAULT_LIMIT, offset=0, share_mode=None, sort_term=None, search_term=None, filter_term=None):
 		
 		endpoint_url = "indicator_categories?limit={0}&offset={1}".format(limit, offset)
 		if share_mode:
@@ -309,7 +310,7 @@ class HXAPI:
 		return(ret, response_code, response_data)
 		
 	# List all indicators
-	def restListIndicators(self, limit=10000, offset=0, share_mode=None, search_term=None, sort_term=None, filter_term=None):
+	def restListIndicators(self, limit=DEFAULT_LIMIT, offset=0, share_mode=None, search_term=None, sort_term=None, filter_term=None):
 		endpoint_url = "indicators?limit={0}&offset={1}".format(limit, offset)
 		if share_mode:
 			endpoint_url = "{0}&share_mode={1}".format(endpoint_url, share_mode)
@@ -353,7 +354,7 @@ class HXAPI:
 
 	# List all conditions
 	# TODO: Add has_alerts and enabled parameters
-	def restListConditions(self, limit=10000, offset=0, has_share_mode=None, search_term=None):
+	def restListConditions(self, limit=DEFAULT_LIMIT, offset=0, has_share_mode=None, search_term=None):
 	
 		endpoint_url = "conditions?limit={0}&offset={1}".format(limit, offset)
 		if has_share_mode:
@@ -375,6 +376,7 @@ class HXAPI:
 		return(ret, response_code, response_data)
 	
 	# Grab conditions from an indicator
+	# NOTE: limit for conditions is hard capped at 10000
 	def restGetCondition(self, ioc_category, ioc_uri, condition_class, limit=10000):
 
 		request = self.build_request(self.build_api_route('indicators/{0}/{1}/conditions/{2}?limit={3}'.format(ioc_category, ioc_uri, condition_class, limit)))
@@ -474,7 +476,7 @@ class HXAPI:
 		return(ret, response_code, response_data)
 		
 	# List Bulk Acquisitions
-	def restListBulkAcquisitions(self, limit=10000):
+	def restListBulkAcquisitions(self, limit=DEFAULT_LIMIT):
 
 		request = self.build_request(self.build_api_route('acqs/bulk?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
@@ -482,7 +484,7 @@ class HXAPI:
 
 
 	# List hosts in Bulk acquisition
-	def restListBulkHosts(self, bulk_id, limit=10000, offset=0, sort_term=None, filter_term=None):
+	def restListBulkHosts(self, bulk_id, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term=None):
 		
 		endpoint_url = "acqs/bulk/{0}/hosts?limit={1}&offset={2}".format(bulk_id, limit, offset)
 		if sort_term:
@@ -593,14 +595,14 @@ class HXAPI:
 
 		
 	# List file acquisitions
-	def restListFileaq(self, limit=10000):
+	def restListFileaq(self, limit=DEFAULT_LIMIT):
 
 		request = self.build_request(self.build_api_route('acqs/files?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
-	def restListTriages(self, limit=10000):
+	def restListTriages(self, limit=DEFAULT_LIMIT):
 
 		request = self.build_request(self.build_api_route('acqs/triages?limit={0}'.format(limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
@@ -611,7 +613,7 @@ class HXAPI:
 	## Enterprise Search ##
 	#######################
 
-	def restListSearches(self, limit=10000, offset=0, sort_term=None, filter_term=None):
+	def restListSearches(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term=None):
 		
 		endpoint_url = "searches?limit={0}&offset={1}".format(limit, offset)
 		if sort_term:
@@ -725,7 +727,7 @@ class HXAPI:
 	# Hosts
 	########
 		
-	def restListHosts(self, limit=10000, offset=0, search_term=None, sort_term=None, filter_term=None):
+	def restListHosts(self, limit=DEFAULT_LIMIT, offset=0, search_term=None, sort_term=None, filter_term=None):
 		
 		endpoint_url = "hosts?limit={0}&offset={1}".format(limit, offset)
 		if search_term:
@@ -796,7 +798,7 @@ class HXAPI:
 	# Host Sets
 	###########
 		
-	def restListHostsets(self, limit=10000, offset=0, sort_term=None, filter_term=None):
+	def restListHostsets(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term=None):
 		
 		endpoint_url = 'host_sets?limit={0}&offset={1}'.format(limit, offset)
 		if sort_term:
@@ -809,7 +811,7 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 		
-	def restListHostsInHostset(self, host_set_id, limit=10000, offset=0, sort_term=None, search_term=None, filter_term=None):
+	def restListHostsInHostset(self, host_set_id, limit=DEFAULT_LIMIT, offset=0, sort_term=None, search_term=None, filter_term=None):
 		
 		endpoint_url = 'host_sets/{0}/hosts?limit={1}&offset={2}'.format(host_set_id, limit, offset)
 		if search_term:
@@ -836,7 +838,7 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 			
-	def restListCustomConfigChannels(self, limit=10000, offset=0, sort_term=None, search_term=None, filter_term=None):
+	def restListCustomConfigChannels(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, search_term=None, filter_term=None):
 		
 		endpoint_url = 'host_policies/channels?limit={0}&offset={1}'.format(limit, offset)
 		if search_term:
