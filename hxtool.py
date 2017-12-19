@@ -558,28 +558,33 @@ def importioc(hx_api_object):
 		for iockey in iocs:
 
 			# Check if category exists
+			category_exists = False
 			(ret, response_code, response_data) = hx_api_object.restListCategories(filter_term='name={0}'.format(iocs[iockey]['category']))
 			if ret:
-				if len(response_data['data']['entries']) == 0:
+				category_exists = (len(response_data['data']['entries']) == 1)
+				if not category_exists:
 					app.logger.info('Adding new IOC category as part of import: %s - User: %s@%s:%s', iocs[iockey]['category'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(iocs[iockey]['category']))
-
-
-			(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
-			if ret:
-				ioc_guid = response_data['data']['_id']
+					category_exists = ret
 				
-				for p_cond in iocs[iockey]['presence']:
-					data = json.dumps(p_cond)
-					data = """{"tests":""" + data + """}"""
-					(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
+				if category_exists:
+					(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
+					if ret:
+						ioc_guid = response_data['data']['_id']
+						
+						for p_cond in iocs[iockey]['presence']:
+							data = json.dumps(p_cond)
+							data = """{"tests":""" + data + """}"""
+							(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
 
-				for e_cond in iocs[iockey]['execution']:
-					data = json.dumps(e_cond)
-					data = """{"tests":""" + data + """}"""
-					(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
-		
-				app.logger.info('New indicator imported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+						for e_cond in iocs[iockey]['execution']:
+							data = json.dumps(e_cond)
+							data = """{"tests":""" + data + """}"""
+							(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
+				
+						app.logger.info('New indicator imported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				else:
+					app.logger.warn('Unable to create category for indicator import - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			else:
 				app.logger.warn('Unable to import indicator - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
