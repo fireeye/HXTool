@@ -570,28 +570,33 @@ def importioc(hx_api_object):
 		for iockey in iocs:
 
 			# Check if category exists
+			category_exists = False
 			(ret, response_code, response_data) = hx_api_object.restListCategories(filter_term='name={0}'.format(iocs[iockey]['category']))
 			if ret:
-				if len(response_data['data']['entries']) == 0:
+				category_exists = (len(response_data['data']['entries']) == 1)
+				if not category_exists:
 					app.logger.info('Adding new IOC category as part of import: %s - User: %s@%s:%s', iocs[iockey]['category'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(iocs[iockey]['category']))
-
-
-			(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
-			if ret:
-				ioc_guid = response_data['data']['_id']
+					category_exists = ret
 				
-				for p_cond in iocs[iockey]['presence']:
-					data = json.dumps(p_cond)
-					data = """{"tests":""" + data + """}"""
-					(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
+				if category_exists:
+					(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
+					if ret:
+						ioc_guid = response_data['data']['_id']
+						
+						for p_cond in iocs[iockey]['presence']:
+							data = json.dumps(p_cond)
+							data = """{"tests":""" + data + """}"""
+							(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
 
-				for e_cond in iocs[iockey]['execution']:
-					data = json.dumps(e_cond)
-					data = """{"tests":""" + data + """}"""
-					(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
-		
-				app.logger.info('New indicator imported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+						for e_cond in iocs[iockey]['execution']:
+							data = json.dumps(e_cond)
+							data = """{"tests":""" + data + """}"""
+							(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
+				
+						app.logger.info('New indicator imported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				else:
+					app.logger.warn('Unable to create category for indicator import - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			else:
 				app.logger.warn('Unable to import indicator - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
@@ -743,9 +748,7 @@ def listbulk(hx_api_object):
 	if request.method == 'POST':
 		f = request.files['bulkscript']
 		bulk_acquisition_script = f.read()
-		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(request.form['bulkhostset'])
-		hosts = [{'_id' : host['_id']} for host in response_data['data']['entries']]
-		(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(bulk_acquisition_script, hosts = hosts, comment = json.dumps({'hostset_id' : HXAPI.compat_str(request.form['bulkhostset'])}))
+		bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
 		app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
@@ -842,9 +845,12 @@ def bulkaction(hx_api_object):
 		
 		hostset_id = -1
 		(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
-		if ret and response_data['data']['comment'] and 'hostset_id' in response_data['data']['comment']:
-			hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
-			
+		if ret:
+			if response_data['data']['comment'] and 'hostset_id' in response_data['data']['comment']:
+				hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
+			elif 'host_set' in response_data['data']:
+				hostset_id = int(response_data['data']['host_set']['_id'])
+		
 		ret = ht_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts, hostset_id = hostset_id)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
@@ -883,22 +889,6 @@ def reportgen(hx_api_object):
 			# add code here for report type 2
 		
 		return send_file(io.BytesIO(reportdata), attachment_filename=fname, as_attachment=True)
-
-def submit_bulk_job(hx_api_object, hostset, script_xml, handler=None):
-	(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset)
-	hosts = []
-	bulk_download_entry_hosts = {}
-	for host in response_data['data']['entries']:
-		hosts.append({'_id' : host['_id']})
-		bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
-	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hosts = hosts)
-	if ret:
-		bulkid = response_data['data']['_id']
-		# Store Job Record
-		#TODO: Implement bulkDownloadCreate
-		bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], bulkid, bulk_download_entry_hosts, hostset, post_download_handler = handler)
-		return bulkid
-	return None
 
 @app.route('/multifile', methods=['GET', 'POST'])
 @valid_session_required
@@ -1016,7 +1006,7 @@ def file_listing(hx_api_object):
 		display_name = xmlescape(request.form['listing_name'])
 		regex = xmlescape(request.form['listing_regex'])
 		path = xmlescape(request.form['listing_path'])
-		hostset = xmlescape(request.form['hostset'])
+		hostset = int(xmlescape(request.form['hostset']))
 		use_api_mode = ('use_raw_mode' not in request.form)
 		depth = '-1'
 		# Build a script from the template
@@ -1145,7 +1135,7 @@ def stacking(hx_api_object):
 		if stack_type:
 			with open(os.path.join('scripts', stack_type['script']), 'rb') as f:
 				script_xml = f.read()
-				hostset_id = request.form['stackhostset']
+				hostset_id = int(request.form['stackhostset'])
 				app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 				bulk_id = submit_bulk_job(hx_api_object, hostset_id, script_xml, handler="stacking")
 				ret = ht_db.stackJobCreate(session['ht_profileid'], bulk_id, request.form['stack_type'])
@@ -1311,7 +1301,7 @@ def vegalite_inactive_hosts_per_hostset(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
 		if ret:
 			for hostset in response_data['data']['entries']:
-				(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(limit=100000, hostset_id=hostset['_id'])
+				(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(query_terms = {'host_sets._id' : request.args.get('hostset.id')})
 				if ret:
 					now = datetime.datetime.utcnow()
 					hcount = 0
@@ -1533,7 +1523,22 @@ def stack_job_results(hx_api_object, stack_id):
 ####################
 # Utility Functions
 ####################
-
+def submit_bulk_job(hx_api_object, hostset, script_xml, download = True, handler=None):
+	bulk_id = None
+	
+	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hostset_id = hostset)
+	if ret:
+		bulk_id = response_data['data']['_id']
+		
+	if download:
+		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset)
+		bulk_download_entry_hosts = {}
+		for host in response_data['data']['entries']:
+			bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
+		
+		bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], bulkid, bulk_download_entry_hosts, hostset, post_download_handler = handler)
+	return bulk_id
+	
 def validate_json(keys, j):
 	for k in keys:
 		if not k in j or not j[k]:

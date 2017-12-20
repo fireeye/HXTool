@@ -113,8 +113,9 @@ class hxtool_background_processor:
 		while not self._stop_event.is_set():
 			if not self._task_queue.empty():
 				task = self._task_queue.get()
-				task[0](*task[1])
-				self._task_queue.task_done()
+				if task:
+					task[0](*task[1])
+					self._task_queue.task_done()
 			self._stop_event.wait(1)
 			
 	def bulk_download_processor(self, poll_interval):
