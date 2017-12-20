@@ -1,0 +1,221 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Dashboard{% endblock %}
+{% block content %}
+
+<script>
+
+		function getHistoricDate(days) {
+			var historicDate = new Date();
+			historicDate.setDate(historicDate.getDate() - days);
+			return(historicDate.toISOString().substr(0, 10))
+		}
+
+        $(document).ready(function() {
+
+        	myWidthThree = ($( window ).width() / 3) - 90;
+        	myWidthOne = $( window ).width() - 230;
+
+			var fullDate = new Date()
+			var currentDate = fullDate.toISOString().substr(0, 10);
+
+			var pastDate = getHistoricDate(7);
+
+			$("#row3_cell1_from").val(pastDate);
+			$("#row3_cell1_to").val(currentDate);
+
+			var embedOpt = {
+				"actions": false
+			}
+
+			// Click events
+			$("#row3_cell1_refresh").click(function() {
+				//$("#row3_cell1_spin").show();
+				$.getJSON('/static/vegaspecs/lite-stacked-area.json', function(spec) {
+					spec.data.url = "/api/v1/vegalite_events_timeline?startDate=" + $("#row3_cell1_from").val() + "&endDate=" + $("#row3_cell1_to").val()
+					spec.width = myWidthOne;
+					spec.height = 180;
+					vegaEmbed("#row3_cell1", spec, embedOpt);
+				});
+			});
+
+			$("#row1_cell1_select").change(function () {
+				myseconds = $(this).val();
+		        $.getJSON('/static/vegaspecs/lite-barchart-vertical.json', function(spec) {
+		        	spec.width = myWidthThree;
+		        	spec.height = 180;
+		        	spec.data.url = "/api/v1/vegalite_inactive_hosts_per_hostset?seconds=" + myseconds;
+					vegaEmbed("#row1_cell1", spec, embedOpt);
+				});
+			});
+
+
+			$("#row1_cell2_select").change(function () {
+				mydays = $(this).val()
+		        $.getJSON('/static/vegaspecs/lite-initial-checkin.json', function(spec) {
+		        	spec.width = myWidthThree;
+		        	spec.height = 180;
+		        	var pastDate = getHistoricDate(mydays);
+		        	spec.data.url = "/api/v1/vegalite_hosts_initial_agent_checkin?startDate=" + pastDate + "&endDate=" + currentDate
+					vegaEmbed("#row1_cell2", spec, embedOpt);
+				});
+			});
+
+			$("#row2_cell2_select").change(function () {
+				mydays = $(this).val()
+		        $.getJSON('/static/vegaspecs/lite-event-distribution.json', function(spec) {
+		        	spec.width = myWidthThree;
+		        	spec.height = 300;
+		        	var pastDate = getHistoricDate(mydays);
+		        	spec.data.url = "/api/v1/vegalite_events_distribution?startDate=" + pastDate + "&endDate=" + currentDate
+					vegaEmbed("#row2_cell2", spec, embedOpt);
+				});
+			});
+
+			// Start loading all graphs
+			// Vega: Inactive hosts
+	        $.getJSON('/static/vegaspecs/lite-barchart-vertical.json', function(spec) {
+	        	spec.width = myWidthThree;
+	        	spec.height = 180;
+	        	var seconds = $("#row1_cell1_select option:selected").val();
+	        	spec.data.url = "/api/v1/vegalite_inactive_hosts_per_hostset?seconds=" + seconds;
+				vegaEmbed("#row1_cell1", spec, embedOpt);
+			});
+
+	        // Vega: Events timeline
+	        $.getJSON('/static/vegaspecs/lite-stacked-area.json', function(spec) {
+	        	spec.width = myWidthOne;
+	        	spec.height = 180;
+	        	var pastDate = getHistoricDate(7);
+	        	spec.data.url = "/api/v1/vegalite_events_timeline?startDate=" + pastDate + "&endDate=" + currentDate
+				vegaEmbed("#row3_cell1", spec, embedOpt);
+			});
+
+	        // Vega: Host provision timeline
+	        $.getJSON('/static/vegaspecs/lite-initial-checkin.json', function(spec) {
+	        	spec.width = myWidthThree;
+	        	spec.height = 180;
+	        	var pastDate = getHistoricDate(30);
+	        	spec.data.url = "/api/v1/vegalite_hosts_initial_agent_checkin?startDate=" + pastDate + "&endDate=" + currentDate
+				vegaEmbed("#row1_cell2", spec, embedOpt);
+			});
+
+	        // Vega: Event distributon
+	        $.getJSON('/static/vegaspecs/lite-event-distribution.json', function(spec) {
+	        	spec.width = myWidthThree - 80;
+	        	spec.height = 300;
+	        	var pastDate = getHistoricDate(7);
+	        	spec.data.url = "/api/v1/vegalite_events_distribution?startDate=" + pastDate + "&endDate=" + currentDate
+				vegaEmbed("#row2_cell2", spec, embedOpt);
+			});
+
+	        // Datatable: Hosts with alerts
+			$.getJSON('/api/v1/datatable_hosts_with_alerts?limit=10', function(myData) {
+				$('#row1_cell3_table').DataTable( {
+					data: myData,
+					"paging":   false,
+					"ordering": false,
+					"info":     false,
+					"searching": false,
+					columns: [
+						{ title: "Hostname" },
+						{ title: "Count" }
+					]
+				});
+			});
+
+			// Datatable: Last 10 alerts
+			$.getJSON('/api/v1/datatable_alerts?limit=10', function(myData) {
+				$('#row2_cell1_table').DataTable( {
+					data: myData,
+					"paging":   false,
+					"ordering": false,
+					"info":     false,
+					"searching": false,
+					columns: [
+						{ title: "Hostname" },
+						{ title: "Domain" },
+						{ title: "Reported at" },
+						{ title: "Source" },
+						{ title: "Action" }
+					]
+				});
+			});
+
+
+        });
+</script>
+
+<table id='dashboard' class='genericTable' style='width: 100%; border-top: 0; border-bottom: 0;'>
+	<tr>
+		<th>Inactive agents per host-set</td>
+		<th>Host provision timeline</td>
+		<th>Hosts with the most alerts</td>
+	</tr>
+	<tr>
+		<td>
+			Not been communicating since:  
+			<select class='row1_cell1_select' id='row1_cell1_select'>
+				<option value='900' selected>15 Min
+				<option value='1800'>30 Min
+				<option value='3600'>1 hour
+				<option value='86400'>1 Day
+				<option value='172800'>2 Days
+				<option value='604800'>7 Days
+				<option value='7776000'>90 Days
+			</select>
+			<div id='row1_cell1'></div>
+		</td>
+		<td>
+			Timeline: 
+			<select class='row1_cell2_select' id='row1_cell2_select'>
+				<option value='1'>1 Day
+				<option value='7'>7 Days
+				<option value='30' selected>30 Days
+				<option value='90'>90 Days
+				<option value='180'>180 Days
+				<option value='365'>1 Year
+				<option value='730'>2 Years
+			</select>
+			<div id='row1_cell2'></div>
+		</td>
+		<td id='row1_cell3'>
+			<table id="row1_cell3_table" class='genericTable' style='width: 100%;'></table>
+		</td>
+	</tr>
+	<tr>
+		<th colspan='2'>Last 10 alerts</td>
+		<th>Alert type distribution</td>
+	</tr>
+	<tr>
+		<td id='row2_cell1' colspan='2'>
+			<table id="row2_cell1_table" class='genericTable' style='width: 100%;'></table>
+		</td>
+		<td style='text-align: center;'>
+			Time period: 
+			<select class='row2_cell2_select' id='row2_cell2_select'>
+				<option value='1'>1 Day
+				<option value='7' selected>7 Days
+				<option value='30'>30 Days
+				<option value='90'>90 Days
+			</select>
+			<div id='row2_cell2'></div>
+		</td>
+	</tr>
+	<tr>
+		<th colspan='3'>Events over time</td>
+	</tr>
+	<tr>
+		<td colspan='3'>
+			From:
+			<input type='text' id='row3_cell1_from' style='width: 80px;'>
+			To:
+			<input type='text' id='row3_cell1_to' style='width: 80px;'>
+			<input class='tableActionButton' type='button' id='row3_cell1_refresh' value='refresh'>
+			<div id='row3_cell1_spin' class='spinLoader' style='display: none;'></div>
+			<div id='row3_cell1'></div>
+
+		</td>
+	</tr>
+</table>
+
+{% endblock %}

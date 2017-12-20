@@ -78,9 +78,9 @@ class HXAPI:
 			self.logger.debug('cleanup() called.')
 			if self.get_token(update_last_use_timestamp=False):
 				self.logger.debug('We have an active token, calling restLogout().')
-				(ret, response_code, response_data) = self.restLogout()
-				if ret:
-					self.logger.debug('restLogout() on cleanup() successful.')
+				#(ret, response_code, response_data) = self.restLogout()
+				#if ret:
+					#self.logger.debug('restLogout() on cleanup() successful.')
 		except:
 			pass
 		
