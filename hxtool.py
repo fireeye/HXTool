@@ -1187,7 +1187,7 @@ def settings(hx_api_object):
 @app.route('/channels', methods=['GET', 'POST'])
 @valid_session_required
 def channels(hx_api_object):
-	(ret, response_code, response_data) = hx_api_object.restCheckAccessCustomConfig()
+	(ret, response_code, response_data) = hx_api_object.restListCustomConfigChannels(limit=1)
 	if ret:
 	
 		if (request.method == 'POST'):
@@ -1213,7 +1213,7 @@ def channels(hx_api_object):
 @app.route('/channelinfo', methods=['GET'])
 @valid_session_required
 def channelinfo(hx_api_object):
-	(ret, response_code, response_data) = hx_api_object.restCheckAccessCustomConfig()
+	(ret, response_code, response_data) = hx_api_object.restListCustomConfigChannels(limit=1)
 	if ret:
 		# TODO: finish
 		(ret, response_code, response_data) = hx_api_object.restGetConfigChannelConfiguration(request.args.get('id'))
