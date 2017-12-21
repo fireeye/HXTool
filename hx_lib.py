@@ -92,13 +92,12 @@ class HXAPI:
 			d['logger'] = logging.getLogger(d['logger'])
 		self.__dict__.update(d)	
 
-	def build_request(self, url, method = 'GET', data = None, content_type = 'application/json', accept = 'application/json', auth = None):
+	def build_request(self, url, method = 'GET', params = None, data = None, content_type = 'application/json', accept = 'application/json', auth = None):
 	
 		full_url = "https://{0}:{1}{2}".format(self.hx_host, self.hx_port, url)
-		self.logger.debug('Full URL is: %s', full_url)
 		
 		self.logger.debug('Creating request.')
-		request = requests.Request(method = method, url = full_url, data = data, auth = auth)
+		request = requests.Request(method = method, url = full_url, params = params, data = data, auth = auth)
 		self.logger.debug('HTTP method set to: %s', request.method)
 		
 		request.headers['Accept'] = accept
@@ -107,9 +106,13 @@ class HXAPI:
 		if method != 'GET' and method != 'DELETE':
 			request.headers['Content-Type'] = content_type
 			self.logger.debug('HTTP method is not GET or DELETE, Content-Type header set to: %s', content_type)
-			
+		
+		pr = self._session.prepare_request(request)
+		
+		self.logger.debug('Full URL is: %s', pr.url)
+		
 		self.logger.debug('Request created, returning.')
-		return self._session.prepare_request(request)
+		return pr
 
 	def build_api_route(self, api_endpoint, min_api_version = None):
 		if not min_api_version:
@@ -282,19 +285,23 @@ class HXAPI:
 	#############
 
 	# List indicator categories
-	def restListCategories(self, limit=DEFAULT_LIMIT, offset=0, share_mode=None, sort_term=None, search_term=None, filter_term=None):
+	def restListCategories(self, limit=DEFAULT_LIMIT, offset=0, share_mode=None, sort_term=None, search_term=None, filter_term={}, query_terms = {}):
 		
-		endpoint_url = "indicator_categories?limit={0}&offset={1}".format(limit, offset)
+		endpoint_url = "indicator_categories"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
 		if share_mode:
-			endpoint_url = "{0}&share_mode={1}".format(endpoint_url, share_mode)
+			params['share_mode'] = share_mode
 		if search_term:
-			endpoint_url = "{0}&search={1}".format(endpoint_url, requests.utils.requote_uri(search_term))
+			params['search'] = search_term
 		if sort_term:
-			endpoint_url = "{0}&sort={1}".format(endpoint_url, requests.utils.requote_uri(sort_term))
-		if filter_term:
-			endpoint_url = "{0}&{1}".format(endpoint_url, requests.utils.requote_uri(filter_term))
-			
-		request = self.build_request(self.build_api_route(endpoint_url))
+			params['sort'] = sort_term
+		params.update(filter_term)
+		params.update(query_terms)
+		
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -310,18 +317,23 @@ class HXAPI:
 		return(ret, response_code, response_data)
 		
 	# List all indicators
-	def restListIndicators(self, limit=DEFAULT_LIMIT, offset=0, share_mode=None, search_term=None, sort_term=None, filter_term=None):
-		endpoint_url = "indicators?limit={0}&offset={1}".format(limit, offset)
+	def restListIndicators(self, limit=DEFAULT_LIMIT, offset=0, share_mode=None, search_term=None, sort_term=None, filter_term={}, query_terms={}):
+		
+		endpoint_url = "indicators"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
 		if share_mode:
-			endpoint_url = "{0}&share_mode={1}".format(endpoint_url, share_mode)
+			params['share_mode'] = share_mode
 		if search_term:
-			endpoint_url = "{0}&search={1}".format(endpoint_url, requests.utils.requote_uri(search_term))
+			params['search'] = search_term
 		if sort_term:
-			endpoint_url = "{0}&sort={1}".format(endpoint_url, requests.utils.requote_uri(sort_term))
-		if filter_term:
-			endpoint_url = "{0}&{1}".format(endpoint_url, requests.utils.requote_uri(filter_term))
+			params['sort'] = sort_term
+		params.update(filter_term)
+		params.update(query_terms)
 			
-		request = self.build_request(self.build_api_route(endpoint_url))
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -354,15 +366,20 @@ class HXAPI:
 
 	# List all conditions
 	# TODO: Add has_alerts and enabled parameters
-	def restListConditions(self, limit=DEFAULT_LIMIT, offset=0, has_share_mode=None, search_term=None):
+	def restListConditions(self, limit=DEFAULT_LIMIT, offset=0, has_share_mode=None, search_term=None, query_terms={}):
 	
-		endpoint_url = "conditions?limit={0}&offset={1}".format(limit, offset)
+		endpoint_url = "conditions"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
 		if has_share_mode:
-			endpoint_url = "{0}&has_share_mode={1}".format(endpoint_url, has_share_mode)
+			params['has_share_mode'] = has_share_mode
 		if search_term:
-			endpoint_url = "{0}&search={1}".format(endpoint_url, requests.utils.requote_uri(search_term))
-			
-		request = self.build_request(self.build_api_route(endpoint_url))
+			params['search'] = search_term
+		params.update(query_terms)
+		
+		request = self.build_request(self.build_api_route(endpoint_url), params = param)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -476,9 +493,20 @@ class HXAPI:
 		return(ret, response_code, response_data)
 		
 	# List Bulk Acquisitions
-	def restListBulkAcquisitions(self, limit=DEFAULT_LIMIT):
-
-		request = self.build_request(self.build_api_route('acqs/bulk?limit={0}'.format(limit)))
+	def restListBulkAcquisitions(self, limit=DEFAULT_LIMIT, offset=0, search_term=None, sort_term=None, filter_term={}):
+		
+		endpoint_url = "acqs/bulk"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
+		if search_term:
+			params['search'] = search_term
+		if sort_term:
+			params['sort'] = sort_term
+		params.update(filter_term)
+		
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		return(ret, response_code, response_data)
 
@@ -486,13 +514,20 @@ class HXAPI:
 	# List hosts in Bulk acquisition
 	def restListBulkHosts(self, bulk_id, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term=None):
 		
-		endpoint_url = "acqs/bulk/{0}/hosts?limit={1}&offset={2}".format(bulk_id, limit, offset)
+		endpoint_url = "acqs/bulk/{0}/hosts".format(bulk_id)
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
+		if share_mode:
+			params['share_mode'] = share_mode
+		if search_term:
+			params['search'] = search_term
 		if sort_term:
-			endpoint_url = "{0}&sort={1}".format(endpoint_url, requests.utils.requote_uri(sort_term))
-		if filter_term:
-			endpoint_url = "{0}&{1}".format(endpoint_url, requests.utils.requote_uri(filter_term))
-
-		request = self.build_request(self.build_api_route(endpoint_url))
+			params['sort'] = sort_term
+		params.update(filter_term)
+		
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -595,16 +630,38 @@ class HXAPI:
 
 		
 	# List file acquisitions
-	def restListFileaq(self, limit=DEFAULT_LIMIT):
-
-		request = self.build_request(self.build_api_route('acqs/files?limit={0}'.format(limit)))
+	def restListFileaq(self, limit=DEFAULT_LIMIT, offset=0, search_term=None, sort_term=None, filter_term={}):
+		
+		endpoint_url = "acqs/files"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
+		if search_term:
+			params['search'] = search_term
+		if sort_term:
+			params['sort'] = sort_term
+		params.update(filter_term)
+	
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
-	def restListTriages(self, limit=DEFAULT_LIMIT):
-
-		request = self.build_request(self.build_api_route('acqs/triages?limit={0}'.format(limit)))
+	def restListTriages(self, limit=DEFAULT_LIMIT, offset=0, search_term=None, sort_term=None, filter_term={}):
+		
+		endpoint_url = "acqs/triages"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
+		if search_term:
+			params['search'] = search_term
+		if sort_term:
+			params['sort'] = sort_term
+		params.update(filter_term)
+		
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -613,15 +670,18 @@ class HXAPI:
 	## Enterprise Search ##
 	#######################
 
-	def restListSearches(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term=None):
+	def restListSearches(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term={}):
 		
-		endpoint_url = "searches?limit={0}&offset={1}".format(limit, offset)
+		endpoint_url = "searches"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
 		if sort_term:
-			endpoint_url = "{0}&sort={1}".format(endpoint_url, requests.utils.requote_uri(sort_term))
-		if filter_term:
-			endpoint_url = "{0}&{1}".format(endpoint_url, requests.utils.requote_uri(filter_term))
+			params['sort'] = sort_term
+		params.update(filter_term)
 
-		request = self.build_request(self.build_api_route(endpoint_url))
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -678,9 +738,22 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
-	def restGetAlerts(self, limit):
-
-		request = self.build_request(self.build_api_route('alerts?sort=reported_at+desc&limit={0}'.format(limit)))
+	def restGetAlerts(self, limit=DEFAULT_LIMIT, offset=0, has_share_mode=None, sort_term='reported_at+desc', filter_term={}, resolution_term=None):
+		
+		endpoint_url = "alerts"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}
+		if has_share_mode:
+			params['has_share_mode'] = has_share_mode
+		if sort_term:
+			params['sort'] = sort_term
+		if resolution_term:
+			params['resolution'] = resolution_term
+		params.update(filter_term)
+		
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -727,19 +800,21 @@ class HXAPI:
 	# Hosts
 	########
 		
-	def restListHosts(self, limit=DEFAULT_LIMIT, offset=0, search_term=None, sort_term=None, filter_term=None, query_terms = {}):
+	def restListHosts(self, limit=DEFAULT_LIMIT, offset=0, search_term=None, sort_term=None, filter_term={}, query_terms = {}):
 		
-		endpoint_url = "hosts?limit={0}&offset={1}".format(limit, offset)
+		endpoint_url = "hosts"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
 		if search_term:
-			endpoint_url = "{0}&search={1}".format(endpoint_url, requests.utils.requote_uri(search_term))
+			params['search'] = search_term
 		if sort_term:
-			endpoint_url = "{0}&sort={1}".format(endpoint_url, requests.utils.requote_uri(sort_term))
-		if filter_term:
-			endpoint_url = "{0}&{1}".format(endpoint_url, requests.utils.requote_uri(filter_term))
-		if len(query_terms) > 0:
-			endpoint_url = "{0}&{1}".format(endpoint_url, urllib.urlencode(query_terms))
+			params['sort'] = sort_term
+		params.update(filter_term)
+		params.update(query_terms)
 		
-		request = self.build_request(self.build_api_route(endpoint_url))
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -800,30 +875,39 @@ class HXAPI:
 	# Host Sets
 	###########
 		
-	def restListHostsets(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term=None):
+	def restListHostsets(self, limit=DEFAULT_LIMIT, offset=0, search_term=None, sort_term=None, filter_term={}):
 		
-		endpoint_url = 'host_sets?limit={0}&offset={1}'.format(limit, offset)
+		endpoint_url = "host_sets"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
+		if search_term:
+			params['search'] = search_term
 		if sort_term:
-			endpoint_url = "{0}&sort={1}".format(endpoint_url, requests.utils.requote_uri(sort_term))
-		if filter_term:
-			endpoint_url = "{0}&{1}".format(endpoint_url, requests.utils.requote_uri(filter_term))
+			params['sort'] = sort_term
+		params.update(filter_term)
 
-		request = self.build_request(self.build_api_route(endpoint_url))
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 		
-	def restListHostsInHostset(self, host_set_id, limit=DEFAULT_LIMIT, offset=0, sort_term=None, search_term=None, filter_term=None):
+	def restListHostsInHostset(self, host_set_id, limit=DEFAULT_LIMIT, offset=0, sort_term=None, search_term=None, filter_term={}, query_terms={}):
 		
-		endpoint_url = 'host_sets/{0}/hosts?limit={1}&offset={2}'.format(host_set_id, limit, offset)
+		endpoint_url = "host_sets/{0}/hosts".format(host_set_id)
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
 		if search_term:
-			endpoint_url = "{0}&search={1}".format(endpoint_url, requests.utils.requote_uri(search_term))
+			params['search'] = search_term
 		if sort_term:
-			endpoint_url = "{0}&sort={1}".format(endpoint_url, requests.utils.requote_uri(sort_term))
-		if filter_term:
-			endpoint_url = "{0}&{1}".format(endpoint_url, requests.utils.requote_uri(filter_term))
+			params['sort'] = sort_term
+		params.update(filter_term)
+		params.update(query_terms)
 
-		request = self.build_request(self.build_api_route(endpoint_url))
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -832,25 +916,21 @@ class HXAPI:
 	##################
 	# Config Channels
 	##################	
-		
-	def restCheckAccessCustomConfig(self, limit=1):
-
-		request = self.build_request(self.build_api_route('host_policies/channels?limit={0}'.format(limit)))
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-		
-		return(ret, response_code, response_data)
 			
-	def restListCustomConfigChannels(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, search_term=None, filter_term=None):
+	def restListCustomConfigChannels(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, search_term=None, filter_term={}):
 		
-		endpoint_url = 'host_policies/channels?limit={0}&offset={1}'.format(limit, offset)
+		endpoint_url = "host_policies/channels"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
 		if search_term:
-			endpoint_url = "{0}&search={1}".format(endpoint_url, requests.utils.requote_uri(search_term))
+			params['search'] = search_term
 		if sort_term:
-			endpoint_url = "{0}&sort={1}".format(endpoint_url, requests.utils.requote_uri(sort_term))
-		if filter_term:
-			endpoint_url = "{0}&{1}".format(endpoint_url, requests.utils.requote_uri(filter_term))
-
-		request = self.build_request(self.build_api_route(endpoint_url))
+			params['sort'] = sort_term
+		params.update(filter_term)
+		
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
