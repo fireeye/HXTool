@@ -387,9 +387,6 @@ def search(hx_api_object):
 		f = request.files['newioc']
 		rawioc = f.read()
 		(ret, response_code, response_data) = hx_api_object.restSubmitSweep(rawioc, request.form['sweephostset'])
-		print("##########################")
-		print(response_data.text)
-		print(response_data)
 		app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 	(ret, response_code, response_data) = hx_api_object.restListSearches()
@@ -1301,7 +1298,7 @@ def vegalite_inactive_hosts_per_hostset(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
 		if ret:
 			for hostset in response_data['data']['entries']:
-				(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(query_terms = {'host_sets._id' : request.args.get('hostset.id')})
+				(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(query_terms = {'host_sets._id' : hostset['_id']})
 				if ret:
 					now = datetime.datetime.utcnow()
 					hcount = 0
@@ -1310,7 +1307,7 @@ def vegalite_inactive_hosts_per_hostset(hx_api_object):
 						if (int((now - x).total_seconds())) > int(request.args.get('seconds')):
 							hcount += 1
 					myhosts.append({"hostset": hostset['name'], "count": hcount})
-			
+
 			# Return the Vega Data
 			newlist = sorted(myhosts, key=lambda k: k['count'])
 			results = newlist[-10:]
@@ -1323,7 +1320,6 @@ def vegalite_inactive_hosts_per_hostset(hx_api_object):
 def vegalite_events_timeline(hx_api_object):
 	if request.method == 'GET':
 		mydates = []
-
 		mycount = {}
 
 		# Get all dates and calculate delta
@@ -1430,11 +1426,13 @@ def datatable_hosts_with_alerts(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=request.args.get('limit'), sort_term="stats.alerts+descending")
 		if ret:
 			for host in response_data['data']['entries']:
-				myhosts.append([host['hostname'], host['stats']['alerts']])
+				myhosts.append([host['hostname'] + "___" + host['_id'], host['stats']['alerts']])
 		else:
 			return('', 500)
 
-		return(app.response_class(response=json.dumps(myhosts[:5]), status=200, mimetype='application/json'))
+		mydata = {"data": myhosts[:5]}
+
+		return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
 
 @app.route('/api/v{0}/datatable_alerts'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -1442,23 +1440,37 @@ def datatable_hosts_with_alerts(hx_api_object):
 def datatable_alerts(hx_api_object):
 	if request.method == 'GET':
 
-		myalerts = []
+		myalerts = {"data": []}
 
 		(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'))
 		if ret:
 			for alert in response_data['data']['entries']:
-
 				# Query host object
 				(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
 				if ret:
 					hostname = hresponse_data['data']['hostname']
 					domain = hresponse_data['data']['domain']
+					hid = hresponse_data['data']['_id']
+					aid = alert['_id']
 				else:
 					hostname = "unknown"
 					domain = "unknown"
 
+				if alert['source'] == "IOC":
+					(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+					if cret:
+						tname = cresponse_data['data']['entries'][0]['name']
+					else:
+						tname = "N/A"
+				elif alert['source'] == "EXD":
+					tname = "N/A"
+				elif alert['source'] == "MAL":
+					tname = "N/A"
+				else:
+					tname = "N/A"
 
-				myalerts.append([hostname, domain, alert['reported_at'], alert['source'], alert['resolution']])
+
+				myalerts['data'].append([HXAPI.compat_str(hostname) + "___" + HXAPI.compat_str(hid) + "___" + HXAPI.compat_str(aid), domain, alert['reported_at'], alert['source'], tname, alert['resolution']])
 		else:
 			return('', 500)
 

@@ -1094,7 +1094,71 @@ table.dataTable th {
 }
 	
 	
+.dashTable {
+        font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+        font-weight: 700;
+        color: #444;
+        font-size: 12px;
+        border-top: 1px solid rgb(215, 215, 215);
+        border-bottom: 1px solid rgb(215, 215, 215);
+        border-spacing: 0;
+        border-collapse: collapse;
+}
+
+.dashTable td {
+        border-bottom: 2px solid rgb(215, 215, 215);
+        font-size: 13px;
+        background: none;
+        padding: 10px;
+        border-right: 1px solid rgb(215, 215, 215);
+}
+
+.dashTable th {
+        border-bottom: 1px solid rgb(215, 215, 215);
+        font-size: 13px;
+        background: rgb(240,240,240);
+        padding: 6px;
+        border-right: 1px solid rgb(215, 215, 215);
+}
+
+.dashTable td:last-child {
+        border-right: none;
+}
+
+.dashTable th:last-child {
+        border-right: none;
+}
+
+.dashTable tr:last-child {
+        border-bottom: none;
+}
+
+.dashTable td {
+        padding: 10px;
+        font-weight: 400;
+        border-right: 1px solid rgb(215, 215, 215);
+		border-bottom: 1px solid rgb(215, 215, 215);
+}
 	
-	
-	
-	
+.dashTableContentSmall {
+        font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+        font-weight: 700;
+        color: #444;
+        font-size: 11px;
+        border-spacing: 0;
+        border-collapse: collapse;
+}
+
+.dashTableContentSmall td {
+        border-bottom: 2px solid rgb(215, 215, 215);
+        font-size: 11px;
+        background: none;
+        border-right: 1px solid rgb(215, 215, 215);
+}
+
+.dashTableContentSmall th {
+        border-bottom: 1px solid rgb(215, 215, 215);
+        font-size: 11px;
+        background: 0;
+        border-right: 1px solid rgb(215, 215, 215);
+}

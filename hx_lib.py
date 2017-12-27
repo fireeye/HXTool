@@ -813,7 +813,7 @@ class HXAPI:
 			params['sort'] = sort_term
 		params.update(filter_term)
 		params.update(query_terms)
-		
+
 		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		

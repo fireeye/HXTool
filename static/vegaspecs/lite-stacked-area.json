@@ -15,8 +15,7 @@
     },
     "color": {
       "field": "type",
-      "type": "nominal",
-      "scale": {"scheme": "category20b"}
+      "type": "nominal"
     }
   }
 }
