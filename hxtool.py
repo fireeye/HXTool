@@ -1264,7 +1264,7 @@ def login():
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
-						redirect_uri = "/?time=today"
+						redirect_uri = "/"
 					return redirect(redirect_uri, code=302)
 				else:
 					return render_template('ht_login.html', fail=response_data)		
