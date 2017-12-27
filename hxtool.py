@@ -194,7 +194,7 @@ def index(hx_api_object):
 @app.route('/', methods=['GET'])
 @valid_session_required
 def dashboard(hx_api_object):
-	return render_template('ht_dashboard2.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+	return render_template('ht_dashboard.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 
 ### Jobdash
