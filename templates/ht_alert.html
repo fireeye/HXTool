@@ -1,0 +1,182 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Alerts{% endblock %}
+{% block content %}
+
+<script>
+
+	function getHistoricDate(days) {
+		var historicDate = new Date();
+		historicDate.setDate(historicDate.getDate() - days);
+		return(historicDate.toISOString().substr(0, 10))
+	}
+
+	$(document).ready(function() {
+
+		var fullDate = new Date()
+		var currentDate = fullDate.toISOString().substr(0, 10);
+
+		var pastDate = getHistoricDate(1);
+
+		$("#from").val(pastDate);
+		$("#to").val(currentDate);
+
+		$("#refresh").click(function() {
+			$('#shader').show();
+			alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?startDate=' + $("#from").val() + '&endDate=' + $("#to").val() ).load(function ( json ) {
+				$('#shader').hide();
+			});
+		});
+
+		$("input[id^='nav_']").click(function() {
+			var dArr = $(this).attr('id').split("_");
+			var navDate = getHistoricDate(dArr[1]);
+			$("#from").val(navDate);
+			$("#to").val(currentDate);
+			$("#refresh").click();
+		});		
+
+		$("a[id^='showannotation_']").click(function() {
+			aArr = $(this).split("_");
+			showPopup(1200, 900, "/annotatedisplay?alertid=" + aArr[1], "annotateDisplayTable");
+		});
+
+		var alert_datatable = $('#alertTable').DataTable( {
+			"ajax": "/api/v1/datatable_alerts_full?startDate=" + pastDate + "&endDate=" + currentDate,
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": false,
+			"processing": true,
+			"columns": [
+				{ title: "" },
+				{ title: "Hostname" },
+				{ title: "Domain" },
+				{ title: "Event at" },
+				{ title: "Age" },
+				{ title: "Source" },
+				{ title: "Threat" },
+				{ title: "Resolution" },
+				{ title: "State" },
+				{ title: "Annotations" },
+				{ title: "Action" },
+			],
+			"createdRow": function( row, data, index ) {
+				if (data[8] == "1") {
+					$('td', row).eq(8).css( 'background-color', '#fffce0' );
+				}
+				else if (data[8] == "2") {
+					$('td', row).eq(8).css( 'background-color', '#e0ffe3' );
+				}
+			},
+			"columnDefs": [	
+				{
+				 "targets": 0,
+				 "width": "20px",
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		if (data == "win") {
+				 			data = '<img style="width: 20px;" src="/static/ico/windows.svg">';
+				 		}
+				 		else if (data == "mac") {
+				 			data = '<img style="width: 20px;" src="/static/ico/mac.svg">';
+				 		}
+				 		else if (data == "linux") {
+				 			data = '<img style="width: 20px;" src="/static/ico/linux.svg">';
+				 		}
+				 		else {
+				 			data = "N/A"
+				 		}
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 "targets": 1,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		myArr = data.split("___");
+				 		data = '<a class="hostLink" href="/hosts?host=' + encodeURIComponent(myArr[1]) + '&alertid=' + encodeURIComponent(myArr[2]) + '">' + myArr[0] + '</a>';
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 "targets": 3,
+				 "width": "150px"
+				},
+				{
+				 "targets": 4,
+				 "width": "120px"
+				},
+				{
+				 "targets": 5,
+				 "width": "60px"
+				},
+				{
+				 "targets": 7,
+				 "width": "80px"
+				},
+				{
+				 "targets": 8,
+				 "width": "70px",
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		if (data == 1) {
+				 			data = "Investigating";
+				 		}
+				 		else if (data == 2) {
+				 			data = "Completed";
+				 		}
+				 		else {
+				 			data = "New"
+				 		}
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 "targets": 9,
+				 "width": "80px",
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		data = "<a href='#' class='tableActionButton' id='showannotation_" + data + "'>show (" + data + ")</a>";
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 "targets": 10,
+				 "width": "80px",
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		data = "<a href='#' class='tableActionButton' id='annotate_" + data + "'>annotate</a>";
+				 	}
+				 	return data;
+				 }
+				},
+				{"className": "dt-center", "targets": [0, 3, 4, 5, 7, 8, 9, 10]}
+			]
+		});		
+
+	});
+
+</script>
+
+<div style='margin-bottom: 15px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 12px;'>
+	<input class='tableActionButton' type='button' id='nav_1' value='today'>
+	<input class='tableActionButton' type='button' id='nav_7' value='week'>
+	<input class='tableActionButton' type='button' id='nav_30' value='month'>
+	<input class='tableActionButton' type='button' id='nav_90' value='quarter'>
+	<input class='tableActionButton' type='button' id='nav_180' value='half-year'>
+	<input class='tableActionButton' type='button' id='nav_365' value='year'>
+	&nbsp;
+	from:
+	<input type='text' id='from' style='width: 80px;'>
+	to:
+	<input type='text' id='to' style='width: 80px;'>
+	<input class='tableActionButton' type='button' id='refresh' value='refresh'>
+</div>
+
+<table id="alertTable" class='genericTable' style='width: 100%;'></table>
+
+{% endblock %}

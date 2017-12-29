@@ -196,6 +196,13 @@ def index(hx_api_object):
 def dashboard(hx_api_object):
 	return render_template('ht_dashboard.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### New alerts
+@app.route('/alert', methods=['GET'])
+@valid_session_required
+def alert(hx_api_object):
+	return render_template('ht_alert.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+
 
 ### Jobdash
 ##########
@@ -1463,9 +1470,9 @@ def datatable_alerts(hx_api_object):
 					else:
 						tname = "N/A"
 				elif alert['source'] == "EXD":
-					tname = "N/A"
+					tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
 				elif alert['source'] == "MAL":
-					tname = "N/A"
+					tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
 				else:
 					tname = "N/A"
 
@@ -1475,6 +1482,80 @@ def datatable_alerts(hx_api_object):
 			return('', 500)
 
 		return(app.response_class(response=json.dumps(myalerts), status=200, mimetype='application/json'))
+
+
+@app.route('/api/v{0}/datatable_alerts_full'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_alerts_full(hx_api_object):
+	if request.method == 'GET':
+
+		myalerts = {"data": []}
+
+		# hosts and ioc cache
+		myhosts = {}
+		myiocs = {}
+
+		(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
+		if ret:
+			for alert in response_data:
+
+				start = time.time()
+
+				# Query annotation status
+				#annotate_query_response = ht_db.alertGet(session['ht_profileid'], alert['_id'])
+				annotation_count = 0
+				annotation_max_state = 0
+				#if annotate_query_response:
+					#annotation_count = len(annotate_query_response['annotations'])
+					#annotation_max_state = int(max(annotate_query_response['annotations'], key = (lambda k: k['state']))['state'])
+
+				
+				if alert['agent']['_id'] not in myhosts:
+					# Query host object
+					print("######## HOSTS CALL")
+					(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
+					if ret:
+						myhosts[alert['agent']['_id']] = hresponse_data['data']
+				
+				hostname = myhosts[alert['agent']['_id']]['hostname']
+				domain = myhosts[alert['agent']['_id']]['domain']
+				hid = myhosts[alert['agent']['_id']]['_id']
+				aid = alert['_id']
+				if HXAPI.compat_str(myhosts[alert['agent']['_id']]['os']['product_name']).startswith('Windows'):
+					platform = "win"
+				elif HXAPI.compat_str(myhosts[alert['agent']['_id']]['os']['product_name']).startswith('Mac'):
+					platform = "mac"
+				else:
+					platform = "linux"
+
+				
+				if alert['source'] == "IOC":
+					if alert['condition']['_id'] not in myiocs:
+						print("######## IOC CALL")
+						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+						if cret:
+							myiocs[alert['condition']['_id']] = cresponse_data['data']['entries'][0]
+							tname = cresponse_data['data']['entries'][0]['name']
+						else:
+							tname = "N/A"
+					else:
+						tname = myiocs[alert['condition']['_id']]['name']
+
+				elif alert['source'] == "EXD":
+					tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
+				elif alert['source'] == "MAL":
+					tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
+				else:
+					tname = "N/A"
+
+				myalerts['data'].append([platform, HXAPI.compat_str(hostname) + "___" + HXAPI.compat_str(hid) + "___" + HXAPI.compat_str(aid), domain, alert['event_at'], HXAPI.prettyTime(HXAPI.gt(alert['event_at'])), alert['source'], tname, alert['resolution'], annotation_max_state, annotation_count, alert['_id']])
+				end = time.time()
+				print(end - start)
+		else:
+			return('', 500)
+
+		return(app.response_class(response=json.dumps(myalerts), status=200, mimetype='application/json'))
+
 
 ####################
 # Profile Management

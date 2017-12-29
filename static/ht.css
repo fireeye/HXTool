@@ -340,6 +340,18 @@ table.dataTable th {
 	custor: pointer;
 }
 
+.dataTables_wrapper .dataTables_processing {
+	z-index: 100;
+	background: rgb(255, 255, 255);
+	border: 1px solid rgb(115, 115, 155);
+	border-radius: 5px;
+	box-shadow: 3px 3px 3px rgb(115, 115, 115);
+	width: 160px;
+	left: 50%;
+	margin-left: -80px;
+	height: 40px;
+}
+
 .dataTables_filter {
     margin-bottom: 10px;
 	position: absolute;
@@ -1162,3 +1174,4 @@ table.dataTable th {
         background: 0;
         border-right: 1px solid rgb(215, 215, 215);
 }
+

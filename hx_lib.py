@@ -782,7 +782,7 @@ class HXAPI:
 							'max' : '{0}T23:59:59.999Z'.format(end_date)}
 						})
 							
-		request = self.build_request(self.build_api_route('alerts/filter'), method = 'POST', data = data)
+		request = self.build_request(self.build_api_route('alerts/filter?limit=10'), method = 'POST', data = data)
 		
 		(ret, response_code, response_data, response_headers) = self.handle_response(request, multiline_json = True)
 		
