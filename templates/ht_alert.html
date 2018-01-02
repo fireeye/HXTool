@@ -40,6 +40,20 @@
 			showPopup(600, 1200, "/annotatedisplay?alertid=" + aArr[1], "annotateDisplayTable");
 		});
 
+		$("#alertAutoRefresh").click(function() {
+			if ($(this).is(":checked")) {
+				alertAuto = setInterval(function () {
+					$('#shader').show();
+					alert_datatable.ajax.reload(function ( json ) {
+						$('#shader').hide();	
+					});
+				}, $("#alertAutoRefreshInterval").val() * 1000);
+			}
+			else {
+				clearInterval(alertAuto);
+			}			
+		});
+
 		$(document).on('click', '.addannotation', function() {
 			aArr = $(this).attr("id").split("_");
 			$("#annotationBoxID").val(aArr[1]);
@@ -190,7 +204,7 @@
 
 </script>
 
-<div style='margin-bottom: 15px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 12px;'>
+<div style='float: left; margin-bottom: 15px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 12px;'>
 	<input class='tableActionButton' type='button' id='nav_1' value='today'>
 	<input class='tableActionButton' type='button' id='nav_7' value='week'>
 	<input class='tableActionButton' type='button' id='nav_30' value='month'>
@@ -203,6 +217,12 @@
 	to:
 	<input type='text' id='to' style='width: 80px;'>
 	<input class='tableActionButton' type='button' id='refresh' value='refresh'>
+</div>
+<div style='float: right; margin-bottom: 15px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 12px;'>
+	<input type='checkbox' id='alertAutoRefresh'>
+	auto-refresh every 
+	<input type='text' id='alertAutoRefreshInterval' value='60' style='width: 40px;'>
+	 seconds
 </div>
 
 <table id="alertTable" class='genericTable' style='width: 100%;'></table>
