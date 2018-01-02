@@ -25,6 +25,16 @@
 	z-index: 100;
 }
 
+.ht_popup_annotate_div {
+	position: absolute;
+	padding: 20px;
+	display: none;
+	background: #ffffff;
+	border: 2px solid rgb(215, 215, 215);
+	box-shadow: 5px 5px 5px rgb(215, 215, 215);
+	z-index: 100;
+}
+
 .ht_statusbar_notifyBlue {
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-size: 14px;

@@ -35,10 +35,38 @@
 			$("#refresh").click();
 		});		
 
-		$("a[id^='showannotation_']").click(function() {
-			aArr = $(this).split("_");
-			showPopup(1200, 900, "/annotatedisplay?alertid=" + aArr[1], "annotateDisplayTable");
+		$(document).on('click', '.showannotation', function() {
+			aArr = $(this).attr("id").split("_");
+			showPopup(600, 1200, "/annotatedisplay?alertid=" + aArr[1], "annotateDisplayTable");
 		});
+
+		$(document).on('click', '.addannotation', function() {
+			aArr = $(this).attr("id").split("_");
+			$("#annotationBoxID").val(aArr[1]);
+
+			$('#annotationBox').center();
+
+			$('#shader').show();
+			$("#annotationBox").show();
+		});
+
+		$(document).on('click', '.postannotation', function() {
+			alertid = $("#annotationBoxID").val();
+			$.post( "/annotateadd", $( "#annotationForm" ).serialize(), function( data ) {
+				$("#annotateText").val("");
+ 				alert_datatable.ajax.reload();
+				$("#annotationBox").hide();
+				$('#shader').hide();
+			});
+		});
+
+		$(document).on('click', '.cancelannotation', function() {
+			$("#annotateText").val("");
+			$("#annotationBox").hide();
+			$('#shader').hide();
+		});
+
+
 
 		var alert_datatable = $('#alertTable').DataTable( {
 			"ajax": "/api/v1/datatable_alerts_full?startDate=" + pastDate + "&endDate=" + currentDate,
@@ -48,23 +76,23 @@
 			"searching": false,
 			"processing": true,
 			"columns": [
-				{ title: "" },
-				{ title: "Hostname" },
-				{ title: "Domain" },
-				{ title: "Event at" },
-				{ title: "Age" },
-				{ title: "Source" },
-				{ title: "Threat" },
-				{ title: "Resolution" },
-				{ title: "State" },
-				{ title: "Annotations" },
-				{ title: "Action" },
+				{ "title": "", "data": "platform" },
+				{ "title": "Hostname", "data": "hostname" },
+				{ "title": "Domain", "data": "domain" },
+				{ "title": "Event at", "data": "event_at" },
+				{ "title": "Age", "data": "age" },
+				{ "title": "Source", "data": "source" },
+				{ "title": "Threat", "data": "threat" },
+				{ "title": "Resolution", "data": "resolution" },
+				{ "title": "State", "data": "annotation_max_state" },
+				{ "title": "Annotations", "data": "annotation_count" },
+				{ "title": "Action", "data": "action" }
 			],
 			"createdRow": function( row, data, index ) {
-				if (data[8] == "1") {
+				if (data.annotation_max_state == 1) {
 					$('td', row).eq(8).css( 'background-color', '#fffce0' );
 				}
-				else if (data[8] == "2") {
+				else if (data.annotation_max_state == 2) {
 					$('td', row).eq(8).css( 'background-color', '#e0ffe3' );
 				}
 			},
@@ -139,7 +167,7 @@
 				 "width": "80px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<a href='#' class='tableActionButton' id='showannotation_" + data + "'>show (" + data + ")</a>";
+				 		data = "<a href='#' class='tableActionButton showannotation' id='showannotation_" + row.DT_RowId + "'>show (" + data + ")</a>";
 				 	}
 				 	return data;
 				 }
@@ -149,7 +177,7 @@
 				 "width": "80px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<a href='#' class='tableActionButton' id='annotate_" + data + "'>annotate</a>";
+				 		data = "<a href='#' class='tableActionButton addannotation' id='annotate_" + row.DT_RowId + "'>annotate</a>";
 				 	}
 				 	return data;
 				 }
@@ -178,5 +206,20 @@
 </div>
 
 <table id="alertTable" class='genericTable' style='width: 100%;'></table>
+
+<div id='annotationBox' class='ht_popup_annotate_div'>
+	<form id='annotationForm'>
+	<input type='hidden' name='annotationBoxID' id='annotationBoxID' value='null'>
+	<div class='tableTitle'>Add event annotation</div>
+	<textarea name='annotateText' id='annotateText' style='margin-bottom: 10px; width: 490px; height: 130px;'></textarea><br>
+	<select name='annotateState' id='annotateState' style='margin-bottom: 20px;'>
+		<option value='1'>Investigating
+		<option value='2'>Completed
+	</select>
+	<br>
+	<input class='tableActionButton postannotation' type='button' value='Add Annotation'>
+	<input class='tableActionButton cancelannotation' type='button' value='Cancel' id='annotateCancel'>
+	</form>
+</div>
 
 {% endblock %}

@@ -343,6 +343,18 @@ def acq(hx_api_object):
 ### Alerts Page
 ###################
 
+@app.route('/annotateadd', methods=['POST'])
+@valid_session_required
+def annotateadd(hx_api_object):
+	if request.method == "POST" and 'annotateText' in request.form:
+		ht_db.alertCreate(session['ht_profileid'], request.form['annotationBoxID'])
+		ht_db.alertAddAnnotation(session['ht_profileid'], request.form['annotationBoxID'], request.form['annotateText'], request.form['annotateState'], session['ht_user'])
+		app.logger.info('New annotation - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		return('', 204)
+	else:
+		return('', 500)
+
+
 @app.route('/alerts', methods=['GET', 'POST'])
 @valid_session_required
 def alerts(hx_api_object):
@@ -1502,12 +1514,12 @@ def datatable_alerts_full(hx_api_object):
 				start = time.time()
 
 				# Query annotation status
-				#annotate_query_response = ht_db.alertGet(session['ht_profileid'], alert['_id'])
+				annotate_query_response = ht_db.alertGet(session['ht_profileid'], alert['_id'])
 				annotation_count = 0
 				annotation_max_state = 0
-				#if annotate_query_response:
-					#annotation_count = len(annotate_query_response['annotations'])
-					#annotation_max_state = int(max(annotate_query_response['annotations'], key = (lambda k: k['state']))['state'])
+				if annotate_query_response:
+					annotation_count = len(annotate_query_response['annotations'])
+					annotation_max_state = int(max(annotate_query_response['annotations'], key = (lambda k: k['state']))['state'])
 
 				
 				if alert['agent']['_id'] not in myhosts:
@@ -1548,7 +1560,21 @@ def datatable_alerts_full(hx_api_object):
 				else:
 					tname = "N/A"
 
-				myalerts['data'].append([platform, HXAPI.compat_str(hostname) + "___" + HXAPI.compat_str(hid) + "___" + HXAPI.compat_str(aid), domain, alert['event_at'], HXAPI.prettyTime(HXAPI.gt(alert['event_at'])), alert['source'], tname, alert['resolution'], annotation_max_state, annotation_count, alert['_id']])
+				#myalerts['data'].append([platform, HXAPI.compat_str(hostname) + "___" + HXAPI.compat_str(hid) + "___" + HXAPI.compat_str(aid), domain, alert['event_at'], HXAPI.prettyTime(HXAPI.gt(alert['event_at'])), alert['source'], tname, alert['resolution'], annotation_max_state, annotation_count, alert['_id']])
+				myalerts['data'].append({
+					"DT_RowId": alert['_id'],
+					"platform": platform,
+					"hostname": HXAPI.compat_str(hostname) + "___" + HXAPI.compat_str(hid) + "___" + HXAPI.compat_str(aid),
+					"domain": domain,
+					"event_at": alert['event_at'],
+					"age": HXAPI.prettyTime(HXAPI.gt(alert['event_at'])),
+					"source": alert['source'],
+					"threat": tname,
+					"resolution": alert['resolution'],
+					"annotation_max_state": annotation_max_state,
+					"annotation_count": annotation_count,
+					"action": alert['_id']
+					})
 				end = time.time()
 				print(end - start)
 		else:
