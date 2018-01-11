@@ -547,7 +547,7 @@ def indicators(hx_api_object):
 def indicatorcondition(hx_api_object):
 	uuid = request.args.get('uuid')
 
-	(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term='uri_name={0}'.format(uuid))
+	(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ "uri_name": uuid })
 	category = response_data['data']['entries'][0]['category']['uri_name']
 
 	(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(category, uuid, 'presence')
@@ -637,7 +637,7 @@ def rtioc(hx_api_object):
 				(ret, response_code, response_data) = hx_api_object.restListCategories()
 				categories = formatCategoriesSelect(response_data)
 
-				(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term='uri_name={0}'.format(uuid))
+				(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ 'uri_name': uuid })
 				if ret:
 					iocname = response_data['data']['entries'][0]['name']
 					myiocuri = response_data['data']['entries'][0]['uri_name']
