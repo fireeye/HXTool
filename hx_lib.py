@@ -512,7 +512,7 @@ class HXAPI:
 
 
 	# List hosts in Bulk acquisition
-	def restListBulkHosts(self, bulk_id, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term=None):
+	def restListBulkHosts(self, bulk_id, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term=None, share_mode=None, search_term=None):
 		
 		endpoint_url = "acqs/bulk/{0}/hosts".format(bulk_id)
 		params = {
@@ -525,7 +525,6 @@ class HXAPI:
 			params['search'] = search_term
 		if sort_term:
 			params['sort'] = sort_term
-		params.update(filter_term)
 		
 		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
