@@ -1,0 +1,137 @@
+/* 
+	ht_layout CSS
+	Controls CSS for HXTool layout	
+*/
+
+:root {
+    --bg-color-topbar: rgb(225, 225, 225);
+    --bg-color-topmenubar: rgb(73, 110, 150);
+    --text-color-topbar: rgb(245, 245, 245);
+    font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+}
+
+.htLayoutTopBarBox {
+	width: 200px;
+	height: 60px;
+	background: var(--bg-color-topbar);
+	z-index: 30;
+}
+
+.htLayoutTopBarTopBox {
+	height: 8px;
+	width: 100%;
+	background: var(--bg-color-topbar);
+	z-index: 20;
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.htLayoutTopBarMenuBox {
+	background: var(--bg-color-topmenubar);
+	height: 50px;
+	width: 100%;
+	color: white;
+	z-index: 5;
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.htLayoutTriangle-topleft {
+	width: 0;
+	height: 0;
+	border-top: 60px solid var(--bg-color-topbar);
+	border-right: 40px solid transparent;
+	z-index: 30;
+}
+
+.htLayoutTriangle-topright {
+	width: 0;
+	height: 0;
+	border-top: 60px solid var(--bg-color-topbar);
+	border-left: 40px solid transparent;
+	z-index: 30;
+}
+
+/* Navigation menu */
+
+.htLayoutTopBarMenuTextSpan {
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--text-color-topbar);
+}
+
+.htLayoutPadIcon {
+	margin-right: 25px;
+}
+
+.htLayoutMenuItem {
+	padding-top: 4px;
+	padding-bottom: 6px;
+	margin-top: 17px;
+	padding-right: 10px;
+	padding-left: 10px;
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.htLayoutMenuItem:hover {
+	color: rgb(190, 190, 190);
+	cursor: pointer;
+}
+
+.htLayoutPopup {
+	display: none;
+	position: absolute;
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	right: 150px;
+	padding: 10px;
+	margin-top: 5px;
+	background: white;
+	border: 1px solid rgb(215,215,215);
+	box-shadow: 2px 2px 5px rgb(115, 115, 115);
+	border-radius: 3px;
+}
+
+.htLayoutLinkIcon {
+	color: rgb(81, 87, 97);
+}
+
+.htLayoutDropdown-content {
+	position: absolute;
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	margin-left: -10px;
+	margin-top: 5px;
+	width: 200px;
+	border: 1px solid rgb(215,215,215);
+	border-radius: 3px;
+	box-shadow: 2px 2px 5px rgb(115, 115, 115);
+	text-align: left;
+	background: white;
+	padding: 5px;
+	display: none;
+	color: rgb(81, 87, 97);
+	z-index: 999;
+}
+
+.htLayoutDropdown-content:hover {
+	color: rgb(81, 87, 97);
+	
+}
+
+.htLayoutDropdown-item {
+	padding: 1px;
+	margin: 10px;
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-size: 14px;
+	font-weight: 600;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+.htLayoutDropdown-item:hover {
+	color: rgb(139, 148, 162);
+}

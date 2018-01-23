@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>{% block title %}{% endblock %}</title>
+	<title>{% block title %}{% endblock %}</title>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
 	
 	<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
@@ -13,6 +13,7 @@
 	<script type="text/javascript" src="{{ url_for('static', filename='js/jszip.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/pdfmake.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/vfs_fonts.js') }}"></script>
+	<script defer src="{{ url_for('static', filename='js/fontawesome/svg-with-js/js/fontawesome-all.min.js') }}"></script>
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" />
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}" />
 	
@@ -25,192 +26,226 @@
 	<script src="/static/vega/vega-lite.min.js"></script>
 	<script src="/static/vega/vega-embed.min.js"></script>
     <link rel="stylesheet" type="text/css" href="static/ht.css">
+    <link rel="stylesheet" type="text/css" href="static/ht_layout.css">
 	<link rel="stylesheet" type="text/css" href="static/multi-select.css">
 	<link href="/static/favicon.ico" rel="icon" type="image/x-icon" />
 </head>
-
 <body>
+	<script>
 
-<script>
-
-	function showPopup(height, width, url, elementToRestrict) {
-		$('#shader').show();
-		$('#ht_popup_div').css({height : height });
-		$('#ht_popup_div').css({width : width });
-		$('#ht_popup_div').center();
-		$('#ht_popup_div').load(url, function( response, status, xhr ) {
-			$('#ht_popup_div').show(200);
-			// Force passed div to fit inside the popup
-			if ('#' + elementToRestrict) {
-				$('#' + elementToRestrict).css('height', height - 30);
-				$('#' + elementToRestrict).css('overflowY', 'auto');
-			}
-			$('#popupCancel').click(function(e) {
-				$('#ht_popup_div').hide();
-				$('#ht_popup_div').empty();
-				$('#shader').hide();
-			});
-		});
-	}
-
-	function showStatusBar(text, showTimer, hideTimer, duration) {
-		$("#ht_statusbar_td").html(text);
-		$("#ht_statusbar_tr").show(showTimer);
-		setTimeout(function() { $("#ht_statusbar_tr").hide(hideTimer); }, duration);
-	}
-	
-	function enableStatusBar(text, showTimer, myClass) {
-		$("#ht_statusbar_div").html(text);
-		$("#ht_statusbar_div").addClass(myClass);
-		$("#ht_statusbar_div").slideDown(showTimer);
-	}
-
-	function enableStatusBarLive(text, showTimer, myClass) {
-		$("#ht_statusbar_div").html(text);
-		$("#ht_statusbar_div").addClass(myClass);
-		$("#ht_statusbar_div").slideDown(showTimer, function() {
-			setTimeout(function(){
-				$("#ht_statusbar_div").slideUp(showTimer, function() {
-					$("#ht_statusbar_div").html("");
-				});
-			}, 3000);
-		});
-	}
-	
-	function disableStatusBar(hideTimer) {
-		$("#ht_statusbar_div").slideUp(hideTimer, function() {
-				$("#ht_statusbar_div").html("");
-		});
-	}
-
-	function getQueryParam(param) {
-		var ret = '';
-		location.search.substr(1)
-			.split("&")
-			.some(function(item) {
-				parts = item.split('=');
-				if (parts[0] == param) {
-					ret = parts[1];
+		function showPopup(height, width, url, elementToRestrict) {
+			$('#shader').show();
+			$('#ht_popup_div').css({height : height });
+			$('#ht_popup_div').css({width : width });
+			$('#ht_popup_div').center();
+			$('#ht_popup_div').load(url, function( response, status, xhr ) {
+				$('#ht_popup_div').show(200);
+				// Force passed div to fit inside the popup
+				if ('#' + elementToRestrict) {
+					$('#' + elementToRestrict).css('height', height - 30);
+					$('#' + elementToRestrict).css('overflowY', 'auto');
 				}
-			})
-		return ret;
-	}
-	
-	(function($){
-		$.fn.extend({
-			center: function () {
-				return this.each(function() {
-					var top = ($(window).height() - $(this).outerHeight()) / 2;
-					var left = ($(window).width() - $(this).outerWidth()) / 2;
-					$(this).css({position:'absolute', margin:0, top: (top > 0 ? top : 0)+'px', left: (left > 0 ? left : 0)+'px'});
+				$('#popupCancel').click(function(e) {
+					$('#ht_popup_div').hide();
+					$('#ht_popup_div').empty();
+					$('#shader').hide();
 				});
-			}
-		}); 
-	})(jQuery);
-
-	$(document).on("keypress", "#findhost", function(e) {
-		if (e.which == 13) {
-			window.location.href = "/hosts?q=" + $("#findhost").val();
+			});
 		}
-	});
-	
-	$(document).ready(function() {
-		$('[id^=navbutton]').click(function() {
-			url = this.id.split("_");
-			window.location.replace("/" + url[1]);
-		});
-		
-		$(document).click(function() {
-			$("#dropdown-content-indicators").hide();
-			$("#dropdown-content-admin").hide();
-			$("#dropdown-content-acquisition").hide();
-		});
-		
-		$('[id^=dropdown-content]').click(function(e) {
-			 e.stopPropagation();
-		});
 
-		$("#navcategory_acquisition").click(function(e) {
-			$("#dropdown-content-admin").hide();
-			$("#dropdown-content-indicators").hide();
-			$("#dropdown-content-acquisition").show(150);
-			e.stopPropagation();
-		});
+		function showStatusBar(text, showTimer, hideTimer, duration) {
+			$("#ht_statusbar_td").html(text);
+			$("#ht_statusbar_tr").show(showTimer);
+			setTimeout(function() { $("#ht_statusbar_tr").hide(hideTimer); }, duration);
+		}
 		
-		$("#navcategory_indicator").click(function(e) {
-			$("#dropdown-content-admin").hide();
-			$("#dropdown-content-acquisition").hide();
-			$("#dropdown-content-indicators").show(150);
-			e.stopPropagation();
-		});
+		function enableStatusBar(text, showTimer, myClass) {
+			$("#ht_statusbar_div").html(text);
+			$("#ht_statusbar_div").addClass(myClass);
+			$("#ht_statusbar_div").slideDown(showTimer);
+		}
 
-		$("#navcategory_admin").click(function(e) {
-			$("#dropdown-content-indicators").hide();
-			$("#dropdown-content-acquisition").hide();
-			$("#dropdown-content-admin").show(150);
-			e.stopPropagation();
+		function enableStatusBarLive(text, showTimer, myClass) {
+			$("#ht_statusbar_div").html(text);
+			$("#ht_statusbar_div").addClass(myClass);
+			$("#ht_statusbar_div").slideDown(showTimer, function() {
+				setTimeout(function(){
+					$("#ht_statusbar_div").slideUp(showTimer, function() {
+						$("#ht_statusbar_div").html("");
+					});
+				}, 3000);
+			});
+		}
+		
+		function disableStatusBar(hideTimer) {
+			$("#ht_statusbar_div").slideUp(hideTimer, function() {
+					$("#ht_statusbar_div").html("");
+			});
+		}
+
+		function getQueryParam(param) {
+			var ret = '';
+			location.search.substr(1)
+				.split("&")
+				.some(function(item) {
+					parts = item.split('=');
+					if (parts[0] == param) {
+						ret = parts[1];
+					}
+				})
+			return ret;
+		}
+		
+		(function($){
+			$.fn.extend({
+				center: function () {
+					return this.each(function() {
+						var top = ($(window).height() - $(this).outerHeight()) / 2;
+						var left = ($(window).width() - $(this).outerWidth()) / 2;
+						$(this).css({position:'absolute', margin:0, top: (top > 0 ? top : 0)+'px', left: (left > 0 ? left : 0)+'px'});
+					});
+				}
+			}); 
+		})(jQuery);
+
+		$(document).on("keypress", "#findhost", function(e) {
+			if (e.which == 13) {
+				window.location.href = "/hosts?q=" + $("#findhost").val();
+			}
 		});
 		
-	});
-</script>
+		$(document).ready(function() {
+			$('[id^=navbutton]').click(function() {
+				url = this.id.split("_");
+				window.location.replace("/" + url[1]);
+			});
+
+			$('#ht_info').click(function(e) {
+				$('#ht_info_content').show(150);
+				e.stopPropagation();
+			});
+			
+			$(document).click(function() {
+				$("#dropdown-content-indicators").hide();
+				$("#dropdown-content-admin").hide();
+				$("#dropdown-content-acquisition").hide();
+				$('#ht_info_content').hide();
+			});
+			
+			$('[id^=dropdown-content]').click(function(e) {
+				 e.stopPropagation();
+			});
+
+			$("#navcategory_acquisition").click(function(e) {
+				$("#dropdown-content-admin").hide();
+				$("#dropdown-content-indicators").hide();
+				$('#ht_info_content').hide();
+				$("#dropdown-content-acquisition").show(150);
+				e.stopPropagation();
+			});
+			
+			$("#navcategory_indicator").click(function(e) {
+				$("#dropdown-content-admin").hide();
+				$("#dropdown-content-acquisition").hide();
+				$('#ht_info_content').hide();
+				$("#dropdown-content-indicators").show(150);
+				e.stopPropagation();
+			});
+
+			$("#navcategory_admin").click(function(e) {
+				$("#dropdown-content-indicators").hide();
+				$("#dropdown-content-acquisition").hide();
+				$('#ht_info_content').hide();
+				$("#dropdown-content-admin").show(150);
+				e.stopPropagation();
+			});
+			
+		});
+	</script>
 
 	<div class='ht_statusbar_div' id='ht_statusbar_div'></div>
 	<div class='ht_popup_div' id='ht_popup_div'></div>
 	<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
-	<table cellpadding=0 cellspacing=0 class='ht_main_table'> 
-		<tr>
-			<td class='ht_main_table_top_td'>
-				<a href='/'><img style='height: 58px; margin-left: 25px; margin-right: 20px; float: left;' src='/static/fireeye.svg'></a>
-				<div style='position: absolute; left: 120px; top: 45px; font-size: 12px; font-weight: bold;'>HXTool v3.2</div>
-				
-				<div id='navbutton_' style='float: left;' class='ht_nav_table_cell'>Dashboard</div>
-				<div id='navbutton_alert' style='float: left;' class='ht_nav_table_cell'>Alerts</div>
-				<div id='navbutton_search' style='float: left;' class='ht_nav_table_cell'>Enterprise Search</div>
 
-				<div id='navcategory_acquisition' style='float: left; position: relative;' class='ht_nav_table_cell'>Acquisition
-					<div id='dropdown-content-acquisition' class='dropdown-content'>
-						<div id='navbutton_bulk' class='ht_nav_table_cell_sub'>Bulk Acquisitions</div>
-						<div id='navbutton_multifile' class='ht_nav_table_cell_sub'>Multi-File Acquisitions</div>
-						<div id='navbutton_stacking' class='ht_nav_table_cell_sub'>Data Stacking</div>
-					</div>				
+	<div style='z-index:50; position: absolute; top: 0px; left: 260px; color: rgb(245,245,245);'>
+		<div id='navbutton_' style='float: left;' class='htLayoutMenuItem'>Dashboard</div>
+		<div id='navbutton_alert' style='float: left;' class='htLayoutMenuItem'>Alerts</div>
+		<div id='navbutton_search' style='float: left;' class='htLayoutMenuItem'>Enterprise Search</div>
+
+		<div id='navcategory_acquisition' style='float: left; position: relative;' class='htLayoutMenuItem'>Acquisition <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
+			<div id='dropdown-content-acquisition' class='htLayoutDropdown-content'>
+				<div id='navbutton_bulk' class='htLayoutDropdown-item'>
+					<i class="fas fa-search-plus fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					Bulk Acquisitions
 				</div>
-				
-				<div id='navcategory_indicator' style='float: left; position: relative;' class='ht_nav_table_cell'>Indicators
-					<div id='dropdown-content-indicators' class='dropdown-content'>
-						<div id='navbutton_rtioc' class='ht_nav_table_cell_sub'>Build Indicator</div>
-						<div id='navbutton_indicators' class='ht_nav_table_cell_sub'>Manage Indicators</div>
-						<div id='navbutton_categories' class='ht_nav_table_cell_sub'>Manage Categories</div>
-					</div>				
+				<div id='navbutton_multifile' class='htLayoutDropdown-item'>
+					<i class="fas fa-file fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					Multi-File Acquisitions
 				</div>
-				
-				<div id='navcategory_admin' style='float: left; position: relative; border-right: none;' class='ht_nav_table_cell'>Admin
-					<div id='dropdown-content-admin' class='dropdown-content'>
-						<div id='navbutton_channels' class='ht_nav_table_cell_sub'>Custom Config Channels</div>
-						<div id='navbutton_settings' class='ht_nav_table_cell_sub'>HXTool Settings</div>
-					</div>
+				<div id='navbutton_stacking' class='htLayoutDropdown-item'>
+					<i class="fas fa-object-group fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					Data Stacking
 				</div>
-								
-				<div style='color: rgb(81, 87, 97); text-align: right; float: right;'>
-					<span class='ht_nav_span'>Find a host</span>
-					<input type='text' id='findhost' style='width: 200px;'>
-					&nbsp;|&nbsp;
-					<b>User:</b> {{ user }}
-					&nbsp;&nbsp;
+			</div>				
+		</div>
+		
+		<div id='navcategory_indicator' style='float: left; position: relative;' class='htLayoutMenuItem'>Indicators <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
+			<div id='dropdown-content-indicators' class='htLayoutDropdown-content'>
+				<div id='navbutton_rtioc' class='htLayoutDropdown-item'>
+					<i class="fas fa-building fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					Build Indicator
+				</div>
+				<div id='navbutton_indicators' class='htLayoutDropdown-item'>
+					<i class="fas fa-database fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					Manage Indicators
+				</div>
+				<div id='navbutton_categories' class='htLayoutDropdown-item'>
+					<i class="fas fa-database fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					Manage Categories
+				</div>
+			</div>				
+		</div>
+		
+		<div id='navcategory_admin' style='float: left; position: relative; border-right: none;' class='htLayoutMenuItem'>Admin <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
+			<div id='dropdown-content-admin' class='htLayoutDropdown-content'>
+				<div id='navbutton_channels' class='htLayoutDropdown-item'>
+					<i class="fas fa-wrench fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					Custom Config Channels
+				</div>
+				<div id='navbutton_settings' class='htLayoutDropdown-item'>
+					<i class="fas fa-wrench fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					HXTool Settings
+				</div>
+			</div>
+		</div>
+	</div>
+	<div style='position: absolute; right: 260px; top: 20px; z-index: 50;'>
+		<span class='htLayoutTopBarMenuTextSpan'>Find a host</span>
+		<input type='text' id='findhost' style='width: 200px;'>
+	</div>
+
+	<div class='htLayoutTopBarMenuBox'></div>
+	<div class='htLayoutTopBarTopBox'></div>
+	<div style='position: absolute; left: 0; top: 0; z-index: 30; width: 100%;'>
+		<div class='htLayoutTopBarBox' style='float: left;'>
+			<img src='/static/fireeye.svg' style='height: 45px; position: absolute; left: 10px; clip: rect(0px,100px,60px,0px);'>
+			<div style='position: absolute; left: 42px; top: 40px; color: rgb(67,67,67); font-size: 13px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-weight: bold;'>HXTool v3.2 (odin-dev)</div>
+		</div>
+		<div class='htLayoutTriangle-topleft' style='float: left;'></div>
+		<div class='htLayoutTopBarBox' style='float: right;'>
+			<div style='float: right; margin-top: 15px;'>
+				<a class='htLayoutLinkIcon' href='#' id='ht_info'><i class="fas fa-info fa-2x htLayoutPadIcon" aria-hidden="true"></i></a>
+				<div id='ht_info_content' class='htLayoutPopup'>
+					<b>User:</b> {{ user }} <br>
 					<b>Controller:</b> {{ controller }}
-					
-					<a style='color: rgb(81, 87, 97);' href='/logout'><img alt='logout' class='logoutIcon' src='/static/ico/power.jpg'></a>
 				</div>
-				<div style='clear: both;'></div>
-			</td>
-		</tr>
-		<!-- Main content -->
-		<tr id='ht_main_table_main_tr'>
-			<td class='ht_main_table_main_td' id='ht_main_table_main_td'>
-				<div id='mainWrapper'>
-				{% block content %}{% endblock %}
-				</div>
-			</td>
-		</tr>
-	</table>
+				<!-- <a href='#' id='ht_search'><i class="fas fa-search fa-2x htLayoutPadIcon" aria-hidden="true"></i></a> -->
+				<a class='htLayoutLinkIcon' href='/settings'><i class="fas fa-cog fa-2x htLayoutPadIcon" aria-hidden="true"></i></a>
+				<a class='htLayoutLinkIcon' href='/logout'><i class="fas fa-power-off fa-2x htLayoutPadIcon" aria-hidden="true"></i></a>
+			</div>
+		</div>
+		<div class='htLayoutTriangle-topright' style='float: right;'></div>
+	</div>
+	<div style='margin-top: 80px; width: 100%; max-width: inherit;'>{% block content %}{% endblock %}</div>
 </body>
 </html>
