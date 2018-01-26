@@ -878,33 +878,30 @@ def bulkaction(hx_api_object):
 		app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 				
-### Reports
-############
-
-@app.route('/reports')
+@app.route('/scripts', methods=['GET', 'POST'])
 @valid_session_required
-def reports(hx_api_object):
-	return render_template('ht_reports.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+def scripts(hx_api_object):
+	if request.method == "POST":
+		fc = request.files['script']				
+		rawscript = fc.read()
+		ht_db.scriptCreate(request.form['scriptname'], HXAPI.b64(rawscript), session['ht_user'])
+		return redirect("/scripts", code=302)
+	elif request.method == "GET":
+		if request.args.get('action'):
+			if request.args.get('action') == "delete":
+				ht_db.scriptDelete(request.args.get('id'))
+			elif request.args.get('action') == "view":
+				storedscript = ht_db.scriptGet(request.args.get('id'))
+				print(storedscript)
+				render_template('ht_scripts_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
-@app.route('/reportgen')
+
+		return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+@app.route('/openioc')
 @valid_session_required
-def reportgen(hx_api_object):
-	if request.args.get('id'):
-		if request.args.get('id') == "1":
-			reportFrom = request.args.get('startDate')
-			reportTo = request.args.get('stopDate')
-			(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(reportFrom, reportTo)
-			
-			if request.args.get('type') == "csv":
-				reportdata = HXAPI.compat_str(formatAlertsCsv(response_data, hx_api_object))
-				fname = 'report.csv'
-				
-		if request.args.get('id') == "2":
-			reportFrom = request.args.get('startDate')
-			reportTo = request.args.get('stopDate')		
-			# add code here for report type 2
-		
-		return send_file(io.BytesIO(reportdata), attachment_filename=fname, as_attachment=True)
+def openioc(hx_api_object):
+	return render_template('ht_openioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 @app.route('/multifile', methods=['GET', 'POST'])
 @valid_session_required
@@ -1581,6 +1578,14 @@ def datatable_alerts_full(hx_api_object):
 			return('', 500)
 
 		return(app.response_class(response=json.dumps(myalerts), status=200, mimetype='application/json'))
+
+
+@app.route('/api/v{0}/datatable_scripts'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_scripts(hx_api_object):
+	if request.method == 'GET':
+		myscripts = ht_db.scriptList()
+		return(app.response_class(response=json.dumps(myscripts), status=200, mimetype='application/json'))
 
 
 ####################

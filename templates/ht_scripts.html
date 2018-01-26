@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Scripts{% endblock %}
+{% block content %}
+
+<script>
+
+	$(document).ready(function() {
+
+		var scriptTable = $('#scriptTable').DataTable( {
+			"ajax": {
+				"url": "/api/v1/datatable_scripts",
+				"dataSrc": ""
+			},
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": false,
+			"columns": [
+				{ "data": "scriptname", title: "Name" },
+				{ "data": "username", title: "Created By" },
+				{ "data": "create_timestamp", title: "Created" },
+				{ "data": "update_timestamp", title: "Modified" },
+				{ "data": "script_id", title: "Action" }
+			],
+			"columnDefs": [	
+				{
+				 targets: 4,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		data = "<input type='button' value='view' id='view_" + data + "' class='tableActionButton'><a href='/scripts?action=delete&id=" + data + "' class='tableActionButton'>delete</a>"
+				 	}
+				 	return data;
+				 }
+				},
+				{"className": "dt-center", "targets": [1, 2, 3]}
+			]
+		});
+
+	});
+
+</script>
+
+<form method='POST' action='/scripts' enctype="multipart/form-data">
+		<div class='tableTitle'>
+			Upload new acquisition script
+		</div>
+	<div class='inputArea'>
+		Script name<br>
+		<input type='text' id='scriptname' name='scriptname' style='width: 400px; margin-bottom: 10px;'><br>
+		Script<br>
+		<input type='file' id='script' name='script'><br>
+		<br>
+		<div style='font-style: italic; margin-bottom: 15px; margin-top: 5px;'>An acquisition script is a file that controls what type of data should be returned by a bulk or normal acquisition.</div>
+		
+        <input class='tableActionButton' type='submit' value='Upload script'>
+	</div>
+</form>
+
+<div class='tableTitle'>
+	My scripts
+</div>
+
+<table id='scriptTable' class='genericTable' style='width: 100%;'>
+</table>
+
+{% endblock %}

@@ -373,4 +373,26 @@ class hxtool_db:
 				element['update_timestamp'] =  str(datetime.datetime.utcnow())		
 		return transform
 	
-	
+	def scriptCreate(self, scriptname, script, username):
+		with self._lock:
+			return self._db.table('scripts').insert({'script_id' : str(uuid.uuid4()), 
+														'scriptname': str(scriptname), 
+														'username' : str(username),
+														'script' : str(script), 
+														'create_timestamp' : str(datetime.datetime.utcnow()), 
+														'update_timestamp' : str(datetime.datetime.utcnow())})		
+
+	def scriptList(self):
+		with self._lock:
+			return self._db.table('scripts').all()
+
+	def scriptDelete(self, script_id):
+		with self._lock:
+			return self._db.table('scripts').remove((tinydb.Query()['script_id'] == script_id))
+
+	def scriptGet(self, script_id):
+		with self._lock:
+			return self._db.table('scripts').get((tinydb.Query()['script_id'] == script_id))
+
+
+
