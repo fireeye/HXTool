@@ -1249,3 +1249,13 @@ def formatHostSearch(response_data, hx_api_object):
 	x += "</table>"
 	
 	return (x)
+
+
+def formatOpenIocs(iocs):
+
+	x = "<select name='ioc' id='ioc'>"
+	for entry in iocs:
+			x += "<option value='" + entry['ioc_id'] + "'>" + entry['iocname']
+	x += "</select>"
+	return(x)
+

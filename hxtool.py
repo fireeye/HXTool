@@ -403,18 +403,29 @@ def annotatedisplay(hx_api_object):
 def search(hx_api_object):	
 	# If we get a post it's a new sweep
 	if request.method == 'POST':
-		f = request.files['newioc']
-		rawioc = f.read()
-		(ret, response_code, response_data) = hx_api_object.restSubmitSweep(rawioc, request.form['sweephostset'])
-		app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		if 'file' in request.form.keys():
+			f = request.files['newioc']
+			rawioc = f.read()
+			(ret, response_code, response_data) = hx_api_object.restSubmitSweep(rawioc, request.form['sweephostset'])
+			if ret:
+				app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		elif 'store' in request.form.keys():
+			iocdef = ht_db.oiocGet(request.form['ioc'])
+			(ret, response_code, response_data) = hx_api_object.restSubmitSweep(iocdef['ioc'], request.form['sweephostset'], skip_base64=True)
+			if ret:
+				app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		return redirect("/search", code=302)
+	else:
+		(ret, response_code, response_data) = hx_api_object.restListSearches()
+		searches = formatListSearches(response_data)
+		
+		(ret, response_code, response_data) = hx_api_object.restListHostsets()
+		hostsets = formatHostsets(response_data)
 
-	(ret, response_code, response_data) = hx_api_object.restListSearches()
-	searches = formatListSearches(response_data)
-	
-	(ret, response_code, response_data) = hx_api_object.restListHostsets()
-	hostsets = formatHostsets(response_data)
-	
-	return render_template('ht_searchsweep.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), searches=searches, hostsets=hostsets)
+		myiocs = ht_db.oiocList()
+		openiocs = formatOpenIocs(myiocs)
+		
+		return render_template('ht_searchsweep.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), searches=searches, hostsets=hostsets, openiocs=openiocs)
 
 @app.route('/searchresult', methods=['GET'])
 @valid_session_required

@@ -686,9 +686,10 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 
-	def restSubmitSweep(self, indicator, host_set):
+	def restSubmitSweep(self, indicator, host_set, skip_base64=False):
 		
-		indicator = HXAPI.b64(indicator)
+		if not skip_base64:
+			indicator = HXAPI.b64(indicator)
 		
 		data = json.dumps({'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
 		

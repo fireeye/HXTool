@@ -19,20 +19,50 @@
 			$(this).progress()
 		});
 		
+		$("#checkboxStore").click(function() {
+			$("#checkboxStore").prop('checked', true);
+			$("#checkboxFile").prop('checked', false);
+		});
+
+		$("#checkboxFile").click(function() {
+			$("#checkboxFile").prop('checked', true);
+			$("#checkboxStore").prop('checked', false);
+		});
+
+
 	});
 </script>
 
 <form method='POST' action='/search' enctype="multipart/form-data">
 	<div class='tableTitle'>
-		Search based on an OpenIOC file
+		Search based on OpenIOC
 	</div>
 	<div class='inputArea' style='width: 600px;'>
-		<input type='file' id='newioc' name='newioc'>
-		Host set: 
+
+		<table style='width: 100%; font-size: 12px; margin: 0; padding: 0; color: #444;' cellspacing="0" cellpadding="0">
+			<tr>
+				<td style='width: 50%; vertical-align: top;'>
+					<input type='checkbox' name='store' id='checkboxStore' checked>
+					<b>From HXTool</b><br>
+					{% if openiocs %} {{ openiocs|safe }} {% endif %}
+				</td>
+				<td style='width: 50%; vertical-align: top;'>
+					<input type='checkbox' name='file' id='checkboxFile'>
+					<b>From file</b><br>
+					<input type='file' id='newioc' name='newioc'>
+				</td>
+
+			</tr>
+		
+		</table>
+
+		<br>
+		<b>Hostset</b><br>
 		<select name='sweephostset' id='sweephostset'>
 			{% if hostsets %} {{ hostsets|safe }} {% endif %}
 		</select>
-		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>Please note that the OpenIOC indicator must be in OpenIOC 1.1 format and use UTF-8 encoding</div>
+
+		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>Please note that the OpenIOC indicator must be in OpenIOC 1.1 format and use UTF-8 encoding without BOM.</div>
 		<input class='tableActionButton' type='submit' value='Start Enterprise Search'>
 	</div>
 </form>
