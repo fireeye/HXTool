@@ -2,5 +2,67 @@
 {% block title %}HXTool - OpenIOC{% endblock %}
 {% block content %}
 
+<script>
+
+	$(document).ready(function() {
+
+		$(document).on('click', '.viewbutton', function() {
+			sArr = $(this).attr('id').split('_')
+			showPopup(600, 900, '/openioc?action=view&id=' + sArr[1], "myioctextarea", includeWidthRestriction=true);
+		});		
+
+		var iocTable = $('#iocTable').DataTable( {
+			"ajax": {
+				"url": "/api/v1/datatable_openioc",
+				"dataSrc": ""
+			},
+			"paging":   false,
+			"info":     false,
+			"columns": [
+				{ "data": "iocname", title: "Name" },
+				{ "data": "username", title: "Created By" },
+				{ "data": "create_timestamp", title: "Created" },
+				{ "data": "update_timestamp", title: "Modified" },
+				{ "data": "ioc_id", title: "Action" }
+			],
+			"columnDefs": [	
+				{
+				 targets: 4,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		data = "<input type='button' value='view' id='view_" + data + "' class='tableActionButton viewbutton'><a href='/openioc?action=delete&id=" + data + "' class='tableActionButton'>delete</a>"
+				 	}
+				 	return data;
+				 }
+				},
+				{"className": "dt-center", "targets": [1, 2, 3]}
+			]
+		});
+
+	});
+
+</script>
+
+<form method='POST' action='/openioc' enctype="multipart/form-data">
+		<div class='tableTitle'>
+			Upload new OpenIOC 1.1 indicator
+		</div>
+	<div class='inputArea' style='width: 600px;'>
+		<b>IOC name</b><br>
+		<input type='text' id='iocname' name='iocname' style='width: 400px; margin-bottom: 10px;'><br>
+		<input type='file' id='ioc' name='ioc'><br>
+		<br>
+		<div style='font-style: italic; margin-bottom: 15px; margin-top: 5px;'>An OpenIOC 1.1 file is an indicator which can be used by Enterprise search as the source of your conditions.</div>
+		
+        <input class='tableActionButton' type='submit' value='Upload IOC'>
+	</div>
+</form>
+
+<div class='tableTitle'>
+	My scripts
+</div>
+
+<table id='iocTable' class='genericTable' style='width: 100%;'>
+</table>
 
 {% endblock %}

@@ -899,10 +899,26 @@ def scripts(hx_api_object):
 		else:
 			return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
-@app.route('/openioc')
+@app.route('/openioc', methods=['GET', 'POST'])
 @valid_session_required
 def openioc(hx_api_object):
-	return render_template('ht_openioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+	if request.method == "POST":
+		fc = request.files['ioc']				
+		rawioc = fc.read()
+		ht_db.oiocCreate(request.form['iocname'], HXAPI.b64(rawioc), session['ht_user'])
+		return redirect("/openioc", code=302)
+	elif request.method == "GET":
+		if request.args.get('action'):
+			if request.args.get('action') == "delete":
+				ht_db.oiocDelete(request.args.get('id'))
+				return redirect("/openioc", code=302)
+			elif request.args.get('action') == "view":
+				storedioc = ht_db.oiocGet(request.args.get('id'))
+				return render_template('ht_openioc_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), ioc=HXAPI.b64(storedioc['ioc'], decode=True, decode_string=True))
+			else:
+				return render_template('ht_openioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+		else:
+			return render_template('ht_openioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 @app.route('/multifile', methods=['GET', 'POST'])
 @valid_session_required
@@ -1587,6 +1603,14 @@ def datatable_scripts(hx_api_object):
 	if request.method == 'GET':
 		myscripts = ht_db.scriptList()
 		return(app.response_class(response=json.dumps(myscripts), status=200, mimetype='application/json'))
+
+@app.route('/api/v{0}/datatable_openioc'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_openioc(hx_api_object):
+	if request.method == 'GET':
+		myiocs = ht_db.oiocList()
+		return(app.response_class(response=json.dumps(myiocs), status=200, mimetype='application/json'))
+
 
 
 ####################

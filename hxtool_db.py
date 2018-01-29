@@ -395,4 +395,25 @@ class hxtool_db:
 			return self._db.table('scripts').get((tinydb.Query()['script_id'] == script_id))
 
 
+	def oiocCreate(self, iocname, ioc, username):
+		with self._lock:
+			return self._db.table('openioc').insert({'ioc_id' : str(uuid.uuid4()), 
+														'iocname': str(iocname), 
+														'username' : str(username),
+														'ioc' : str(ioc), 
+														'create_timestamp' : str(datetime.datetime.utcnow()), 
+														'update_timestamp' : str(datetime.datetime.utcnow())})		
+
+	def oiocList(self):
+		with self._lock:
+			return self._db.table('openioc').all()
+
+	def oiocDelete(self, ioc_id):
+		with self._lock:
+			return self._db.table('openioc').remove((tinydb.Query()['ioc_id'] == ioc_id))
+
+	def oiocGet(self, ioc_id):
+		with self._lock:
+			return self._db.table('openioc').get((tinydb.Query()['ioc_id'] == ioc_id))
+
 
