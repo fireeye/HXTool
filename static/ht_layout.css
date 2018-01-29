@@ -103,9 +103,9 @@
 .htLayoutDropdown-content {
 	position: absolute;
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
-	margin-left: -10px;
+	margin-left: 0;
 	margin-top: 5px;
-	width: 200px;
+	width: 220px;
 	border: 1px solid rgb(215,215,215);
 	border-radius: 3px;
 	box-shadow: 2px 2px 5px rgb(115, 115, 115);

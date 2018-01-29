@@ -141,6 +141,7 @@
 	padding: 20px;
 	padding-left: 20px;
 	background: #f2f2f2;
+	box-shadow: 2px 2px 5px rgb(115, 115, 115);
 }
 
 .menuText {

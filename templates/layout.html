@@ -33,7 +33,7 @@
 <body>
 	<script>
 
-		function showPopup(height, width, url, elementToRestrict) {
+		function showPopup(height, width, url, elementToRestrict, includeWidthRestriction=false) {
 			$('#shader').show();
 			$('#ht_popup_div').css({height : height });
 			$('#ht_popup_div').css({width : width });
@@ -44,6 +44,10 @@
 				if ('#' + elementToRestrict) {
 					$('#' + elementToRestrict).css('height', height - 30);
 					$('#' + elementToRestrict).css('overflowY', 'auto');
+					if (includeWidthRestriction) {
+						$('#' + elementToRestrict).css('width', width);
+						$('#' + elementToRestrict).css('overflowX', 'auto');
+					}
 				}
 				$('#popupCancel').click(function(e) {
 					$('#ht_popup_div').hide();
@@ -129,6 +133,7 @@
 				$("#dropdown-content-indicators").hide();
 				$("#dropdown-content-admin").hide();
 				$("#dropdown-content-acquisition").hide();
+				$("#dropdown-content-es").hide();
 				$('#ht_info_content').hide();
 			});
 			
@@ -139,6 +144,7 @@
 			$("#navcategory_acquisition").click(function(e) {
 				$("#dropdown-content-admin").hide();
 				$("#dropdown-content-indicators").hide();
+				$("#dropdown-content-es").hide();
 				$('#ht_info_content').hide();
 				$("#dropdown-content-acquisition").show(150);
 				e.stopPropagation();
@@ -147,6 +153,7 @@
 			$("#navcategory_indicator").click(function(e) {
 				$("#dropdown-content-admin").hide();
 				$("#dropdown-content-acquisition").hide();
+				$("#dropdown-content-es").hide();
 				$('#ht_info_content').hide();
 				$("#dropdown-content-indicators").show(150);
 				e.stopPropagation();
@@ -155,8 +162,18 @@
 			$("#navcategory_admin").click(function(e) {
 				$("#dropdown-content-indicators").hide();
 				$("#dropdown-content-acquisition").hide();
+				$("#dropdown-content-es").hide();
 				$('#ht_info_content').hide();
 				$("#dropdown-content-admin").show(150);
+				e.stopPropagation();
+			});
+
+			$("#navcategory_es").click(function(e) {
+				$("#dropdown-content-admin").hide();
+				$("#dropdown-content-indicators").hide();
+				$("#dropdown-content-acquisition").hide();
+				$('#ht_info_content').hide();
+				$("#dropdown-content-es").show(150);
 				e.stopPropagation();
 			});
 			
@@ -170,21 +187,37 @@
 	<div style='z-index:50; position: absolute; top: 0px; left: 260px; color: rgb(245,245,245);'>
 		<div id='navbutton_' style='float: left;' class='htLayoutMenuItem'>Dashboard</div>
 		<div id='navbutton_alert' style='float: left;' class='htLayoutMenuItem'>Alerts</div>
-		<div id='navbutton_search' style='float: left;' class='htLayoutMenuItem'>Enterprise Search</div>
+
+		<div id='navcategory_es' style='float: left; position: relative;' class='htLayoutMenuItem'>Enterprise Search <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
+			<div id='dropdown-content-es' class='htLayoutDropdown-content'>
+				<div id='navbutton_search' class='htLayoutDropdown-item'>
+					<i class="fas fa-search-plus fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					OpenIOC search
+				</div>
+				<div id='navbutton_openioc' class='htLayoutDropdown-item'>
+					<i class="fas fa-search fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					Manage OpenIOC 1.1
+				</div>
+			</div>				
+		</div>
 
 		<div id='navcategory_acquisition' style='float: left; position: relative;' class='htLayoutMenuItem'>Acquisition <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
 			<div id='dropdown-content-acquisition' class='htLayoutDropdown-content'>
 				<div id='navbutton_bulk' class='htLayoutDropdown-item'>
-					<i class="fas fa-search-plus fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					<i class="fas fa-search-plus fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Bulk Acquisitions
 				</div>
 				<div id='navbutton_multifile' class='htLayoutDropdown-item'>
-					<i class="fas fa-file fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					<i class="fas fa-file fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Multi-File Acquisitions
 				</div>
 				<div id='navbutton_stacking' class='htLayoutDropdown-item'>
-					<i class="fas fa-object-group fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					<i class="fas fa-object-group fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Data Stacking
+				</div>
+				<div id='navbutton_scripts' class='htLayoutDropdown-item'>
+					<i class="fas fa-file fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					Manage Scripts
 				</div>
 			</div>				
 		</div>
@@ -192,15 +225,15 @@
 		<div id='navcategory_indicator' style='float: left; position: relative;' class='htLayoutMenuItem'>Indicators <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
 			<div id='dropdown-content-indicators' class='htLayoutDropdown-content'>
 				<div id='navbutton_rtioc' class='htLayoutDropdown-item'>
-					<i class="fas fa-building fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					<i class="fas fa-building fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Build Indicator
 				</div>
 				<div id='navbutton_indicators' class='htLayoutDropdown-item'>
-					<i class="fas fa-database fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					<i class="fas fa-database fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Manage Indicators
 				</div>
 				<div id='navbutton_categories' class='htLayoutDropdown-item'>
-					<i class="fas fa-database fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					<i class="fas fa-database fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Manage Categories
 				</div>
 			</div>				
@@ -208,20 +241,12 @@
 		
 		<div id='navcategory_admin' style='float: left; position: relative; border-right: none;' class='htLayoutMenuItem'>Admin <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
 			<div id='dropdown-content-admin' class='htLayoutDropdown-content'>
-				<div id='navbutton_openioc' class='htLayoutDropdown-item'>
-					<i class="fas fa-search fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
-					Manage OpenIOC 1.1
-				</div>
-				<div id='navbutton_scripts' class='htLayoutDropdown-item'>
-					<i class="fas fa-file fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
-					Manage Scripts
-				</div>
 				<div id='navbutton_channels' class='htLayoutDropdown-item'>
-					<i class="fas fa-wrench fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					<i class="fas fa-wrench fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Custom Config Channels
 				</div>
 				<div id='navbutton_settings' class='htLayoutDropdown-item'>
-					<i class="fas fa-wrench fa-1x" style='margin-right: 5px;' aria-hidden="true"></i>
+					<i class="fas fa-wrench fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					HXTool Settings
 				</div>
 			</div>

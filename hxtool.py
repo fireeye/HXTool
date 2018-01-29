@@ -890,13 +890,14 @@ def scripts(hx_api_object):
 		if request.args.get('action'):
 			if request.args.get('action') == "delete":
 				ht_db.scriptDelete(request.args.get('id'))
+				return redirect("/scripts", code=302)
 			elif request.args.get('action') == "view":
 				storedscript = ht_db.scriptGet(request.args.get('id'))
-				print(storedscript)
-				render_template('ht_scripts_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-
-
-		return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+				return render_template('ht_scripts_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), script=HXAPI.b64(storedscript['script'], decode=True, decode_string=True))
+			else:
+				return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+		else:
+			return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 @app.route('/openioc')
 @valid_session_required

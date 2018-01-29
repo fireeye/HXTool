@@ -6,15 +6,18 @@
 
 	$(document).ready(function() {
 
+		$(document).on('click', '.viewbutton', function() {
+			sArr = $(this).attr('id').split('_')
+			showPopup(600, 900, '/scripts?action=view&id=' + sArr[1], "myscripttextarea", includeWidthRestriction=true);
+		});		
+
 		var scriptTable = $('#scriptTable').DataTable( {
 			"ajax": {
 				"url": "/api/v1/datatable_scripts",
 				"dataSrc": ""
 			},
 			"paging":   false,
-			"ordering": false,
 			"info":     false,
-			"searching": false,
 			"columns": [
 				{ "data": "scriptname", title: "Name" },
 				{ "data": "username", title: "Created By" },
@@ -27,7 +30,7 @@
 				 targets: 4,
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<input type='button' value='view' id='view_" + data + "' class='tableActionButton'><a href='/scripts?action=delete&id=" + data + "' class='tableActionButton'>delete</a>"
+				 		data = "<input type='button' data-script='" + row.script + "' value='view' id='view_" + data + "' class='tableActionButton viewbutton'><a href='/scripts?action=delete&id=" + data + "' class='tableActionButton'>delete</a>"
 				 	}
 				 	return data;
 				 }
@@ -44,10 +47,9 @@
 		<div class='tableTitle'>
 			Upload new acquisition script
 		</div>
-	<div class='inputArea'>
-		Script name<br>
+	<div class='inputArea' style='width: 600px;'>
+		<b>Script name</b><br>
 		<input type='text' id='scriptname' name='scriptname' style='width: 400px; margin-bottom: 10px;'><br>
-		Script<br>
 		<input type='file' id='script' name='script'><br>
 		<br>
 		<div style='font-style: italic; margin-bottom: 15px; margin-top: 5px;'>An acquisition script is a file that controls what type of data should be returned by a bulk or normal acquisition.</div>
