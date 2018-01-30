@@ -79,17 +79,17 @@
 	text-decoration: none;
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-size: 12px;
-	background: rgb(121, 161, 190);
-	font-weight: bold;
+	background: rgb(73, 110, 150);
+	font-weight: 500;
 	color: #ffffff;
 	border: #eeeeee;
-	border-radius: 4px;
+	border-radius: 3px;
 	padding: 4px;
 	padding-left: 10px;
 	padding-right: 10px;
 	margin-right: 5px;
 	box-shadow: 2px 2px 4px rgb(195, 195, 195);
-	text-shadow: 2px 2px 4px rgb(140, 140, 140);
+	text-shadow: 1px 1px 4px rgb(140, 140, 140);
 }
 
 .tableActionButton:hover {
@@ -107,8 +107,8 @@
 .tableActionIcon {
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-size: 12px;
-	background: rgb(121, 161, 190);
-	font-weight: bold;
+	background: rgb(73, 110, 150);
+	font-weight: 500;
 	color: #ffffff;
 	border: #eeeeee;
 	border-radius: 5px;
@@ -1074,16 +1074,16 @@ table.dataTable th {
 }
 
 .htBarWrap {
-	background-color:#f2f2f2;
+	background-color: rgb(225,225,225);
 	border-radius: 5px;
 	height: 20px;
 	width: 150px;
-	border: 1px solid rgb(121, 161, 190);
+	border: 1px solid rgb(73, 110, 150);
 	box-shadow: 3px 3px 2px rgb(215,215,215);
 }
 
 .htMyBar .htBar{
-  background-color: rgb(121, 161, 190);
+  background-color: rgb(73, 110, 150);
   border-radius: 5px;
 }
 
@@ -1091,8 +1091,8 @@ table.dataTable th {
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-size: 12px;
 	font-weight: bold;
-	padding: 4px;
-	color: #000000;
+	padding: 3px;
+	color: #FFFFFF;
 	text-align: center;
 }
 

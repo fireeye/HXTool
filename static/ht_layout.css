@@ -5,8 +5,8 @@
 
 :root {
     --bg-color-topbar: rgb(225, 225, 225);
-/*    --bg-color-topmenubar: rgb(73, 110, 150); */
-    --bg-color-topmenubar: rgb(121, 161, 190);
+    --bg-color-topmenubar: rgb(73, 110, 150);
+/*    --bg-color-topmenubar: rgb(121, 161, 190); */
     --text-color-topbar: rgb(255, 255, 255);
     font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 }
@@ -59,8 +59,8 @@
 
 .htLayoutTopBarMenuTextSpan {
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
-	font-size: 14px;
-	font-weight: 700;
+	font-size: 12px;
+	font-weight: 500;
 	color: var(--text-color-topbar);
 }
 
