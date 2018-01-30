@@ -1259,3 +1259,11 @@ def formatOpenIocs(iocs):
 	x += "</select>"
 	return(x)
 
+
+def formatScripts(scripts):
+
+	x = "<select name='script' id='script'>"
+	for entry in scripts:
+			x += "<option value='" + entry['script_id'] + "'>" + entry['scriptname']
+	x += "</select>"
+	return(x)

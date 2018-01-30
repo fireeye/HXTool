@@ -580,9 +580,10 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# New Bulk acquisition
-	def restNewBulkAcq(self, script, hostset_id = None, hosts = None, comment = None, platforms = '*'):
+	def restNewBulkAcq(self, script, hostset_id = None, hosts = None, comment = None, platforms = '*', skip_base64=False):
 		
-		script = HXAPI.b64(script)
+		if not skip_base64:
+			script = HXAPI.b64(script)
 	
 		data = {'scripts' : [{'platform' : platforms, 'b64' : script}]}
 		if hostset_id:

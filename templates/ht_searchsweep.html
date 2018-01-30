@@ -21,11 +21,15 @@
 		
 		$("#checkboxStore").click(function() {
 			$("#checkboxStore").prop('checked', true);
+			$("#divStore").css("background", "rgb(225,225,225)");
+			$("#divFile").css("background", "rgb(242,242,242)");
 			$("#checkboxFile").prop('checked', false);
 		});
 
 		$("#checkboxFile").click(function() {
 			$("#checkboxFile").prop('checked', true);
+			$("#divFile").css("background", "rgb(225,225,225)");
+			$("#divStore").css("background", "rgb(242,242,242)");		
 			$("#checkboxStore").prop('checked', false);
 		});
 
@@ -39,22 +43,17 @@
 	</div>
 	<div class='inputArea' style='width: 600px;'>
 
-		<table style='width: 100%; font-size: 12px; margin: 0; padding: 0; color: #444;' cellspacing="0" cellpadding="0">
-			<tr>
-				<td style='width: 50%; vertical-align: top;'>
-					<input type='checkbox' name='store' id='checkboxStore' checked>
-					<b>From HXTool</b><br>
-					{% if openiocs %} {{ openiocs|safe }} {% endif %}
-				</td>
-				<td style='width: 50%; vertical-align: top;'>
-					<input type='checkbox' name='file' id='checkboxFile'>
-					<b>From file</b><br>
-					<input type='file' id='newioc' name='newioc'>
-				</td>
-
-			</tr>
-		
-		</table>
+		<div id='divStore' style='width: 250px; float: left; padding: 10px; margin-right: 15px; vertical-align: top; border: 1px solid rgb(215,215,215); border-radius: 5px; background: rgb(225,225,225);'>
+			<input type='checkbox' name='store' id='checkboxStore' checked>
+			<b>From HXTool</b><br><br>
+			{% if openiocs %} {{ openiocs|safe }} {% endif %}
+		</div>
+		<div id='divFile' style='width: 250px; float: left; padding: 10px; vertical-align: top; border: 1px solid rgb(215,215,215); border-radius: 5px;'>
+			<input type='checkbox' name='file' id='checkboxFile'>
+			<b>From file</b><br><br>
+			<input type='file' id='newioc' name='newioc'>
+		</div>
+		<div style='clear: both;'></div>
 
 		<br>
 		<b>Hostset</b><br>

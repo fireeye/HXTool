@@ -773,18 +773,27 @@ def rtioc(hx_api_object):
 @valid_session_required
 def listbulk(hx_api_object):
 	if request.method == 'POST':
-		f = request.files['bulkscript']
-		bulk_acquisition_script = f.read()
-		bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
-		app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		if 'file' in request.form.keys():
+			f = request.files['bulkscript']
+			bulk_acquisition_script = f.read()
+			bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
+			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		elif 'store' in request.form.keys():
+			scriptdef = ht_db.scriptGet(request.form['script'])
+			bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
+			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		return redirect("/bulk", code=302)
+	else:
+		(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
+		bulktable = formatBulkTable(ht_db, response_data, session['ht_profileid'])
+		
+		(ret, response_code, response_data) = hx_api_object.restListHostsets()
+		hostsets = formatHostsets(response_data)
 
-	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
-	bulktable = formatBulkTable(ht_db, response_data, session['ht_profileid'])
-	
-	(ret, response_code, response_data) = hx_api_object.restListHostsets()
-	hostsets = formatHostsets(response_data)
-	
-	return render_template('ht_bulk.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable, hostsets=hostsets)
+		myscripts = ht_db.scriptList()
+		scripts = formatScripts(myscripts)
+
+		return render_template('ht_bulk.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable, hostsets=hostsets, scripts=scripts)
 	
 @app.route('/bulkdetails', methods = ['GET'])
 @valid_session_required
@@ -1683,10 +1692,10 @@ def stack_job_results(hx_api_object, stack_id):
 ####################
 # Utility Functions
 ####################
-def submit_bulk_job(hx_api_object, hostset, script_xml, download = True, handler=None):
+def submit_bulk_job(hx_api_object, hostset, script_xml, download = True, handler=None, skip_base64=False):
 	bulk_id = None
 	
-	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hostset_id = hostset)
+	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hostset_id = hostset, skip_base64=skip_base64)
 	if ret:
 		bulk_id = response_data['data']['_id']
 		
