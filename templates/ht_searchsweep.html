@@ -4,6 +4,21 @@
 {% block content %}
 
 <script>
+
+	function enableStore() {
+			$("#checkboxStore").prop('checked', true);
+			$("#divStore").css("background", "rgb(225,225,225)");
+			$("#divFile").css("background", "rgb(242,242,242)");
+			$("#checkboxFile").prop('checked', false);
+	}
+
+	function enableFile() {
+			$("#checkboxFile").prop('checked', true);
+			$("#divFile").css("background", "rgb(225,225,225)");
+			$("#divStore").css("background", "rgb(242,242,242)");		
+			$("#checkboxStore").prop('checked', false);
+	}
+
 	$(document).ready(function() {
 		var table = $('#searchTable').DataTable( {
 			"info": false,
@@ -20,19 +35,20 @@
 		});
 		
 		$("#checkboxStore").click(function() {
-			$("#checkboxStore").prop('checked', true);
-			$("#divStore").css("background", "rgb(225,225,225)");
-			$("#divFile").css("background", "rgb(242,242,242)");
-			$("#checkboxFile").prop('checked', false);
+			enableStore();
 		});
 
 		$("#checkboxFile").click(function() {
-			$("#checkboxFile").prop('checked', true);
-			$("#divFile").css("background", "rgb(225,225,225)");
-			$("#divStore").css("background", "rgb(242,242,242)");		
-			$("#checkboxStore").prop('checked', false);
+			enableFile();
 		});
 
+		$("#divStore").click(function() {
+			enableStore();
+		});
+
+		$("#divFile").click(function() {
+			enableFile();
+		});
 
 	});
 </script>
