@@ -29,7 +29,7 @@ from io import BytesIO
 
 # Flask imports
 try:
-	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort
+	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort, Blueprint
 	from jinja2 import evalcontextfilter, Markup, escape
 except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
@@ -53,8 +53,13 @@ from hxtool_config import *
 from hxtool_data_models import *
 from hxtool_session import *
 
+# Import HXTool API Flask blueprint
+from hxtool_api import ht_api
 
 app = Flask(__name__, static_url_path='/static')
+
+# Register HXTool API blueprint
+app.register_blueprint(ht_api)
 
 HXTOOL_API_VERSION = 1
 default_encoding = 'utf-8'
