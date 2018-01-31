@@ -61,11 +61,6 @@ default_encoding = 'utf-8'
 ht_config = None
 ht_db = None
 
-@app.before_first_request
-def make_session_permanent():
-	session.permanent = True
-	app.permanent_session_lifetime = datetime.timedelta(days=7)
-
 def valid_session_required(f):
 	@wraps(f)
 	def is_session_valid(*args, **kwargs):
@@ -1827,6 +1822,8 @@ if __name__ == "__main__":
 	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	
+	app.permanent_session_lifetime = datetime.timedelta(days=7)
+
 	app.session_interface = hxtool_session_interface(ht_db, app.logger, expiration_delta=ht_config['network']['session_timeout'])
 
 	# TODO: This should really be after app.run, but you cannot run code after app.run, so we'll leave this here for now.

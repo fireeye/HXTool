@@ -24,6 +24,7 @@ class hxtool_session(CallbackDict, SessionMixin):
 		self.new = True
 		self.accessed = False
 		self.modified = False
+		self.permanent = True
 		CallbackDict.__init__(self, on_update=on_update)
 		
 	def create(self):
@@ -51,7 +52,10 @@ class hxtool_session_interface(SessionInterface):
 		self.session_reaper()
 	
 	def get_expiration_time(self, app, session):
-		return datetime.datetime.utcnow() + datetime.timedelta(minutes=self.expiration_delta)
+		delta = datetime.timedelta(minutes=self.expiration_delta)
+		if session.permanent:
+			delta = app.permanent_session_lifetime
+		return datetime.datetime.utcnow() + delta
 		
 	def open_session(self, app, request):
 		session = hxtool_session(app.secret_key, self.logger)
