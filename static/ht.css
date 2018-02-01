@@ -79,7 +79,7 @@
 	text-decoration: none;
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-size: 12px;
-	background: rgb(73, 110, 150);
+	background: rgb(109,139,171);
 	font-weight: 500;
 	color: #ffffff;
 	border: #eeeeee;
@@ -94,7 +94,7 @@
 
 .tableActionButton:hover {
 	cursor: pointer;
-	background: rgb(101, 141, 170);
+	background: rgb(73,110,150);
 
 }
 
@@ -107,7 +107,7 @@
 .tableActionIcon {
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-size: 12px;
-	background: rgb(73, 110, 150);
+	background: rgb(109,139,171);
 	font-weight: 500;
 	color: #ffffff;
 	border: #eeeeee;
