@@ -96,138 +96,17 @@ def nl2br(eval_ctx, value):
 		result = Markup(result)
 	return result
 
-# Dashboard page
-################
-
-@app.route('/dashboard')
-@valid_session_required
-def index(hx_api_object):
-	if not 'render' in request.args:
-		return render_template('ht_index_ph.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-	else:
-	
-		mytime = "today"
-		time_matrix = {
-			"today"	:	datetime.datetime.now(),
-			"week"	:	datetime.datetime.now() - datetime.timedelta(days=7),
-			"2weeks":	datetime.datetime.now() - datetime.timedelta(days=14),
-			"30days":	datetime.datetime.now() - datetime.timedelta(days=30),
-			"60days":	datetime.datetime.now() - datetime.timedelta(days=60),
-			"90days":	datetime.datetime.now() - datetime.timedelta(days=90),
-			"182days":	datetime.datetime.now() - datetime.timedelta(days=182),
-			"365days":	datetime.datetime.now() - datetime.timedelta(days=365)
-		}
-		
-		if 'time' in request.args and request.args.get('time') in time_matrix:
-			mytime = request.args.get('time')
-		
-		starttime = time_matrix.get(mytime)
-		
-		interval_select = ""
-		for i in ["today", "week", "2weeks", "30days", "60days", "90days", "182days", "365days"]:
-				interval_select += '<option value="/?time={0}"{1}>{2}</option>'.format(i, ' selected="selected"' if i == mytime else '', i)
-			
-		base = datetime.datetime.today()
-	
-		(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(starttime.strftime("%Y-%m-%d"), base.strftime("%Y-%m-%d"))
-		
-		nr_of_alerts = len(response_data)
-		
-		# Recent alerts
-		alerts = formatDashAlerts(response_data, hx_api_object)
-		
-		stats = [{'value': 0, 'label': 'Exploit'}, {'value': 0, 'label': 'IOC'}, {'value': 0, 'label': 'Malware'}]
-		if nr_of_alerts > 0:
-			stats[0]['value'] = len([_ for _ in response_data if _['source'] == "EXD"])
-			stats[1]['value'] = len([_ for _ in response_data if _['source'] == "IOC"])
-			stats[2]['value'] = len([_ for _ in response_data if _['source'] == "MAL"])
-			
-			stats[0]['value'] = round((stats[0]['value'] / float(nr_of_alerts)) * 100)
-			stats[1]['value'] = round((stats[1]['value'] / float(nr_of_alerts)) * 100)
-			stats[2]['value'] = round((stats[2]['value'] / float(nr_of_alerts)) * 100)
-
-		# Event timeline last 30 days
-		talert_dates = {}
-	
-		
-		delta = (base - starttime)
-		
-		date_list = [base - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
-		for date in date_list:
-			talert_dates[date.strftime("%Y-%m-%d")] = 0
-
-		ioclist = []
-		exdlist = []
-		mallist = []
-		
-		for talert in response_data:
-			if talert['source'] == "IOC":
-				if not talert['agent']['_id'] in ioclist:
-					ioclist.append(talert['agent']['_id'])
-				
-			if talert['source'] == "EXD":
-				if not talert['agent']['_id'] in exdlist:
-					exdlist.append(talert['agent']['_id'])
-			
-			if talert['source'] == "MAL":
-				if not talert['agent']['_id'] in mallist:
-					mallist.append(talert['agent']['_id'])			
-			
-			date = talert['event_at'][0:10]
-			if date in talert_dates.keys():
-				talert_dates[date] = talert_dates[date] + 1
-
-		ioccounter = len(ioclist)
-		exdcounter = len(exdlist)
-		malcounter = len(mallist)
-		
-		talerts_list = []
-		for key in talert_dates:
-			talerts_list.append({"date": HXAPI.compat_str(key), "count": talert_dates[key]})
-
-		# Info table
-		(ret, response_code, response_data) = hx_api_object.restListHosts()
-		hostcounter = len(response_data['data']['entries']);
-		contcounter = len([_ for _ in response_data['data']['entries'] if _['containment_state'] != "normal"]);
-
-		(ret, response_code, response_data) = hx_api_object.restListSearches()
-		searchcounter = len([_ for _ in response_data['data']['entries'] if _['state'] == "RUNNING"])
-
-		(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
-		blkcounter = len([_ for _ in response_data['data']['entries'] if _['state'] == "RUNNING"]);
-
-		return render_template('ht_index.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), alerts=alerts, iocstats=json.dumps(stats), timeline=json.dumps(talerts_list), contcounter=str(contcounter), hostcounter=str(hostcounter), malcounter=str(malcounter), searchcounter=str(searchcounter), blkcounter=str(blkcounter), exdcounter=str(exdcounter), ioccounter=str(ioccounter), iselect=interval_select)
-
-
-
-### New dashboard
+### Dashboard page
 @app.route('/', methods=['GET'])
 @valid_session_required
 def dashboard(hx_api_object):
 	return render_template('ht_dashboard.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
-### New alerts
+### Alerts page
 @app.route('/alert', methods=['GET'])
 @valid_session_required
 def alert(hx_api_object):
 	return render_template('ht_alert.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-
-
-
-### Jobdash
-##########
-
-@app.route('/jobdash', methods=['GET', 'POST'])
-@valid_session_required
-def jobdash(hx_api_object):
-	blk = restListBulkAcquisitions(session['ht_token'], session['ht_ip'], session['ht_port'])
-	jobsBulk = formatBulkTableJobDash(c, conn, blk, session['ht_profileid'])
-
-	s = restListSearches(session['ht_token'], session['ht_ip'], session['ht_port'])
-	jobsEs = formatListSearchesJobDash(s)
-	
-	
-	return render_template('ht_jobdash.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), jobsBulk=jobsBulk, jobsEs=jobsEs)
 
 ### Hosts
 ##########
@@ -350,9 +229,7 @@ def acq(hx_api_object):
 	url = request.args.get('url')
 	return render_template('ht_acq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
 		
-### Alerts Page
-###################
-
+### Annotations
 @app.route('/annotateadd', methods=['POST'])
 @valid_session_required
 def annotateadd(hx_api_object):
@@ -363,34 +240,6 @@ def annotateadd(hx_api_object):
 		return('', 204)
 	else:
 		return('', 500)
-
-
-@app.route('/alerts', methods=['GET', 'POST'])
-@valid_session_required
-def alerts(hx_api_object):
-		
-	if request.method == "POST" and 'annotateText' in request.form:
-		# We have a new annotation
-		ht_db.alertCreate(session['ht_profileid'], request.form['annotateId'])
-		ht_db.alertAddAnnotation(session['ht_profileid'], request.form['annotateId'], request.form['annotateText'], request.form['annotateState'], session['ht_user'])
-		app.logger.info('New annotation - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return redirect("/alerts?acount=30", code=302)
-	
-	if not 'render' in request.args:
-		return render_template('ht_alerts_ph.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-	else:
-		if 'acount' in request.args and request.args['acount']:
-			acount = int(request.args['acount'])
-		else:
-			acount = 50
-	
-		acountselect = ""
-		for i in [10, 20, 30, 50, 100, 250, 500, 1000]:
-			acountselect += '<option value="/alerts?acount={0}"{1}>Last {2} Alerts</option>'.format(i, ' selected="selected"' if i == acount else '', i)
-				
-		(ret, response_code, response_data) = hx_api_object.restGetAlerts(acount)
-		alertshtml = formatAlertsTable(response_data, hx_api_object, session['ht_profileid'], ht_db)
-		return render_template('ht_alerts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), alerts=alertshtml, acountselect=acountselect)
 		
 @app.route('/annotatedisplay', methods=['GET'])
 @valid_session_required
@@ -404,15 +253,13 @@ def annotatedisplay(hx_api_object):
 
 	return render_template('ht_annotatedisplay.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), annotatetable=annotatetable)
 
-
+### Acquisitions listing
 @app.route('/acqs', methods=['GET'])
 @valid_session_required
 def acqs(hx_api_object):
 	return render_template('ht_acqs.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 #### Enterprise Search
-#########################
-
 @app.route('/search', methods=['GET', 'POST'])
 @valid_session_required
 def search(hx_api_object):	
@@ -462,50 +309,6 @@ def searchaction(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restDeleteJob('searches', request.args.get('id'))
 		app.logger.info('User access: Enterprise Search action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/search", code=302)
-		
-#### Build a real-time indicator
-####################################
-
-@app.route('/buildioc', methods=['GET', 'POST'])
-@valid_session_required
-def buildioc(hx_api_object):
-	# New IOC to be created
-	if request.method == 'POST':
-	
-		if request.form['platform'] == "all":
-			myplatforms = ['win', 'osx']
-		else:
-			myplatforms = request.form['platform'].split(",")
-			
-		(ret, response_code, response_data) = hx_api_object.restAddIndicator(request.form['cats'], request.form['iocname'], platforms=myplatforms, create_text=hx_api_object.hx_user)
-		app.logger.info('New indicator created - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		
-		ioc_guid = response_data['data']['_id']
-
-		condEx = []
-		condPre = []
-
-		for fieldname, value in request.form.items():
-			if "cond_" in fieldname:
-				condComp = fieldname.split("_")
-				if (condComp[2] == "presence"):
-					condPre.append(value.rstrip(","))
-				elif (condComp[2] == "execution"):
-					condEx.append(value.rstrip(","))
-
-		for data in condPre:
-			data = """{"tests":[""" + data + """]}"""
-			data = data.replace('\\', '\\\\')
-			(ret, response_code, response_data) = hx_api_object.restAddCondition(request.form['cats'], ioc_guid, 'presence', data)
-			
-		for data in condEx:
-			data = """{"tests":[""" + data + """]}"""
-			data = data.replace('\\', '\\\\')
-			(ret, response_code, response_data) = hx_api_object.restAddCondition(request.form['cats'], ioc_guid, 'execution', data)
-			
-	(ret, response_code, response_data) = hx_api_object.restListCategories()
-	cats = formatCategoriesSelect(response_data)
-	return render_template('ht_buildioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), cats=cats)
 
 ### Manage Indicators
 #########################
@@ -644,7 +447,7 @@ def importioc(hx_api_object):
 	
 	return redirect("/indicators", code=302)
 
-
+### Real-time indicators
 @app.route('/rtioc', methods=['POST', 'GET'])
 @valid_session_required
 def rtioc(hx_api_object):
@@ -781,9 +584,7 @@ def rtioc(hx_api_object):
 				# Invalid request
 				return('', 500)
 
-### Bulk Acqusiitions
-#########################
-
+### Bulk Acquisition
 @app.route('/bulk', methods=['GET', 'POST'])
 @valid_session_required
 def listbulk(hx_api_object):
@@ -912,7 +713,8 @@ def bulkaction(hx_api_object):
 		ret = ht_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
 		app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
-				
+
+### Scripts
 @app.route('/scripts', methods=['GET', 'POST'])
 @valid_session_required
 def scripts(hx_api_object):
@@ -934,6 +736,7 @@ def scripts(hx_api_object):
 		else:
 			return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### OpenIOCs
 @app.route('/openioc', methods=['GET', 'POST'])
 @valid_session_required
 def openioc(hx_api_object):
@@ -955,6 +758,7 @@ def openioc(hx_api_object):
 		else:
 			return render_template('ht_openioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### Multifile acquisitions
 @app.route('/multifile', methods=['GET', 'POST'])
 @valid_session_required
 def multifile(hx_api_object):
@@ -1170,7 +974,6 @@ def get_file_listings(hx_api_object):
 	return json.dumps({'data': data_rows})
 
 ### Stacking
-##########
 @app.route('/stacking', methods=['GET', 'POST'])
 @valid_session_required
 def stacking(hx_api_object):
@@ -1222,8 +1025,6 @@ def stackinganalyze(hx_api_object):
 		
 			
 ### Settings
-############
-			
 @app.route('/settings', methods=['GET', 'POST'])
 @valid_session_required
 def settings(hx_api_object):
@@ -1248,7 +1049,6 @@ def settings(hx_api_object):
 
 			
 ### Custom Configuration Channels
-########################
 @app.route('/channels', methods=['GET', 'POST'])
 @valid_session_required
 def channels(hx_api_object):
@@ -1287,8 +1087,6 @@ def channelinfo(hx_api_object):
 		return render_template('ht_noaccess.html')
 		
 #### Authentication
-#######################
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
 	
