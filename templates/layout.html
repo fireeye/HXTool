@@ -13,7 +13,8 @@
 	<script type="text/javascript" src="{{ url_for('static', filename='js/jszip.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/pdfmake.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/vfs_fonts.js') }}"></script>
-	<script defer src="{{ url_for('static', filename='js/fontawesome/svg-with-js/js/fontawesome-all.min.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/datatables_parser.js') }}"></script>
+	<script defer src="{{ url_for('static', filename='fontawesome/on-server/js/fontawesome-all.min.js') }}"></script>
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" />
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}" />
 	
@@ -28,6 +29,7 @@
     <link rel="stylesheet" type="text/css" href="static/ht.css">
     <link rel="stylesheet" type="text/css" href="static/ht_layout.css">
 	<link rel="stylesheet" type="text/css" href="static/multi-select.css">
+	<link rel="stylesheet" href="static/fontawesome/on-server/css/fontawesome.min.css">
 	<link href="/static/favicon.ico" rel="icon" type="image/x-icon" />
 </head>
 <body>
@@ -191,11 +193,11 @@
 		<div id='navcategory_es' style='float: left; position: relative;' class='htLayoutMenuItem'>Enterprise Search <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
 			<div id='dropdown-content-es' class='htLayoutDropdown-content'>
 				<div id='navbutton_search' class='htLayoutDropdown-item'>
-					<i class="fas fa-search-plus fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					<i class="fas fa-search fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					OpenIOC search
 				</div>
 				<div id='navbutton_openioc' class='htLayoutDropdown-item'>
-					<i class="fas fa-search fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					<i class="fas fa-code-branch fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Manage OpenIOC 1.1
 				</div>
 			</div>				
@@ -203,12 +205,16 @@
 
 		<div id='navcategory_acquisition' style='float: left; position: relative;' class='htLayoutMenuItem'>Acquisition <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
 			<div id='dropdown-content-acquisition' class='htLayoutDropdown-content'>
+				<div id='navbutton_acqs' class='htLayoutDropdown-item'>
+					<i class="fas fa-list-ul fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					Acquisitions
+				</div>
 				<div id='navbutton_bulk' class='htLayoutDropdown-item'>
-					<i class="fas fa-search-plus fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					<i class="fas fa-th-list fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Bulk Acquisitions
 				</div>
 				<div id='navbutton_multifile' class='htLayoutDropdown-item'>
-					<i class="fas fa-file fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					<i class="fas fa-copy fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Multi-File Acquisitions
 				</div>
 				<div id='navbutton_stacking' class='htLayoutDropdown-item'>
@@ -216,8 +222,12 @@
 					Data Stacking
 				</div>
 				<div id='navbutton_scripts' class='htLayoutDropdown-item'>
-					<i class="fas fa-file fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					<i class="fas fa-code fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Manage Scripts
+				</div>
+				<div id='navbutton_scheduler' class='htLayoutDropdown-item'>
+					<i class="fas fa-calendar-check fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					Scheduler
 				</div>
 			</div>				
 		</div>
@@ -225,15 +235,15 @@
 		<div id='navcategory_indicator' style='float: left; position: relative;' class='htLayoutMenuItem'>Indicators <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
 			<div id='dropdown-content-indicators' class='htLayoutDropdown-content'>
 				<div id='navbutton_rtioc' class='htLayoutDropdown-item'>
-					<i class="fas fa-building fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					<i class="fas fa-file-code fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Build Indicator
 				</div>
 				<div id='navbutton_indicators' class='htLayoutDropdown-item'>
-					<i class="fas fa-database fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					<i class="fas fa-list-ul fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Manage Indicators
 				</div>
 				<div id='navbutton_categories' class='htLayoutDropdown-item'>
-					<i class="fas fa-database fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					<i class="fas fa-list-ul fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Manage Categories
 				</div>
 			</div>				
@@ -242,7 +252,7 @@
 		<div id='navcategory_admin' style='float: left; position: relative; border-right: none;' class='htLayoutMenuItem'>Admin <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
 			<div id='dropdown-content-admin' class='htLayoutDropdown-content'>
 				<div id='navbutton_channels' class='htLayoutDropdown-item'>
-					<i class="fas fa-wrench fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					<i class="fas fa-lock fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 					Custom Config Channels
 				</div>
 				<div id='navbutton_settings' class='htLayoutDropdown-item'>
@@ -264,6 +274,7 @@
 			<img src='/static/fireeye.svg' style='height: 45px; position: absolute; left: 35px; clip: rect(0px,100px,60px,0px);'>
 			<div style='position: absolute; left: 92px; top: 40px; color: rgb(67,67,67); font-size: 14px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-weight: bold;'>HXTool v3.2</div>
 		</div>
+		<!-- <div class='htLayoutTriangle-topleft'>▼</div> -->
 		<div class='htLayoutTriangle-topleft' style='float: left;'></div>
 		<div class='htLayoutTopBarBox' style='float: right;'>
 			<div style='float: right; margin-top: 15px;'>

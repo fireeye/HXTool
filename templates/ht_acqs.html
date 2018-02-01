@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Acquisitions{% endblock %}
+{% block navlocation %}Acquisitions{% endblock %}
+{% block content %}
+
+<script>
+
+	$(document).ready(function() {
+
+		var alert_datatable = $('#acqTable').DataTable( {
+			"ajax": "/api/v1/datatable_acqs",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": true,
+			"processing": false,
+			"columns": [
+				{ "title": "", "data": "platform" },
+				{ "title": "Hostname", "data": "hostname" },
+				{ "title": "Domain", "data": "domain" },
+				{ "title": "OS", "data": "product_name" },
+				{ "title": "Requested", "data": "request_time" },
+				{ "title": "Containment", "data": "containment_state" },
+				{ "title": "Last poll", "data": "last_poll_timestamp" },
+				{ "title": "Type", "data": "type" },
+				{ "title": "State", "data": "state" },
+				{ "title": "Action", "data": "action" }
+			],
+			"columnDefs": [	
+				{
+				 "targets": 0,
+				 "width": "20px",
+				 render: function ( data, type, row, meta ) {
+				 	return (datatables_parsePlatform(data));
+				 }
+				},
+				{
+				 "targets": 1,
+				 render: function ( data, type, row, meta ) {
+				 	return(datatables_parseHostlink(data));
+				 }
+				},
+				{
+				 "targets": 5,
+				 "width": "100px",
+				 render: function ( data, type, row, meta ) {
+				 	return(datatables_parseContainmentState(data));
+				 }
+				},
+				{
+				 "targets": 7,
+				 "width": "100px",
+				 render: function ( data, type, row, meta ) {
+				 	return(datatables_parseAcquisitionType(data));
+				 }
+				},
+				{
+				 "targets": 8,
+				 "width": "100px",
+				 render: function ( data, type, row, meta ) {
+				 	return(datatables_parseAcquisitionState(data));
+				 }
+				},
+				{
+				 "targets": 9,
+				 "width": "180px",
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		if (row.type == "triage" && row.state == "COMPLETE") {
+				 			data = "<a href='/download?id=/hx/api/v3/acqs/triages/" + row.DT_RowId + ".mans' class='tableActionButton'>download</a>";
+				 		}
+				 		else if (row.type == "live" && row.state == "COMPLETE") {
+				 			data = "<a href='/download?id=/hx/api/v3/acqs/live/" + row.DT_RowId + ".mans&content=json' class='tableActionButton'>download</a>";
+				 		}
+				 		else if (row.type == "file" && row.state == "COMPLETE") {
+				 			data = "<a href='/download?id=/hx/api/v3/acqs/files/" + row.DT_RowId + ".zip' class='tableActionButton'>download</a>";
+				 		}
+				 		else {
+				 			data = "N/A";	
+				 		}
+				 	}
+				 	return data;
+				 }
+				},
+				{"className": "dt-center", "targets": [0, 1, 2, 3, 4, 5, 7, 8]}
+			]
+		});
+
+	});
+
+</script>
+
+
+<div class='tableTitle'>
+	<i class="fas fa-list-ul fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+	Acquisitions (last 500)
+</div>
+
+<table id='acqTable' class='genericTableSmall genericTable' style='width: 100%'>
+</table>
+
+{% endblock %}

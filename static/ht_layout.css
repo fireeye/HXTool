@@ -4,7 +4,8 @@
 */
 
 :root {
-    --bg-color-topbar: rgb(225, 225, 225);
+/*    --bg-color-topbar: rgb(225, 225, 225); */
+	--bg-color-topbar: rgb(210,210,210);
     --bg-color-topmenubar: rgb(73, 110, 150);
 /*    --bg-color-topmenubar: rgb(121, 161, 190); */
     --text-color-topbar: rgb(255, 255, 255);
@@ -15,7 +16,7 @@
 	width: 200px;
 	height: 60px;
 	background: var(--bg-color-topbar);
-	z-index: 30;
+	z-index: 50;
 }
 
 .htLayoutTopBarTopBox {
@@ -45,6 +46,15 @@
 	border-top: 60px solid var(--bg-color-topbar);
 	border-right: 40px solid transparent;
 	z-index: 30;
+/*	position: absolute;
+	left: 160px;
+	top: 0;
+	z-index: 0;
+	color: var(--bg-color-topbar);
+	font-size: 82px;
+	margin-top: -20px;
+	text-shadow: 2px 2px 5px rgb(115, 115, 115);
+*/
 }
 
 .htLayoutTriangle-topright {

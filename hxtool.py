@@ -405,6 +405,11 @@ def annotatedisplay(hx_api_object):
 	return render_template('ht_annotatedisplay.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), annotatetable=annotatetable)
 
 
+@app.route('/acqs', methods=['GET'])
+@valid_session_required
+def acqs(hx_api_object):
+	return render_template('ht_acqs.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
 #### Enterprise Search
 #########################
 
@@ -1604,7 +1609,6 @@ def datatable_alerts_full(hx_api_object):
 				else:
 					tname = "N/A"
 
-				#myalerts['data'].append([platform, HXAPI.compat_str(hostname) + "___" + HXAPI.compat_str(hid) + "___" + HXAPI.compat_str(aid), domain, alert['event_at'], HXAPI.prettyTime(HXAPI.gt(alert['event_at'])), alert['source'], tname, alert['resolution'], annotation_max_state, annotation_count, alert['_id']])
 				myalerts['data'].append({
 					"DT_RowId": alert['_id'],
 					"platform": platform,
@@ -1641,6 +1645,32 @@ def datatable_openioc(hx_api_object):
 		myiocs = ht_db.oiocList()
 		return(app.response_class(response=json.dumps(myiocs), status=200, mimetype='application/json'))
 
+
+@app.route('/api/v{0}/datatable_acqs'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_acqs(hx_api_object):
+	if request.method == 'GET':
+			myacqs = {"data": []}
+			(ret, response_code, response_data) = hx_api_object.restListAllAcquisitions(limit=500)
+			if ret:
+				for acq in response_data['data']['entries']:
+					if acq['type'] != "bulk":
+						(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(acq['host']['_id'])
+						if ret:
+							myacqs['data'].append({
+								"DT_RowId": acq['acq']['_id'],
+								"type": acq['type'],
+								"request_time": acq['request_time'],
+								"state": acq['state'],
+								"hostname": hresponse_data['data']['hostname'] + "___" + hresponse_data['data']['_id'],
+								"domain": hresponse_data['data']['domain'],
+								"containment_state": hresponse_data['data']['containment_state'],
+								"last_poll_timestamp": hresponse_data['data']['last_poll_timestamp'],
+								"platform": hresponse_data['data']['os']['platform'],
+								"product_name": hresponse_data['data']['os']['product_name'],
+								"action": acq['acq']['_id']
+							})
+				return(app.response_class(response=json.dumps(myacqs), status=200, mimetype='application/json'))
 
 
 ####################

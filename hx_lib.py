@@ -428,6 +428,13 @@ class HXAPI:
 	## Acquisitions
 	###############
 
+	def restListAllAcquisitions(self, limit=DEFAULT_LIMIT):
+
+		request = self.build_request(self.build_api_route('acqs'), method = 'GET')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+
+		return(ret, response_code, response_data)
+
 	# Acquire triage
 	def restAcquireTriage(self, agent_id, timestamp = False):
 

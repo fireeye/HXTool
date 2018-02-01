@@ -18,7 +18,7 @@
 			$("#divStore").css("background", "rgb(242,242,242)");		
 			$("#checkboxStore").prop('checked', false);
 	}
-	
+
 	$(document).ready(function() {
                 var table = $('#bulkTable').DataTable( {
                         "info": false,
@@ -59,9 +59,10 @@
 </script>
 
 <form method='POST' action='/bulk' enctype="multipart/form-data">
-        <div class='tableTitle'>
-                New bulk acquisition
-        </div>
+		<div class='tableTitle'>
+        	<i class="fas fa-plus-square fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+			New bulk acquisition
+		</div>
 	<div class='inputArea' style='width: 900px;'>
 
 		<div id='divStore' style='width: 250px; float: left; padding: 10px; margin-right: 15px; vertical-align: top; border: 1px solid rgb(215,215,215); border-radius: 5px; background: rgb(225,225,225);'>
@@ -90,6 +91,7 @@
 <br>
 
 <div class='tableTitle'>
+	<i class="fas fa-th-list fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 	Bulk acquisitions on the controller
 </div>
 

@@ -1,15 +1,19 @@
 try:
-	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort, Blueprint
+	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort, Blueprint, current_app as app
 	from jinja2 import evalcontextfilter, Markup, escape
 except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
 
 from functools import wraps
+from hx_lib import *
+from hxtool_db import *
 
 HXTOOL_API_VERSION = 1
 
 ht_api = Blueprint('ht_api', __name__, template_folder='templates')
+
+#ht_db = hxtool_db('hxtool.db', logger = app.logger)
 
 def valid_session_required(f):
 	@wraps(f)
@@ -26,7 +30,7 @@ def valid_session_required(f):
 
 @ht_api.route('/api/v{0}/testcall'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
-def datatable_openioc(hx_api_object):
+def datatable_openioc():
 	if request.method == 'GET':
 		myiocs = ht_db.oiocList()
 		return(app.response_class(response=json.dumps(myiocs), status=200, mimetype='application/json'))
