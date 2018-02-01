@@ -52,6 +52,7 @@ from hxtool_process import *
 from hxtool_config import *
 from hxtool_data_models import *
 from hxtool_session import *
+from hxtool_scheduler import *
 
 # Import HXTool API Flask blueprint
 from hxtool_api import ht_api
@@ -63,7 +64,6 @@ app.register_blueprint(ht_api)
 
 HXTOOL_API_VERSION = 1
 default_encoding = 'utf-8'
-ht_config = None
 ht_db = None
 
 def valid_session_required(f):
@@ -1090,7 +1090,7 @@ def login():
 			ht_profile = ht_db.profileGet(request.form['controllerProfileDropdown'])
 			if ht_profile:	
 
-				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = ht_config['network'].get('proxies'), headers = ht_config['headers'], cookies = ht_config['cookies'], logger = app.logger, default_encoding = default_encoding)
+				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = app.hxtool_config['network'].get('proxies'), headers = app.hxtool_config['headers'], cookies = app.hxtool_config['cookies'], logger = app.logger, default_encoding = default_encoding)
 
 				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'], auto_renew_token = True)
 				if ret:
@@ -1113,7 +1113,8 @@ def login():
 					if iv and salt:
 						try:
 							decrypted_background_password = crypt_aes(key, iv, background_credential['hx_api_encrypted_password'], decrypt = True)
-							start_background_processor(ht_profile['profile_id'], background_credential['hx_api_username'], decrypted_background_password)
+							# TODO: replace with scheduler
+							#start_background_processor(ht_profile['profile_id'], background_credential['hx_api_username'], decrypted_background_password)
 						except UnicodeDecodeError:
 							app.logger.error("Failed to decrypt background processor credential! Did you recently change your password? If so, please unset and reset these credentials under Settings.")
 						finally:
@@ -1598,15 +1599,7 @@ and yield the chunk
 def iter_chunk(r, chunk_size = 1024):
 	for chunk in r.iter_content(chunk_size = chunk_size):
 		yield chunk
-	
-### background processing 
-#################################
-def start_background_processor(profile_id, hx_api_username, hx_api_password):
-	p = hxtool_background_processor(ht_config, ht_db, profile_id, logger = app.logger)
-	if p.start(hx_api_username, hx_api_password):
-		app.logger.info('Background processor started.')
-	else:
-		p = None
+
 		
 ###########
 ### Main ####
@@ -1632,10 +1625,14 @@ if __name__ == "__main__":
 		app.secret_key = crypt_generate_random(32)
 		app.logger.setLevel(logging.INFO)
 	
-	ht_config = hxtool_config('conf.json', logger = app.logger)
+	# Initialize the scheduler
+	app.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
+	app.hxtool_scheduler.start()
+	
+	app.hxtool_config = hxtool_config('conf.json', logger = app.logger)
 	
 	# Initialize configured log handlers
-	for log_handler in ht_config.log_handlers():
+	for log_handler in app.hxtool_config.log_handlers():
 		app.logger.addHandler(log_handler)
 
 	# WSGI request log - when not running under gunicorn or mod_wsgi
@@ -1653,21 +1650,23 @@ if __name__ == "__main__":
 	# Init DB
 	ht_db = hxtool_db('hxtool.db', logger = app.logger)
 	
+	app.hxtool_db = ht_db
+	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
 
-	app.session_interface = hxtool_session_interface(ht_db, app.logger, expiration_delta=ht_config['network']['session_timeout'])
+	app.session_interface = hxtool_session_interface(app, logger = app.logger, expiration_delta=app.hxtool_config['network']['session_timeout'])
 
 	# TODO: This should really be after app.run, but you cannot run code after app.run, so we'll leave this here for now.
 	app.logger.info("Application is running. Please point your browser to http{0}://{1}:{2}. Press Ctrl+C to exit.".format(
-																							's' if ht_config['network']['ssl'] == 'enabled' else '',
-																							ht_config['network']['listen_address'], 
-																							ht_config['network']['port']))
-	if ht_config['network']['ssl'] == "enabled":
+																							's' if app.hxtool_config['network']['ssl'] == 'enabled' else '',
+																							app.hxtool_config['network']['listen_address'], 
+																							app.hxtool_config['network']['port']))
+	if app.hxtool_config['network']['ssl'] == "enabled":
 		app.config['SESSION_COOKIE_SECURE'] = True
-		context = (ht_config['ssl']['cert'], ht_config['ssl']['key'])
-		app.run(host=ht_config['network']['listen_address'], port=ht_config['network']['port'], ssl_context=context, threaded=True)
+		context = (app.hxtool_config['ssl']['cert'], app.hxtool_config['ssl']['key'])
+		app.run(host=app.hxtool_config['network']['listen_address'], port=app.hxtool_config['network']['port'], ssl_context=context, threaded=True)
 	else:
-		app.run(host=ht_config['network']['listen_address'], port=ht_config['network']['port'])
+		app.run(host=app.hxtool_config['network']['listen_address'], port=app.hxtool_config['network']['port'])
 
