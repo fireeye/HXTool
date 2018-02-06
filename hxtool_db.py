@@ -27,10 +27,15 @@ class hxtool_db:
 			
 		
 		self._lock = threading.Lock()
-		
-	def __exit__(self, exc_type, exc_value, traceback):
+	
+	def close(self):
 		if self._db:
 			self._db.close()
+	
+	def __exit__(self, exc_type, exc_value, traceback):
+		self.close()
+		
+		
 	"""
 	Add a profile
 	Dictionary structure is:
