@@ -1493,7 +1493,7 @@ if __name__ == "__main__":
 	if len(sys.argv) == 2 and sys.argv[1] == '-debug':
 		debug_mode = True
 	
-	
+
 	# Log early init/failures to stdout
 	console_log = logging.StreamHandler(sys.stdout)
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
@@ -1541,14 +1541,18 @@ if __name__ == "__main__":
 	app.session_interface = hxtool_session_interface(app, logger = app.logger, expiration_delta=app.hxtool_config['network']['session_timeout'])
 
 	# TODO: This should really be after app.run, but you cannot run code after app.run, so we'll leave this here for now.
-	app.logger.info("Application is running. Please point your browser to http{0}://{1}:{2}. Press Ctrl+C to exit.".format(
+	app.logger.info("Application is running. Please point your browser to http{0}://{1}:{2}. Press Ctrl+C/Ctrl+Break to exit.".format(
 																							's' if app.hxtool_config['network']['ssl'] == 'enabled' else '',
 																							app.hxtool_config['network']['listen_address'], 
 																							app.hxtool_config['network']['port']))
 	if app.hxtool_config['network']['ssl'] == "enabled":
 		app.config['SESSION_COOKIE_SECURE'] = True
 		context = (app.hxtool_config['ssl']['cert'], app.hxtool_config['ssl']['key'])
-		app.run(host=app.hxtool_config['network']['listen_address'], port=app.hxtool_config['network']['port'], ssl_context=context, threaded=True)
+		app.run(host=app.hxtool_config['network']['listen_address'], 
+				port=app.hxtool_config['network']['port'], 
+				ssl_context=context, 
+				threaded=True)
 	else:
-		app.run(host=app.hxtool_config['network']['listen_address'], port=app.hxtool_config['network']['port'])
-
+		app.run(host=app.hxtool_config['network']['listen_address'], 
+				port=app.hxtool_config['network']['port'])
+	
