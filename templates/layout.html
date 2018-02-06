@@ -117,6 +117,20 @@
 		});
 		
 		$(document).ready(function() {
+
+			/*
+			alive = setInterval(function () {
+				$.getJSON('/api/v1/getHealth', function(health) {
+					if (health.status == "OK") {
+						$("#ht_info").css("color", "#0f9b3b");
+					}
+					else {
+						$("#ht_info").css("color", "#ba190b");
+					}
+				});
+			}, 5000);
+			*/
+
 			$('[id^=navbutton]').click(function() {
 				url = this.id.split("_");
 				window.location.replace("/" + url[1]);
