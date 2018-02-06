@@ -19,6 +19,7 @@ import io
 import os
 import datetime
 import time
+import signal
 import xml.etree.ElementTree as ET
 from string import Template
 from xml.sax.saxutils import escape as xmlescape
@@ -1487,12 +1488,21 @@ def submit_bulk_job(hx_api_object, hostset, script_xml, download = True, handler
 ###########
 ### Main ####
 ###########			
-		
+
+def sigint_handler(signum, frame):
+	app.logger.debug("Caught SIGINT, exiting...")
+	if app.hxtool_scheduler:
+		app.hxtool_scheduler.stop()
+	if app.hxtool_db:
+		app.hxtool_db.close()
+	exit(0)	
+	
 if __name__ == "__main__":
 	debug_mode = False
 	if len(sys.argv) == 2 and sys.argv[1] == '-debug':
 		debug_mode = True
 	
+	signal.signal(signal.SIGINT, sigint_handler)
 
 	# Log early init/failures to stdout
 	console_log = logging.StreamHandler(sys.stdout)
