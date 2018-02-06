@@ -3,7 +3,6 @@
 
 import logging
 import threading
-import atexit
 import datetime
 import uuid
 
@@ -15,7 +14,9 @@ except ImportError:
 TASK_STATE_IDLE = 0
 TASK_STATE_QUEUED = 1
 TASK_STATE_RUNNING = 2	
-	
+
+# Special task indicator that we need to exit now
+SIGINT_TASK_ID = -1
 	
 # Note: scheduler resolution is a little less than a second
 class hxtool_scheduler:
@@ -29,7 +30,6 @@ class hxtool_scheduler:
 		self.task_thread_count = task_thread_count
 		self.task_threads = []
 		self.task_status_callback = task_status_callback
-		atexit.register(self.stop)
 		self.logger.info("Task scheduler initialized.")
 
 	def _scan_task_queue(self):
@@ -39,19 +39,23 @@ class hxtool_scheduler:
 					self.run_queue.put((task.id, task.name, task.run))
 					task.set_state(TASK_STATE_QUEUED)
 			self._stop_event.wait(.01)
-	
+		
 	def _await_task(self):
 		while not self._stop_event.is_set():
 			(task_id, task_name, task_run) = self.run_queue.get()
-			if task_id:
-				self.logger.info("Executing task with id: %s, name: %s.", task_id, task_name)
-				self._update_task_status(task_id, task_name, "Running")
-				ret = task_run()
-				status = "Completed"
-				if not ret:
-					status = "Failed"
-				self._update_task_status(task_name, task_id, status)
+			# Special task indicator that we need to exit now
+			if task_id == SIGINT_TASK_ID:
+				self.logger.debug("Got SIGINT_TASK_ID, exiting.")
 				self.run_queue.task_done()
+				break
+			self.logger.info("Executing task with id: %s, name: %s.", task_id, task_name)
+			self._update_task_status(task_id, task_name, "Running")
+			ret = task_run()
+			status = "Completed"
+			if not ret:
+				status = "Failed"
+			self._update_task_status(task_name, task_id, status)
+			self.run_queue.task_done()
 					
 	def _update_task_status(self, id, name, status):
 		if self.task_status_callback:
@@ -67,13 +71,15 @@ class hxtool_scheduler:
 		
 	def stop(self):
 		self._stop_event.set()
-		self.run_queue.join()
+		if self._poll_thread.is_alive():
+			self._poll_thread.join()
+		for i in range(0, self.task_thread_count):
+			self.run_queue.put((SIGINT_TASK_ID, None, None))
 		for t in self.task_threads:
 			if t.is_alive():
 				t.join()
-		if self._poll_thread.is_alive():
-			self._poll_thread.join()
-				
+		self.run_queue.join()
+	
 	def add(self, task):
 		with self._lock:
 			self.task_queue.append(task)
