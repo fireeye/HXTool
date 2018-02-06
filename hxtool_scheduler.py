@@ -99,8 +99,8 @@ class hxtool_scheduler:
 			with self.lock:
 				return self.task_queue.pop(self.task_queue.index(t[0]))
 				
-	def tasks(self):
-		return list(self.task_queue)
+	def tasks_dict(self):
+		return [_.to_dict() for _ in self.task_queue]
 		
 	def status(self):
 		return self._poll_thread.is_alive()
@@ -155,5 +155,19 @@ class hxtool_scheduler_task:
 	
 	def should_run(self):
 		return self.enabled and self.state == TASK_STATE_IDLE and ((datetime.datetime.utcnow() - self.next_run).seconds == 0 or self.start_time == self.next_run)
-		
+	
+	def to_dict(self):
+		return {
+			'id' : self.id,
+			'profile_id' : self.profile_id,
+			'name' : self.name,
+			'enabled' : self.enabled,
+			'immutable' : self.immutable,
+			'state' : self.state,
+			'interval' : self.interval,
+			'start_time' : self.start_time,
+			'end_time' : self.end_time,
+			'last_run' : self.last_run,
+			'next_run' : self.next_run
+		}
 		
