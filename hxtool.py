@@ -18,9 +18,7 @@ import json
 import io
 import os
 import datetime
-import threading
 import time
-from functools import wraps
 import xml.etree.ElementTree as ET
 from string import Template
 from xml.sax.saxutils import escape as xmlescape
@@ -35,17 +33,9 @@ except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
 	
-# pycryptodome imports
-try:
-	from Crypto.Cipher import AES
-	from Crypto.Protocol.KDF import PBKDF2
-	from Crypto.Hash import HMAC, SHA256
-except ImportError:
-	print("hxtool requires the 'pycryptodome' module, please install it.")
-	exit(1)
-	
 # hx_tool imports
 from hx_lib import *
+from hxtool_util import *
 from hxtool_formatting import *
 from hxtool_db import *
 from hxtool_process import *
@@ -64,20 +54,7 @@ app.register_blueprint(ht_api)
 
 HXTOOL_API_VERSION = 1
 default_encoding = 'utf-8'
-ht_db = None
 
-def valid_session_required(f):
-	@wraps(f)
-	def is_session_valid(*args, **kwargs):
-		if (session and 'ht_user' in session and 'ht_api_object' in session):
-			o = HXAPI.deserialize(session['ht_api_object'])
-			if o.restIsSessionValid():
-				kwargs['hx_api_object'] = o
-				return f(*args, **kwargs)
-			else:
-				app.logger.info("The HX API token for the current session has expired, redirecting to the login page.")
-		return redirect(url_for('login', redirect_uri = request.full_path))	
-	return is_session_valid
 
 ### Flask/Jinja Filters
 ####################################
@@ -229,8 +206,8 @@ def acq(hx_api_object):
 @valid_session_required
 def annotateadd(hx_api_object):
 	if request.method == "POST" and 'annotateText' in request.form:
-		ht_db.alertCreate(session['ht_profileid'], request.form['annotationBoxID'])
-		ht_db.alertAddAnnotation(session['ht_profileid'], request.form['annotationBoxID'], request.form['annotateText'], request.form['annotateState'], session['ht_user'])
+		app.hxtool_db.alertCreate(session['ht_profileid'], request.form['annotationBoxID'])
+		app.hxtool_db.alertAddAnnotation(session['ht_profileid'], request.form['annotationBoxID'], request.form['annotateText'], request.form['annotateState'], session['ht_user'])
 		app.logger.info('New annotation - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return('', 204)
 	else:
@@ -240,7 +217,7 @@ def annotateadd(hx_api_object):
 @valid_session_required
 def annotatedisplay(hx_api_object):	
 	if 'alertid' in request.args:
-		alert = ht_db.alertGet(session['ht_profileid'], request.args.get('alertid'))
+		alert = app.hxtool_db.alertGet(session['ht_profileid'], request.args.get('alertid'))
 		an = None
 		if alert:
 			an = alert['annotations']
@@ -267,7 +244,7 @@ def search(hx_api_object):
 			if ret:
 				app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		elif 'store' in request.form.keys():
-			iocdef = ht_db.oiocGet(request.form['ioc'])
+			iocdef = app.hxtool_db.oiocGet(request.form['ioc'])
 			(ret, response_code, response_data) = hx_api_object.restSubmitSweep(iocdef['ioc'], request.form['sweephostset'], skip_base64=True)
 			if ret:
 				app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
@@ -279,7 +256,7 @@ def search(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
 		hostsets = formatHostsets(response_data)
 
-		myiocs = ht_db.oiocList()
+		myiocs = app.hxtool_db.oiocList()
 		openiocs = formatOpenIocs(myiocs)
 		
 		return render_template('ht_searchsweep.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), searches=searches, hostsets=hostsets, openiocs=openiocs)
@@ -590,18 +567,18 @@ def listbulk(hx_api_object):
 			bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		elif 'store' in request.form.keys():
-			scriptdef = ht_db.scriptGet(request.form['script'])
+			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
 			bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 	else:
 		(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
-		bulktable = formatBulkTable(ht_db, response_data, session['ht_profileid'])
+		bulktable = formatBulkTable(app.hxtool_db, response_data, session['ht_profileid'])
 		
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
 		hostsets = formatHostsets(response_data)
 
-		myscripts = ht_db.scriptList()
+		myscripts = app.hxtool_db.scriptList()
 		scripts = formatScripts(myscripts)
 
 		return render_template('ht_bulk.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable, hostsets=hostsets, scripts=scripts)
@@ -661,7 +638,7 @@ def download(hx_api_object):
 @valid_session_required
 def download_multi_file_single(hx_api_object):
 	if 'mf_id' in request.args and 'acq_id' in request.args:
-		multi_file = ht_db.multiFileGetById(request.args.get('mf_id'))
+		multi_file = app.hxtool_db.multiFileGetById(request.args.get('mf_id'))
 		if multi_file:
 			file_records = list(filter(lambda f: int(f['acquisition_id']) == int(request.args.get('acq_id')), multi_file['files']))
 			if file_records and file_records[0]:
@@ -698,14 +675,14 @@ def bulkaction(hx_api_object):
 			elif 'host_set' in response_data['data']:
 				hostset_id = int(response_data['data']['host_set']['_id'])
 		
-		ret = ht_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts, hostset_id = hostset_id)
+		ret = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts, hostset_id = hostset_id)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 		
 	if request.args.get('action') == "stopdownload":
-		ret = ht_db.bulkDownloadStop(session['ht_profileid'], request.args.get('id'))
+		ret = app.hxtool_db.bulkDownloadStop(session['ht_profileid'], request.args.get('id'))
 		# Delete should really be done by the background processor
-		ret = ht_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
+		ret = app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
 		app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 
@@ -716,15 +693,15 @@ def scripts(hx_api_object):
 	if request.method == "POST":
 		fc = request.files['script']				
 		rawscript = fc.read()
-		ht_db.scriptCreate(request.form['scriptname'], HXAPI.b64(rawscript), session['ht_user'])
+		app.hxtool_db.scriptCreate(request.form['scriptname'], HXAPI.b64(rawscript), session['ht_user'])
 		return redirect("/scripts", code=302)
 	elif request.method == "GET":
 		if request.args.get('action'):
 			if request.args.get('action') == "delete":
-				ht_db.scriptDelete(request.args.get('id'))
+				app.hxtool_db.scriptDelete(request.args.get('id'))
 				return redirect("/scripts", code=302)
 			elif request.args.get('action') == "view":
-				storedscript = ht_db.scriptGet(request.args.get('id'))
+				storedscript = app.hxtool_db.scriptGet(request.args.get('id'))
 				return render_template('ht_scripts_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), script=HXAPI.b64(storedscript['script'], decode=True, decode_string=True))
 			else:
 				return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
@@ -738,15 +715,15 @@ def openioc(hx_api_object):
 	if request.method == "POST":
 		fc = request.files['ioc']				
 		rawioc = fc.read()
-		ht_db.oiocCreate(request.form['iocname'], HXAPI.b64(rawioc), session['ht_user'])
+		app.hxtool_db.oiocCreate(request.form['iocname'], HXAPI.b64(rawioc), session['ht_user'])
 		return redirect("/openioc", code=302)
 	elif request.method == "GET":
 		if request.args.get('action'):
 			if request.args.get('action') == "delete":
-				ht_db.oiocDelete(request.args.get('id'))
+				app.hxtool_db.oiocDelete(request.args.get('id'))
 				return redirect("/openioc", code=302)
 			elif request.args.get('action') == "view":
-				storedioc = ht_db.oiocGet(request.args.get('id'))
+				storedioc = app.hxtool_db.oiocGet(request.args.get('id'))
 				return render_template('ht_openioc_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), ioc=HXAPI.b64(storedioc['ioc'], decode=True, decode_string=True))
 			else:
 				return render_template('ht_openioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
@@ -759,16 +736,16 @@ def openioc(hx_api_object):
 def multifile(hx_api_object):
 	profile_id = session['ht_profileid']
 	if request.args.get('stop'):
-		mf_job = ht_db.multiFileGetById(request.args.get('stop'))
+		mf_job = app.hxtool_db.multiFileGetById(request.args.get('stop'))
 		if mf_job:
 			success = True
 			#TODO: Stop each file acquisition or handle solely in remove?
 			if success:
-				ht_db.multiFileStop(mf_job.eid)
+				app.hxtool_db.multiFileStop(mf_job.eid)
 				app.logger.info('MultiFile Job ID {0} action STOP - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, mf_job.eid))
 
 	elif request.args.get('remove'):
-		mf_job = ht_db.multiFileGetById(request.args.get('remove'))
+		mf_job = app.hxtool_db.multiFileGetById(request.args.get('remove'))
 		if mf_job:
 			success = True
 			for f in mf_job['files']:
@@ -776,12 +753,12 @@ def multifile(hx_api_object):
 				(ret, response_code, response_data) = hx_api_object.restDeleteFile(uri)
 				#TODO: Replace with delete of file from record
 				if not f['downloaded']:
-					self._ht_db.multiFileUpdateFile(self.profile_id, f.eid, f['acquisition_id'])
+					self._app.hxtool_db.multiFileUpdateFile(self.profile_id, f.eid, f['acquisition_id'])
 				if not ret:
 					app.logger.error("Failed to remove file acquisition {0}".format(f['acquisition_id']))
 					success = False
 			if success:
-				ht_db.multiFileDelete(mf_job.eid)
+				app.hxtool_db.multiFileDelete(mf_job.eid)
 				app.logger.info('MultiFile Job ID {0} action REMOVE - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, mf_job.eid))
 
 	#TODO: Make Configurable both from GUI and config file?
@@ -804,12 +781,12 @@ def multifile(hx_api_object):
 			choice_files, agent_ids = [], {}
 			for fl_id, file_ids in list(choices.items()):
 				# Gather the records for files to acquire from the file listing
-				file_listing = ht_db._db.table('file_listing').get(eid=int(fl_id))
+				file_listing = app.hxtool_db._db.table('file_listing').get(eid=int(fl_id))
 				if not file_listing:
 					app.logger.warn('File Listing %s does not exist - User: %s@%s:%s', session['ht_user'], fl_id, hx_api_object.hx_host, hx_api_object.hx_port)
 					continue
 				choice_files = [file_listing['files'][i] for i in file_ids if i <= len(file_listing['files'])]
-				multi_file_id = ht_db.multiFileCreate(session['ht_user'], profile_id, display_name=display_name, file_listing_id=file_listing.eid, api_mode=use_api_mode)
+				multi_file_id = app.hxtool_db.multiFileCreate(session['ht_user'], profile_id, display_name=display_name, file_listing_id=file_listing.eid, api_mode=use_api_mode)
 				# Create a data acquisition for each file from its host
 				for cf in choice_files:
 					if cf['hostname'] in agent_ids:
@@ -827,7 +804,7 @@ def multifile(hx_api_object):
 							'path': cf['FullPath'],
 							'downloaded': False
 						}
-						ht_db.multiFileAddJob(multi_file_id, job_record)
+						app.hxtool_db.multiFileAddJob(multi_file_id, job_record)
 						app.logger.info('File acquisition requested from host %s at path %s- User: %s@%s:%s - host: %s', cf['hostname'], cf['FullPath'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, agent_id)
 						file_jobs.append(acq_id)
 						if len(file_jobs) >= MAX_FILE_ACQUISITIONS:
@@ -846,22 +823,22 @@ def multifile(hx_api_object):
 @valid_session_required
 def file_listing(hx_api_object):
 	if request.args.get('stop'):
-		fl_job = ht_db.fileListingGetById(request.args.get('stop'))
+		fl_job = app.hxtool_db.fileListingGetById(request.args.get('stop'))
 		if fl_job:
 			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', fl_job['bulk_download_id'])
 			if ret:
-				ht_db.fileListingStop(fl_job.eid)
-				ht_db.bulkDownloadStop(session['ht_profileid'], fl_job['bulk_download_id'])
+				app.hxtool_db.fileListingStop(fl_job.eid)
+				app.hxtool_db.bulkDownloadStop(session['ht_profileid'], fl_job['bulk_download_id'])
 				app.logger.info('File Listing ID {0} action STOP - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, fl_job.eid))
 		return redirect("/multifile", code=302)
 
 	elif request.args.get('remove'):
-		fl_job = ht_db.fileListingGetById(request.args.get('remove'))
+		fl_job = app.hxtool_db.fileListingGetById(request.args.get('remove'))
 		if fl_job:
 			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', fl_job['bulk_download_id'])
 			if ret:
-				ht_db.fileListingDelete(fl_job.eid)
-				ht_db.bulkDownloadDelete(session['ht_profileid'], fl_job['bulk_download_id'])
+				app.hxtool_db.fileListingDelete(fl_job.eid)
+				app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], fl_job['bulk_download_id'])
 				app.logger.info('File Listing ID {0} action REMOVE - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, fl_job.eid))
 		return redirect("/multifile", code=302)
 
@@ -895,7 +872,7 @@ def file_listing(hx_api_object):
 			raise
 		if script_xml:
 			bulkid = submit_bulk_job(hx_api_object, hostset, script_xml.encode(default_encoding), handler="file_listing")
-			ret = ht_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulkid, path, regex, depth, display_name, api_mode=use_api_mode)
+			ret = app.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulkid, path, regex, depth, display_name, api_mode=use_api_mode)
 			app.logger.info('New File Listing - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/multifile", code=302)
 		else:
@@ -904,7 +881,7 @@ def file_listing(hx_api_object):
 
 	#TODO: Modify template and move to Ajax
 	fl_id = request.args.get('id')
-	file_listing = ht_db.fileListingGetById(fl_id)
+	file_listing = app.hxtool_db.fileListingGetById(fl_id)
 	fl_results = file_listing['files']
 	display_fields = ['FullPath', 'Username', 'SizeInBytes', 'Modified', 'Sha256sum'] 
 
@@ -915,7 +892,7 @@ def file_listing(hx_api_object):
 def get_multi_files(hx_api_object):
 	profile_id = session['ht_profileid']
 	data_rows = []
-	for mf in ht_db.multiFileList(profile_id):
+	for mf in app.hxtool_db.multiFileList(profile_id):
 		job = dict(mf)
 		hosts_completed = len([_ for _ in job['files'] if _['downloaded']])
 		job.update({
@@ -940,14 +917,14 @@ def get_multi_files(hx_api_object):
 def get_file_listings(hx_api_object):
 	profile_id = session['ht_profileid']
 	data_rows = []
-	for j in ht_db.fileListingList(profile_id):
+	for j in app.hxtool_db.fileListingList(profile_id):
 		job = dict(j)
 		job.update({'id': j.eid})
 		job['state'] = ("STOPPED" if job['stopped'] else "RUNNING")
 		job['file_count'] = len(job.pop('files'))
 
 		# Completion rate
-		bulk_download = ht_db.bulkDownloadGet(profile_id, job['bulk_download_id'])
+		bulk_download = app.hxtool_db.bulkDownloadGet(profile_id, job['bulk_download_id'])
 		if bulk_download:
 			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
 			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
@@ -973,22 +950,22 @@ def get_file_listings(hx_api_object):
 @valid_session_required
 def stacking(hx_api_object):
 	if request.args.get('stop'):
-		stack_job = ht_db.stackJobGetById(request.args.get('stop'))
+		stack_job = app.hxtool_db.stackJobGetById(request.args.get('stop'))
 		if stack_job:
 			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', stack_job['bulk_download_id'])
 			if ret:
-				ht_db.stackJobStop(stack_job.eid)
-				ht_db.bulkDownloadStop(session['ht_profileid'], stack_job['bulk_download_id'])
+				app.hxtool_db.stackJobStop(stack_job.eid)
+				app.hxtool_db.bulkDownloadStop(session['ht_profileid'], stack_job['bulk_download_id'])
 				app.logger.info('Data stacking action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 
 	if request.args.get('remove'):
-		stack_job = ht_db.stackJobGetById(request.args.get('remove'))
+		stack_job = app.hxtool_db.stackJobGetById(request.args.get('remove'))
 		if stack_job:
 			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', stack_job['bulk_download_id'])
 			if ret:
-				ht_db.stackJobDelete(stack_job.eid)
-				ht_db.bulkDownloadDelete(session['ht_profileid'], stack_job['bulk_download_id'])
+				app.hxtool_db.stackJobDelete(stack_job.eid)
+				app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], stack_job['bulk_download_id'])
 				app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 
@@ -1001,14 +978,14 @@ def stacking(hx_api_object):
 				hostset_id = int(request.form['stackhostset'])
 				app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 				bulk_id = submit_bulk_job(hx_api_object, hostset_id, script_xml, handler="stacking")
-				ret = ht_db.stackJobCreate(session['ht_profileid'], bulk_id, request.form['stack_type'])
+				ret = app.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_id, request.form['stack_type'])
 				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 	
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
 	hostsets = formatHostsets(response_data)
 	
-	stacktable = formatStackTable(ht_db, session['ht_profileid'], response_data)
+	stacktable = formatStackTable(app.hxtool_db, session['ht_profileid'], response_data)
 	
 	return render_template('ht_stacking.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), stacktable=stacktable, hostsets=hostsets, stack_types = hxtool_data_models.stack_types)
 
@@ -1029,15 +1006,15 @@ def settings(hx_api_object):
 		iv = crypt_generate_random(16)
 		encrypted_password = crypt_aes(key, iv, request.form['bgpass'])
 		salt = HXAPI.b64(session['salt'], True)
-		out = ht_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
+		out = app.hxtool_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
 		app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		start_background_processor(session['ht_profileid'], request.form['bguser'], request.form['bgpass'])
 	if request.args.get('unset'):
-		out = ht_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
+		out = app.hxtool_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
 		app.logger.info("Background Processing credentials unset profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/settings", code=302)
 	
-	bgcreds = formatProfCredsInfo((ht_db.backgroundProcessorCredentialGet(session['ht_profileid']) is not None))
+	bgcreds = formatProfCredsInfo((app.hxtool_db.backgroundProcessorCredentialGet(session['ht_profileid']) is not None))
 	
 	return render_template('ht_settings.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bgcreds=bgcreds)
 
@@ -1087,7 +1064,7 @@ def login():
 	
 	if (request.method == 'POST'):
 		if 'ht_user' in request.form:
-			ht_profile = ht_db.profileGet(request.form['controllerProfileDropdown'])
+			ht_profile = app.hxtool_db.profileGet(request.form['controllerProfileDropdown'])
 			if ht_profile:	
 
 				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = app.hxtool_config['network'].get('proxies'), headers = app.hxtool_config['headers'], cookies = app.hxtool_config['cookies'], logger = app.logger, default_encoding = default_encoding)
@@ -1103,7 +1080,7 @@ def login():
 					# TODO: this could probably be better written
 					iv = None
 					salt = crypt_generate_random(32)
-					background_credential = ht_db.backgroundProcessorCredentialGet(ht_profile['profile_id'])
+					background_credential = app.hxtool_db.backgroundProcessorCredentialGet(ht_profile['profile_id'])
 					if background_credential:
 						salt = HXAPI.b64(background_credential['salt'], True)
 						iv = HXAPI.b64(background_credential['iv'], True)
@@ -1357,7 +1334,7 @@ def datatable_alerts_full(hx_api_object):
 				start = time.time()
 
 				# Query annotation status
-				annotate_query_response = ht_db.alertGet(session['ht_profileid'], alert['_id'])
+				annotate_query_response = app.hxtool_db.alertGet(session['ht_profileid'], alert['_id'])
 				annotation_count = 0
 				annotation_max_state = 0
 				if annotate_query_response:
@@ -1429,14 +1406,14 @@ def datatable_alerts_full(hx_api_object):
 @valid_session_required
 def datatable_scripts(hx_api_object):
 	if request.method == 'GET':
-		myscripts = ht_db.scriptList()
+		myscripts = app.hxtool_db.scriptList()
 		return(app.response_class(response=json.dumps(myscripts), status=200, mimetype='application/json'))
 
 @app.route('/api/v{0}/datatable_openioc'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def datatable_openioc(hx_api_object):
 	if request.method == 'GET':
-		myiocs = ht_db.oiocList()
+		myiocs = app.hxtool_db.oiocList()
 		return(app.response_class(response=json.dumps(myiocs), status=200, mimetype='application/json'))
 
 
@@ -1467,43 +1444,6 @@ def datatable_acqs(hx_api_object):
 				return(app.response_class(response=json.dumps(myacqs), status=200, mimetype='application/json'))
 
 
-####################
-# Profile Management
-####################
-@app.route('/api/v{0}/profile'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT'])
-def profile():
-	if request.method == 'GET':
-		profiles = ht_db.profileList()
-		return json.dumps({'data_count' :  len(profiles), 'data' : profiles})
-	elif request.method == 'PUT':
-		request_json = request.json
-		if validate_json(['hx_name', 'hx_host', 'hx_port'], request_json):
-			if ht_db.profileCreate(request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
-				app.logger.info("New controller profile added")
-				return make_response_by_code(200)
-		else:
-			return make_response_by_code(400)
-			
-@app.route('/api/v{0}/profile/<profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
-def profile_by_id(profile_id):
-	if request.method == 'GET':
-		profile_object = ht_db.profileGet(profile_id)
-		if profile_object:
-			return json.dumps({'data' : profile_object})
-		else:
-			return make_response_by_code(404)
-	elif request.method == 'PUT':
-		request_json = request.json
-		if validate_json(['profile_id', 'hx_name', 'hx_host', 'hx_port'], request_json):
-			if ht_db.profileUpdate(request_json['_id'], request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
-				app.logger.info("Controller profile %d modified.", profile_id)
-				return make_response_by_code(200)
-	elif request.method == 'DELETE':
-		if ht_db.profileDelete(profile_id):
-			app.logger.info("Controller profile %s deleted.", profile_id)
-			return make_response_by_code(200)
-		else:
-			return make_response_by_code(404)
 
 #####################
 # Stacking Results
@@ -1511,7 +1451,7 @@ def profile_by_id(profile_id):
 @app.route('/api/v{0}/stacking/<int:stack_id>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def stack_job_results(hx_api_object, stack_id):
-	stack_job = ht_db.stackJobGetById(stack_id)
+	stack_job = app.hxtool_db.stackJobGetById(stack_id)
 	
 	if stack_job is None:
 		return make_response_by_code(404)
@@ -1539,66 +1479,9 @@ def submit_bulk_job(hx_api_object, hostset, script_xml, download = True, handler
 		for host in response_data['data']['entries']:
 			bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
 		
-		bulk_job_entry = ht_db.bulkDownloadCreate(session['ht_profileid'], bulkid, bulk_download_entry_hosts, hostset, post_download_handler = handler)
+		bulk_job_entry = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], bulkid, bulk_download_entry_hosts, hostset, post_download_handler = handler)
 	return bulk_id
 	
-def validate_json(keys, j):
-	for k in keys:
-		if not k in j or not j[k]:
-			return False	
-	return True
-		
-def make_response_by_code(code):
-	code_table = {200 : {'message' : 'OK'},
-				400 : {'message' : 'Invalid request'},
-				404 : {'message' : 'Object not found'}}
-	return (json.dumps(code_table.get(code)), code)
-
-"""
-Generate a random byte string for use in encrypting the background processor credentails
-"""
-def crypt_generate_random(length):
-	return os.urandom(length)
-
-"""
-Return a PBKDF2 HMACSHA256 digest of a salt and password
-"""
-def crypt_pbkdf2_hmacsha256(salt, data):
-	return PBKDF2(data, salt, dkLen = 32, count = 100000, prf = lambda p, s: HMAC.new(p, s, SHA256).digest())
-
-"""
-AES-256 operation
-"""
-def crypt_aes(key, iv, data, decrypt = False, base64_coding = True):
-	cipher = AES.new(key, AES.MODE_OFB, iv)
-	if decrypt:
-		if base64_coding:
-			data = HXAPI.b64(data, True)
-		data = cipher.decrypt(data).decode('utf-8')
-		# Implement PKCS7 de-padding
-		pad_length = ord(data[-1:])
-		if 1 <= pad_length <= 15:
-			if all(c == chr(pad_length) for c in data[-pad_length:]):
-				data = data[:len(data) - pad_length:]
-		return data
-	else:
-		# Implement PKCS7 padding
-		pad_length = 16 - (len(data) % 16)
-		if pad_length < 16:
-			data += (chr(pad_length) * pad_length)
-		data = data.encode('utf-8')			
-		data = cipher.encrypt(data)
-		if base64_coding:
-			data = HXAPI.b64(data)
-		return data
-	
-"""
-Iter over a Requests response object
-and yield the chunk
-"""
-def iter_chunk(r, chunk_size = 1024):
-	for chunk in r.iter_content(chunk_size = chunk_size):
-		yield chunk
 
 		
 ###########
@@ -1625,12 +1508,13 @@ if __name__ == "__main__":
 		app.secret_key = crypt_generate_random(32)
 		app.logger.setLevel(logging.INFO)
 	
-	# Initialize the scheduler
-	app.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
-	app.hxtool_scheduler.start()
-	
 	app.hxtool_config = hxtool_config('conf.json', logger = app.logger)
 	
+	# Initialize the scheduler
+	# TODO: implement task_thread_count in config
+	app.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
+	app.hxtool_scheduler.start()
+		
 	# Initialize configured log handlers
 	for log_handler in app.hxtool_config.log_handlers():
 		app.logger.addHandler(log_handler)
@@ -1648,9 +1532,7 @@ if __name__ == "__main__":
 	app.logger.info('Application starting')
 
 	# Init DB
-	ht_db = hxtool_db('hxtool.db', logger = app.logger)
-	
-	app.hxtool_db = ht_db
+	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger)
 	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	
