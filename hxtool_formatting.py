@@ -679,7 +679,17 @@ def formatHostInfo(response_data, hx_api_object):
 					x += "<div class='tableTitle'>Indicator type: " + HXAPI.compat_str(alert['event_type']) + "</div>"
 					x += "<table class='genericTable genericTableSmall' style='width: 100%; margin-bottom: 15px;'>"
 					for hitkey, hitdata in alert['event_values'].items():
-						x += "<tr><td style='width: 300px;'>" + HXAPI.compat_str(hitkey) + "</td><td>" + HXAPI.compat_str(hitdata) + "</td></tr>"
+						if "md5" in hitkey:
+							x += "<tr>"
+							x += "<td style='width: 300px;'>" + HXAPI.compat_str(hitkey) + "</td>"
+							x += "<td>"
+							x += HXAPI.compat_str(hitdata)
+							x += "<a class='tableActionButton' target='_newtab' style='margin-left: 10px; font-size: 9px;' href='https://www.virustotal.com/#/file/" + HXAPI.compat_str(hitdata) + "/detection'>virustotal</a>"
+							x += "<a class='tableActionButton' target='_newtab' style='font-size: 9px;' href='https://intelligence.fireeye.com/search.html?search=" + HXAPI.compat_str(hitdata) + "'>isight</a>"
+							x += "</td>"
+							x += "</tr>"
+						else:
+							x += "<tr><td style='width: 300px;'>" + HXAPI.compat_str(hitkey) + "</td><td>" + HXAPI.compat_str(hitdata) + "</td></tr>"
 					x += "</table>"
 					x += "</div>"
 			
@@ -728,7 +738,13 @@ def formatHostInfo(response_data, hx_api_object):
 									x += HXAPI.compat_str(itemkey)
 									x += "<ul style='margin-top: 0;'>"
 									for dictkey, dictdetail in itemdata.items():
-										x += "<li>" + HXAPI.compat_str(dictkey) + ": " + HXAPI.compat_str(dictdetail) + "</li>"
+										if 'md5' in dictkey:
+											x += "<li>" + HXAPI.compat_str(dictkey) + ": " + HXAPI.compat_str(dictdetail)
+											x += "<a class='tableActionButton' target='_newtab' style='padding-top: 1px; padding-bottom: 1px; margin-left: 10px; font-size: 9px;' href='https://www.virustotal.com/#/file/" + HXAPI.compat_str(dictdetail) + "/detection'>virustotal</a>"
+											x += "<a class='tableActionButton' target='_newtab' style='padding-top: 1px; padding-bottom: 1px; font-size: 9px;' href='https://intelligence.fireeye.com/search.html?search=" + HXAPI.compat_str(dictdetail) + "'>isight</a>"
+											x += "</li>"
+										else:
+											x += "<li>" + HXAPI.compat_str(dictkey) + ": " + HXAPI.compat_str(dictdetail) + "</li>"
 									x += "</ul>"
 									x += "</div>"
 									x += "</td>"
@@ -758,7 +774,17 @@ def formatHostInfo(response_data, hx_api_object):
 				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infection'].items():
 					x += "<tr><td>" + HXAPI.compat_str(hitkey) + "</td><td>" + HXAPI.compat_str(hitdata) + "</td></tr>"
 				for hitkey, hitdata in alert['event_values']['detections']['detection'][0]['infected-object']['file-object'].items():
-					x += "<tr><td>" + HXAPI.compat_str(hitkey) + "</td><td>" + HXAPI.compat_str(hitdata) + "</td></tr>"
+					x += "<tr>"
+					x += "<td>"
+					x += HXAPI.compat_str(hitkey)
+					x += "</td>"
+					x += "<td>"
+					x += HXAPI.compat_str(hitdata)
+					if any(word in hitkey for word in ["sha1", "md5"]):
+						x += "<a class='tableActionButton' target='_newtab' style='margin-left: 10px; font-size: 9px;' href='https://www.virustotal.com/#/file/" + HXAPI.compat_str(hitdata) + "/detection'>VT</a>"
+						x += "<a class='tableActionButton' target='_newtab' style='font-size: 9px;' href='https://intelligence.fireeye.com/search.html?search=" + HXAPI.compat_str(hitdata) + "'>iSight</a>"
+					x += "</td>"
+					x += "</tr>"
 				x += "</table>"
 				x += "</div>"
 

@@ -1444,6 +1444,21 @@ def datatable_acqs(hx_api_object):
 							})
 				return(app.response_class(response=json.dumps(myacqs), status=200, mimetype='application/json'))
 
+@app.route('/api/v{0}/getHealth'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def getHealth(hx_api_object):
+	myHealth = {}
+	(ret, response_code, response_data) = hx_api_object.restGetControllerVersion()
+	if ret:
+		myHealth['status'] = "OK"
+		myHealth['version'] = response_data['data']
+		print(myHealth)
+		return(app.response_class(response=json.dumps(myHealth), status=200, mimetype='application/json'))
+	else:
+		myHealth['status'] = "FAIL"
+		print(myHealth)
+		return(app.response_class(response=json.dumps(myHealth), status=200, mimetype='application/json'))
+
 
 
 #####################
