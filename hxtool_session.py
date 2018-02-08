@@ -50,8 +50,10 @@ class hxtool_session_interface(SessionInterface):
 		self.expiration_delta = expiration_delta
 		
 		# Schedule session_reaper
-		app.hxtool_scheduler.add(hxtool_scheduler_task("System", "Session Reaper", self.session_reaper, (app,), interval=datetime.timedelta(minutes=30), immutable=True))
-		
+		session_reaper_task = hxtool_scheduler_task("System", "Session Reaper", interval=datetime.timedelta(minutes=30), immutable=True)
+		session_reaper_task.add_step(self.session_reaper, (app,))
+		app.hxtool_scheduler.add(session_reaper_task)
+	
 	def get_expiration_time(self, app, session):
 		delta = datetime.timedelta(minutes=self.expiration_delta)
 		if session.permanent:
