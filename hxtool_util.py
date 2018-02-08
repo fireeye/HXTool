@@ -23,6 +23,10 @@ except ImportError:
 
 from hx_lib import *
 
+		
+# TODO: should be configurable
+_download_directory_base = "bulkdownload"
+
 def valid_session_required(f):
 	@wraps(f)
 	def is_session_valid(*args, **kwargs):
@@ -93,4 +97,22 @@ and yield the chunk
 def iter_chunk(r, chunk_size = 1024):
 	for chunk in r.iter_content(chunk_size = chunk_size):
 		yield chunk
+
+def get_download_directory(hx_host, download_id, job_type=None):
+	if job_type:
+		return os.path.join(_download_directory_base, hx_host, job_type, str(download_id))
+	else:
+		return os.path.join(_download_directory_base, hx_host, str(download_id))
+
+def get_download_filename(hostname, _id):
+	return '{0}_{1}.zip'.format(hostname, _id)
+
+def get_download_full_path(hx_host, download_id, job_type, hostname, _id):
+	return os.path.join(get_download_directory(hx_host, download_id, job_type), get_download_filename(hostname, _id))
+
+def make_download_directory(host, download_id, job_type=None):
+	download_directory = get_download_directory(host, download_id, job_type)
+	if not os.path.exists(download_directory):
+		os.makedirs(download_directory)
+	return download_directory		
 	
