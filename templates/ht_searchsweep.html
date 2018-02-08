@@ -50,6 +50,50 @@
 			enableFile();
 		});
 
+
+		var es_datatable = $('#esTable').DataTable( {
+			"ajax": "/api/v1/datatable_es",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": true,
+			"processing": false,
+			"columns": [
+				{ "title": "state", "data": "state" },
+				{ "title": "mode", "data": "mode" },
+				{ "title": "created", "data": "create_time" },
+				{ "title": "updated", "data": "update_time" },
+				{ "title": "user", "data": "create_actor" },
+				{ "title": "type", "data": "input_type" },
+				{ "title": "hostset", "data": "host_set" },
+				{ "title": "hosts", "data": "stat_hosts" },
+				{ "title": "skipped", "data": "stat_skipped_hosts" },
+				{ "title": "N", "data": "stat_new" },
+				{ "title": "Q", "data": "stat_queued" },
+				{ "title": "F", "data": "stat_failed" },
+				{ "title": "C", "data": "stat_complete" },
+				{ "title": "A", "data": "stat_aborted" },
+				{ "title": "Ca", "data": "stat_cancelled" },
+				{ "title": "pending", "data": "stat_searchstate_pending" },
+				{ "title": "matched", "data": "stat_searchstate_matched" },
+				{ "title": "nomatch", "data": "stat_searchstate_notmatched" },
+				{ "title": "error", "data": "stat_searchstate_error" }
+
+			],
+			"createdRow": function( row, data, index ) {
+				$('td', row).eq(9).css( 'background-color', '#eeeeee' );
+				$('td', row).eq(10).css( 'background-color', '#eeeeee' );
+				$('td', row).eq(11).css( 'background-color', '#eeeeee' );
+				$('td', row).eq(12).css( 'background-color', '#eeeeee' );
+				$('td', row).eq(13).css( 'background-color', '#eeeeee' );
+				$('td', row).eq(14).css( 'background-color', '#eeeeee' );
+				$('td', row).eq(15).css( 'background-color', '#dddddd' );
+				$('td', row).eq(16).css( 'background-color', '#dddddd' );
+				$('td', row).eq(17).css( 'background-color', '#dddddd' );
+				$('td', row).eq(18).css( 'background-color', '#dddddd' );
+			}
+		});
+
 	});
 </script>
 
@@ -89,5 +133,7 @@
 	<i class="fas fa-list-ul fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 	Searches on the controller
 </div>
-{% if searches %} {{ searches|safe }} {% endif %}
+
+<table class='genericTable' id='esTable' style='width: 100%;'></table>
+
 {% endblock %}

@@ -1458,6 +1458,40 @@ def getHealth(hx_api_object):
 		print(myHealth)
 		return(app.response_class(response=json.dumps(myHealth), status=200, mimetype='application/json'))
 
+@app.route('/api/v{0}/datatable_es'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_es(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restListSearches()
+	if ret:
+		mysearches = {"data": []}
+		for search in response_data['data']['entries']:
+			mysearches['data'].append({
+				"DT_RowId": search['_id'],
+				"state": search['state'],
+				"update_time": search['update_time'],
+				"create_time": search['create_time'],
+				"update_actor": search['update_actor']['username'],
+				"create_actor": search['create_actor']['username'],
+				"input_type": search['input_type'],
+				"host_set": search['host_set']['name'],
+				"host_set_id": search['host_set']['_id'],
+				"stat_new": search['stats']['running_state']['NEW'],
+				"stat_queued": search['stats']['running_state']['QUEUED'],
+				"stat_failed": search['stats']['running_state']['FAILED'],
+				"stat_complete": search['stats']['running_state']['COMPLETE'],
+				"stat_aborted": search['stats']['running_state']['ABORTED'],
+				"stat_cancelled": search['stats']['running_state']['CANCELLED'],
+				"stat_hosts": search['stats']['hosts'],
+				"stat_skipped_hosts": search['stats']['skipped_hosts'],
+				"stat_searchstate_pending": search['stats']['search_state']['PENDING'],
+				"stat_searchstate_matched": search['stats']['search_state']['MATCHED'],
+				"stat_searchstate_notmatched": search['stats']['search_state']['NOT_MATCHED'],
+				"stat_searchstate_error": search['stats']['search_state']['ERROR'],
+				"mode": search['settings']['mode']
+			})
+		return(app.response_class(response=json.dumps(mysearches), status=200, mimetype='application/json'))
+	else:
+		return('HX API Call failed',500)
 
 
 #####################
