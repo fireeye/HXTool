@@ -13,7 +13,7 @@
 			for (var currtype in mytypes) {
 				var mycols = [];
 				for (var i = 0; i < mytypes[currtype].length; i++) {
-					mycols.push({ "title": mytypes[currtype][i], "data": mytypes[currtype][i] });
+					mycols.push({ "title": mytypes[currtype][i].replace(/_/g," "), "data": mytypes[currtype][i] });
 				}
 
 				$("#tableContainer").append("<div id='ph_" + currtype.replace(/ /g,"_") + "'></div>");
