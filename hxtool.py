@@ -1501,7 +1501,7 @@ def datatable_es_result_types(hx_api_object):
 			for host in response_data['data']['entries']:
 				for event in host['results']:
 					if not event['type'] in mytypes:
-						mytypes[event['type']] = ['_id', 'hostname']
+						mytypes[event['type']] = ['hostname']
 					for key, val in event.items():
 						if not key.replace(" ", "_") in mytypes[event['type']]:
 							if key == "data":
@@ -1528,7 +1528,7 @@ def datatable_es_result(hx_api_object):
 			for host in response_data['data']['entries']:
 				for event in host['results']:
 					if event['type'] == request.args.get('type'):
-						mytempdict = {"_id": host['host']['_id'], "hostname": host['host']['hostname']}
+						mytempdict = {"DT_RowId": host['host']['_id'], "hostname": host['host']['hostname'] + "___" + host['host']['_id']}
 						for eventitemkey, eventitemvalue in event.items():
 							if eventitemkey == "data":
 								for datakey, datavalue in eventitemvalue.items():

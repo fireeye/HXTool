@@ -41,7 +41,15 @@
 					],
 					"drawCallback": function( settings ) {
 						$('.dataTables_filter').addClass('pull-left');
-					}
+					},
+					"columnDefs": [
+						{
+						 "targets": 0,
+						 render: function ( data, type, row, meta ) {
+						 	return(datatables_parseHostlink(data));
+						 }
+						}					
+					]
 				});
 
 
