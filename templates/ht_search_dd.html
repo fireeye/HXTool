@@ -5,20 +5,52 @@
 
 <script>
 	$(document).ready(function() {
-		$('#resultsTable').DataTable( {
-                        "info": false,
-                        "pageLength": 20,
-                        "lengthChange": false
+
+		myid = getQueryParam('id');
+
+		$.getJSON('/api/v1/datatable_es_result_types?id=' + myid, function(mytypes) {
+
+			for (var currtype in mytypes) {
+				var mycols = [];
+				for (var i = 0; i < mytypes[currtype].length; i++) {
+					mycols.push({ "title": mytypes[currtype][i], "data": mytypes[currtype][i] });
+				}
+
+				$("#tableContainer").append("<div id='ph_" + currtype.replace(/ /g,"_") + "'></div>");
+				$("#ph_" + currtype.replace(/ /g,"_")).append("<div class='tableTitle'>" + currtype + "</div>");
+				$("#ph_" + currtype.replace(/ /g,"_")).append("<table class='genericTable genericTableESResults' id='esTableResults_" + currtype.replace(/ /g,"_") + "' style='width: 100%;'></table>");
+
+				$.fn.dataTable.ext.errMode = 'none';
+				$('#esTableResults_' + currtype.replace(/ /g,"_")).DataTable( {
+					"ajax": "/api/v1/datatable_es_result?id=" + myid + "&type=" + currtype,
+					"columns": mycols,
+					"paging":   true,
+					"ordering": true,
+					"info":     false,
+					"scrollX": true,
+					"searching": true,
+					"pageLength": 25,
+					"lengthChange": false,
+					"processing": false
+				});
+
+				/*
+				$('#esTableResults_' + currtype.replace(/ /g,"_") + ' thead th').each(function () {
+					myNewTitle = $(this).find('div').html().replace(/_/g," ");
+					$(this).find('div').text(myNewTitle);
+				});
+				*/
+			
+			}
+
 		});
+
 	});
 
 </script>
 
 <br>
 
-<div class='tableTitle'>
-        Search results
-</div>
+<div id='tableContainer'></div>
 
-{% if result %} {{ result|safe }} {% endif %}
 {% endblock %}
