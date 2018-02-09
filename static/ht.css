@@ -152,6 +152,10 @@
 	margin-bottom: 5px;
 }
 
+.pull-left {
+	margin-right: 220px;
+}
+
 .genericTableDivES {
 	transform: rotate(-90deg);
 	transform-origin: top left;
@@ -388,6 +392,10 @@ table.dataTable th {
 	left: 50%;
 	margin-left: -80px;
 	height: 40px;
+}
+
+.dataTables_scrollBody {
+	border-bottom: none !important;
 }
 
 .dataTables_filter {
