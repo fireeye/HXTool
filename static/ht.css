@@ -152,6 +152,33 @@
 	margin-bottom: 5px;
 }
 
+.genericTableDivES {
+	transform: rotate(-90deg);
+	transform-origin: top left;
+	text-align: left;
+	padding: 0;
+	margin-left: 10px;
+	position: absolute;
+	top: 90px;
+	margin-left: 12px;
+}
+
+.genericTableES thead th {
+	vertical-align: bottom;
+}
+
+.genericTableES thead th:nth-child(n+10):nth-last-child(n+3) {
+	padding: 0;
+	height: 100px;
+	min-width: 40px;
+	max-width: 40px;
+}
+
+.genericTableES tbody tr:hover {
+	background: #eeeeee;
+	cursor: pointer;
+}
+
 .genericTable {
         font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
         font-weight: 700;

@@ -20,19 +20,6 @@
 	}
 
 	$(document).ready(function() {
-		var table = $('#searchTable').DataTable( {
-			"info": false,
-			"pageLength": 15,
-			"lengthChange": false
-		});
-
-		$(".clickable-row").click(function() {
-			window.document.location = $(this).data("href");
-		});
-
-		$("div[id^='crate_']").each(function() {
-			$(this).progress()
-		});
 		
 		$("#checkboxStore").click(function() {
 			enableStore();
@@ -50,13 +37,12 @@
 			enableFile();
 		});
 
-
 		var es_datatable = $('#esTable').DataTable( {
 			"ajax": "/api/v1/datatable_es",
 			"paging":   false,
 			"ordering": false,
 			"info":     false,
-			"searching": true,
+			"searching": false,
 			"processing": false,
 			"columns": [
 				{ "title": "state", "data": "state" },
@@ -68,18 +54,37 @@
 				{ "title": "hostset", "data": "host_set" },
 				{ "title": "hosts", "data": "stat_hosts" },
 				{ "title": "skipped", "data": "stat_skipped_hosts" },
-				{ "title": "N", "data": "stat_new" },
-				{ "title": "Q", "data": "stat_queued" },
-				{ "title": "F", "data": "stat_failed" },
-				{ "title": "C", "data": "stat_complete" },
-				{ "title": "A", "data": "stat_aborted" },
-				{ "title": "Ca", "data": "stat_cancelled" },
-				{ "title": "pending", "data": "stat_searchstate_pending" },
-				{ "title": "matched", "data": "stat_searchstate_matched" },
-				{ "title": "nomatch", "data": "stat_searchstate_notmatched" },
-				{ "title": "error", "data": "stat_searchstate_error" }
+				{ "title": "", "data": "stat_new" },
+				{ "title": "", "data": "stat_queued" },
+				{ "title": "", "data": "stat_failed" },
+				{ "title": "", "data": "stat_complete" },
+				{ "title": "", "data": "stat_aborted" },
+				{ "title": "", "data": "stat_cancelled" },
+				{ "title": "", "data": "stat_searchstate_pending" },
+				{ "title": "", "data": "stat_searchstate_matched" },
+				{ "title": "", "data": "stat_searchstate_notmatched" },
+				{ "title": "", "data": "stat_searchstate_error" },
+				{ "title": "complete rate", "data": "stat_hosts" },
+				{ "title": "action", "data": "DT_RowId" }
 
 			],
+			"headerCallback": function( thead, data, start, end, display ) {
+				$(thead).find('th').eq(9).html('<div class="genericTableDivES">new</div>');
+				$(thead).find('th').eq(10).html('<div class="genericTableDivES">queued</div>');
+				$(thead).find('th').eq(11).html('<div class="genericTableDivES">failed</div>');
+				$(thead).find('th').eq(12).html('<div class="genericTableDivES">complete</div>');
+				$(thead).find('th').eq(13).html('<div class="genericTableDivES">aborted</div>');
+				$(thead).find('th').eq(14).html('<div class="genericTableDivES">cancelled</div>');
+				$(thead).find('th').eq(15).html('<div class="genericTableDivES">pending</div>');
+				$(thead).find('th').eq(16).html('<div class="genericTableDivES">matched</div>');
+				$(thead).find('th').eq(17).html('<div class="genericTableDivES">not matched</div>');
+				$(thead).find('th').eq(18).html('<div class="genericTableDivES">error</div>');
+			},
+			"fnDrawCallback": function (oSettings) {
+				$("div[id^='crate_']").each(function() {
+					$(this).progress()
+				});
+			},
 			"createdRow": function( row, data, index ) {
 				$('td', row).eq(9).css( 'background-color', '#eeeeee' );
 				$('td', row).eq(10).css( 'background-color', '#eeeeee' );
@@ -91,8 +96,46 @@
 				$('td', row).eq(16).css( 'background-color', '#dddddd' );
 				$('td', row).eq(17).css( 'background-color', '#dddddd' );
 				$('td', row).eq(18).css( 'background-color', '#dddddd' );
-			}
+			},
+			"columnDefs": [	
+				{
+				 "targets": [ 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ],
+				 "width": "47px"
+				},
+				{
+				 "targets": 19,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display') {
+				 		if (data > 0) {
+				 			myrate = (row.stat_complete / data) * 100;
+				 		}
+				 		else {
+				 			myrate = 0;
+				 		}
+				 		data = "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + row.DT_RowId + "' data-percent='" + Math.round(myrate) + "'></div></div>"
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 "targets": 20,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display') {
+				 		myid = data;
+				 		data = "<a class='tableActionButton' href='/searchaction?action=stop&id=" + myid + "'>stop</a>";
+				 		data += "<a class='tableActionButton' href='/searchaction?action=remove&id=" + myid + "'>remove</a>";
+				 	}
+				 	return data;
+				 }
+				},
+				{"className": "dt-center", "targets": [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]}
+			]
 		});
+
+		$('#esTable').on( 'click', 'tr', function () {
+			window.document.location = "/searchresult?id=" + $(this).attr("id");
+		});
+
 
 	});
 </script>
@@ -134,6 +177,6 @@
 	Searches on the controller
 </div>
 
-<table class='genericTable' id='esTable' style='width: 100%;'></table>
+<table class='genericTable genericTableES' id='esTable' style='width: 100%;'></table>
 
 {% endblock %}
