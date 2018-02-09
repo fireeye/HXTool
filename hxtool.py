@@ -251,24 +251,20 @@ def search(hx_api_object):
 				app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/search", code=302)
 	else:
-		(ret, response_code, response_data) = hx_api_object.restListSearches()
-		searches = formatListSearches(response_data)
-		
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
 		hostsets = formatHostsets(response_data)
 
 		myiocs = app.hxtool_db.oiocList()
 		openiocs = formatOpenIocs(myiocs)
 		
-		return render_template('ht_searchsweep.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), searches=searches, hostsets=hostsets, openiocs=openiocs)
+		return render_template('ht_searchsweep.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, openiocs=openiocs)
 
 @app.route('/searchresult', methods=['GET'])
 @valid_session_required
 def searchresult(hx_api_object):
 	if request.args.get('id'):
 		(ret, response_code, response_data) = hx_api_object.restGetSearchResults(request.args.get('id'))
-		res = formatSearchResults(response_data)
-		return render_template('ht_search_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), result=res)
+		return render_template('ht_search_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 			
 @app.route('/searchaction', methods=['GET'])
 @valid_session_required
@@ -1459,6 +1455,95 @@ def getHealth(hx_api_object):
 		print(myHealth)
 		return(app.response_class(response=json.dumps(myHealth), status=200, mimetype='application/json'))
 
+@app.route('/api/v{0}/datatable_es'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_es(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restListSearches()
+	if ret:
+		mysearches = {"data": []}
+		for search in response_data['data']['entries']:
+			mysearches['data'].append({
+				"DT_RowId": search['_id'],
+				"state": search['state'],
+				"update_time": search['update_time'],
+				"create_time": search['create_time'],
+				"update_actor": search['update_actor']['username'],
+				"create_actor": search['create_actor']['username'],
+				"input_type": search['input_type'],
+				"host_set": search['host_set']['name'],
+				"host_set_id": search['host_set']['_id'],
+				"stat_new": search['stats']['running_state']['NEW'],
+				"stat_queued": search['stats']['running_state']['QUEUED'],
+				"stat_failed": search['stats']['running_state']['FAILED'],
+				"stat_complete": search['stats']['running_state']['COMPLETE'],
+				"stat_aborted": search['stats']['running_state']['ABORTED'],
+				"stat_cancelled": search['stats']['running_state']['CANCELLED'],
+				"stat_hosts": search['stats']['hosts'],
+				"stat_skipped_hosts": search['stats']['skipped_hosts'],
+				"stat_searchstate_pending": search['stats']['search_state']['PENDING'],
+				"stat_searchstate_matched": search['stats']['search_state']['MATCHED'],
+				"stat_searchstate_notmatched": search['stats']['search_state']['NOT_MATCHED'],
+				"stat_searchstate_error": search['stats']['search_state']['ERROR'],
+				"mode": search['settings']['mode']
+			})
+		return(app.response_class(response=json.dumps(mysearches), status=200, mimetype='application/json'))
+	else:
+		return('HX API Call failed',500)
+
+
+@app.route('/api/v{0}/datatable_es_result_types'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_es_result_types(hx_api_object):
+	if request.args.get('id'):
+		mytypes = {}
+		(ret, response_code, response_data) = hx_api_object.restGetSearchResults(request.args.get('id'), limit=30000)
+		if ret:
+			for host in response_data['data']['entries']:
+				for event in host['results']:
+					if not event['type'] in mytypes:
+						mytypes[event['type']] = ['hostname']
+					for key, val in event.items():
+						if not key.replace(" ", "_") in mytypes[event['type']]:
+							if key == "data":
+								for datakey in val.keys():
+									if not datakey.replace(" ", "_") in mytypes[event['type']]:
+										mytypes[event['type']].append(datakey.replace(" ", "_"))
+							elif key == "type":
+								mytypes[event['type']].append(key.replace(" ", "_"))
+
+
+			return(app.response_class(response=json.dumps(mytypes), status=200, mimetype='application/json'))
+		else:
+			return('HX API Call failed', 500)
+	else:
+		return('Missing search id', 404)
+
+@app.route('/api/v{0}/datatable_es_result'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_es_result(hx_api_object):
+	if request.args.get('id') and request.args.get('type'):
+		myresult = {"data": []}
+		(ret, response_code, response_data) = hx_api_object.restGetSearchResults(request.args.get('id'), limit=30000)
+		if ret:
+			for host in response_data['data']['entries']:
+				for event in host['results']:
+					if event['type'] == request.args.get('type'):
+						mytempdict = {"DT_RowId": host['host']['_id'], "hostname": host['host']['hostname'] + "___" + host['host']['_id']}
+						for eventitemkey, eventitemvalue in event.items():
+							if eventitemkey == "data":
+								for datakey, datavalue in eventitemvalue.items():
+									mytempdict[datakey.replace(" ", "_")] = datavalue
+							elif eventitemkey == "id":
+								continue
+							else:
+								mytempdict[eventitemkey.replace(" ", "_")] = eventitemvalue
+						myresult['data'].append(mytempdict)
+
+			return(app.response_class(response=json.dumps(myresult), status=200, mimetype='application/json'))
+		else:
+			return('HX API Call failed', 500)
+	else:
+		return('Missing search id or type', 404)
 
 
 #####################

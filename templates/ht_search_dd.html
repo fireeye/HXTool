@@ -5,20 +5,71 @@
 
 <script>
 	$(document).ready(function() {
-		$('#resultsTable').DataTable( {
-                        "info": false,
-                        "pageLength": 20,
-                        "lengthChange": false
+
+		myid = getQueryParam('id');
+
+		$.getJSON('/api/v1/datatable_es_result_types?id=' + myid, function(mytypes) {
+
+			for (var currtype in mytypes) {
+				var mycols = [];
+				for (var i = 0; i < mytypes[currtype].length; i++) {
+					mycols.push({ "title": mytypes[currtype][i].replace(/_/g," "), "data": mytypes[currtype][i] });
+				}
+
+				$("#tableContainer").append("<div style='margin-bottom: 10px;' id='ph_" + currtype.replace(/ /g,"_") + "'></div>");
+				$("#ph_" + currtype.replace(/ /g,"_")).append("<div class='tableTitle'>" + currtype + "</div>");
+				$("#ph_" + currtype.replace(/ /g,"_")).append("<table class='genericTable genericTableESResults' id='esTableResults_" + currtype.replace(/ /g,"_") + "' style='width: 100%;'></table>");
+
+				$.fn.dataTable.ext.errMode = 'none';
+				$('#esTableResults_' + currtype.replace(/ /g,"_")).DataTable( {
+					"ajax": "/api/v1/datatable_es_result?id=" + myid + "&type=" + currtype,
+					"columns": mycols,
+					"paging":   true,
+					"ordering": true,
+					"info":     false,
+					"scrollX": true,
+					"searching": true,
+					"pageLength": 25,
+					"lengthChange": false,
+					"processing": false,
+					"dom": '<"htDTButtons"B>frtip',
+					"colReorder": true,
+					"buttons": [
+						{ extend: "copy", className: "myDTButton" },
+						{ extend: "csv", className: "myDTButton" },
+						{ extend: "excel", className: "myDTButton" }
+					],
+					"drawCallback": function( settings ) {
+						$('.dataTables_filter').addClass('pull-left');
+					},
+					"columnDefs": [
+						{
+						 "targets": 0,
+						 render: function ( data, type, row, meta ) {
+						 	return(datatables_parseHostlink(data));
+						 }
+						}					
+					]
+				});
+
+
+				/*
+				$('#esTableResults_' + currtype.replace(/ /g,"_") + ' thead th').each(function () {
+					myNewTitle = $(this).find('div').html().replace(/_/g," ");
+					$(this).find('div').text(myNewTitle);
+				});
+				*/
+			
+			}
+
 		});
+
 	});
 
 </script>
 
 <br>
 
-<div class='tableTitle'>
-        Search results
-</div>
+<div id='tableContainer'></div>
 
-{% if result %} {{ result|safe }} {% endif %}
 {% endblock %}

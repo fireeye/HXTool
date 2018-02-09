@@ -727,9 +727,9 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
-	def restGetSearchResults(self, search_id):
+	def restGetSearchResults(self, search_id, limit=DEFAULT_LIMIT):
 
-		request = self.build_request(self.build_api_route('searches/{0}/results'.format(search_id)))
+		request = self.build_request(self.build_api_route('searches/{0}/results?limit={1}'.format(search_id, limit)))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
