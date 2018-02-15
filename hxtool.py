@@ -1051,7 +1051,7 @@ def channelinfo(hx_api_object):
 	if ret:
 		# TODO: finish
 		(ret, response_code, response_data) = hx_api_object.restGetConfigChannelConfiguration(request.args.get('id'))
-		return render_template('ht_configchannel_info.html', channel_json = json.dumps(response_data, sort_keys = True, indent = 4))
+		return render_template('ht_configchannel_info.html', channel_json = json.dumps(response_data, sort_keys = False, indent = 4))
 	else:
 		return render_template('ht_noaccess.html')
 		
