@@ -1110,12 +1110,12 @@ def login():
 		
 @app.route('/logout', methods=['GET'])
 def logout():
-	if session
+	if session:
 		if 'ht_api_object' in session:
 			hx_api_object = HXAPI.deserialize(session['ht_api_object'])
 			hx_api_object.restLogout()
+			app.logger.info('User logged out: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			hx_api_object = None	
-		app.logger.info('User logged out: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		session.clear()
 	return redirect("/login", code=302)
 	
