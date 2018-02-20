@@ -116,7 +116,7 @@ class hxtool_session_interface(SessionInterface):
 	def session_reaper(self, app):
 		self.logger.debug("session_reaper() called.")
 		for s in app.hxtool_db.sessionList():
-			if not s['update_timestamp'] or (datetime.datetime.utcnow() - datetime.datetime.strptime(s['update_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds > 604800:
+			if not s['update_timestamp'] or (datetime.datetime.utcnow() - datetime.datetime.strptime(s['update_timestamp'], '%Y-%m-%d %H:%M:%S.%f')) >= (app.permanent_session_lifetime or datetime.timedelta(minutes=self.expiration_delta)):
 				self.logger.debug("update_timestamp: {0}".format(s['update_timestamp']))
 				self.delete_session(app, s['session_id'])
 	
