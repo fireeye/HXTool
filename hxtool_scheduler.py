@@ -13,7 +13,8 @@ except ImportError:
 
 TASK_STATE_IDLE = 0
 TASK_STATE_QUEUED = 1
-TASK_STATE_RUNNING = 2	
+TASK_STATE_RUNNING = 2
+TASK_STATE_COMPLETE = 3	
 
 # Special task indicator that we need to exit now
 SIGINT_TASK_ID = -1
@@ -105,7 +106,7 @@ class hxtool_scheduler:
 			with self.lock:
 				return self.task_queue.pop(self.task_queue.index(t[0]))
 				
-	def tasks_dict(self):
+	def tasks(self):
 		return [_.to_dict() for _ in self.task_queue]
 		
 	def status(self):
@@ -164,7 +165,11 @@ class hxtool_scheduler_task:
 			
 			self._calculate_next_run()
 			
-			self.state = TASK_STATE_IDLE
+			if self.next_run:
+				self.state = TASK_STATE_IDLE
+			else:
+				self.state = TASK_STATE_COMPLETE
+				
 		return ret
 	
 	def should_run(self):
