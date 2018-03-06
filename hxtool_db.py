@@ -353,36 +353,6 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('session').remove((tinydb.Query()['session_id'] == session_id))
 	
-	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
-		def transform(element):
-			if type(dict_values) is dict:
-				element[dict_name][dict_key].update(dict_values)
-			else:
-				element[dict_name][dict_key] = dict_values
-			if update_timestamp and 'update_timestamp' in element:
-					element['update_timestamp'] =  str(datetime.datetime.utcnow())		
-		return transform
-	
-	def _db_append_to_list(self, list_name, value, update_timestamp = True):
-		def transform(element):
-			if type(value) is list:
-				element[list_name].extend(value)
-			else:
-				element[list_name].append(value)
-			if update_timestamp and 'update_timestamp' in element:
-				element['update_timestamp'] =  str(datetime.datetime.utcnow())
-		return transform
-	
-	def _db_update_dict_in_list(self, list_name, query_key, query_value, k, v, update_timestamp = True):
-		def transform(element):
-			for i in element[list_name]:
-				if i[query_key] == query_value:
-					i[k] = v
-					break
-			if update_timestamp and 'update_timestamp' in element:
-				element['update_timestamp'] =  str(datetime.datetime.utcnow())		
-		return transform
-	
 	def scriptCreate(self, scriptname, script, username):
 		with self._lock:
 			return self._db.table('scripts').insert({'script_id' : str(uuid.uuid4()), 
@@ -427,3 +397,32 @@ class hxtool_db:
 			return self._db.table('openioc').get((tinydb.Query()['ioc_id'] == ioc_id))
 
 
+	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
+		def transform(element):
+			if type(dict_values) is dict:
+				element[dict_name][dict_key].update(dict_values)
+			else:
+				element[dict_name][dict_key] = dict_values
+			if update_timestamp and 'update_timestamp' in element:
+					element['update_timestamp'] =  str(datetime.datetime.utcnow())		
+		return transform
+	
+	def _db_append_to_list(self, list_name, value, update_timestamp = True):
+		def transform(element):
+			if type(value) is list:
+				element[list_name].extend(value)
+			else:
+				element[list_name].append(value)
+			if update_timestamp and 'update_timestamp' in element:
+				element['update_timestamp'] =  str(datetime.datetime.utcnow())
+		return transform
+	
+	def _db_update_dict_in_list(self, list_name, query_key, query_value, k, v, update_timestamp = True):
+		def transform(element):
+			for i in element[list_name]:
+				if i[query_key] == query_value:
+					i[k] = v
+					break
+			if update_timestamp and 'update_timestamp' in element:
+				element['update_timestamp'] =  str(datetime.datetime.utcnow())		
+		return transform
