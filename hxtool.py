@@ -35,6 +35,7 @@ except ImportError:
 	exit(1)
 	
 # hx_tool imports
+import hxtool_global
 from hx_lib import *
 from hxtool_util import *
 from hxtool_formatting import *
@@ -44,6 +45,8 @@ from hxtool_config import *
 from hxtool_data_models import *
 from hxtool_session import *
 from hxtool_scheduler import *
+from hxtool_task_modules import *
+
 
 # Import HXTool API Flask blueprint
 from hxtool_api import ht_api
@@ -55,7 +58,6 @@ app.register_blueprint(ht_api)
 
 HXTOOL_API_VERSION = 1
 default_encoding = 'utf-8'
-
 
 ### Flask/Jinja Filters
 ####################################
@@ -1087,8 +1089,17 @@ def login():
 					if iv and salt:
 						try:
 							decrypted_background_password = crypt_aes(key, iv, background_credential['hx_api_encrypted_password'], decrypt = True)
-							# TODO: replace with scheduler
-							#start_background_processor(ht_profile['profile_id'], background_credential['hx_api_username'], decrypted_background_password)
+							hxtool_global.task_hx_api_sessions[ht_profile['profile_id']] = HXAPI(ht_profile['hx_host'], 
+																								hx_port = ht_profile['hx_port'], 
+																								proxies = app.hxtool_config['network'].get('proxies'), 
+																								headers = app.hxtool_config['headers'], 
+																								cookies = app.hxtool_config['cookies'], 
+																								logger = app.logger, 
+																								default_encoding = default_encoding)
+							hxtool_global.task_hx_api_sessions[ht_profile['profile_id']].restLogin(background_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)																	
+							bulk_download_task = hxtool_scheduler_task(ht_profile['profile_id'], "Bulk Download Scheduler Task - {}".format(ht_profile['profile_id']), interval = datetime.timedelta(seconds = 30))
+							bulk_download_task.add_step(bulk_download_scheduler_task_module(ht_profile['profile_id']).run, ())
+							hxtool_global.hxtool_scheduler.add(bulk_download_task)
 						except UnicodeDecodeError:
 							app.logger.error("Failed to decrypt background processor credential! Did you recently change your password? If so, please unset and reset these credentials under Settings.")
 						finally:
@@ -1592,19 +1603,21 @@ def submit_bulk_job(hx_api_object, hostset, script_xml, download = True, handler
 
 def sigint_handler(signum, frame):
 	app.logger.debug("Caught SIGINT, exiting...")
-	if app.hxtool_scheduler:
-		app.hxtool_scheduler.stop()
+	if hxtool_global.hxtool_scheduler:
+		hxtool_global.hxtool_scheduler.stop()
+	if hxtool_global.hxtool_db:
+		hxtool_global.hxtool_db.close()
 	if app.hxtool_db:
 		app.hxtool_db.close()
 	exit(0)	
 	
 if __name__ == "__main__":
+	signal.signal(signal.SIGINT, sigint_handler)
+	
 	debug_mode = False
 	if len(sys.argv) == 2 and sys.argv[1] == '-debug':
 		debug_mode = True
 	
-	signal.signal(signal.SIGINT, sigint_handler)
-
 	# Log early init/failures to stdout
 	console_log = logging.StreamHandler(sys.stdout)
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
@@ -1620,11 +1633,15 @@ if __name__ == "__main__":
 		app.logger.setLevel(logging.INFO)
 	
 	app.hxtool_config = hxtool_config('conf.json', logger = app.logger)
+	hxtool_global.hxtool_config = app.hxtool_config
+	
+	# Initialize hxtool_global storage for task scheduler sessions
+	hxtool_global.task_hx_api_sessions = {}
 	
 	# Initialize the scheduler
 	# TODO: implement task_thread_count in config
-	app.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
-	app.hxtool_scheduler.start()
+	hxtool_global.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
+	hxtool_global.hxtool_scheduler.start()
 		
 	# Initialize configured log handlers
 	for log_handler in app.hxtool_config.log_handlers():
@@ -1644,13 +1661,14 @@ if __name__ == "__main__":
 
 	# Init DB
 	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger)
+	hxtool_global.hxtool_db = app.hxtool_db
 	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
 
 	app.session_interface = hxtool_session_interface(app, logger = app.logger, expiration_delta=app.hxtool_config['network']['session_timeout'])
-
+	
 	# TODO: This should really be after app.run, but you cannot run code after app.run, so we'll leave this here for now.
 	app.logger.info("Application is running. Please point your browser to http{0}://{1}:{2}. Press Ctrl+C/Ctrl+Break to exit.".format(
 																							's' if app.hxtool_config['network']['ssl'] == 'enabled' else '',
