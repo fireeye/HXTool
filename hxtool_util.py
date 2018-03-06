@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import session
-
 from functools import wraps
 import os
 
@@ -114,5 +112,7 @@ def make_download_directory(host, download_id, job_type=None):
 	download_directory = get_download_directory(host, download_id, job_type)
 	if not os.path.exists(download_directory):
 		os.makedirs(download_directory)
-	return download_directory		
+	return download_directory
+
+
 	
