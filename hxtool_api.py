@@ -8,7 +8,6 @@ except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
 
-from functools import wraps
 from hx_lib import *
 from hxtool_util import *
 
