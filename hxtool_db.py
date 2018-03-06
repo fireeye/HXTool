@@ -132,7 +132,8 @@ class hxtool_db:
 															'hosts' : hosts, 
 															'hostset_id' : int(hostset_id),
 															'hostset_name' : hostset_name,		
-															'stopped' : False, 
+															'stopped' : False,
+															'complete' : False,
 															'post_download_handler' : post_download_handler, 
 															'create_timestamp' : str(datetime.datetime.utcnow()), 
 															'update_timestamp' : str(datetime.datetime.utcnow())})
@@ -160,6 +161,10 @@ class hxtool_db:
 	def bulkDownloadStop(self, profile_id, bulk_download_id):
 		with self._lock:
 			return self._db.table('bulk_download').update({'stopped' : True}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+	
+	def bulkDownloadComplete(self, profile_id, bulk_download_id):
+		with self._lock:
+			return self._db.table('bulk_download').update({'complete' : True}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
 	
 	def bulkDownloadDelete(self, profile_id, bulk_download_id):
 		with self._lock:
