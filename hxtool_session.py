@@ -9,6 +9,7 @@ import hashlib
 import threading
 import datetime
 
+import hxtool_global
 from hx_lib import *
 from hxtool_scheduler import *
 
@@ -52,7 +53,7 @@ class hxtool_session_interface(SessionInterface):
 		# Schedule session_reaper
 		session_reaper_task = hxtool_scheduler_task("System", "Session Reaper", interval=datetime.timedelta(minutes=30), immutable=True)
 		session_reaper_task.add_step(self.session_reaper, (app,))
-		app.hxtool_scheduler.add(session_reaper_task)
+		hxtool_global.hxtool_scheduler.add(session_reaper_task)
 	
 	def get_expiration_time(self, app, session):
 		delta = datetime.timedelta(minutes=self.expiration_delta)
