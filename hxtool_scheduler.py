@@ -13,7 +13,8 @@ except ImportError:
 
 TASK_STATE_IDLE = 0
 TASK_STATE_QUEUED = 1
-TASK_STATE_RUNNING = 2	
+TASK_STATE_RUNNING = 2
+TASK_STATE_COMPLETE = 3	
 
 # Special task indicator that we need to exit now
 SIGINT_TASK_ID = -1
@@ -105,7 +106,7 @@ class hxtool_scheduler:
 			with self.lock:
 				return self.task_queue.pop(self.task_queue.index(t[0]))
 				
-	def tasks_dict(self):
+	def tasks(self):
 		return [_.to_dict() for _ in self.task_queue]
 		
 	def status(self):
@@ -115,7 +116,7 @@ class hxtool_scheduler:
 # To run a job once at a specific time, specify start_time with an interval of zero
 # States:
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, task_function, task_arguments, id = str(uuid.uuid4()), interval = 0, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, id = str(uuid.uuid4()), interval = 0, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, logger = logging.getLogger(__name__)):
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
 		self.id = id
@@ -128,9 +129,13 @@ class hxtool_scheduler_task:
 		self.end_time = end_time
 		self.last_run = None
 		self.next_run = start_time
-		self.task_function = task_function
-		self.task_arguments = task_arguments
-			
+		self.stop_on_fail = stop_on_fail
+		self.steps = []
+
+	def add_step(self, function, args):
+		with self._lock:
+			self.steps.append((function, args))
+		
 	def _calculate_next_run(self):
 		if not self.interval or self.interval == 0:
 			self.next_run = None
@@ -149,18 +154,30 @@ class hxtool_scheduler_task:
 			# Reset microseconds to keep from drifting too badly
 			self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
 			
-			if self.task_arguments:
-				ret = self.task_function(*self.task_arguments)
-			else:
-				ret = self.task_function()
+			for func, args in self.steps:
+				if args:
+					ret = func(*args)
+				else:
+					ret = func()
 				
+				if not ret and self.stop_on_fail:
+					break
+			
 			self._calculate_next_run()
 			
-			self.state = TASK_STATE_IDLE
+			if self.next_run:
+				self.state = TASK_STATE_IDLE
+			else:
+				self.state = TASK_STATE_COMPLETE
+				
 		return ret
 	
 	def should_run(self):
-		return self.enabled and self.state == TASK_STATE_IDLE and ((datetime.datetime.utcnow() - self.next_run).seconds == 0 or self.start_time == self.next_run)
+		return (self.enabled and  
+				self.state == TASK_STATE_IDLE and 
+				len(self.steps) > 0 and 
+				((datetime.datetime.utcnow() - self.next_run).seconds == 0 or 
+				self.start_time == self.next_run))
 	
 	def to_dict(self):
 		return {

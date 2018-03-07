@@ -24,27 +24,8 @@ from hxtool_db import *
 from hx_lib import *
 from hxtool_data_models import *
 from hx_audit import *
+from hxtool_util import *
 
-# TODO: should be configurable
-_download_directory_base = "bulkdownload"
-
-def get_download_directory(hx_host, download_id, job_type=None):
-	if job_type:
-		return os.path.join(_download_directory_base, hx_host, job_type, str(download_id))
-	else:
-		return os.path.join(_download_directory_base, hx_host, str(download_id))
-
-def get_download_filename(hostname, _id):
-	return '{0}_{1}.zip'.format(hostname, _id)
-
-def get_download_full_path(hx_host, download_id, job_type, hostname, _id):
-	return os.path.join(get_download_directory(hx_host, download_id, job_type), get_download_filename(hostname, _id))
-
-def make_download_directory(host, download_id, job_type=None):
-	download_directory = get_download_directory(host, download_id, job_type)
-	if not os.path.exists(download_directory):
-		os.makedirs(download_directory)
-	return download_directory
 		
 """
 Multi-threaded bulk download

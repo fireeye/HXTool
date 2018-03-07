@@ -9,6 +9,7 @@ import hashlib
 import threading
 import datetime
 
+import hxtool_global
 from hx_lib import *
 from hxtool_scheduler import *
 
@@ -50,8 +51,10 @@ class hxtool_session_interface(SessionInterface):
 		self.expiration_delta = expiration_delta
 		
 		# Schedule session_reaper
-		app.hxtool_scheduler.add(hxtool_scheduler_task("System", "Session Reaper", self.session_reaper, (app,), interval=datetime.timedelta(minutes=30), immutable=True))
-		
+		session_reaper_task = hxtool_scheduler_task("System", "Session Reaper", interval=datetime.timedelta(minutes=30), immutable=True)
+		session_reaper_task.add_step(self.session_reaper, (app,))
+		hxtool_global.hxtool_scheduler.add(session_reaper_task)
+	
 	def get_expiration_time(self, app, session):
 		delta = datetime.timedelta(minutes=self.expiration_delta)
 		if session.permanent:
@@ -114,7 +117,7 @@ class hxtool_session_interface(SessionInterface):
 	def session_reaper(self, app):
 		self.logger.debug("session_reaper() called.")
 		for s in app.hxtool_db.sessionList():
-			if not s['update_timestamp'] or (datetime.datetime.utcnow() - datetime.datetime.strptime(s['update_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds > 604800:
+			if not s['update_timestamp'] or (datetime.datetime.utcnow() - datetime.datetime.strptime(s['update_timestamp'], '%Y-%m-%d %H:%M:%S.%f')) >= (app.permanent_session_lifetime or datetime.timedelta(minutes=self.expiration_delta)):
 				self.logger.debug("update_timestamp: {0}".format(s['update_timestamp']))
 				self.delete_session(app, s['session_id'])
 	
