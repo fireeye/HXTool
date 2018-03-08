@@ -115,6 +115,10 @@ class hxtool_db:
 			r = r.eid
 		return r
 	
+	def alertList(self, profile_id):
+		with self._lock:
+			return self._db.table('alert').get((tinydb.Query()['profile_id'] == profile_id))
+	
 	def alertGet(self, profile_id, hx_alert_id):
 		with self._lock:
 			return self._db.table('alert').get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['hx_alert_id'] == int(hx_alert_id)))
