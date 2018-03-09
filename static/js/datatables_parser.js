@@ -54,26 +54,94 @@ function datatables_parseAcquisitionState(data) {
 
 function datatables_parseContainmentState(data) {
 	if (data == "normal") {
-		data = "<i class='fas fa-lock-open fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Normal</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-lock-open fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Normal</b>";
+		data += "</span>";
 	}
 	else if (data == "containing") {
-		data = "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Containing</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Containing</b>";
+		data += "</span>";
 	}
 	else if (data == "uncontain") {
-		data = "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Uncontain</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Uncontain</b>";
+		data += "</span>";
 	}
 	else if (data == "uncontaining") {
-		data = "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Uncontaining</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Uncontaining</b>";
+		data += "</span>";
 	}
 	else if (data == "contain") {
-		data = "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Contain</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Contain</b>";
+		data += "</span>";
 	}
 	else if (data == "contained") {
-		data = "<i class='fas fa-lock fa-lg fa-fw' style='margin-right: 2px; color: #d11717;' aria-hidden='true'></i><b>Contained</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-lock fa-lg fa-fw' style='margin-right: 2px; color: #d11717;' aria-hidden='true'></i><b>Contained</b>";
+		data += "</span>";
 	}
 	else {
 		data = data;
 	}
 	return(data);
-
 }
+
+function datatables_parseSource(data) {
+	if (data == "IOC") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-link fa-lg fa-fw' style='margin-right: 2px; color: #001ee5;' aria-hidden='true'></i><b>IOC</b>";
+		data += "</span>";
+	}
+	else if (data == "EXD") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-file-code fa-lg fa-fw' style='margin-right: 2px; color: #e50700;' aria-hidden='true'></i><b>EXG</b>";
+		data += "</span>";
+	}
+	else if (data == "MAL") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-bug fa-lg fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>MAL</b>";
+		data += "</span>";
+	}
+	else {
+		data = data;
+	}
+	return(data);
+}
+
+function datatables_parseResolution(data) {
+	if (data == "ALERT") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-exclamation-circle fa-lg fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>ALERT</b>";
+		data += "</span>";
+	}
+	else if (data == "BLOCK") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-stop-circle fa-lg fa-fw' style='margin-right: 2px; color: #e50700;' aria-hidden='true'></i><b>BLOCK</b>";
+		data += "</span>"
+	}
+	else if (data == "QUARANTINED") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-database fa-lg fa-fw' style='margin-right: 2px; color: #e50700;' aria-hidden='true'></i><b>QUARANTINE</b>";
+		data += "</span>";
+	}
+	else {
+		data = data;
+	}
+	return(data);
+}
+
+function datatables_alertTimestamps(data, matched_at, reported_at) {
+
+	element = "<span class='hostLink alerttimestamp'>" + data.replace("T", " ").substring(0,19) + "</span>";
+	element += "<div style='margin-left: 10px; margin-top: 5px; padding: 10px; display: none; position: absolute; background: #eeeeee; border: 1px solid #cccccc; border-radius: 5px;'>";
+	element += "Matched at: " + matched_at.replace("T", " ").substring(0,19) + "<br>"
+	element += "Reported at: " + reported_at.replace("T", " ").substring(0,19)
+	element += "</div>"
+
+	return(element);
+}
+
+
