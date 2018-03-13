@@ -40,6 +40,12 @@
 			showPopup(600, 1200, "/annotatedisplay?alertid=" + aArr[1], "annotateDisplayTable");
 		});
 
+		$(document).on('mouseenter', '.alerttimestamp', function() {
+			$(this).next().show();
+		}).on('mouseleave','.alerttimestamp',  function(){
+			$(this).next().hide();
+		});
+
 		$("#alertAutoRefresh").click(function() {
 			if ($(this).is(":checked")) {
 				alertAuto = setInterval(function () {
@@ -93,21 +99,22 @@
 				{ "title": "", "data": "platform" },
 				{ "title": "Hostname", "data": "hostname" },
 				{ "title": "Domain", "data": "domain" },
+				{ "title": "Containment", "data": "containment_state" },
 				{ "title": "Event at", "data": "event_at" },
 				{ "title": "Age", "data": "age" },
 				{ "title": "Source", "data": "source" },
-				{ "title": "Threat", "data": "threat" },
 				{ "title": "Resolution", "data": "resolution" },
+				{ "title": "Threat", "data": "threat" },
 				{ "title": "State", "data": "annotation_max_state" },
 				{ "title": "Annotations", "data": "annotation_count" },
 				{ "title": "Action", "data": "action" }
 			],
 			"createdRow": function( row, data, index ) {
 				if (data.annotation_max_state == 1) {
-					$('td', row).eq(8).css( 'background-color', '#fffce0' );
+					$('td', row).eq(9).css( 'background-color', '#fffce0' );
 				}
 				else if (data.annotation_max_state == 2) {
-					$('td', row).eq(8).css( 'background-color', '#e0ffe3' );
+					$('td', row).eq(9).css( 'background-color', '#e0ffe3' );
 				}
 			},
 			"columnDefs": [	
@@ -115,51 +122,49 @@
 				 "targets": 0,
 				 "width": "20px",
 				 render: function ( data, type, row, meta ) {
-				 	if(type === 'display'){
-				 		if (data == "win") {
-				 			data = '<img style="width: 20px;" src="/static/ico/windows.svg">';
-				 		}
-				 		else if (data == "mac") {
-				 			data = '<img style="width: 20px;" src="/static/ico/mac.svg">';
-				 		}
-				 		else if (data == "linux") {
-				 			data = '<img style="width: 20px;" src="/static/ico/linux.svg">';
-				 		}
-				 		else {
-				 			data = "N/A"
-				 		}
-				 	}
-				 	return data;
+				 	return (datatables_parsePlatform(data));
 				 }
 				},
 				{
 				 "targets": 1,
 				 render: function ( data, type, row, meta ) {
-				 	if(type === 'display'){
-				 		myArr = data.split("___");
-				 		data = '<a class="hostLink" href="/hosts?host=' + encodeURIComponent(myArr[1]) + '&alertid=' + encodeURIComponent(myArr[2]) + '">' + myArr[0] + '</a>';
-				 	}
-				 	return data;
+					return(datatables_parseHostlink(data));
 				 }
 				},
 				{
 				 "targets": 3,
-				 "width": "150px"
+				 "width": "100px",
+				 render: function ( data, type, row, meta ) {
+				 	return(datatables_parseContainmentState(data));
+				  }
 				},
 				{
 				 "targets": 4,
-				 "width": "120px"
+				 "width": "150px",
+				 render: function ( data, type, row, meta ) {
+				 	return(datatables_alertTimestamps(data, row.matched_at, row.reported_at));
+				  }
 				},
 				{
 				 "targets": 5,
-				 "width": "60px"
+				 "width": "100px"
+				},
+				{
+				 "targets": 6,
+				 "width": "60px",
+				 render: function ( data, type, row, meta ) {
+					return(datatables_parseSource(data));
+				 }
 				},
 				{
 				 "targets": 7,
-				 "width": "80px"
+				 "width": "110px",
+				 render: function ( data, type, row, meta ) {
+					return(datatables_parseResolution(data));
+				 }				 
 				},
 				{
-				 "targets": 8,
+				 "targets": 9,
 				 "width": "70px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
@@ -177,7 +182,7 @@
 				 }
 				},
 				{
-				 "targets": 9,
+				 "targets": 10,
 				 "width": "80px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
@@ -187,7 +192,7 @@
 				 }
 				},
 				{
-				 "targets": 10,
+				 "targets": 11,
 				 "width": "80px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
@@ -196,7 +201,7 @@
 				 	return data;
 				 }
 				},
-				{"className": "dt-center", "targets": [0, 3, 4, 5, 7, 8, 9, 10]}
+				{"className": "dt-center", "targets": [0, 1, 2, 3, 4, 5, 6, 9, 10]}
 			]
 		});		
 

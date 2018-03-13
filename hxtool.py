@@ -1338,17 +1338,27 @@ def datatable_alerts_full(hx_api_object):
 
 		(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
 		if ret:
+			# Get annotations from DB and store in memory
+			myannotations = {}
+			dbannotations = app.hxtool_db.alertList(session['ht_profileid'])
+			for annotation in dbannotations:
+				if not annotation['hx_alert_id'] in myannotations.keys():
+					myannotations[annotation['hx_alert_id']] = {"max_state": 0, "count": len(annotation['annotations'])}
+
+				for item in annotation['annotations']:
+					if item['state'] > myannotations[annotation['hx_alert_id']]['max_state']:
+						myannotations[annotation['hx_alert_id']]['max_state'] = item['state']
+
 			for alert in response_data:
 
 				start = time.time()
 
-				# Query annotation status
-				annotate_query_response = app.hxtool_db.alertGet(session['ht_profileid'], alert['_id'])
-				annotation_count = 0
-				annotation_max_state = 0
-				if annotate_query_response:
-					annotation_count = len(annotate_query_response['annotations'])
-					annotation_max_state = int(max(annotate_query_response['annotations'], key = (lambda k: k['state']))['state'])
+				if alert['_id'] in myannotations.keys():
+					annotation_count = myannotations[alert['_id']]['count']
+					annotation_max_state = myannotations[alert['_id']]['max_state']
+				else:
+					annotation_count = 0
+					annotation_max_state = 0
 
 				
 				if alert['agent']['_id'] not in myhosts:
@@ -1395,6 +1405,9 @@ def datatable_alerts_full(hx_api_object):
 					"hostname": HXAPI.compat_str(hostname) + "___" + HXAPI.compat_str(hid) + "___" + HXAPI.compat_str(aid),
 					"domain": domain,
 					"event_at": alert['event_at'],
+					"matched_at": alert['matched_at'],
+					"reported_at": alert['reported_at'],
+					"containment_state": alert['agent']['containment_state'],
 					"age": HXAPI.prettyTime(HXAPI.gt(alert['event_at'])),
 					"source": alert['source'],
 					"threat": tname,

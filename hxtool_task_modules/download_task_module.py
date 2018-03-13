@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import hxtool_global
-from task_module import *
+from .task_module import *
 
 class download_task_module(task_module):
 	def __init__(self, profile_id):

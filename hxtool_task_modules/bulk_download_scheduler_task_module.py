@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import hxtool_global
-from task_module import *
+from .task_module import *
 from hxtool_util import *
 from hx_lib import *
 from hxtool_scheduler import *
-from download_task_module import *
+from .download_task_module import *
 
 
 class bulk_download_scheduler_task_module(task_module):

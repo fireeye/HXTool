@@ -106,7 +106,19 @@
 					 	return data;
 					 }
 					},
-					{"className": "dt-center", "targets": "_all"}
+					{
+					 targets: 3,
+					 render: function ( data, type, row, meta ) {
+					 	return(datatables_parseSource(data));
+					 }
+					},
+					{
+					 targets: 5,
+					 render: function ( data, type, row, meta ) {
+					 	return(datatables_parseResolution(data));
+					 }
+					},
+					{"className": "dt-center", "targets": [0, 1, 2, 3]}
 				]
 			});
 			return(row2_cell1_datatable);

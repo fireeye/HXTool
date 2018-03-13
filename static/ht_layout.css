@@ -146,3 +146,11 @@
 .htLayoutDropdown-item:hover {
 	color: rgb(139, 148, 162);
 }
+
+.htLayoutIconWrapper {
+	background: #eeeeee; 
+	border: 1px solid #cccccc; 
+	padding: 5px; 
+	border-radius: 5px;
+	font-size: 11px;
+}
