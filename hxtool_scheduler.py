@@ -107,7 +107,7 @@ class hxtool_scheduler:
 				return self.task_queue.pop(self.task_queue.index(t[0]))
 				
 	def tasks(self):
-		return [_.to_dict() for _ in self.task_queue]
+		return [_.__dict__ for _ in self.task_queue]
 		
 	def status(self):
 		return self._poll_thread.is_alive()
@@ -116,10 +116,11 @@ class hxtool_scheduler:
 # To run a job once at a specific time, specify start_time with an interval of zero
 # States:
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, id = str(uuid.uuid4()), interval = 0, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, id = str(uuid.uuid4()), interval = 0, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, logger = logging.getLogger(__name__)):
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
 		self.id = id
+		self.parent_id = parent_id
 		self.name = name
 		self.enabled = enabled
 		self.immutable = immutable
@@ -131,6 +132,7 @@ class hxtool_scheduler_task:
 		self.next_run = start_time
 		self.stop_on_fail = stop_on_fail
 		self.steps = []
+		
 
 	def add_step(self, function, args):
 		with self._lock:
@@ -178,19 +180,4 @@ class hxtool_scheduler_task:
 				len(self.steps) > 0 and 
 				((datetime.datetime.utcnow() - self.next_run).seconds == 0 or 
 				self.start_time == self.next_run))
-	
-	def to_dict(self):
-		return {
-			'id' : self.id,
-			'profile_id' : self.profile_id,
-			'name' : self.name,
-			'enabled' : self.enabled,
-			'immutable' : self.immutable,
-			'state' : self.state,
-			'interval' : self.interval,
-			'start_time' : self.start_time,
-			'end_time' : self.end_time,
-			'last_run' : self.last_run,
-			'next_run' : self.next_run
-		}
 		
