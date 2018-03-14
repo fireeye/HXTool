@@ -1618,7 +1618,6 @@ def logout_task_sessions():
 		hx_api_object = hxtool_global.task_hx_api_sessions[profile_id]
 		if hx_api_object:
 			hx_api_object.restLogout()
-			del hxtool_global.task_hx_api_sessions[profile_id]
 			hx_api_object = None
 
 
