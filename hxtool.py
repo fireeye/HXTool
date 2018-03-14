@@ -1613,15 +1613,24 @@ def submit_bulk_job(hx_api_object, hostset, script_xml, download = True, handler
 ###########
 ### Main ####
 ###########			
+def logout_task_sessions():
+	for profile_id in hxtool_global.task_hx_api_sessions:
+		hx_api_object = hxtool_global.task_hx_api_sessions[profile_id]
+		if hx_api_object:
+			hx_api_object.restLogout()
+			del hxtool_global.task_hx_api_sessions[profile_id]
+			hx_api_object = None
+
 
 def sigint_handler(signum, frame):
 	app.logger.debug("Caught SIGINT, exiting...")
+	logout_task_sessions()
 	if hxtool_global.hxtool_scheduler:
 		hxtool_global.hxtool_scheduler.stop()
 	if hxtool_global.hxtool_db:
 		hxtool_global.hxtool_db.close()
 	if app.hxtool_db:
-		app.hxtool_db.close()
+		app.hxtool_db.close()	
 	exit(0)	
 	
 if __name__ == "__main__":
