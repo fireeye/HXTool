@@ -22,13 +22,19 @@ function datatables_parsePlatform(data) {
 
 function datatables_parseAcquisitionType(data) {
 	if (data == "triage") {
-		data = "<i class='fas fa-medkit fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Triage</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-medkit fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Triage</b>";
+		data += "</span>";
 	}
 	else if (data == "live") {
-		data = "<i class='fas fa-database fa-lg fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Acquisition</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-database fa-lg fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Acquisition</b>";
+		data += "</span>";
 	}
 	else if (data == "file") {
-		data = "<i class='fas fa-file fa-lg fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>File</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-file fa-lg fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>File</b>";
+		data += "</span>";
 	}
 	else {
 		data = data;
@@ -38,13 +44,24 @@ function datatables_parseAcquisitionType(data) {
 
 function datatables_parseAcquisitionState(data) {
 	if (data == "QUEUED") {
-		data = "<i class='fas fa-clock fa-lg fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>Queued</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-clock fa-lg fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>Queued</b>";
+		data += "</span>";
 	}
 	else if (data == "RUNNING") {
-		data = "<i class='fas fa-hdd fa-lg fa-fw' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>Running</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-hdd fa-lg fa-fw' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>Running</b>";
+		data += "</span>";
 	}
 	else if (data == "COMPLETE") {
-		data = "<i class='fas fa-check-square fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Complete</b>";
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-check-square fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Complete</b>";
+		data += "</span>";
+	}
+	else if (data == "NEW") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-plus-square fa-lg fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>NEW</b>";
+		data += "</span>";
 	}
 	else {
 		data = data;
@@ -144,4 +161,7 @@ function datatables_alertTimestamps(data, matched_at, reported_at) {
 	return(element);
 }
 
+function datatables_Timestamp(data) {
+	return(data.replace("T", " ").substring(0,19));
+}
 
