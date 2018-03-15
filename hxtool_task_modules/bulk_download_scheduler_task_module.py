@@ -17,9 +17,10 @@ class bulk_download_scheduler_task_module(task_module):
 		hx_api_object = hxtool_global.task_hx_api_sessions[self.profile_id]	
 		if hx_api_object and hx_api_object.restIsSessionValid():
 			bulk_download_jobs = hxtool_global.hxtool_db.bulkDownloadList(self.profile_id)
-			for job in [_ for _ in bulk_download_jobs if not _['stopped'] or ('complete' in _ and _['complete'])]:
-				if len(job['hosts']) == len([_ for _ in job['hosts'] if _['downloaded']]):
+			for job in [_ for _ in bulk_download_jobs if not _['stopped'] and not ('complete' in _ and _['complete'])]:
+				if len(job['hosts']) == len([_ for _ in job['hosts'] if job['hosts'][_]['downloaded']]):
 					hxtool_global.hxtool_db.bulkDownloadComplete(self.profile_id, job['bulk_download_id'])
+					self.logger.debug("Bulk download of bulk acquisition {} is complete.".format(job['bulk_download_id']))
 				else:	
 					self.logger.debug("Processing bulk download job id: {0}, post download handler: {1}.".format(job['bulk_download_id'], job['post_download_handler']))
 					download_directory = make_download_directory(hx_api_object.hx_host, job['bulk_download_id'])
