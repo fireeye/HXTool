@@ -64,23 +64,26 @@
 			$("*[data-key]").each(function(idx) {
 				request_json[$(this).attr("data-key")] = $(this).val();
 			});
-			request_json = JSON.stringify(request_json);
-			
-			$.ajax({
-				type: "PUT",
-				url: "/api/v1/profile",
-				contentType: "application/json; charset=utf-8",
-				dataType: "json",
-				data: request_json,
-				success: function(r) {
-					bindData();
-				},
-				error: function(xhr) {
-					alert("Error: " + xhr.responseJSON);
-				}
-			});
-			
-			$("#controllerProfileManagerAddProfilePanel").hide(200);
+			if (request_json['hx_host'].startsWith('http')) {
+				alert('Please remove the https:// from in front of the HX controller host name/IP address.');
+			} else {
+				request_json = JSON.stringify(request_json);
+				
+				$.ajax({
+					type: "PUT",
+					url: "/api/v1/profile",
+					contentType: "application/json; charset=utf-8",
+					dataType: "json",
+					data: request_json,
+					success: function(r) {
+						bindData();
+						$("#controllerProfileManagerAddProfilePanel").hide(200);
+					},
+					error: function(xhr) {
+						alert("Error: " + xhr.responseJSON);
+					}
+				});
+			}
 		});
 	});
 </script>

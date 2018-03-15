@@ -26,7 +26,7 @@ class hxtool_scheduler:
 		self._lock = threading.Lock()
 		self.task_queue = []
 		self.run_queue = queue.Queue()
-		self._poll_thread = threading.Thread(target = self._scan_task_queue, name = "HXTool Task Scheduler")
+		self._poll_thread = threading.Thread(target = self._scan_task_queue, name = "PollThread")
 		self._stop_event = threading.Event()
 		self.task_thread_count = task_thread_count
 		self.task_threads = []
@@ -65,21 +65,19 @@ class hxtool_scheduler:
 	def start(self):
 		self._poll_thread.start()
 		for i in range(0, self.task_thread_count):
-			t = threading.Thread(target = self._await_task)
+			t = threading.Thread(target = self._await_task, name = "TaskThread - {}".format(i))
 			t.start()
 			self.task_threads.append(t)
 		self.logger.info("Task scheduler started.")
 		
 	def stop(self):
-		self._stop_event.set()
-		if self._poll_thread.is_alive():
-			self._poll_thread.join()
-		for i in range(0, self.task_thread_count):
+		self.logger.debug('stop() enter.')		
+		for i in range(0, len(self.task_threads)):
 			self.run_queue.put((SIGINT_TASK_ID, None, None))
-		for t in self.task_threads:
-			if t.is_alive():
-				t.join()
 		self.run_queue.join()
+		self._stop_event.set()
+		del self.task_threads[:]
+		self.logger.debug('stop() exit.')
 	
 	def add(self, task):
 		with self._lock:
