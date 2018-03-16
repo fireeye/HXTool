@@ -783,12 +783,18 @@ class HXAPI:
 			return(ret, response_code, response_data)
 		
 	# NOTE: this function does not return data in the usual way, the response is a list of alerts
-	def restGetAlertsTime(self, start_date, end_date):
+	def restGetAlertsTime(self, start_date, end_date, filters=False):
 
-		data = json.dumps({'event_at' : 
+		myquery = {'event_at' : 
 							{'min' : '{0}T00:00:00.000Z'.format(start_date), 
 							'max' : '{0}T23:59:59.999Z'.format(end_date)}
-						})
+						}
+		# Filters is a dict
+		if filters:
+			for filterkey, filterval in filters.items():
+				myquery[filterkey] = filterval
+
+		data = json.dumps(myquery)
 							
 		request = self.build_request(self.build_api_route('alerts/filter?limit=10'), method = 'POST', data = data)
 		

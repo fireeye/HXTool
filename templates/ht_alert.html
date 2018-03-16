@@ -10,6 +10,23 @@
 		return(historicDate.toISOString().substr(0, 10))
 	}
 
+	function parseFilters() {
+		myurl = "";
+		if ($('#filtertable_hostname').val() != "") {
+			myurl += "&hostname=" + $('#filtertable_hostname').val();
+		}
+		if ($('#filtertable_hash').val() != "") {
+			myurl += "&md5hash=" + $('#filtertable_hash').val();
+		}
+		if ($('#filtertable_source').find(":selected").val() != "all") {
+			myurl += "&source=" + $('#filtertable_source').find(":selected").val();	
+		}
+		if ($('#filtertable_resolution').find(":selected").val() != "all") {
+			myurl += "&resolution=" + $('#filtertable_resolution').find(":selected").val();	
+		}
+		return(myurl)
+	}
+
 	$(document).ready(function() {
 
 		var fullDate = new Date()
@@ -20,9 +37,31 @@
 		$("#from").val(pastDate);
 		$("#to").val(currentDate);
 
+
+		$(document).on("keypress", "#filtertable_hostname", function(e) {
+			if (e.which == 13) {
+				$('#shader').show();
+				urltail = parseFilters()
+				alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
+					$('#shader').hide();
+				});
+			}
+		});
+
+		$(document).on("keypress", "#filtertable_hash", function(e) {
+			if (e.which == 13) {
+				$('#shader').show();
+				urltail = parseFilters()
+				alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
+					$('#shader').hide();
+				});
+			}
+		});	
+
 		$("#refresh").click(function() {
 			$('#shader').show();
-			alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?startDate=' + $("#from").val() + '&endDate=' + $("#to").val() ).load(function ( json ) {
+			urltail = parseFilters()
+			alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
 				$('#shader').hide();
 			});
 		});
@@ -94,7 +133,7 @@
 			"ordering": false,
 			"info":     false,
 			"searching": false,
-			"processing": true,
+			"processing": false,
 			"columns": [
 				{ "title": "", "data": "platform" },
 				{ "title": "Hostname", "data": "hostname" },
@@ -201,7 +240,7 @@
 				 	return data;
 				 }
 				},
-				{"className": "dt-center", "targets": [0, 1, 2, 3, 4, 5, 6, 9, 10]}
+				{"className": "dt-center", "targets": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]}
 			]
 		});		
 
@@ -209,7 +248,11 @@
 
 </script>
 
-<div style='float: left; margin-bottom: 15px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 12px;'>
+<div class='tableTitle'>
+	<i class="fas fa-clock fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+	Show alerts for time period
+</div>
+<div style='float: left; margin-left: 10px; margin-top: 10px; margin-bottom: 25px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 12px;'>
 	<input class='tableActionButton' type='button' id='nav_1' value='today'>
 	<input class='tableActionButton' type='button' id='nav_7' value='week'>
 	<input class='tableActionButton' type='button' id='nav_30' value='month'>
@@ -230,6 +273,59 @@
 	 seconds
 </div>
 
+<div class='tableTitle' style='clear: both;'>
+	<i class="fas fa-filter fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+	Filters
+</div>
+<table class='filterTable'>
+	<tr>
+		<th>
+			Endpoint IP/Hostname
+		</th>
+		<th>
+			MD5 Hash
+		</th>
+		<th>
+			Alert type
+		</th>
+		<th>
+			Resolution
+		</th>
+	</tr>
+	<tr>
+		<td>
+			<input id='filtertable_hostname' type='text' style='width: 250px'>
+		</td>
+		<td>
+			<input id='filtertable_hash' type='text' style='width: 250px'>
+		</td>
+		<td>
+			<select id='filtertable_source'>
+				<option value='all' SELECTED>All
+				<option value='ioc'>IOC - Indicator
+				<option value='exd'>EXD - Exploit Guard
+				<option value='mal'>MAL - Anti-virus
+			</select>
+		</td>
+		<td>
+			<select id='filtertable_resolution'>
+				<option value='all' SELECTED>All
+				<option value='ALERT'>Alert
+				<option value='BLOCK'>Block
+				<option value='PARTIAL_BLOCK'>Partial block
+				<option value='ACTIVE_THREAT'>Active threat
+				<option value='QUARANTINED'>Quarantined
+				<option value='CLEANED'>Cleaned
+			</select>
+		</td>
+	</tr>
+</table>
+
+
+<div class='tableTitle' style='clear: both; margin-top: 15px;'>
+	<i class="fas fa-list-ul fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+	Alerts
+</div>
 <table id="alertTable" class='genericTable' style='width: 100%;'></table>
 
 <div id='annotationBox' class='ht_popup_annotate_div'>
