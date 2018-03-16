@@ -741,7 +741,7 @@ def multifile(hx_api_object):
 			#TODO: Stop each file acquisition or handle solely in remove?
 			if success:
 				app.hxtool_db.multiFileStop(mf_job.eid)
-				app.logger.info('MultiFile Job ID {0} action STOP - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, mf_job.eid))
+				app.logger.info('MultiFile Job ID {0} action STOP - User: {1}@{2}:{3}'.format(mf_job.eid, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 
 	elif request.args.get('remove'):
 		mf_job = app.hxtool_db.multiFileGetById(request.args.get('remove'))
@@ -752,13 +752,14 @@ def multifile(hx_api_object):
 				(ret, response_code, response_data) = hx_api_object.restDeleteFile(uri)
 				#TODO: Replace with delete of file from record
 				if not f['downloaded']:
-					self._app.hxtool_db.multiFileUpdateFile(self.profile_id, f.eid, f['acquisition_id'])
-				if not ret:
-					app.logger.error("Failed to remove file acquisition {0}".format(f['acquisition_id']))
-					success = False
+					app.hxtool_db.multiFileUpdateFile(profile_id, mf_job.eid, f['acquisition_id'])
+				# If the file acquisition no longer exists on the controller(404), then we should delete it from our DB anyway.
+				if not ret and response_code != 404:
+					app.logger.error("Failed to remove file acquisition {0} from the HX controller, response code: {1}".format(f['acquisition_id'], response_code))
+					success = False		
 			if success:
 				app.hxtool_db.multiFileDelete(mf_job.eid)
-				app.logger.info('MultiFile Job ID {0} action REMOVE - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, mf_job.eid))
+				app.logger.info('MultiFile Job ID {0} action REMOVE - User: {1}@{2}:{3}'.format( mf_job.eid, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 
 	#TODO: Make Configurable both from GUI and config file?
 	elif request.method == 'POST':
