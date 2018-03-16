@@ -1357,6 +1357,41 @@ def datatable_alerts_full(hx_api_object):
 			(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
 		if ret:
 
+			# Check if we need to match alertname
+			if 'alertname' in request.args:
+
+				myalertname = request.args.get("alertname")
+				myMatches = []
+
+				for alert in response_data:
+					if alert['source'] == "MAL":
+						for mymalinfo in alert['event_values']['detections']['detection']:
+							try:
+								if myalertname in mymalinfo['infection']['infection-name']:
+									myMatches.append(alert)
+							except(KeyError):
+								continue
+					if alert['source'] == "EXD":
+						if myalertname in alert['event_values']['process_name']:
+							myMatches.append(alert)
+					if alert['source'] == "IOC":
+						if alert['condition']['_id'] not in myiocs:
+							# Query IOC object since we do not have it in memory
+							(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+							if cret:
+								myiocs[alert['condition']['_id']] = cresponse_data['data']['entries'][0]
+								tname = cresponse_data['data']['entries'][0]['name']
+							else:
+								tname = "N/A"
+						else:
+							tname = myiocs[alert['condition']['_id']]['name']
+							if myalertname in tname:
+								myMatches.append(alert)
+
+				# overwrite data with our filtered list
+				response_data = myMatches
+
+
 			# Check if we need to match md5hash
 			if 'md5hash' in request.args:
 

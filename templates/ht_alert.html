@@ -15,6 +15,9 @@
 		if ($('#filtertable_hostname').val() != "") {
 			myurl += "&hostname=" + $('#filtertable_hostname').val();
 		}
+		if ($('#filtertable_alertname').val() != "") {
+			myurl += "&alertname=" + $('#filtertable_alertname').val();
+		}
 		if ($('#filtertable_hash').val() != "") {
 			myurl += "&md5hash=" + $('#filtertable_hash').val();
 		}
@@ -49,6 +52,16 @@
 		});
 
 		$(document).on("keypress", "#filtertable_hash", function(e) {
+			if (e.which == 13) {
+				$('#shader').show();
+				urltail = parseFilters()
+				alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
+					$('#shader').hide();
+				});
+			}
+		});	
+
+		$(document).on("keypress", "#filtertable_alertname", function(e) {
 			if (e.which == 13) {
 				$('#shader').show();
 				urltail = parseFilters()
@@ -134,6 +147,12 @@
 			"info":     false,
 			"searching": false,
 			"processing": false,
+			"dom": '<"htDTButtons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "myDTButton" },
+				{ extend: "csv", className: "myDTButton" },
+				{ extend: "excel", className: "myDTButton" }
+			],
 			"columns": [
 				{ "title": "", "data": "platform" },
 				{ "title": "Hostname", "data": "hostname" },
@@ -283,6 +302,9 @@
 			Endpoint IP/Hostname
 		</th>
 		<th>
+			Threat name
+		</th>
+		<th>
 			MD5 Hash
 		</th>
 		<th>
@@ -295,6 +317,9 @@
 	<tr>
 		<td>
 			<input id='filtertable_hostname' type='text' style='width: 250px'>
+		</td>
+		<td>
+			<input id='filtertable_alertname' type='text' style='width: 250px'>
 		</td>
 		<td>
 			<input id='filtertable_hash' type='text' style='width: 250px'>
