@@ -1520,6 +1520,92 @@ def datatable_alerts_full(hx_api_object):
 
 		return(app.response_class(response=json.dumps(myalerts), status=200, mimetype='application/json'))
 
+@app.route('/api/v{0}/vegalite_malwarecontent'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def vegalite_malwarecontent(hx_api_object):
+	if request.method == 'GET':
+		
+		myContent = {}
+		myContent['none'] = 0
+
+		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+		if ret:
+			for host in response_data['data']['entries']:
+				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+				if 'malware' in sresponse_data['data'].keys():
+					if not sresponse_data['data']['malware']['content']['version'] in myContent.keys():
+						myContent[sresponse_data['data']['malware']['content']['version']] = 1
+					else:
+						myContent[sresponse_data['data']['malware']['content']['version']] += 1
+				else:
+					myContent['none'] += 1
+
+		mylist = []
+		for ckey, cval in myContent.items():
+			mylist.append({ "version": ckey, "count": cval })
+
+		newlist = sorted(mylist, key=lambda k: k['count'])
+		results = newlist[-10:]
+
+		return(app.response_class(response=json.dumps(results), status=200, mimetype='application/json'))
+
+@app.route('/api/v{0}/vegalite_malwareengine'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def vegalite_malwareengine(hx_api_object):
+	if request.method == 'GET':
+		
+		myContent = {}
+		myContent['none'] = 0
+
+		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+		if ret:
+			for host in response_data['data']['entries']:
+				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+				if 'malware' in sresponse_data['data'].keys():
+					if not sresponse_data['data']['malware']['engine']['version'] in myContent.keys():
+						myContent[sresponse_data['data']['malware']['engine']['version']] = 1
+					else:
+						myContent[sresponse_data['data']['malware']['engine']['version']] += 1
+				else:
+					myContent['none'] += 1
+
+		mylist = []
+		for ckey, cval in myContent.items():
+			mylist.append({ "version": ckey, "count": cval })
+
+		newlist = sorted(mylist, key=lambda k: k['count'])
+		results = newlist[-10:]
+
+		return(app.response_class(response=json.dumps(results), status=200, mimetype='application/json'))
+
+@app.route('/api/v{0}/vegalite_malwarestatus'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def vegalite_malwarestatus(hx_api_object):
+	if request.method == 'GET':
+		
+		myContent = {}
+		myContent['none'] = 0
+
+		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+		if ret:
+			for host in response_data['data']['entries']:
+				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+				if 'MalwareProtectionStatus' in sresponse_data['data'].keys():
+					if not sresponse_data['data']['MalwareProtectionStatus'] in myContent.keys():
+						myContent[sresponse_data['data']['MalwareProtectionStatus']] = 1
+					else:
+						myContent[sresponse_data['data']['MalwareProtectionStatus']] += 1
+				else:
+					myContent['none'] += 1
+
+		mylist = []
+		for ckey, cval in myContent.items():
+			mylist.append({ "mode": ckey, "count": cval })
+
+		newlist = sorted(mylist, key=lambda k: k['count'])
+		results = newlist[-10:]
+
+		return(app.response_class(response=json.dumps(results), status=200, mimetype='application/json'))
 
 @app.route('/api/v{0}/datatable_scripts'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
