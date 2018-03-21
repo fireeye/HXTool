@@ -34,7 +34,9 @@ def valid_session_required(f):
 				kwargs['hx_api_object'] = o
 				return f(*args, **kwargs)
 			else:
-				app.logger.info("The HX API token for the current session has expired, redirecting to the login page.")
+				# Comment out for now - logger needs to be global
+				#app.logger.info("The HX API token for the current session has expired, redirecting to the login page.")
+				pass
 		return redirect(url_for('login', redirect_uri = request.full_path))	
 	return is_session_valid
 	
