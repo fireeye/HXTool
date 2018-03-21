@@ -5,6 +5,7 @@ import threading
 import datetime
 import uuid
 import logging
+from hxtool_global import hxtool_schema_version
 
 try:
 	import tinydb
@@ -22,12 +23,12 @@ class hxtool_db:
 		try:
 			self._db = tinydb.TinyDB(db_file)
 		except ValueError:
-			logger.error("%s is not a TinyDB formatted database. Please move or rename this file before starting HXTool.", db_file)
+			self.logger.error("%s is not a TinyDB formatted database. Please move or rename this file before starting HXTool.", db_file)
 			exit(1)
 			
-		
 		self._lock = threading.Lock()
-	
+		self.check_schema()
+		
 	def close(self):
 		if self._db:
 			self._db.close()
@@ -35,7 +36,20 @@ class hxtool_db:
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.close()
 		
+	
+	def check_schema(self):
+		with self._lock:
+			current_schema_version = self._db.table('schema_version').get(eid = 1)
+		if not current_schema_version:
+			self.logger.warning("The current HXTool database has no schema version set, a DB schema upgrade may be required.")
+			# Upgrade code goes here
+			self._db.table('schema_version').insert({'schema_version' : hxtool_schema_version})
+		elif current_schema_version < hxtool_schema_version:
+			self.logger.warning("The current HXTool database has a schema version: {} that is older than the current version of: {}, a DB schema upgrade may be required.".format(current_schema_version, hxtool_schema_version))
+			# Upgrade code goes here
+			self._db.table('schema_version').update({'schema_version' : hxtool_schema_version}, eids = [1])
 		
+	
 	"""
 	Add a profile
 	Dictionary structure is:

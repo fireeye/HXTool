@@ -240,17 +240,17 @@ def acqs(hx_api_object):
 def search(hx_api_object):	
 	# If we get a post it's a new sweep
 	if request.method == 'POST':
+		skip_base64 = False
 		if 'file' in request.form.keys():
 			f = request.files['newioc']
-			rawioc = f.read()
-			(ret, response_code, response_data) = hx_api_object.restSubmitSweep(rawioc, request.form['sweephostset'])
-			if ret:
-				app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			ioc_script = f.read()
 		elif 'store' in request.form.keys():
-			iocdef = app.hxtool_db.oiocGet(request.form['ioc'])
-			(ret, response_code, response_data) = hx_api_object.restSubmitSweep(iocdef['ioc'], request.form['sweephostset'], skip_base64=True)
-			if ret:
-				app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			skip_base64 = True
+			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])
+		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task")
+		enterprise_search_task.add_step(enterprise_search_task_module(session['ht_profileid']).run, (ioc_script, request.form['sweephostset'],), {'skip_base64' : skip_base64})
+		hxtool_global.hxtool_scheduler.add(enterprise_search_task)
+		app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/search", code=302)
 	else:
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()

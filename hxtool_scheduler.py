@@ -132,9 +132,9 @@ class hxtool_scheduler_task:
 		self.steps = []
 		
 
-	def add_step(self, function, args):
+	def add_step(self, function, args = (), kwargs = {}):
 		with self._lock:
-			self.steps.append((function, args))
+			self.steps.append((function, args, kwargs))
 		
 	def _calculate_next_run(self):
 		if not self.interval or self.interval == 0:
@@ -154,11 +154,8 @@ class hxtool_scheduler_task:
 			# Reset microseconds to keep from drifting too badly
 			self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
 			
-			for func, args in self.steps:
-				if args:
-					ret = func(*args)
-				else:
-					ret = func()
+			for func, args, kwargs in self.steps:
+				ret = func(*args, **kwargs)
 				
 				if not ret and self.stop_on_fail:
 					break
