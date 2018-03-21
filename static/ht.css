@@ -1221,3 +1221,34 @@ table.dataTable th {
         border-right: 1px solid rgb(215, 215, 215);
 }
 
+
+
+.filterTable {
+		margin-left: 10px;
+        font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+        font-weight: 700;
+        color: #444;
+        font-size: 12px;
+        border-spacing: 0;
+        border-collapse: collapse;
+        text-align: left;
+}
+
+.filterTable th {
+        border-bottom: 2px solid rgb(215, 215, 215);
+        font-size: 13px;
+        background: none;
+        text-align: left;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-right: 10px;
+}
+
+.filterTable td {
+		padding-top: 5px;
+		padding-bottom: 5px;
+        font-weight: 400;
+        text-align: left;
+        padding-right: 10px;
+}
+

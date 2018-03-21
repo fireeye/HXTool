@@ -1,0 +1,21 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v2.json",
+  "description": "Inactive hosts per hostset",
+  "autosize": {
+    "type": "fit",
+    "contains": "content"
+  },
+  "data": { "url": "/api/v1/vegalite_inactive_hosts_per_hostset?seconds=900"},
+  "mark": "bar",
+  "encoding": {
+    "x": { "field": "count", 
+      "type": "quantitative", 
+      "axis": {"title": "Endpoint count"}
+    },
+    "y": { "field": "version", 
+      "type": "ordinal", 
+      "sort": {"op": "mean", "field": "count", "order": "descending"}, 
+      "axis": {"title": false}
+    }
+  }
+}

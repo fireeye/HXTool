@@ -1337,8 +1337,109 @@ def datatable_alerts_full(hx_api_object):
 		myhosts = {}
 		myiocs = {}
 
-		(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
+		myfilters = {}
+		if 'source' in request.args:
+			myfilters['source'] = [request.args.get("source")]
+
+		if 'resolution' in request.args:
+			myfilters['resolution'] = request.args.get("resolution")
+
+		if 'hostname' in request.args:
+			(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = request.args.get('hostname'))
+			if ret:
+				myhostlist = []
+				for hostname in response_data['data']['entries']:
+					myhostlist.append(hostname['_id'])
+				myfilters['agent._id'] = myhostlist
+
+		if len(myfilters) > 0:
+			(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'), filters=myfilters)
+		else:
+			(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
 		if ret:
+
+			# Check if we need to match alertname
+			if 'alertname' in request.args:
+
+				myalertname = request.args.get("alertname")
+				myMatches = []
+
+				for alert in response_data:
+					if alert['source'] == "MAL":
+						for mymalinfo in alert['event_values']['detections']['detection']:
+							try:
+								if myalertname in mymalinfo['infection']['infection-name']:
+									myMatches.append(alert)
+							except(KeyError):
+								continue
+					if alert['source'] == "EXD":
+						if myalertname in alert['event_values']['process_name']:
+							myMatches.append(alert)
+					if alert['source'] == "IOC":
+						if alert['condition']['_id'] not in myiocs:
+							# Query IOC object since we do not have it in memory
+							(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+							if cret:
+								myiocs[alert['condition']['_id']] = cresponse_data['data']['entries'][0]
+								tname = cresponse_data['data']['entries'][0]['name']
+							else:
+								tname = "N/A"
+						else:
+							tname = myiocs[alert['condition']['_id']]['name']
+							if myalertname in tname:
+								myMatches.append(alert)
+
+				# overwrite data with our filtered list
+				response_data = myMatches
+
+
+			# Check if we need to match md5hash
+			if 'md5hash' in request.args:
+
+				myhash = request.args.get("md5hash")
+				myMatches = []
+				myIOCfields = ["fileWriteEvent/md5", "processEvent/md5"]
+
+				for alert in response_data:
+					if alert['source'] == "IOC":
+						try:
+							for mykey in myIOCfields:
+								if alert['event_values'][mykey] == myhash:
+									myMatches.append(alert)
+						except(KeyError):
+							continue
+
+					elif alert['source'] == "EXD":
+						EXDMatch = False
+						for detail in alert['event_values']['analysis_details']:
+							for itemkey, itemvalue in detail[detail['detail_type']].items():
+								if (itemkey == "md5sum" and itemvalue == myhash):
+									EXDMatch = True
+								else:
+									if itemkey == "processinfo":
+										try:
+											if detail[detail['detail_type']]['processinfo']['md5sum'] == myhash:
+												EXDMatch = True
+										except(KeyError):
+											continue
+						if EXDMatch:
+							myMatches.append(alert)
+
+					elif alert['source'] == "MAL":
+						for detection in alert['event_values']['detections']['detection']:
+							for myobjkey, myobjval in detection['infected-object'].items():
+								if myobjkey == "file-object":
+									try:
+										if myobjval['md5sum'] == myhash:
+											myMatches.append(alert)
+									except(KeyError):
+										continue
+					else:
+						continue
+
+				response_data = myMatches
+
+
 			# Get annotations from DB and store in memory
 			myannotations = {}
 			dbannotations = app.hxtool_db.alertList(session['ht_profileid'])
@@ -1352,8 +1453,6 @@ def datatable_alerts_full(hx_api_object):
 
 			for alert in response_data:
 
-				start = time.time()
-
 				if alert['_id'] in myannotations.keys():
 					annotation_count = myannotations[alert['_id']]['count']
 					annotation_max_state = myannotations[alert['_id']]['max_state']
@@ -1363,8 +1462,7 @@ def datatable_alerts_full(hx_api_object):
 
 				
 				if alert['agent']['_id'] not in myhosts:
-					# Query host object
-					print("######## HOSTS CALL")
+					# Query host object since we do not have it in memory
 					(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
 					if ret:
 						myhosts[alert['agent']['_id']] = hresponse_data['data']
@@ -1383,7 +1481,7 @@ def datatable_alerts_full(hx_api_object):
 				
 				if alert['source'] == "IOC":
 					if alert['condition']['_id'] not in myiocs:
-						print("######## IOC CALL")
+						# Query IOC object since we do not have it in memory
 						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
 						if cret:
 							myiocs[alert['condition']['_id']] = cresponse_data['data']['entries'][0]
@@ -1417,13 +1515,97 @@ def datatable_alerts_full(hx_api_object):
 					"annotation_count": annotation_count,
 					"action": alert['_id']
 					})
-				end = time.time()
-				print(end - start)
 		else:
 			return('', 500)
 
 		return(app.response_class(response=json.dumps(myalerts), status=200, mimetype='application/json'))
 
+@app.route('/api/v{0}/vegalite_malwarecontent'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def vegalite_malwarecontent(hx_api_object):
+	if request.method == 'GET':
+		
+		myContent = {}
+		myContent['none'] = 0
+
+		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+		if ret:
+			for host in response_data['data']['entries']:
+				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+				if 'malware' in sresponse_data['data'].keys():
+					if not sresponse_data['data']['malware']['content']['version'] in myContent.keys():
+						myContent[sresponse_data['data']['malware']['content']['version']] = 1
+					else:
+						myContent[sresponse_data['data']['malware']['content']['version']] += 1
+				else:
+					myContent['none'] += 1
+
+		mylist = []
+		for ckey, cval in myContent.items():
+			mylist.append({ "version": ckey, "count": cval })
+
+		newlist = sorted(mylist, key=lambda k: k['count'])
+		results = newlist[-10:]
+
+		return(app.response_class(response=json.dumps(results), status=200, mimetype='application/json'))
+
+@app.route('/api/v{0}/vegalite_malwareengine'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def vegalite_malwareengine(hx_api_object):
+	if request.method == 'GET':
+		
+		myContent = {}
+		myContent['none'] = 0
+
+		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+		if ret:
+			for host in response_data['data']['entries']:
+				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+				if 'malware' in sresponse_data['data'].keys():
+					if not sresponse_data['data']['malware']['engine']['version'] in myContent.keys():
+						myContent[sresponse_data['data']['malware']['engine']['version']] = 1
+					else:
+						myContent[sresponse_data['data']['malware']['engine']['version']] += 1
+				else:
+					myContent['none'] += 1
+
+		mylist = []
+		for ckey, cval in myContent.items():
+			mylist.append({ "version": ckey, "count": cval })
+
+		newlist = sorted(mylist, key=lambda k: k['count'])
+		results = newlist[-10:]
+
+		return(app.response_class(response=json.dumps(results), status=200, mimetype='application/json'))
+
+@app.route('/api/v{0}/vegalite_malwarestatus'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def vegalite_malwarestatus(hx_api_object):
+	if request.method == 'GET':
+		
+		myContent = {}
+		myContent['none'] = 0
+
+		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+		if ret:
+			for host in response_data['data']['entries']:
+				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+				if 'MalwareProtectionStatus' in sresponse_data['data'].keys():
+					if not sresponse_data['data']['MalwareProtectionStatus'] in myContent.keys():
+						myContent[sresponse_data['data']['MalwareProtectionStatus']] = 1
+					else:
+						myContent[sresponse_data['data']['MalwareProtectionStatus']] += 1
+				else:
+					myContent['none'] += 1
+
+		mylist = []
+		for ckey, cval in myContent.items():
+			mylist.append({ "mode": ckey, "count": cval })
+
+		newlist = sorted(mylist, key=lambda k: k['count'])
+		results = newlist[-10:]
+
+		return(app.response_class(response=json.dumps(results), status=200, mimetype='application/json'))
 
 @app.route('/api/v{0}/datatable_scripts'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
