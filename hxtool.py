@@ -1096,8 +1096,12 @@ def login():
 																								headers = app.hxtool_config['headers'], 
 																								cookies = app.hxtool_config['cookies'], 
 																								logger = app.logger, 
-																								default_encoding = default_encoding)
-							hxtool_global.task_hx_api_sessions[ht_profile['profile_id']].restLogin(background_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)																	
+																								default_encoding = default_encoding)																
+							(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[ht_profile['profile_id']].restLogin(background_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)																	
+							if ret:
+								app.logger.info("Successfully initialized task API session for profile {}".format(ht_profile['profile_id']))
+							else:
+								app.logger.error("Failed to initialized task API session for profile {}".format(ht_profile['profile_id']))
 							bulk_download_task = hxtool_scheduler_task(ht_profile['profile_id'], "Bulk Download Scheduler Task - {}".format(ht_profile['profile_id']), interval = datetime.timedelta(seconds = 30))
 							bulk_download_task.add_step(bulk_download_scheduler_task_module(ht_profile['profile_id']).run, ())
 							hxtool_global.hxtool_scheduler.add(bulk_download_task)
