@@ -12,7 +12,9 @@ class enterprise_search_task_module(task_module):
 	def run(self, script, hostset, skip_base64 = False):
 		ret = False
 		if script:
-			hx_api_object = hxtool_global.task_hx_api_sessions[self.profile_id]	
+			hx_api_object = self.get_task_api_object()	
 			if hx_api_object and hx_api_object.restIsSessionValid():
 				(ret, response_code, response_data) = hx_api_object.restSubmitSweep(script, hostset, skip_base64 = skip_base64)
+			else:
+				self.logger.warn("No task API session for profile: {}".format(self.profile_id))	
 		return ret

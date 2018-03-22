@@ -14,7 +14,7 @@ class bulk_download_scheduler_task_module(task_module):
 		super(bulk_download_scheduler_task_module, self).__init__(profile_id)
 
 	def run(self):
-		hx_api_object = hxtool_global.task_hx_api_sessions[self.profile_id]	
+		hx_api_object = self.get_task_api_object()	
 		if hx_api_object and hx_api_object.restIsSessionValid():
 			bulk_download_jobs = hxtool_global.hxtool_db.bulkDownloadList(self.profile_id)
 			for job in [_ for _ in bulk_download_jobs if not _['stopped'] and not ('complete' in _ and _['complete'])]:
@@ -33,5 +33,6 @@ class bulk_download_scheduler_task_module(task_module):
 								download_task = hxtool_scheduler_task(self.profile_id, "Acquisition download for: {}".format(host['hostname']))
 								download_task.add_step(download_task_module(self.profile_id).run, (response_data['data']['result']['url'], full_path, job['bulk_download_id'], host_id))
 								hxtool_global.hxtool_scheduler.add(download_task)
-				
+		else:
+			self.logger.warn("No task API session for profile: {}".format(self.profile_id))
 	
