@@ -954,17 +954,15 @@ class HXAPI:
 			myhostsets.append({"_id": int(hs)})
 		
 		try:
-			myconf = json.loads(conf)
-		except ValueError:
-			print("Failed to parse incoming json")
-			print(conf)
-		
-		data = json.dumps({'name' : name, 'description' : description, 'priority' : int(priority), 'host_sets' : myhostsets, 'configuration' : myconf})
-		
-		request = self.build_request(self.build_api_route('host_policies/channels'), method = 'POST', data = data)
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-		
-		return(ret, response_code, response_data)
+			data = json.dumps({'name' : name, 'description' : description, 'priority' : int(priority), 'host_sets' : myhostsets, 'configuration' : json.loads(conf)})
+			
+			request = self.build_request(self.build_api_route('host_policies/channels'), method = 'POST', data = data)
+			(ret, response_code, response_data, response_headers) = self.handle_response(request)
+			
+			return(ret, response_code, response_data)
+		except ValueError:		
+			self.logger.error("Failed to parse custom config channel JSON. Please verify your configuration.")
+			return(False, None, None)
 	
 	def restGetConfigChannel(self, channel_id):
 		
