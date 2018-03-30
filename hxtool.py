@@ -387,9 +387,10 @@ def importioc(hx_api_object):
 
 			# Check if category exists
 			category_exists = False
-			(ret, response_code, response_data) = hx_api_object.restListCategories(filter_term='name={0}'.format(iocs[iockey]['category']))
+			(ret, response_code, response_data) = hx_api_object.restListCategories(limit = 1, filter_term={'name' : iocs[iockey]['category']})
 			if ret:
-				category_exists = (len(response_data['data']['entries']) == 1)
+				# As it turns out, filtering by name also returns partial matches. However the exact match seems to be the 1st result
+				category_exists = (len(response_data['data']['entries']) == 1 and response_data['data']['entries'][0]['name'].lower() == iocs[iockey]['category'].lower())
 				if not category_exists:
 					app.logger.info('Adding new IOC category as part of import: %s - User: %s@%s:%s', iocs[iockey]['category'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(iocs[iockey]['category']))
