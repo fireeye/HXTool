@@ -39,7 +39,7 @@ class hxtool_db:
 	
 	def check_schema(self):
 		with self._lock:
-			current_schema_version = self._db.table('schema_version').get(eid = 1)
+			current_schema_version = int(self._db.table('schema_version').get(eid = 1)['schema_version'])
 		if not current_schema_version:
 			self.logger.warning("The current HXTool database has no schema version set, a DB schema upgrade may be required.")
 			# Upgrade code goes here
