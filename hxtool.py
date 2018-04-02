@@ -381,7 +381,7 @@ def importioc(hx_api_object):
 	if request.method == 'POST':
 	
 		fc = request.files['iocfile']				
-		iocs = json.loads(fc.read())
+		iocs = json.loads(fc.read().decode(default_encoding))
 		
 		for iockey in iocs:
 
