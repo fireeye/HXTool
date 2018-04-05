@@ -447,7 +447,7 @@ def formatStackTable(ht_db, profile_id, hs):
 
 	
 # This is the alert investigation viewer
-def formatHostInfo(response_data, hx_api_object, ht_db):
+def formatHostInfo(response_data, hx_api_object):
 
 	x = ""
 
@@ -831,56 +831,6 @@ def formatHostInfo(response_data, hx_api_object, ht_db):
 			x += "</table>"
 
 			
-	x += "</td>"
-	x += "</tr>"
-
-
-        # Hostset Information
-        x += """
-        <script>
-                function loadHostsets() {
-                        var xhttp = new XMLHttpRequest();
-                        xhttp.onreadystatechange = function(){
-                                if (this.readyState ==4 && this.status == 200){
-                                        document.getElementById("hostset").innerHTML = this.responseText;
-                                }
-                        };
-                        xhttp.open("GET","/hostsets?host=%s", true);
-                        xhttp.send();
-                        document.getElementById("hostsetsub").innerHTML = "Loading Host Sets <img style='height: 20px; margin-right: 10px; margin-bottom: -5px;' src='/static/spinner.svg'></img></div>";
-                }
-        </script>
-        """%(str(response_data['data']['_id']))
-
-
-	x += "<tr>"
-	x += "<td colspan='2' style='padding-left: 0; padding-right: 0;'>"
-	x += "<div class='tableTitle' id='hostset'>Hostsets"
-	x += "<table class='genericTable genericTableMedium' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
-
-        last_update = ht_db.hostsetsGetUpdateTimestamp()
-        sets = ht_db.hostsetsGetByHostID(response_data['data']['_id'])
-        print(last_update)
-        if last_update == None:
-                x += "<tbody>"
-                last_update = "Host sets not yet loaded"
-        elif sets == None:
-                # host is not in any of the cahced hostsets... do different things
-                x += "<thead><tr><th colspan='2' style='text-align: left;'>Host is not in any hostsets.</th></tr></thead>"
-                x += "<tbody>"
-                last_update = "Last updated on " + last_update
-        else:
-                # host is in at least one hostset...
-                x += "<thead><tr><th colspan='2' style='text-align: left;'>Hostset Name</th></tr></thead>"
-                x += "<tbody>"
-                for row in sets:
-                        x += "<tr><td colspan='2'>" + row['set_name'] + "</td></tr>"
-                last_update = "Last updated on " + last_update
-                        
-        x += "<tr><td><button type='button' onclick='loadHostsets()' class='tableActionButton' id='hostsetsub'>Load Host Sets</button></td><td>" + last_update + "</td></tr></tbody>"
-        x += "</table>"
-	x += "</div>"
-    
 	x += "</td>"
 	x += "</tr>"
 
