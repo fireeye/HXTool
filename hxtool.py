@@ -83,48 +83,6 @@ def dashboard(hx_api_object):
 def alert(hx_api_object):
 	return render_template('ht_alert.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
-
-### Hostsets
-##########
-
-@app.route('/hostsets', methods=['GET', 'POST'])
-@valid_session_required
-def hostsets(hx_api_object):
-        # Load hostsets into tinydb
-        hostset_db = hxtool_db('hostset.db', logger = app.logger)
-        (ret, response_code, response_data)= hx_api_object.restListHostsets(limit=100000) # limit set as large value to allow full load
-        hostsets = response_data['data']['entries']
-        table_data = []
-        for hostset in hostsets:
-                set_id = hostset['_id']
-                set_name = hostset['name']
-                (ret, response_code, response_data)= hx_api_object.restListHostsInHostset(set_id, limit=100000) # limit set as large value to allow full load
-                hosts = response_data['data']['entries']
-                for host in hosts:
-                        table_data.append({'set_id':set_id,'set_name':set_name,'host_id':host['_id'],'host_name':host['hostname']})
-
-                        
-        hostset_db.hostsetsSetUpdateTimestamp()
-        hostset_db.hostsetsUpdate(table_data)
-        x = "<table class='genericTable genericTableMedium' style='width: 100%; margin-bottom: 15px; border: 1px solid #dddddd; border-bottom: 0; border-radius: 3px; box-shadow: 2px 2px 5px rgb(200, 200, 200);'>"
-        
-        if 'host' in request.args.keys():
-                sets = hostset_db.hostsetsGetByHostID(request.args.get('host'))
-                if sets == None:
-                        x += "<thead><tr><th colspan='2' style='text-align: left;'>Host is not in any hostsets.</th></tr></thead>"
-                        x += "<tbody>"
-                        last_update = "Last updated on " + hostsets.hostsetsGetUpdateTimestamp()
-                else:
-                        x += "<thead><tr><th colspan='2' style='text-align: left;'>Hostset Name</th></tr></thead>"
-                        x += "<tbody>"
-                        for row in sets:
-                                x += "<tr><td colspan='2'>" + row['set_name'] + "</td></tr>"
-                        last_update = "Last updated on " + hostset_db.hostsetsGetUpdateTimestamp()
-                x += "<tr><td><button type='button' onclick='loadHostsets()' class='tableActionButton' id='hostsetsub'>Load Host Sets</button></td><td>" + last_update + "</td></tr></tbody>"
-                return x
-        return hostset_db.hostsetsGetUpdateTimestamp()
-
-
 ### Hosts
 ##########
 
@@ -134,8 +92,7 @@ def hosts(hx_api_object):
 	# Host investigation panel
 	if 'host' in request.args.keys():
 		(ret, response_code, response_data) = hx_api_object.restGetHostSummary(request.args.get('host'))
-		hostset_db = hxtool_db('hostset.db', logger = app.logger)
-                myhosthtml = formatHostInfo(response_data, hx_api_object, hostset_db)
+		myhosthtml = formatHostInfo(response_data, hx_api_object)
 		return render_template('ht_hostinfo.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostinfo=myhosthtml)
 	
 	# Host search returns table of hosts
