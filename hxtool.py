@@ -381,15 +381,16 @@ def importioc(hx_api_object):
 	if request.method == 'POST':
 	
 		fc = request.files['iocfile']				
-		iocs = json.loads(fc.read())
+		iocs = json.loads(fc.read().decode(default_encoding))
 		
 		for iockey in iocs:
 
 			# Check if category exists
 			category_exists = False
-			(ret, response_code, response_data) = hx_api_object.restListCategories(filter_term='name={0}'.format(iocs[iockey]['category']))
+			(ret, response_code, response_data) = hx_api_object.restListCategories(limit = 1, filter_term={'name' : iocs[iockey]['category']})
 			if ret:
-				category_exists = (len(response_data['data']['entries']) == 1)
+				# As it turns out, filtering by name also returns partial matches. However the exact match seems to be the 1st result
+				category_exists = (len(response_data['data']['entries']) == 1 and response_data['data']['entries'][0]['name'].lower() == iocs[iockey]['category'].lower())
 				if not category_exists:
 					app.logger.info('Adding new IOC category as part of import: %s - User: %s@%s:%s', iocs[iockey]['category'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(iocs[iockey]['category']))
@@ -1096,8 +1097,12 @@ def login():
 																								headers = app.hxtool_config['headers'], 
 																								cookies = app.hxtool_config['cookies'], 
 																								logger = app.logger, 
-																								default_encoding = default_encoding)
-							hxtool_global.task_hx_api_sessions[ht_profile['profile_id']].restLogin(background_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)																	
+																								default_encoding = default_encoding)																
+							(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[ht_profile['profile_id']].restLogin(background_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)																	
+							if ret:
+								app.logger.info("Successfully initialized task API session for profile {}".format(ht_profile['profile_id']))
+							else:
+								app.logger.error("Failed to initialized task API session for profile {}".format(ht_profile['profile_id']))
 							bulk_download_task = hxtool_scheduler_task(ht_profile['profile_id'], "Bulk Download Scheduler Task - {}".format(ht_profile['profile_id']), interval = datetime.timedelta(seconds = 30))
 							bulk_download_task.add_step(bulk_download_scheduler_task_module(ht_profile['profile_id']).run, ())
 							hxtool_global.hxtool_scheduler.add(bulk_download_task)
