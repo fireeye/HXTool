@@ -20,32 +20,6 @@
 			});			
 		}
 
-		function vega_malwarecontent(embedOpt, myWidthThree) {
-	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-version.json', function(spec) {
-	        	spec.width = myWidthThree;
-	        	spec.height = 180;
-	        	spec.data.url = "/api/v1/vegalite_malwarecontent";
-				vegaEmbed("#row4_cell1", spec, embedOpt);
-			});			
-		}
-
-		function vega_malwareengine(embedOpt, myWidthThree) {
-	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-version.json', function(spec) {
-	        	spec.width = myWidthThree;
-	        	spec.height = 180;
-	        	spec.data.url = "/api/v1/vegalite_malwareengine";
-				vegaEmbed("#row4_cell2", spec, embedOpt);
-			});			
-		}
-
-		function vega_malwarestatus(embedOpt, myWidthThree) {
-	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-mode.json', function(spec) {
-	        	spec.width = myWidthThree;
-	        	spec.height = 180;
-	        	spec.data.url = "/api/v1/vegalite_malwarestatus";
-				vegaEmbed("#row4_cell3", spec, embedOpt);
-			});			
-		}
 
 		function vega_events_timeline(embedOpt, myWidthOne, currentDate) {
 	        $.getJSON('/static/vegaspecs/lite-stacked-area.json', function(spec) {
@@ -293,43 +267,6 @@
 				}
 			});
 
-
-			// Malware content version auto-refresh
-			$("#row4_cell1_auto").click(function() {
-				if ($(this).is(":checked")) {
-					row4_cell1_auto_id = setInterval(function () {
-						vega_malwarecontent(embedOpt, myWidthThree);
-					}, myInterval);
-				}
-				else {
-					clearInterval(row4_cell1_auto_id);
-				}
-			});
-
-			// Malware engine version auto-refresh
-			$("#row4_cell2_auto").click(function() {
-				if ($(this).is(":checked")) {
-					row4_cell2_auto_id = setInterval(function () {
-						vega_malwareengine(embedOpt, myWidthThree);
-					}, myInterval);
-				}
-				else {
-					clearInterval(row4_cell2_auto_id);
-				}
-			});
-
-			// Malware status auto-refresh
-			$("#row4_cell3_auto").click(function() {
-				if ($(this).is(":checked")) {
-					row4_cell3_auto_id = setInterval(function () {
-						vega_malwarestatus(embedOpt, myWidthThree);
-					}, myInterval);
-				}
-				else {
-					clearInterval(row4_cell3_auto_id);
-				}
-			});
-
 			// Start loading all graphs
 			// Vega: Inactive hosts
 			vega_inactive_hosts(embedOpt, myWidthThree);
@@ -348,16 +285,6 @@
 
 			// Datatable: Last 10 alerts
 			row2_cell1_datatable = datatable_last_alerts();
-
-			// Vega: Malware content version
-			vega_malwarecontent(embedOpt, myWidthThree);
-
-			// Vega: Malware engine version
-			vega_malwareengine(embedOpt, myWidthThree);
-
-			// Vega: Malware engine status
-			vega_malwarestatus(embedOpt, myWidthThree);
-
 
         });
 </script>
@@ -459,46 +386,6 @@
 				<option value='730'>2 Years
 			</select>
 			<div id='row2_cell2'></div>
-		</td>
-	</tr>
-	<tr>
-		<th>
-			<div style='float: left;'>
-				<i class="fas fa-chart-bar fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-			</div>
-			Endpoints with anti-virus content version
-			<div style='float: right;'>
-				<input type='checkbox' id='row4_cell1_auto'> auto
-			</div>
-		</td>
-		<th>
-			<div style='float: left;'>
-				<i class="fas fa-chart-bar fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-			</div>
-			Endpoints with anti-virus engine version
-			<div style='float: right;'>
-				<input type='checkbox' id='row4_cell2_auto'> auto
-			</div>
-		</td>
-		<th>
-			<div style='float: left;'>
-				<i class="fas fa-chart-bar fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-			</div>
-			Status of anti-virus on endpoints
-			<div style='float: right;'>
-				<input type='checkbox' id='row4_cell3_auto'> auto
-			</div>
-		</td>
-	</tr>
-	<tr>
-		<td id='row4_cell1'>
-			<div id='row4_cell1'></div>
-		</td>
-		<td style='text-align: center;'>
-			<div id='row4_cell2'></div>
-		</td>
-		<td style='text-align: center;'>
-			<div id='row4_cell3'></div>
 		</td>
 	</tr>
 	<tr>

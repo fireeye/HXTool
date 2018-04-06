@@ -77,6 +77,12 @@ def nl2br(eval_ctx, value):
 def dashboard(hx_api_object):
 	return render_template('ht_dashboard.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+@app.route('/dashboard-av', methods=['GET'])
+@valid_session_required
+def dashboardav(hx_api_object):
+	return render_template('ht_dashboard-av.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+
 ### Alerts page
 @app.route('/alert', methods=['GET'])
 @valid_session_required
@@ -1296,7 +1302,11 @@ def datatable_alerts(hx_api_object):
 
 		myalerts = {"data": []}
 
-		(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'))
+		if 'source' in request.args:
+			(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'), filter_term={ "source": request.args.get("source") })
+		else:
+			(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'))
+
 		if ret:
 			for alert in response_data['data']['entries']:
 				# Query host object

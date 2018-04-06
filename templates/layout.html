@@ -148,6 +148,7 @@
 				$("#dropdown-content-acquisition").hide();
 				$("#dropdown-content-es").hide();
 				$('#ht_info_content').hide();
+				$("#dropdown-content-dashboard").hide();
 			});
 			
 			$('[id^=dropdown-content]').click(function(e) {
@@ -158,6 +159,7 @@
 				$("#dropdown-content-admin").hide();
 				$("#dropdown-content-indicators").hide();
 				$("#dropdown-content-es").hide();
+				$("#dropdown-content-dashboard").hide();
 				$('#ht_info_content').hide();
 				$("#dropdown-content-acquisition").show(150);
 				e.stopPropagation();
@@ -167,6 +169,7 @@
 				$("#dropdown-content-admin").hide();
 				$("#dropdown-content-acquisition").hide();
 				$("#dropdown-content-es").hide();
+				$("#dropdown-content-dashboard").hide();
 				$('#ht_info_content').hide();
 				$("#dropdown-content-indicators").show(150);
 				e.stopPropagation();
@@ -176,6 +179,7 @@
 				$("#dropdown-content-indicators").hide();
 				$("#dropdown-content-acquisition").hide();
 				$("#dropdown-content-es").hide();
+				$("#dropdown-content-dashboard").hide();
 				$('#ht_info_content').hide();
 				$("#dropdown-content-admin").show(150);
 				e.stopPropagation();
@@ -185,8 +189,19 @@
 				$("#dropdown-content-admin").hide();
 				$("#dropdown-content-indicators").hide();
 				$("#dropdown-content-acquisition").hide();
+				$("#dropdown-content-dashboard").hide();
 				$('#ht_info_content').hide();
 				$("#dropdown-content-es").show(150);
+				e.stopPropagation();
+			});
+
+			$("#navcategory_dashboard").click(function(e) {
+				$("#dropdown-content-admin").hide();
+				$("#dropdown-content-indicators").hide();
+				$("#dropdown-content-acquisition").hide();
+				$("#dropdown-content-es").hide();
+				$('#ht_info_content').hide();
+				$("#dropdown-content-dashboard").show(150);
 				e.stopPropagation();
 			});
 			
@@ -198,7 +213,21 @@
 	<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
 
 	<div style='z-index:50; position: absolute; top: 0px; left: 260px; color: rgb(245,245,245);'>
-		<div id='navbutton_' style='float: left;' class='htLayoutMenuItem'>Dashboard</div>
+
+		<div id='navcategory_dashboard' style='float: left; position: relative;' class='htLayoutMenuItem'>Dashboard <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
+			<div id='dropdown-content-dashboard' class='htLayoutDropdown-content'>
+				<div id='navbutton_' class='htLayoutDropdown-item'>
+					<i class="fas fa-chart-line fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					Main Dashboard
+				</div>
+				<div id='navbutton_dashboard-av' class='htLayoutDropdown-item'>
+					<i class="fas fa-bug fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+					Anti-virus Dashboard
+				</div>
+			</div>				
+		</div>
+
+		<!-- <div id='navbutton_' style='float: left;' class='htLayoutMenuItem'>Dashboard</div> -->
 		<div id='navbutton_alert' style='float: left;' class='htLayoutMenuItem'>Alerts</div>
 
 		<div id='navcategory_es' style='float: left; position: relative;' class='htLayoutMenuItem'>Enterprise Search <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>

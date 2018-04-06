@@ -1,0 +1,227 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Anti-virus dashboard{% endblock %}
+{% block content %}
+
+<script>
+
+		function getHistoricDate(days) {
+			var historicDate = new Date();
+			historicDate.setDate(historicDate.getDate() - days);
+			return(historicDate.toISOString().substr(0, 10))
+		}
+
+		function vega_malwarecontent(embedOpt, myWidthThree) {
+	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-version.json', function(spec) {
+	        	spec.width = myWidthThree;
+	        	spec.height = 180;
+	        	spec.data.url = "/api/v1/vegalite_malwarecontent";
+				vegaEmbed("#row1_cell1", spec, embedOpt);
+			});			
+		}
+
+		function vega_malwareengine(embedOpt, myWidthThree) {
+	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-version.json', function(spec) {
+	        	spec.width = myWidthThree;
+	        	spec.height = 180;
+	        	spec.data.url = "/api/v1/vegalite_malwareengine";
+				vegaEmbed("#row1_cell2", spec, embedOpt);
+			});			
+		}
+
+		function vega_malwarestatus(embedOpt, myWidthThree) {
+	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-mode.json', function(spec) {
+	        	spec.width = myWidthThree;
+	        	spec.height = 180;
+	        	spec.data.url = "/api/v1/vegalite_malwarestatus";
+				vegaEmbed("#row1_cell3", spec, embedOpt);
+			});			
+		}
+
+		function datatable_last_alerts() {
+			var row2_cell1_datatable = $('#row2_cell1_table').DataTable( {
+				"ajax": "/api/v1/datatable_alerts?limit=20&source=MAL",
+				"paging":   false,
+				"ordering": false,
+				"info":     false,
+				"searching": false,
+				"columns": [
+					{ title: "Hostname" },
+					{ title: "Domain" },
+					{ title: "Reported at" },
+					{ title: "Source" },
+					{ title: "Threat" },
+					{ title: "Action" }
+				],
+
+				"columnDefs": [	
+					{
+					 targets: 0,
+					 render: function ( data, type, row, meta ) {
+					 	if(type === 'display'){
+					 		myArr = data.split("___");
+					 		data = '<a class="hostLink" href="/hosts?host=' + encodeURIComponent(myArr[1]) + '&alertid=' + encodeURIComponent(myArr[2]) + '">' + myArr[0] + '</a>';
+					 	}
+					 	return data;
+					 }
+					},
+					{
+					 targets: 3,
+					 render: function ( data, type, row, meta ) {
+					 	return(datatables_parseSource(data));
+					 }
+					},
+					{
+					 targets: 5,
+					 render: function ( data, type, row, meta ) {
+					 	return(datatables_parseResolution(data));
+					 }
+					},
+					{"className": "dt-center", "targets": [0, 1, 2, 3]}
+				]
+			});
+			return(row2_cell1_datatable);
+		}
+
+        $(document).ready(function() {
+
+        	myInterval = 6000;
+
+        	myWidthThree = ($( window ).width() / 3) - 90;
+        	myWidthOne = $( window ).width() - 230;
+
+			var fullDate = new Date()
+			var currentDate = fullDate.toISOString().substr(0, 10);
+
+			var pastDate = getHistoricDate(1);
+
+			var embedOpt = {
+				"actions": false
+			}
+
+			// Click events
+
+			// Malware content version auto-refresh
+			$("#row1_cell1_auto").click(function() {
+				if ($(this).is(":checked")) {
+					row1_cell1_auto_id = setInterval(function () {
+						vega_malwarecontent(embedOpt, myWidthThree);
+					}, myInterval);
+				}
+				else {
+					clearInterval(row1_cell1_auto_id);
+				}
+			});
+
+			// Malware engine version auto-refresh
+			$("#row1_cell2_auto").click(function() {
+				if ($(this).is(":checked")) {
+					row1_cell2_auto_id = setInterval(function () {
+						vega_malwareengine(embedOpt, myWidthThree);
+					}, myInterval);
+				}
+				else {
+					clearInterval(row1_cell2_auto_id);
+				}
+			});
+
+			// Malware status auto-refresh
+			$("#row1_cell3_auto").click(function() {
+				if ($(this).is(":checked")) {
+					row1_cell3_auto_id = setInterval(function () {
+						vega_malwarestatus(embedOpt, myWidthThree);
+					}, myInterval);
+				}
+				else {
+					clearInterval(row1_cell3_auto_id);
+				}
+			});
+
+			// last 10 alerts auto-refresh
+			$("#row2_cell1_auto").click(function() {
+				if ($(this).is(":checked")) {
+					row2_cell1_auto_id = setInterval(function () {
+						row2_cell1_datatable.ajax.reload();
+					}, myInterval);
+				}
+				else {
+					clearInterval(row2_cell1_auto_id);
+				}
+			});
+
+			// Start loading all graphs
+			// Vega: Malware content version
+			vega_malwarecontent(embedOpt, myWidthThree);
+
+			// Vega: Malware engine version
+			vega_malwareengine(embedOpt, myWidthThree);
+
+			// Vega: Malware engine status
+			vega_malwarestatus(embedOpt, myWidthThree);
+
+			// Datatable: Last 20 MAL alerts
+			row2_cell1_datatable = datatable_last_alerts();
+
+
+        });
+</script>
+
+<table id='dashboard' class='dashTable' style='width: 100%;'>
+	<tr>
+		<th>
+			<div style='float: left;'>
+				<i class="fas fa-chart-bar fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+			</div>
+			Endpoints with anti-virus content version
+			<div style='float: right;'>
+				<input type='checkbox' id='row1_cell1_auto'> auto
+			</div>
+		</td>
+		<th>
+			<div style='float: left;'>
+				<i class="fas fa-chart-bar fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+			</div>
+			Endpoints with anti-virus engine version
+			<div style='float: right;'>
+				<input type='checkbox' id='row1_cell2_auto'> auto
+			</div>
+		</td>
+		<th>
+			<div style='float: left;'>
+				<i class="fas fa-chart-bar fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+			</div>
+			Status of anti-virus on endpoints
+			<div style='float: right;'>
+				<input type='checkbox' id='row1_cell3_auto'> auto
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td id='row1_cell1'>
+			<div id='row1_cell1'></div>
+		</td>
+		<td style='text-align: center;'>
+			<div id='row1_cell2'></div>
+		</td>
+		<td style='text-align: center;'>
+			<div id='row1_cell3'></div>
+		</td>
+	</tr>
+	<tr>
+		<th colspan='3'>
+			<div style='float: left;'>
+				<i class="fas fa-table fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+			</div>
+			Last 20 Anti-virus alerts
+			<div style='float: right;'>
+				<input type='checkbox' id='row2_cell1_auto'> auto
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td id='row2_cell1' colspan='3'>
+			<table id="row2_cell1_table" class='genericTable' style='width: 100%;'></table>
+		</td>
+	</tr>
+</table>
+
+{% endblock %}
