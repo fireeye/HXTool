@@ -116,9 +116,9 @@
 			aArr = $(this).attr("id").split("_");
 			$("#annotationBoxID").val(aArr[1]);
 
-			$('#annotationBox').center();
+			$('#annotationBox').realcenter();
 
-			$('#shader').show();
+			$('#shader').popupshow();
 			$("#annotationBox").show();
 		});
 
@@ -244,7 +244,7 @@
 				 "width": "80px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<a href='#' class='tableActionButton showannotation' id='showannotation_" + row.DT_RowId + "'>show (" + data + ")</a>";
+				 		data = "<button class='tableActionButton showannotation' id='showannotation_" + row.DT_RowId + "'>show (" + data + ")</button>";
 				 	}
 				 	return data;
 				 }
@@ -254,7 +254,7 @@
 				 "width": "80px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<a href='#' class='tableActionButton addannotation' id='annotate_" + row.DT_RowId + "'>annotate</a>";
+				 		data = "<button class='tableActionButton addannotation' id='annotate_" + row.DT_RowId + "'>annotate</button>";
 				 	}
 				 	return data;
 				 }
