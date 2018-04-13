@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Scheduler{% endblock %}
+{% block navlocation %}Scheduler{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+
+		$.getJSON('/api/v1/scheduler_health', function(myhealth) {
+			if (myhealth == true) {
+				$("#schedulerHealth").html("<i class='fas fa-check-circle fa-1x fa-fw' style='color: green; margin-right: 2px;' aria-hidden='true'></i> Running");
+			}
+			else {
+				$("#schedulerHealth").html("<i class='fas fa-times-circle fa-1x fa-fw' style='color: red; margin-right: 2px;' aria-hidden='true'></i> Not running");
+			}
+		});
+
+		var scheduler_tasks = $('#tableContainer').DataTable( {
+			"ajax": "/api/v1/scheduler_tasks",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": false,
+			"columns": [
+				{ title: "profile", "data": "profile" },
+				{ title: "parent_id", "data": "parent_id" },
+				{ title: "name", "data": "name" },
+				{ title: "enabled", "data": "enabled" },
+				{ title: "immutable", "data": "immutable" },
+				{ title: "state", "data": "state" }
+			]
+		});
+
+		setInterval( function () {
+			scheduler_tasks.ajax.reload();
+		}, 5000 );
+
+	});
+
+</script>
+
+<br>
+
+<div id='schedulerHealth'></div>
+
+<table id='tableContainer' class='genericTable'></table>
+
+{% endblock %}
