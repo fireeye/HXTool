@@ -664,7 +664,14 @@ def bulkaction(hx_api_object):
 		
 	if request.args.get('action') == "download":
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
-		hosts = { host['host']['_id'] : {'downloaded' : False, 'hostname' :  host['host']['hostname']} for host in response_data['data']['entries'] }
+		
+		bulk_acquisition_hosts = {}
+		for host in response_data['data']['entries']:
+			bulk_acquisition_hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' :  host['host']['hostname']}
+			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
+			# TODO: pull poll interval from config
+			bulk_acquisition_download_task.add_step(bulk_download_task_module(bulk_acquisition_download_task).run, (30, request.args.get('id'), host['host']['_id'], host['host']['hostname']))
+			hxtool_global.hxtool_scheduler.add(bulk_acquisition_download_task)
 		
 		hostset_id = -1
 		(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
