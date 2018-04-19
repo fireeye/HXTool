@@ -11,10 +11,15 @@ try:
 except ImportError:
 	import queue
 
+import hxtool_global	
+	
 TASK_STATE_IDLE = 0
 TASK_STATE_QUEUED = 1
 TASK_STATE_RUNNING = 2
-TASK_STATE_COMPLETE = 3	
+TASK_STATE_COMPLETE = 3
+TASK_STATE_STOPPING = 4	
+TASK_STATE_STOPPED = 5
+TASK_STATE_FAILED = 6
 
 # Special task indicator that we need to exit now
 SIGINT_TASK_ID = -1
@@ -115,6 +120,7 @@ class hxtool_scheduler:
 # States:
 class hxtool_scheduler_task:
 	def __init__(self, profile_id, name, id = str(uuid.uuid4()), interval = 0, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, logger = logging.getLogger(__name__)):
+		self.logger = hxtool_global.hxtool_scheduler.logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
 		self.id = id
@@ -127,26 +133,27 @@ class hxtool_scheduler_task:
 		self.start_time = start_time
 		self.end_time = end_time
 		self.last_run = None
+		self.run_state = None
 		self.next_run = start_time
 		self.stop_on_fail = stop_on_fail
 		self.steps = []
+		self.stored_result = None
 		
 
-	def add_step(self, function, args = (), kwargs = {}):
+	def add_step(self, func, args = (), kwargs = {}):
 		with self._lock:
-			self.steps.append((function, args, kwargs))
+			self.steps.append((func, args, kwargs))
 		
 	def _calculate_next_run(self):
-		if not self.interval or self.interval == 0:
-			self.next_run = None
-		elif type(self.interval) is datetime.timedelta:
+		self.next_run = None
+		if type(self.interval) is datetime.timedelta:
 			self.next_run = (self.last_run + self.interval)
 	
 	# Use this to set state, its thread-safe
 	def set_state(self, state):
 		with self._lock:
 			self.state = state
-			
+	
 	def run(self):
 		with self._lock:
 			self.state = TASK_STATE_RUNNING
@@ -155,19 +162,41 @@ class hxtool_scheduler_task:
 			self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
 			
 			for func, args, kwargs in self.steps:
-				ret = func(*args, **kwargs)
-				
-				if not ret and self.stop_on_fail:
-					break
-			
+				if self.enabled:
+					# This is an HXTool task_module - need to find a better way to do this.
+					if 'task_module' in func.__str__():
+						if self.stored_result:
+							kwargs.update(self.stored_result)
+						(ret, result) = func(*args, **kwargs)
+						self.stored_result = result
+					else:
+						ret = func(*args, **kwargs)
+					
+					if not ret and self.stop_on_fail:
+						self.state = TASK_STATE_FAILED
+						break
+				else:
+					if self.state == TASK_STATE_STOPPING:
+						self.state == TASK_STATE_STOPPED
+						break
+						
+			if self.state == TASK_STATE_RUNNING:
+				self.state = TASK_STATE_IDLE
+					
 			self._calculate_next_run()
 			
 			if self.next_run:
 				self.state = TASK_STATE_IDLE
 			else:
-				self.state = TASK_STATE_COMPLETE
+				if self.state == TASK_STATE_IDLE: 
+					self.state = TASK_STATE_COMPLETE
 				
 		return ret
+		
+	def stop(self):
+		self.enabled = False
+		self.state = TASK_STATE_STOPPING
+		
 	
 	def should_run(self):
 		return (self.enabled and  
