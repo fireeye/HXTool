@@ -1001,14 +1001,25 @@ def stackinganalyze(hx_api_object):
 @valid_session_required
 def settings(hx_api_object):
 	if request.method == 'POST':
-		key = HXAPI.b64(session['key'], True)
 		# Generate a new IV - must be 16 bytes
 		iv = crypt_generate_random(16)
+		salt = crypt_generate_random(32)
+		key = crypt_pbkdf2_hmacsha256(salt, app.task_api_key)
 		encrypted_password = crypt_aes(key, iv, request.form['bgpass'])
-		salt = HXAPI.b64(session['salt'], True)
 		out = app.hxtool_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
 		app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		start_background_processor(session['ht_profileid'], request.form['bguser'], request.form['bgpass'])
+		hxtool_global.task_hx_api_sessions[session['ht_profileid']] = HXAPI(hx_api_object.hx_host, 
+																			hx_port = hx_api_object.hx_port, 
+																			proxies = app.hxtool_config['network'].get('proxies'), 
+																			headers = app.hxtool_config['headers'], 
+																			cookies = app.hxtool_config['cookies'], 
+																			logger = app.logger, 
+																			default_encoding = default_encoding)																
+		(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[session['ht_profileid']].restLogin(request.form['bguser'], request.form['bgpass'], auto_renew_token = True)
+		if ret:
+			app.logger.info("Successfully initialized task API session for profile {}".format(session['ht_profileid']))
+		else:
+			app.logger.error("Failed to initialized task API session for profile {}".format(session['ht_profileid']))
 	if request.args.get('unset'):
 		out = app.hxtool_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
 		app.logger.info("Background Processing credentials unset profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
@@ -1075,44 +1086,6 @@ def login():
 					session['ht_user'] = request.form['ht_user']
 					session['ht_profileid'] = ht_profile['profile_id']
 					session['ht_api_object'] = hx_api_object.serialize()
-					
-					# Decrypt background processor credential if available
-					# TODO: this could probably be better written
-					iv = None
-					salt = crypt_generate_random(32)
-					background_credential = app.hxtool_db.backgroundProcessorCredentialGet(ht_profile['profile_id'])
-					if background_credential:
-						salt = HXAPI.b64(background_credential['salt'], True)
-						iv = HXAPI.b64(background_credential['iv'], True)
-						
-					key = crypt_pbkdf2_hmacsha256(salt, request.form['ht_pass'])
-					
-					if iv and salt:
-						try:
-							decrypted_background_password = crypt_aes(key, iv, background_credential['hx_api_encrypted_password'], decrypt = True)
-							hxtool_global.task_hx_api_sessions[ht_profile['profile_id']] = HXAPI(ht_profile['hx_host'], 
-																								hx_port = ht_profile['hx_port'], 
-																								proxies = app.hxtool_config['network'].get('proxies'), 
-																								headers = app.hxtool_config['headers'], 
-																								cookies = app.hxtool_config['cookies'], 
-																								logger = app.logger, 
-																								default_encoding = default_encoding)																
-							(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[ht_profile['profile_id']].restLogin(background_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)																	
-							if ret:
-								app.logger.info("Successfully initialized task API session for profile {}".format(ht_profile['profile_id']))
-							else:
-								app.logger.error("Failed to initialized task API session for profile {}".format(ht_profile['profile_id']))
-							bulk_download_task = hxtool_scheduler_task(ht_profile['profile_id'], "Bulk Download Scheduler Task - {}".format(ht_profile['profile_id']), interval = datetime.timedelta(seconds = 30))
-							bulk_download_task.add_step(bulk_download_scheduler_task_module(ht_profile['profile_id']).run, ())
-							hxtool_global.hxtool_scheduler.add(bulk_download_task)
-						except UnicodeDecodeError:
-							app.logger.error("Failed to decrypt background processor credential! Did you recently change your password? If so, please unset and reset these credentials under Settings.")
-						finally:
-							decrypted_background_password = None
-
-					session['key']= HXAPI.b64(key)
-					session['salt'] = HXAPI.b64(salt)
-
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
@@ -1843,8 +1816,38 @@ if __name__ == "__main__":
 	app.hxtool_config = hxtool_config('conf.json', logger = app.logger)
 	hxtool_global.hxtool_config = app.hxtool_config
 	
+	app.task_api_key = 'Z\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
+	
 	# Initialize hxtool_global storage for task scheduler sessions
 	hxtool_global.task_hx_api_sessions = {}
+	
+	# Loop through background credentials and start the API sessions
+	profiles = hxtool_global.hxtool_db.profileList()
+	for profile in profiles:
+		task_api_credential = hxtool_global.hxtool_db.backgroundProcessorCredentialGet(profile['profile_id'])
+		if task_api_credential:
+			try:
+				salt = HXAPI.b64(task_api_credential['salt'], True)
+				iv = HXAPI.b64(task_api_credential['iv'], True)
+				key = crypt_pbkdf2_hmacsha256(salt, app.task_api_key)
+				decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
+				hxtool_global.task_hx_api_sessions[profile['profile_id']] = HXAPI(profile['hx_host'], 
+																					hx_port = profile['hx_port'], 
+																					proxies = app.hxtool_config['network'].get('proxies'), 
+																					headers = app.hxtool_config['headers'], 
+																					cookies = app.hxtool_config['cookies'], 
+																					logger = app.logger, 
+																					default_encoding = default_encoding)																
+				(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[profile['profile_id']].restLogin(task_api_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)
+				if ret:
+					app.logger.info("Successfully initialized task API session for profile {} ({})".format(profile['hx_host'], profile['profile_id']))
+				else:
+					app.logger.error("Failed to initialized task API session for profile {} ({})".format(profile['hx_host'], profile['profile_id']))
+					del hxtool_global.task_hx_api_sessions[profile['profile_id']]
+			except UnicodeDecodeError:
+				app.logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+		else:
+			app.logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 	
 	# Initialize the scheduler
 	# TODO: implement task_thread_count in config
