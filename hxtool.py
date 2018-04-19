@@ -1828,6 +1828,10 @@ if __name__ == "__main__":
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
 	
+	# Init DB
+	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger)
+	hxtool_global.hxtool_db = app.hxtool_db
+	
 	# If we're debugging use a static key
 	if debug_mode:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
@@ -1893,10 +1897,6 @@ if __name__ == "__main__":
 
 	# Start
 	app.logger.info('Application starting')
-
-	# Init DB
-	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger)
-	hxtool_global.hxtool_db = app.hxtool_db
 	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	
