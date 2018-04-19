@@ -1806,7 +1806,7 @@ def logout_task_sessions():
 
 
 def sigint_handler(signum, frame):
-	app.logger.debug("Caught SIGINT, exiting...")
+	app.logger.info("Caught SIGINT, exiting...")
 	logout_task_sessions()
 	if hxtool_global.hxtool_scheduler:
 		hxtool_global.hxtool_scheduler.stop()
