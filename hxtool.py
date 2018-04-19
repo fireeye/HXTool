@@ -247,7 +247,7 @@ def search(hx_api_object):
 			skip_base64 = True
 			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])
 		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task")
-		enterprise_search_task.add_step(enterprise_search_task_module(session['ht_profileid']).run, (ioc_script, request.form['sweephostset'],), {'skip_base64' : skip_base64})
+		enterprise_search_task.add_step(enterprise_search_task_module(enterprise_search_task).run, (ioc_script, request.form['sweephostset'],), {'skip_base64' : skip_base64})
 		hxtool_global.hxtool_scheduler.add(enterprise_search_task)
 		app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/search", code=302)
