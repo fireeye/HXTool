@@ -11,20 +11,13 @@ class bulk_download_task_module(task_module):
 		super(type(self), self).__init__(parent_task)
 		self.logger = parent_task.logger
 
-	def run(self, poll_interval, bulk_download_id, host_id, host_name):
+	def run(self, poll_interval, bulk_download_id, host_id, host_name, max_retries = 3):
 		result = {}
 		ret = False
+		retry_counter = 0
 		if hxtool_global.hxtool_db.bulkDownloadGet(self.parent_task.profile_id, bulk_download_id)['stopped'] == False:			
 			hx_api_object = self.get_task_api_object()	
 			if hx_api_object and hx_api_object.restIsSessionValid():
-				
-				bulk_acquisition_started = False
-				while bulk_acquisition_started == False:
-					(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(bulk_download_id)
-					bulk_acquisition_started = (response_data['data']['state'] == 'RUNNING')
-					self.logger.debug("Waiting for bulk acquisition {} to start.".format(bulk_download_id))
-					time.sleep(5)
-				
 				should_stop = False
 				while should_stop == False:					
 					(ret, response_code, response_data) = hx_api_object.restGetBulkHost(bulk_download_id, host_id)
@@ -49,6 +42,11 @@ class bulk_download_task_module(task_module):
 						else:
 							self.logger.debug("Sleeping for {} seconds".format(poll_interval))						
 							time.sleep(poll_interval)
+					elif response_code == 404 and retry_counter < max_retries:
+						# Sometimes the controller is slow is starting up the bulk acquisition and enumerating the hosts associated with it.
+						retry_counter += 1
+						self.logger.info("Got 404 from the controller, retrying in {} seconds.".format(poll_interval))
+						time.sleep(poll_interval)
 					else:
 						self.logger.warn("Failed to get host: {} for bulk acquisition: {}, response code: {}, response data: {}".format(host_name, bulk_download_id, response_code, response_data))
 						should_stop = True
