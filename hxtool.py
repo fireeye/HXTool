@@ -76,11 +76,23 @@ def nl2br(eval_ctx, value):
 def dashboard(hx_api_object):
 	return render_template('ht_dashboard.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### AV Dashboard
+@app.route('/dashboard-av', methods=['GET'])
+@valid_session_required
+def dashboardav(hx_api_object):
+	return render_template('ht_dashboard-av.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
 ### Alerts page
 @app.route('/alert', methods=['GET'])
 @valid_session_required
 def alert(hx_api_object):
 	return render_template('ht_alert.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+### Scheduler page
+@app.route('/scheduler', methods=['GET'])
+@valid_session_required
+def scheduler_view(hx_api_object):
+	return render_template('ht_scheduler.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### Hosts
 ##########
@@ -1275,7 +1287,11 @@ def datatable_alerts(hx_api_object):
 
 		myalerts = {"data": []}
 
-		(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'))
+		if 'source' in request.args:
+			(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'), filter_term={ "source": request.args.get("source") })
+		else:
+			(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'))
+
 		if ret:
 			for alert in response_data['data']['entries']:
 				# Query host object
@@ -1737,6 +1753,29 @@ def datatable_es_result(hx_api_object):
 	else:
 		return('Missing search id or type', 404)
 
+
+@app.route('/api/v{0}/scheduler_health'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def scheduler_health(hx_api_object):
+	print(hxtool_global.hxtool_scheduler.status())
+	return(app.response_class(response=json.dumps(hxtool_global.hxtool_scheduler.status()), status=200, mimetype='application/json'))
+
+@app.route('/api/v{0}/scheduler_tasks'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def scheduler_tasks(hx_api_object):
+	mytasks = {}
+	mytasks['data'] = []
+	for task in hxtool_global.hxtool_scheduler.tasks():
+		mytasks['data'].append({
+			"DT_RowId": task['id'],
+			"profile": task['profile_id'],
+			"parent_id": task['parent_id'],
+			"name": task['name'],
+			"enabled": task['enabled'],
+			"immutable": task['immutable'],
+			"state": task['state']
+			})
+	return(app.response_class(response=json.dumps(mytasks), status=200, mimetype='application/json'))
 
 #####################
 # Stacking Results
