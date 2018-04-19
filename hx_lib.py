@@ -107,6 +107,12 @@ class HXAPI:
 			request.headers['Content-Type'] = content_type
 			self.logger.debug('HTTP method is not GET or DELETE, Content-Type header set to: %s', content_type)
 		
+		# Set the token here, this ensures the last_use_timestamp is properly updated on each request
+		api_token = self.get_token()
+		if api_token:
+			self.logger.debug("Setting X-FeApi-Token header")
+			self._session.headers['X-FeApi-Token'] = api_token['token']
+		
 		pr = self._session.prepare_request(request)
 		
 		self.logger.debug('Full URL is: %s', pr.url)
@@ -165,8 +171,7 @@ class HXAPI:
 		timestamp = str(datetime.datetime.utcnow())
 		if token:
 			self.fe_token = {'token' : token, 'grant_timestamp' : timestamp, 'last_use_timestamp' : timestamp}
-			# Add the token header to the requests Session
-			self._session.headers['X-FeApi-Token'] = token
+			# Removed the code setting the X-FeApi-Token header from here because the last_use_timestamp would never get updated
 		else:
 			self.fe_token = None
 		
@@ -259,6 +264,7 @@ class HXAPI:
 		if current_token:
 			last_use_delta = (datetime.datetime.utcnow() - datetime.datetime.strptime(current_token['last_use_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds / 60
 			grant_time_delta = (datetime.datetime.utcnow() - datetime.datetime.strptime(current_token['grant_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds / 60
+			self.logger.debug("Token last_use_timestamp is: {}, grant_timestamp is: {}, last_use_delta is: {}, grant_time_delta is: {}".format(current_token['last_use_timestamp'], current_token['grant_timestamp'], last_use_delta, grant_time_delta))
 			is_valid = (last_use_delta < 15 and grant_time_delta < 150)
 		
 		if self.auto_renew_token and not is_valid:
