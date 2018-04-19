@@ -1752,21 +1752,38 @@ def stack_job_results(hx_api_object, stack_id):
 ####################
 # Utility Functions
 ####################
-def submit_bulk_job(hx_api_object, hostset, script_xml, download = True, handler=None, skip_base64=False):
-	bulk_id = None
+def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, handler = None, skip_base64 = False):
 	
-	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hostset_id = hostset, skip_base64=skip_base64)
+	bulk_acquisition_id = None
+	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hostset_id = hostset_id, skip_base64 = skip_base64)
 	if ret:
-		bulk_id = response_data['data']['_id']
+		bulk_acquisition_id = response_data['data']['_id']
 		
+		
+	# So it turns out theres a nasty race condition that was happening here:
+	# the call to restListBulkHosts() was returning no hosts because the bulk
+	# acquisition hadn't been queued up yet. So instead, we walk the host set
+	# in order to retrieve the hosts targeted for the job.
 	if download:
-		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset)
-		bulk_download_entry_hosts = {}
+		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset_id)
+		bulk_acquisition_hosts = {}
 		for host in response_data['data']['entries']:
-			bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
+			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host['hostname']}
+			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']))
+			# TODO: pull poll interval from config
+			bulk_acquisition_download_task.add_step(bulk_download_task_module(bulk_acquisition_download_task).run, (30, bulk_acquisition_id, host['_id'], host['hostname']))
+
+			# TODO: this is awful, needs to be rewritten where the individual function(stacking, multifile, etc) adds the necessary step 
+			if handler:
+				if handler == 'stacking':
+					bulk_acquisition_download_task.add_step(stacking_task_module(bulk_acquisition_download_task).run, (bulk_acquisition_id, host['hostname']), {'delete_bulk_download' : True})
+				elif handler == 'file_listing':
+					pass
+			hxtool_global.hxtool_scheduler.add(bulk_acquisition_download_task)
 		
-		bulk_job_entry = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], bulkid, bulk_download_entry_hosts, hostset, post_download_handler = handler)
-	return bulk_id
+		app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], bulk_acquisition_id, bulk_acquisition_hosts, hostset_id = hostset_id, post_download_handler = handler)
+			
+	return bulk_acquisition_id
 	
 
 		
