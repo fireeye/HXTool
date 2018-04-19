@@ -30,9 +30,12 @@ def valid_session_required(f):
 	def is_session_valid(*args, **kwargs):
 		if (session and 'ht_user' in session and 'ht_api_object' in session):
 			o = HXAPI.deserialize(session['ht_api_object'])
+			h = hash(o)
 			if o.restIsSessionValid():
 				kwargs['hx_api_object'] = o
-				return f(*args, **kwargs)
+				ret = f(*args, **kwargs)
+				session['ht_api_object'] = o.serialize()
+				return ret	
 			else:
 				# Comment out for now - logger needs to be global
 				#app.logger.info("The HX API token for the current session has expired, redirecting to the login page.")
