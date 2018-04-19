@@ -1773,7 +1773,7 @@ def scheduler_tasks(hx_api_object):
 			"name": task['name'],
 			"enabled": task['enabled'],
 			"immutable": task['immutable'],
-			"state": task['state']
+			"state": task_state_description.get(task['state'])
 			})
 	return(app.response_class(response=json.dumps(mytasks), status=200, mimetype='application/json'))
 

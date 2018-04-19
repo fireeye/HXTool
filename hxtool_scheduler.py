@@ -12,7 +12,8 @@ except ImportError:
 	import queue
 
 import hxtool_global	
-	
+
+
 TASK_STATE_IDLE = 0
 TASK_STATE_QUEUED = 1
 TASK_STATE_RUNNING = 2
@@ -21,9 +22,20 @@ TASK_STATE_STOPPING = 4
 TASK_STATE_STOPPED = 5
 TASK_STATE_FAILED = 6
 
+task_state_description = {
+	TASK_STATE_IDLE 	: "Idle",
+	TASK_STATE_QUEUED 	: "Queued",
+	TASK_STATE_RUNNING	: "Running",
+	TASK_STATE_COMPLETE : "Complete",
+	TASK_STATE_STOPPING	: "Stopping",
+	TASK_STATE_STOPPED	: "Stopped",
+	TASK_STATE_FAILED	: "Failed"
+}
+
+
 # Special task indicator that we need to exit now
 SIGINT_TASK_ID = -1
-	
+		
 # Note: scheduler resolution is a little less than a second
 class hxtool_scheduler:
 	def __init__(self, task_status_callback = None, task_thread_count = 4, logger = logging.getLogger(__name__)):
