@@ -62,7 +62,7 @@ def crypt_generate_random(length):
 Return a PBKDF2 HMACSHA256 digest of a salt and password
 """
 def crypt_pbkdf2_hmacsha256(salt, data):
-	return PBKDF2(data, salt, dkLen = 32, count = 100000, prf = lambda p, s: HMAC.new(p, s, SHA256).digest())
+	return PBKDF2(data, salt, dkLen = 32, count = 20000, prf = lambda p, s: HMAC.new(p, s, SHA256).digest())
 
 """
 AES-256 operation
