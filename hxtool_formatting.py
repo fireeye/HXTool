@@ -40,6 +40,8 @@ def formatBulkTable(ht_db, bulktable, profileid):
 			hostset_id = entry['host_set']['_id']
 		elif entry['comment'] and 'hostset_id' in entry['comment']:
 			hostset_id = json.loads(entry['comment'])['hostset_id']
+		elif bulk_download:
+			hostset_id = bulk_download['hostset_id']
 		x += "<td>{0}</td>".format(hostset_id)
 		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['NEW']) + "</td>"
 		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['QUEUED']) + "</td>"
