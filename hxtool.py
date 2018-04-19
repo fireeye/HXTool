@@ -1817,7 +1817,7 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, hand
 			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host['hostname']}
 			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']))
 			# TODO: pull poll interval from config
-			bulk_acquisition_download_task.add_step(bulk_download_task_module(bulk_acquisition_download_task).run, (30, bulk_acquisition_id, host['_id'], host['hostname']))
+			bulk_acquisition_download_task.add_step(bulk_download_task_module(bulk_acquisition_download_task).run, (app.hxtool_config['background_processor']['poll_interval'], bulk_acquisition_id, host['_id'], host['hostname']))
 
 			# TODO: this is awful, needs to be rewritten where the individual function(stacking, multifile, etc) adds the necessary step 
 			if handler:
@@ -1917,8 +1917,7 @@ if __name__ == "__main__":
 			app.logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 	
 	# Initialize the scheduler
-	# TODO: implement task_thread_count in config
-	hxtool_global.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
+	hxtool_global.hxtool_scheduler = hxtool_scheduler(task_thread_count = app.hxtool_config['background_processor']['poll_threads'], logger = app.logger)
 	hxtool_global.hxtool_scheduler.start()
 		
 	# Initialize configured log handlers
