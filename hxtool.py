@@ -681,14 +681,14 @@ def bulkaction(hx_api_object):
 			elif 'host_set' in response_data['data']:
 				hostset_id = int(response_data['data']['host_set']['_id'])
 		
-		ret = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts, hostset_id = hostset_id)
+		ret = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), bulk_acquisition_hosts, hostset_id = hostset_id)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 		
 	if request.args.get('action') == "stopdownload":
 		ret = app.hxtool_db.bulkDownloadStop(session['ht_profileid'], request.args.get('id'))
-		# Delete should really be done by the background processor
-		ret = app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
+		# TODO: don't delete the job because the task module needs to know if the job is stopped or not.
+		#ret = app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
 		app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 
