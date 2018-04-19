@@ -6,8 +6,9 @@ from .task_module import *
 from hx_lib import *
 
 class enterprise_search_task_module(task_module):
-	def __init__(self, profile_id):
-			super(enterprise_search_task_module, self).__init__(profile_id)
+	def __init__(self, parent_task):
+		super(type(self), self).__init__(parent_task)
+		self.logger = parent_task.logger
 
 	def run(self, script, hostset, skip_base64 = False):
 		ret = False
@@ -16,5 +17,5 @@ class enterprise_search_task_module(task_module):
 			if hx_api_object and hx_api_object.restIsSessionValid():
 				(ret, response_code, response_data) = hx_api_object.restSubmitSweep(script, hostset, skip_base64 = skip_base64)
 			else:
-				self.logger.warn("No task API session for profile: {}".format(self.profile_id))	
+				self.logger.warn("No task API session for profile: {}".format(self.parent_task.profile_id))	
 		return ret
