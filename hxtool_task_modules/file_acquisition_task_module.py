@@ -27,8 +27,8 @@ class file_acquisition_task_module(task_module):
 					full_path = os.path.join(download_directory, get_download_filename(hostname, file_acquisition_id))				
 					(ret, response_code, response_data) = hx_api_object.restDownloadFile('{}.zip'.format(response_data['data']['url']), full_path)
 					if ret:
-						hxtool_global.hxtool_db.multiFileUpdateFile(self.parent_task.profile_id, mf_job_id, file_acq['acquisition_id'])
-						self.logger.info("File Acquisition download complete. Acquisition ID: {0}, Batch: {1}".format(file_acq['acquisition_id'], mf_job_id))
+						hxtool_global.hxtool_db.multiFileUpdateFile(self.parent_task.profile_id, mf_job_id, file_acquisition_id)
+						self.logger.info("File Acquisition download complete. Acquisition ID: {0}, Batch: {1}".format(file_acquisition_id, mf_job_id))
 				else:
 					self.logger.debug("Deferring file acquisition for: {}".format(hostname))
 					self.parent_task.defer()
