@@ -5,6 +5,7 @@ import logging
 import threading
 import datetime
 import uuid
+import random
 
 try:
 	import Queue as queue
@@ -14,20 +15,16 @@ except ImportError:
 import hxtool_global	
 
 
-TASK_STATE_IDLE = 0
-TASK_STATE_QUEUED = 1
-TASK_STATE_RUNNING = 2
-TASK_STATE_COMPLETE = 3
-TASK_STATE_STOPPING = 4	
-TASK_STATE_STOPPED = 5
-TASK_STATE_FAILED = 6
+TASK_STATE_QUEUED = 0
+TASK_STATE_RUNNING = 1
+TASK_STATE_COMPLETE = 2
+TASK_STATE_STOPPED = 3
+TASK_STATE_FAILED = 4
 
 task_state_description = {
-	TASK_STATE_IDLE 	: "Idle",
 	TASK_STATE_QUEUED 	: "Queued",
 	TASK_STATE_RUNNING	: "Running",
 	TASK_STATE_COMPLETE : "Complete",
-	TASK_STATE_STOPPING	: "Stopping",
 	TASK_STATE_STOPPED	: "Stopped",
 	TASK_STATE_FAILED	: "Failed"
 }
@@ -38,7 +35,7 @@ SIGINT_TASK_ID = -1
 		
 # Note: scheduler resolution is a little less than a second
 class hxtool_scheduler:
-	def __init__(self, task_status_callback = None, task_thread_count = 4, logger = logging.getLogger(__name__)):
+	def __init__(self, task_thread_count = 4, logger = logging.getLogger(__name__)):
 		self.logger = logger
 		self._lock = threading.Lock()
 		self.task_queue = []
@@ -47,7 +44,6 @@ class hxtool_scheduler:
 		self._stop_event = threading.Event()
 		self.task_thread_count = task_thread_count
 		self.task_threads = []
-		self.task_status_callback = task_status_callback
 		self.logger.info("Task scheduler initialized.")
 
 	def _scan_task_queue(self):
@@ -67,18 +63,9 @@ class hxtool_scheduler:
 				self.run_queue.task_done()
 				break
 			self.logger.info("Executing task with id: %s, name: %s.", task_id, task_name)
-			self._update_task_status(task_id, task_name, "Running")
 			ret = task_run()
-			status = "Completed"
-			if not ret:
-				status = "Failed"
-			self._update_task_status(task_name, task_id, status)
 			self.run_queue.task_done()
-					
-	def _update_task_status(self, id, name, status):
-		if self.task_status_callback:
-			self.task_status_callback(id, name, status)
-	
+						
 	def start(self):
 		self._poll_thread.start()
 		for i in range(0, self.task_thread_count):
@@ -131,7 +118,7 @@ class hxtool_scheduler:
 # To run a job once at a specific time, specify start_time with an interval of zero
 # States:
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, id = str(uuid.uuid4()), interval = 0, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, id = str(uuid.uuid4()), interval = 0, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, defer_interval = 30, logger = logging.getLogger(__name__)):
 		self.logger = hxtool_global.hxtool_scheduler.logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
@@ -150,6 +137,10 @@ class hxtool_scheduler_task:
 		self.stop_on_fail = stop_on_fail
 		self.steps = []
 		self.stored_result = None
+		self.defer_interval = defer_interval
+		
+		self._stop_signal = False
+		self._defer_signal = False
 		
 
 	def add_step(self, func, args = (), kwargs = {}):
@@ -160,6 +151,9 @@ class hxtool_scheduler_task:
 		self.next_run = None
 		if type(self.interval) is datetime.timedelta:
 			self.next_run = (self.last_run + self.interval)
+		elif self._defer_signal:
+			# Add some random seconds to the interval to keep the task threads from deadlocking
+			self.next_run = (self.last_run + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
 	
 	# Use this to set state, its thread-safe
 	def set_state(self, state):
@@ -167,14 +161,21 @@ class hxtool_scheduler_task:
 			self.state = state
 	
 	def run(self):
-		with self._lock:
-			self.state = TASK_STATE_RUNNING
+		self._stop_signal = False
+		self._defer_signal = False
+		ret = False
+		
+		if self.enabled:
 			
-			# Reset microseconds to keep from drifting too badly
-			self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
-			
-			for func, args, kwargs in self.steps:
-				if self.enabled:
+			with self._lock:
+				ret = False
+				
+				self.state = TASK_STATE_RUNNING
+				
+				# Reset microseconds to keep from drifting too badly
+				self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
+				
+				for func, args, kwargs in self.steps:
 					# This is an HXTool task_module - need to find a better way to do this.
 					if 'task_module' in func.__str__():
 						if self.stored_result:
@@ -184,35 +185,36 @@ class hxtool_scheduler_task:
 					else:
 						ret = func(*args, **kwargs)
 					
-					if not ret and self.stop_on_fail:
+					if self._stop_signal:
+						self.state = TASK_STATE_STOPPED
+						break
+					elif self._defer_signal:
+						break
+					elif not ret and self.stop_on_fail:
 						self.state = TASK_STATE_FAILED
 						break
-				else:
-					if self.state == TASK_STATE_STOPPING:
-						self.state == TASK_STATE_STOPPED
-						break
-						
-			if self.state == TASK_STATE_RUNNING:
-				self.state = TASK_STATE_IDLE
-					
-			self._calculate_next_run()
 			
-			if self.next_run:
-				self.state = TASK_STATE_IDLE
-			else:
-				if self.state == TASK_STATE_IDLE: 
+				self._calculate_next_run()
+			
+				if self.next_run:
+					self.state = TASK_STATE_QUEUED
+				else:
 					self.state = TASK_STATE_COMPLETE
-				
+										
+		else:
+			self.set_state(TASK_STATE_STOPPED)
+			
 		return ret
-		
+
 	def stop(self):
-		self.enabled = False
-		self.state = TASK_STATE_STOPPING
-		
+		self._stop_signal = True
+	
+	def defer(self):
+		self._defer_signal = True
 	
 	def should_run(self):
 		return (self.enabled and  
-				self.state == TASK_STATE_IDLE and 
+				self.state == TASK_STATE_QUEUED and 
 				len(self.steps) > 0 and 
 				((datetime.datetime.utcnow() - self.next_run).seconds == 0 or 
 				self.start_time == self.next_run))
