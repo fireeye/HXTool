@@ -1883,7 +1883,7 @@ if __name__ == "__main__":
 	app.hxtool_config = hxtool_config('conf.json', logger = app.logger)
 	hxtool_global.hxtool_config = app.hxtool_config
 	
-	app.task_api_key = 'Z\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
+	app.task_api_key = 'Z\\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
 	
 	# Initialize hxtool_global storage for task scheduler sessions
 	hxtool_global.task_hx_api_sessions = {}
