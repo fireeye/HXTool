@@ -1772,6 +1772,8 @@ def scheduler_tasks(hx_api_object):
 			"parent_id": task['parent_id'],
 			"name": task['name'],
 			"enabled": task['enabled'],
+			"last_run": str(task['last_run']),
+			"next_run": str(task['next_run']),
 			"immutable": task['immutable'],
 			"state": task_state_description.get(task['state'])
 			})
