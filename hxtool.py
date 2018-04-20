@@ -828,7 +828,7 @@ def multifile(hx_api_object):
 						mf_job_id = app.hxtool_db.multiFileAddJob(multi_file_id, job_record)
 						file_acquisition_task = hxtool_scheduler_task(profile_id, "File Acquisition: {}".format(cf['hostname']))
 						file_acquisition_task.add_step(file_acquisition_task_module(file_acquisition_task).run,
-														(mf_job_id, int(acq_id), cf['hostname']))
+														(multi_file_id, int(acq_id), cf['hostname']))
 						hxtool_global.hxtool_scheduler.add(file_acquisition_task)
 						app.logger.info('File acquisition requested from host %s at path %s- User: %s@%s:%s - host: %s', cf['hostname'], cf['FullPath'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, agent_id)
 						file_jobs.append(acq_id)
