@@ -198,7 +198,7 @@ class hxtool_scheduler_task:
 			
 				if self.next_run:
 					self.state = TASK_STATE_QUEUED
-				else:
+				elif not (self.state == TASK_STATE_FAILED or self.state == TASK_STATE_STOPPED):
 					self.state = TASK_STATE_COMPLETE
 										
 		else:

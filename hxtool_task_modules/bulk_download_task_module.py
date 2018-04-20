@@ -30,7 +30,7 @@ class bulk_download_task_module(task_module):
 							result['bulk_download_path'] = full_path
 					elif ret and response_data and response_data['data']['state'] == 'FAILED':
 						ret = False
-					elif ret and response_data and response_data['data']['state'] in {'CANCELLED', 'ABORTED'}:
+					elif ret and response_data and response_data['data']['state'] in {'CANCELLED', 'ABORTED'} or (response_code == 404 and response_data['details'][0]['message'].lower() == "bulk acquisition not found."):
 						self.parent_task.stop()
 						ret = False
 					else:
