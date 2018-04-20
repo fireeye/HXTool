@@ -11,50 +11,37 @@ class bulk_download_task_module(task_module):
 		super(type(self), self).__init__(parent_task)
 		self.logger = parent_task.logger
 
-	def run(self, poll_interval, bulk_download_id, host_id, host_name, max_retries = 3):
-		result = {}
+	def run(self, bulk_download_id, host_id, host_name):
 		ret = False
-		retry_counter = 0
-		if hxtool_global.hxtool_db.bulkDownloadGet(self.parent_task.profile_id, bulk_download_id)['stopped'] == False:			
-			hx_api_object = self.get_task_api_object()	
-			if hx_api_object and hx_api_object.restIsSessionValid():
-				should_stop = False
-				while should_stop == False:					
+		result = {}
+		try:
+			if hxtool_global.hxtool_db.bulkDownloadGet(self.parent_task.profile_id, bulk_download_id)['stopped'] == False:			
+				hx_api_object = self.get_task_api_object()	
+				if hx_api_object and hx_api_object.restIsSessionValid():
 					(ret, response_code, response_data) = hx_api_object.restGetBulkHost(bulk_download_id, host_id)
-					if ret:
-						if response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
-							self.logger.debug("Processing bulk download for host: {0}".format(host_name))
-							download_directory = make_download_directory(hx_api_object.hx_host, bulk_download_id)
-							full_path = os.path.join(download_directory, get_download_filename(host_name, host_id))
-							(ret, response_code, response_data) = hx_api_object.restDownloadFile(response_data['data']['result']['url'], full_path)
-							if ret:
-								hxtool_global.hxtool_db.bulkDownloadUpdateHost(self.parent_task.profile_id, bulk_download_id, host_id)
-								self.logger.debug("Bulk download for host {} successfully downloaded to {}".format(host_name, full_path))
-								result['bulk_download_path'] = full_path
-							should_stop = True
-						elif response_data['data']['state'] == 'FAILED':
-							should_stop = True
-							ret = False
-						elif response_data['data']['state'] in {'CANCELLED', 'ABORTED'}:
-							should_stop = True
-							self.parent_task.stop()
-							ret = False
-						else:
-							self.logger.debug("Sleeping for {} seconds".format(poll_interval))						
-							time.sleep(poll_interval)
-					elif response_code == 404 and retry_counter < max_retries:
-						# Sometimes the controller is slow is starting up the bulk acquisition and enumerating the hosts associated with it.
-						retry_counter += 1
-						self.logger.info("Got 404 from the controller, retrying in {} seconds.".format(poll_interval))
-						time.sleep(poll_interval)
-					else:
-						self.logger.warn("Failed to get host: {} for bulk acquisition: {}, response code: {}, response data: {}".format(host_name, bulk_download_id, response_code, response_data))
-						should_stop = True
+					if ret and response_data and response_data['data']['state'] == "COMPLETE" and response_data['data']['result']:
+						self.logger.debug("Processing bulk download for host: {0}".format(host_name))
+						download_directory = make_download_directory(hx_api_object.hx_host, bulk_download_id)
+						full_path = os.path.join(download_directory, get_download_filename(host_name, host_id))
+						(ret, response_code, response_data) = hx_api_object.restDownloadFile(response_data['data']['result']['url'], full_path)
+						if ret:
+							hxtool_global.hxtool_db.bulkDownloadUpdateHost(self.parent_task.profile_id, bulk_download_id, host_id)
+							self.logger.debug("Bulk download for host {} successfully downloaded to {}".format(host_name, full_path))
+							result['bulk_download_path'] = full_path
+					elif ret and response_data and response_data['data']['state'] == 'FAILED':
 						ret = False
+					elif ret and response_data and response_data['data']['state'] in {'CANCELLED', 'ABORTED'}:
+						self.parent_task.stop()
+						ret = False
+					else:
+						self.logger.debug("Deferring bulk download task for: {}".format(host_name))
+						self.parent_task.defer()
+				else:
+					self.logger.warn("No task API session for profile: {}".format(self.parent_task.profile_id))
 			else:
-				self.logger.warn("No task API session for profile: {}".format(self.profile_id))
-		else:
-			self.logger.info("Bulk download {} is stopped.".format(bulk_download_id))
-			self.parent_task.stop()
-			
-		return(ret, result)		
+				self.logger.info("Bulk download {} is stopped.".format(bulk_download_id))
+				self.parent_task.stop()
+		except Exception as e:
+			self.logger.error(e)
+		finally:	
+			return(ret, result)		
