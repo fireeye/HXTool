@@ -655,7 +655,8 @@ def download_multi_file_single(hx_api_object):
 		if multi_file:
 			file_records = list(filter(lambda f: int(f['acquisition_id']) == int(request.args.get('acq_id')), multi_file['files']))
 			if file_records and file_records[0]:
-				path = get_download_full_path(hx_api_object.hx_host, request.args.get('mf_id'), 'multi_file', file_records[0]['hostname'], request.args.get('acq_id'))
+				# TODO: fix this
+				path = os.path.join("bulkdownload", hx_api_object.hx_host, 'multi_file', request.args.get('mf_id'), '{}_{}.zip'.format(file_records[0]['hostname'], request.args.get('acq_id')))
 				app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('acq_id'))
 				return send_file(path, attachment_filename=path.rsplit('/',1)[-1], as_attachment=True)
 		else:
