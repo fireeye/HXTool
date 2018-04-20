@@ -40,7 +40,6 @@ from hx_lib import *
 from hxtool_util import *
 from hxtool_formatting import *
 from hxtool_db import *
-from hxtool_process import *
 from hxtool_config import *
 from hxtool_data_models import *
 from hxtool_session import *
@@ -260,7 +259,7 @@ def search(hx_api_object):
 			skip_base64 = True
 			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])
 		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task")
-		enterprise_search_task.add_step(enterprise_search_task_module(session['ht_profileid']).run, (ioc_script, request.form['sweephostset'],), {'skip_base64' : skip_base64})
+		enterprise_search_task.add_step(enterprise_search_task_module(enterprise_search_task).run, (ioc_script, request.form['sweephostset'],), {'skip_base64' : skip_base64})
 		hxtool_global.hxtool_scheduler.add(enterprise_search_task)
 		app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/search", code=302)
@@ -677,7 +676,14 @@ def bulkaction(hx_api_object):
 		
 	if request.args.get('action') == "download":
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
-		hosts = { host['host']['_id'] : {'downloaded' : False, 'hostname' :  host['host']['hostname']} for host in response_data['data']['entries'] }
+		
+		bulk_acquisition_hosts = {}
+		for host in response_data['data']['entries']:
+			bulk_acquisition_hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' :  host['host']['hostname']}
+			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
+			# TODO: pull poll interval from config
+			bulk_acquisition_download_task.add_step(bulk_download_task_module(bulk_acquisition_download_task).run, (30, request.args.get('id'), host['host']['_id'], host['host']['hostname']))
+			hxtool_global.hxtool_scheduler.add(bulk_acquisition_download_task)
 		
 		hostset_id = -1
 		(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
@@ -687,14 +693,14 @@ def bulkaction(hx_api_object):
 			elif 'host_set' in response_data['data']:
 				hostset_id = int(response_data['data']['host_set']['_id'])
 		
-		ret = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), hosts, hostset_id = hostset_id)
+		ret = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), bulk_acquisition_hosts, hostset_id = hostset_id)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 		
 	if request.args.get('action') == "stopdownload":
 		ret = app.hxtool_db.bulkDownloadStop(session['ht_profileid'], request.args.get('id'))
-		# Delete should really be done by the background processor
-		ret = app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
+		# TODO: don't delete the job because the task module needs to know if the job is stopped or not.
+		#ret = app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
 		app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 
@@ -1014,14 +1020,25 @@ def stackinganalyze(hx_api_object):
 @valid_session_required
 def settings(hx_api_object):
 	if request.method == 'POST':
-		key = HXAPI.b64(session['key'], True)
 		# Generate a new IV - must be 16 bytes
 		iv = crypt_generate_random(16)
+		salt = crypt_generate_random(32)
+		key = crypt_pbkdf2_hmacsha256(salt, app.task_api_key)
 		encrypted_password = crypt_aes(key, iv, request.form['bgpass'])
-		salt = HXAPI.b64(session['salt'], True)
 		out = app.hxtool_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
 		app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		start_background_processor(session['ht_profileid'], request.form['bguser'], request.form['bgpass'])
+		hxtool_global.task_hx_api_sessions[session['ht_profileid']] = HXAPI(hx_api_object.hx_host, 
+																			hx_port = hx_api_object.hx_port, 
+																			proxies = app.hxtool_config['network'].get('proxies'), 
+																			headers = app.hxtool_config['headers'], 
+																			cookies = app.hxtool_config['cookies'], 
+																			logger = app.logger, 
+																			default_encoding = default_encoding)																
+		(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[session['ht_profileid']].restLogin(request.form['bguser'], request.form['bgpass'], auto_renew_token = True)
+		if ret:
+			app.logger.info("Successfully initialized task API session for profile {}".format(session['ht_profileid']))
+		else:
+			app.logger.error("Failed to initialized task API session for profile {}".format(session['ht_profileid']))
 	if request.args.get('unset'):
 		out = app.hxtool_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
 		app.logger.info("Background Processing credentials unset profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
@@ -1088,44 +1105,6 @@ def login():
 					session['ht_user'] = request.form['ht_user']
 					session['ht_profileid'] = ht_profile['profile_id']
 					session['ht_api_object'] = hx_api_object.serialize()
-					
-					# Decrypt background processor credential if available
-					# TODO: this could probably be better written
-					iv = None
-					salt = crypt_generate_random(32)
-					background_credential = app.hxtool_db.backgroundProcessorCredentialGet(ht_profile['profile_id'])
-					if background_credential:
-						salt = HXAPI.b64(background_credential['salt'], True)
-						iv = HXAPI.b64(background_credential['iv'], True)
-						
-					key = crypt_pbkdf2_hmacsha256(salt, request.form['ht_pass'])
-					
-					if iv and salt:
-						try:
-							decrypted_background_password = crypt_aes(key, iv, background_credential['hx_api_encrypted_password'], decrypt = True)
-							hxtool_global.task_hx_api_sessions[ht_profile['profile_id']] = HXAPI(ht_profile['hx_host'], 
-																								hx_port = ht_profile['hx_port'], 
-																								proxies = app.hxtool_config['network'].get('proxies'), 
-																								headers = app.hxtool_config['headers'], 
-																								cookies = app.hxtool_config['cookies'], 
-																								logger = app.logger, 
-																								default_encoding = default_encoding)																
-							(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[ht_profile['profile_id']].restLogin(background_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)																	
-							if ret:
-								app.logger.info("Successfully initialized task API session for profile {}".format(ht_profile['profile_id']))
-							else:
-								app.logger.error("Failed to initialized task API session for profile {}".format(ht_profile['profile_id']))
-							bulk_download_task = hxtool_scheduler_task(ht_profile['profile_id'], "Bulk Download Scheduler Task - {}".format(ht_profile['profile_id']), interval = datetime.timedelta(seconds = 30))
-							bulk_download_task.add_step(bulk_download_scheduler_task_module(ht_profile['profile_id']).run, ())
-							hxtool_global.hxtool_scheduler.add(bulk_download_task)
-						except UnicodeDecodeError:
-							app.logger.error("Failed to decrypt background processor credential! Did you recently change your password? If so, please unset and reset these credentials under Settings.")
-						finally:
-							decrypted_background_password = None
-
-					session['key']= HXAPI.b64(key)
-					session['salt'] = HXAPI.b64(salt)
-
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
@@ -1794,7 +1773,7 @@ def scheduler_tasks(hx_api_object):
 			"name": task['name'],
 			"enabled": task['enabled'],
 			"immutable": task['immutable'],
-			"state": task['state']
+			"state": task_state_description.get(task['state'])
 			})
 	return(app.response_class(response=json.dumps(mytasks), status=200, mimetype='application/json'))
 
@@ -1819,21 +1798,38 @@ def stack_job_results(hx_api_object, stack_id):
 ####################
 # Utility Functions
 ####################
-def submit_bulk_job(hx_api_object, hostset, script_xml, download = True, handler=None, skip_base64=False):
-	bulk_id = None
+def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, handler = None, skip_base64 = False):
 	
-	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hostset_id = hostset, skip_base64=skip_base64)
+	bulk_acquisition_id = None
+	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hostset_id = hostset_id, skip_base64 = skip_base64)
 	if ret:
-		bulk_id = response_data['data']['_id']
+		bulk_acquisition_id = response_data['data']['_id']
 		
+		
+	# So it turns out theres a nasty race condition that was happening here:
+	# the call to restListBulkHosts() was returning no hosts because the bulk
+	# acquisition hadn't been queued up yet. So instead, we walk the host set
+	# in order to retrieve the hosts targeted for the job.
 	if download:
-		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset)
-		bulk_download_entry_hosts = {}
+		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset_id)
+		bulk_acquisition_hosts = {}
 		for host in response_data['data']['entries']:
-			bulk_download_entry_hosts[host['_id']] = {'downloaded' : False, 'hostname' : host['hostname']}
+			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host['hostname']}
+			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']))
+			# TODO: pull poll interval from config
+			bulk_acquisition_download_task.add_step(bulk_download_task_module(bulk_acquisition_download_task).run, (app.hxtool_config['background_processor']['poll_interval'], bulk_acquisition_id, host['_id'], host['hostname']))
+
+			# TODO: this is awful, needs to be rewritten where the individual function(stacking, multifile, etc) adds the necessary step 
+			if handler:
+				if handler == 'stacking':
+					bulk_acquisition_download_task.add_step(stacking_task_module(bulk_acquisition_download_task).run, (bulk_acquisition_id, host['hostname']), {'delete_bulk_download' : True})
+				elif handler == 'file_listing':
+					pass
+			hxtool_global.hxtool_scheduler.add(bulk_acquisition_download_task)
 		
-		bulk_job_entry = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], bulkid, bulk_download_entry_hosts, hostset, post_download_handler = handler)
-	return bulk_id
+		app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], bulk_acquisition_id, bulk_acquisition_hosts, hostset_id = hostset_id, post_download_handler = handler)
+			
+	return bulk_acquisition_id
 	
 
 		
@@ -1849,7 +1845,7 @@ def logout_task_sessions():
 
 
 def sigint_handler(signum, frame):
-	app.logger.debug("Caught SIGINT, exiting...")
+	app.logger.info("Caught SIGINT, exiting...")
 	logout_task_sessions()
 	if hxtool_global.hxtool_scheduler:
 		hxtool_global.hxtool_scheduler.stop()
@@ -1871,6 +1867,10 @@ if __name__ == "__main__":
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
 	
+	# Init DB
+	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger)
+	hxtool_global.hxtool_db = app.hxtool_db
+	
 	# If we're debugging use a static key
 	if debug_mode:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
@@ -1883,12 +1883,41 @@ if __name__ == "__main__":
 	app.hxtool_config = hxtool_config('conf.json', logger = app.logger)
 	hxtool_global.hxtool_config = app.hxtool_config
 	
+	app.task_api_key = 'Z\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
+	
 	# Initialize hxtool_global storage for task scheduler sessions
 	hxtool_global.task_hx_api_sessions = {}
 	
+	# Loop through background credentials and start the API sessions
+	profiles = hxtool_global.hxtool_db.profileList()
+	for profile in profiles:
+		task_api_credential = hxtool_global.hxtool_db.backgroundProcessorCredentialGet(profile['profile_id'])
+		if task_api_credential:
+			try:
+				salt = HXAPI.b64(task_api_credential['salt'], True)
+				iv = HXAPI.b64(task_api_credential['iv'], True)
+				key = crypt_pbkdf2_hmacsha256(salt, app.task_api_key)
+				decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
+				hxtool_global.task_hx_api_sessions[profile['profile_id']] = HXAPI(profile['hx_host'], 
+																					hx_port = profile['hx_port'], 
+																					proxies = app.hxtool_config['network'].get('proxies'), 
+																					headers = app.hxtool_config['headers'], 
+																					cookies = app.hxtool_config['cookies'], 
+																					logger = app.logger, 
+																					default_encoding = default_encoding)																
+				(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[profile['profile_id']].restLogin(task_api_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)
+				if ret:
+					app.logger.info("Successfully initialized task API session for profile {} ({})".format(profile['hx_host'], profile['profile_id']))
+				else:
+					app.logger.error("Failed to initialized task API session for profile {} ({})".format(profile['hx_host'], profile['profile_id']))
+					del hxtool_global.task_hx_api_sessions[profile['profile_id']]
+			except UnicodeDecodeError:
+				app.logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+		else:
+			app.logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+	
 	# Initialize the scheduler
-	# TODO: implement task_thread_count in config
-	hxtool_global.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
+	hxtool_global.hxtool_scheduler = hxtool_scheduler(task_thread_count = app.hxtool_config['background_processor']['poll_threads'], logger = app.logger)
 	hxtool_global.hxtool_scheduler.start()
 		
 	# Initialize configured log handlers
@@ -1906,10 +1935,6 @@ if __name__ == "__main__":
 
 	# Start
 	app.logger.info('Application starting')
-
-	# Init DB
-	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger)
-	hxtool_global.hxtool_db = app.hxtool_db
 	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	

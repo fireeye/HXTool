@@ -40,6 +40,8 @@ def formatBulkTable(ht_db, bulktable, profileid):
 			hostset_id = entry['host_set']['_id']
 		elif entry['comment'] and 'hostset_id' in entry['comment']:
 			hostset_id = json.loads(entry['comment'])['hostset_id']
+		elif bulk_download:
+			hostset_id = bulk_download['hostset_id']
 		x += "<td>{0}</td>".format(hostset_id)
 		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['NEW']) + "</td>"
 		x += "<td>" + HXAPI.compat_str(entry['stats']['running_state']['QUEUED']) + "</td>"
@@ -427,7 +429,8 @@ def formatStackTable(ht_db, profile_id, hs):
 			hosts_completed = len([_ for _ in job['hosts'] if _['processed']])
 		else:
 			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
-		job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
+		if hosts_completed > 0:
+			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
 		x += "<td>"
 		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + HXAPI.compat_str(job.eid) + "' data-percent='" + HXAPI.compat_str(job_progress) + "'></div></div>"
 		x += "</td>"
