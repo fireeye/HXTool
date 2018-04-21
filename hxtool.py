@@ -94,6 +94,32 @@ def alert(hx_api_object):
 def scheduler_view(hx_api_object):
 	return render_template('ht_scheduler.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### Bulk acq page
+@app.route('/bulkacq', methods=['GET', 'POST'])
+@valid_session_required
+def bulkacq_view(hx_api_object):
+
+	if request.method == 'POST':
+		if 'file' in request.form.keys():
+			f = request.files['bulkscript']
+			bulk_acquisition_script = f.read()
+			bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
+			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		elif 'store' in request.form.keys():
+			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
+			bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
+			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		return redirect("/bulkacq", code=302)
+	else:
+		(ret, response_code, response_data) = hx_api_object.restListHostsets()
+		hostsets = formatHostsets(response_data)
+
+		myscripts = app.hxtool_db.scriptList()
+		scripts = formatScripts(myscripts)
+
+	return render_template('ht_bulkacq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, scripts=scripts)
+
+
 ### Hosts
 ##########
 
@@ -670,12 +696,12 @@ def bulkaction(hx_api_object):
 	if request.args.get('action') == "stop":
 		(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', request.args.get('id'))
 		app.logger.info('Bulk acquisition action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return redirect("/bulk", code=302)
+		return redirect("/bulkacq", code=302)
 		
 	if request.args.get('action') == "remove":
 		(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', request.args.get('id'))
 		app.logger.info('Bulk acquisition action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return redirect("/bulk", code=302)	
+		return redirect("/bulkacq", code=302)	
 		
 	if request.args.get('action') == "download":
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
@@ -698,14 +724,14 @@ def bulkaction(hx_api_object):
 		
 		ret = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), bulk_acquisition_hosts, hostset_id = hostset_id)
 		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return redirect("/bulk", code=302)
+		return redirect("/bulkacq", code=302)
 		
 	if request.args.get('action') == "stopdownload":
 		ret = app.hxtool_db.bulkDownloadStop(session['ht_profileid'], request.args.get('id'))
 		# TODO: don't delete the job because the task module needs to know if the job is stopped or not.
 		#ret = app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
 		app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return redirect("/bulk", code=302)
+		return redirect("/bulkacq", code=302)
 
 ### Scripts
 @app.route('/scripts', methods=['GET', 'POST'])
@@ -1785,6 +1811,117 @@ def scheduler_tasks(hx_api_object):
 			"state": task_state_description.get(task['state'])
 			})
 	return(app.response_class(response=json.dumps(mytasks), status=200, mimetype='application/json'))
+
+
+
+@app.route('/api/v{0}/datatable_bulk'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_bulk(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
+	if ret:
+		mybulk = {"data": []}
+		for acq in response_data['data']['entries']:
+
+			# Find the host-set id. We have to do this because in some cases hostset is kept in comment and in some cases not.
+			if acq['host_set']:
+				try:
+					myhostsetid = acq['host_set']['_id']
+				except(KeyError):
+					myhostsetid = False
+			else:
+				if acq['comment']:
+					try:
+						mycommentdata = json.loads(acq['comment'])
+					except(ValueError):
+						myhostsetid = False
+					else:
+						myhostsetid = mycommentdata['hostset_id']
+				else:
+					myhostsetid = False
+
+			# Find hostset name
+			if myhostsetid:
+				if myhostsetid != 9:
+					(hret, hresponse_code, hresponse_data) = hx_api_object.restListHostsets(filter_term={"_id": myhostsetid})
+					if ret:
+						try:
+							myhostsetname = hresponse_data['data']['entries'][0]['name']
+						except(KeyError):
+							myhostsetname = "N/A"
+					else:
+						myhostsetname = "N/A"
+				else:
+					myhostsetname = "All Hosts"
+			else:
+				myhostsetname = "N/A"
+
+			# Comlete rate
+			total_size = acq['stats']['running_state']['NEW'] + acq['stats']['running_state']['QUEUED'] + acq['stats']['running_state']['FAILED'] + acq['stats']['running_state']['ABORTED'] + acq['stats']['running_state']['DELETED'] + acq['stats']['running_state']['REFRESH'] + acq['stats']['running_state']['CANCELLED'] + acq['stats']['running_state']['COMPLETE']
+			if total_size == 0:
+				completerate = 0
+			else:
+				completerate = int(float(acq['stats']['running_state']['COMPLETE']) / float(total_size) * 100)
+			
+			if completerate > 100:
+				completerate = 100
+
+			# Download rate
+			bulk_download = app.hxtool_db.bulkDownloadGet(session['ht_profileid'], acq['_id'])
+
+			if bulk_download:
+				total_hosts = len(bulk_download['hosts'])
+				hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
+				if total_hosts > 0 and hosts_completed > 0:
+					
+					dlprogress = int(float(hosts_completed) / total_hosts * 100)
+								
+					if dlprogress > 100:
+						dlprogress = 100
+
+				else:
+					dlprogress = 0
+			else:
+				dlprogress = "N/A"
+
+			# Handle buttons
+			if bulk_download:
+				if bulk_download['post_download_handler']:
+					myaction = bulk_download['post_download_handler']
+				else:
+					myaction = acq['_id']
+			else:
+				myaction = acq['_id']
+
+
+			mybulk['data'].append({
+				"DT_RowId": acq['_id'],
+				"state": acq['state'],
+				"hostset": myhostsetname,
+				"create_time": acq['create_time'],
+				"update_time": acq['update_time'],
+				"create_actor": acq['create_actor']['username'],
+				"stat_runtime_avg": acq['stats']['run_time']['avg'],
+				"stat_runtime_min": acq['stats']['run_time']['min'],
+				"stat_runtime_max": acq['stats']['run_time']['max'],
+				"total_size": acq['stats']['total_size'],
+				"task_size_avg": acq['stats']['task_size']['avg'],
+				"task_size_min": acq['stats']['task_size']['min'],
+				"task_size_max": acq['stats']['task_size']['max'],
+				"running_state_new": acq['stats']['running_state']['NEW'],
+				"running_state_queued": acq['stats']['running_state']['QUEUED'],
+				"running_state_failed": acq['stats']['running_state']['FAILED'],
+				"running_state_complete": acq['stats']['running_state']['COMPLETE'],
+				"running_state_aborted": acq['stats']['running_state']['ABORTED'],
+				"running_state_cancelled": acq['stats']['running_state']['CANCELLED'],
+				"completerate": completerate,
+				"downloadrate": dlprogress,
+				"action": myaction
+			})
+		return(app.response_class(response=json.dumps(mybulk), status=200, mimetype='application/json'))
+	else:
+		return('HX API Call failed',500)
+
+
 
 #####################
 # Stacking Results

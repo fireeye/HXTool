@@ -183,6 +183,22 @@
 	cursor: pointer;
 }
 
+.genericTableBulk thead th {
+	vertical-align: bottom;
+}
+
+.genericTableBulk thead th:nth-child(n+8):nth-child(-n+19) {
+	padding: 0;
+	height: 100px;
+	min-width: 40px;
+	max-width: 40px;
+}
+
+.genericTableBulk tbody tr:hover {
+	background: #eeeeee;
+	cursor: pointer;
+}
+
 .genericTable {
         font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
         font-weight: 700;

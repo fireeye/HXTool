@@ -1,0 +1,33 @@
+
+
+1. Host selection UI.
+	a) on host-data / sysinfo
+	b) by searching for hosts
+
+2. Docs 3.2
+	a) encrypted passwords - docs / track
+	b) unset pw schema update
+
+
+
+{
+	"agentinfo": {
+		"description": "Collects basic information about the agents on host endpoints that does not appear in the sysinfo audit.",
+		"platforms": ["win", "osx", "linux"],
+		"parameters": false
+	},
+	"config": {
+		"description": "The config audit collects key-value pairs from the agent configuration file or acquires the entire agent configuration file, depending on the format of the audit request",
+		"platforms": ["win", "osx", "linux"],
+		"parameters": [
+			{"name": "format", "required": false, "repeatable": false, "type": "dropdown", "values": ["kvpairs", "acquisition"]}
+		]
+	},
+	"configuration": {
+		"description": "The configuration audit collects information about the configuration channel to which the agents should subscribe",
+		"platforms": ["win", "osx", "linux"],
+		"parameters": [
+			{"name": "ConfigChannel", "required": true, "repeatable": false, "type": "text"}
+		]
+	},
+}

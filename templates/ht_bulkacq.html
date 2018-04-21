@@ -1,0 +1,234 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Bulk Acquisitions{% endblock %}
+{% block navlocation %}Bulk Acquisitions{% endblock %}
+{% block content %}
+
+<script>
+
+	function roundToTwo(num) {    
+		return +(Math.round(num + "e+2")  + "e-2");
+	}
+
+	function enableStore() {
+			$("#checkboxStore").prop('checked', true);
+			$("#divStore").css("background", "rgb(225,225,225)");
+			$("#divFile").css("background", "rgb(242,242,242)");
+			$("#checkboxFile").prop('checked', false);
+	}
+
+	function enableFile() {
+			$("#checkboxFile").prop('checked', true);
+			$("#divFile").css("background", "rgb(225,225,225)");
+			$("#divStore").css("background", "rgb(242,242,242)");		
+			$("#checkboxStore").prop('checked', false);
+	}
+
+	$(document).ready(function() {
+		var bulk_datatable = $('#bulktable').DataTable( {
+			"ajax": "/api/v1/datatable_bulk",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": false,
+			"processing": false,
+			"columns": [
+				{ "title": "id", "data": "DT_RowId" },
+				{ "title": "state", "data": "state" },
+				{ "title": "hostset", "data": "hostset" },
+				{ "title": "created", "data": "create_time" },
+				{ "title": "updated", "data": "update_time" },
+				{ "title": "user", "data": "create_actor" },
+				{ "title": "size", "data": "total_size" },
+				{ "title": "", "data": "stat_runtime_avg" },
+				{ "title": "", "data": "stat_runtime_min" },
+				{ "title": "", "data": "stat_runtime_max" },
+				{ "title": "", "data": "task_size_avg" },
+				{ "title": "", "data": "task_size_min" },
+				{ "title": "", "data": "task_size_max" },
+				{ "title": "", "data": "running_state_new" },
+				{ "title": "", "data": "running_state_queued" },
+				{ "title": "", "data": "running_state_failed" },
+				{ "title": "", "data": "running_state_complete" },
+				{ "title": "", "data": "running_state_aborted" },
+				{ "title": "", "data": "running_state_cancelled" },
+				{ "title": "completerate", "data": "completerate" },
+				{ "title": "downloadrate", "data": "downloadrate" },
+				{ "title": "action", "data": "action" }
+
+			],
+			"headerCallback": function( thead, data, start, end, display ) {
+				$(thead).find('th').eq(7).html('<div class="genericTableDivES">runtime avg</div>');
+				$(thead).find('th').eq(8).html('<div class="genericTableDivES">runtime min</div>');
+				$(thead).find('th').eq(9).html('<div class="genericTableDivES">runtime max</div>');
+				$(thead).find('th').eq(10).html('<div class="genericTableDivES">tasksize avg</div>');
+				$(thead).find('th').eq(11).html('<div class="genericTableDivES">tasksize min</div>');
+				$(thead).find('th').eq(12).html('<div class="genericTableDivES">tasksize max</div>');
+				$(thead).find('th').eq(13).html('<div class="genericTableDivES">new</div>');
+				$(thead).find('th').eq(14).html('<div class="genericTableDivES">queued</div>');
+				$(thead).find('th').eq(15).html('<div class="genericTableDivES">failed</div>');
+				$(thead).find('th').eq(16).html('<div class="genericTableDivES">complete</div>');
+				$(thead).find('th').eq(17).html('<div class="genericTableDivES">aborted</div>');
+				$(thead).find('th').eq(18).html('<div class="genericTableDivES">cancelled</div>');
+			},
+			"fnDrawCallback": function (oSettings) {
+				$("div[id^='crate_']").each(function() {
+					$(this).progress()
+				});
+			},
+			"createdRow": function( row, data, index ) {
+				$('td', row).eq(7).css( 'background-color', '#eeeeee' );
+				$('td', row).eq(8).css( 'background-color', '#eeeeee' );
+				$('td', row).eq(9).css( 'background-color', '#eeeeee' );
+				$('td', row).eq(10).css( 'background-color', '#dddddd' );
+				$('td', row).eq(11).css( 'background-color', '#dddddd' );
+				$('td', row).eq(12).css( 'background-color', '#dddddd' );
+				$('td', row).eq(13).css( 'background-color', '#cccccc' );
+				$('td', row).eq(14).css( 'background-color', '#cccccc' );
+				$('td', row).eq(15).css( 'background-color', '#cccccc' );
+				$('td', row).eq(16).css( 'background-color', '#cccccc' );
+				$('td', row).eq(17).css( 'background-color', '#cccccc' );
+				$('td', row).eq(18).css( 'background-color', '#cccccc' );
+			},
+			"columnDefs": [	
+				{
+				 "targets": [ 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ],
+				 "width": "47px"
+				},
+				{
+				 "targets": [ 3, 4 ],
+				 render: function ( data, type, row, meta ) {
+				 	return (datatables_Timestamp(data));
+				 }
+				},				
+				{
+				 "targets": [ 7, 8, 9 ],
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display') {
+				 		data = Math.round(data);
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 "targets": [ 6, 10, 11, 12 ],
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display') {
+				 		mysize = (data / 1024 / 1024);
+				 		data = roundToTwo(mysize);
+					}
+				 	return data;
+				 }
+				},
+				{
+				 "targets": 19,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display') {
+				 		data = "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + row.DT_RowId + "' data-percent='" + Math.round(data) + "'></div></div>";
+				 			$("#crate_" + row.DT_RowId).progress();
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 "targets": 20,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display') {
+				 		if (data === parseInt(data, 10)) {
+					 		data = "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + row.DT_RowId + "' data-percent='" + Math.round(data) + "'></div></div>";
+					 		$("#prog_" + row.DT_RowId).progress();
+				 		}
+				 		else {
+				 			data = "N/A";
+				 		}
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 "targets": 21,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display') {
+				 		if (data === parseInt(data, 10)) {
+					 		myid = data;
+					 		data = "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + myid + "'>stop</a>";
+					 		data += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + myid + "'>remove</a>";
+					 		data += "<a class='tableActionButton' href='/bulkaction?action=download&id=" + myid + "'>download</a>";
+					 	}
+					 	else {
+					 		data = "post-download handler: " + data;
+					 	}
+				 	}
+				 	return data;
+				 }
+				},
+				{"className": "dt-center", "targets": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]}
+			]
+		});
+
+		$('#bulktable').on( 'click', 'tr', function () {
+			window.document.location = "/bulkdetails?id=" + $(this).attr("id");
+		});
+
+		setInterval( function () {
+			bulk_datatable.ajax.reload();
+		}, 10000 );
+
+		$("#checkboxStore").click(function() {
+			enableStore();
+		});
+
+		$("#checkboxFile").click(function() {
+			enableFile();
+		});
+
+		$("#divStore").click(function() {
+			enableStore();
+		});
+
+		$("#divFile").click(function() {
+			enableFile();
+		});
+
+	});
+</script>
+
+<form method='POST' action='/bulkacq' enctype="multipart/form-data">
+		<div class='tableTitle'>
+        	<i class="fas fa-plus-square fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+			New bulk acquisition
+		</div>
+	<div class='inputArea' style='width: 900px;'>
+
+		<div id='divStore' style='width: 250px; float: left; padding: 10px; margin-right: 15px; vertical-align: top; border: 1px solid rgb(215,215,215); border-radius: 5px; background: rgb(225,225,225);'>
+			<input type='checkbox' name='store' id='checkboxStore' checked>
+			<b>From HXTool</b><br><br>
+			{% if scripts %} {{ scripts|safe }} {% endif %}
+		</div>
+		<div id='divFile' style='width: 250px; float: left; padding: 10px; vertical-align: top; border: 1px solid rgb(215,215,215); border-radius: 5px;'>			<input type='checkbox' name='file' id='checkboxFile'>
+			<b>From file</b><br><br>
+			<input type='file' id='bulkscript' name='bulkscript'>
+		</div>
+		<div style='clear: both;'></div>
+
+		<br>
+		<b>Hostset</b><br>
+		<select name='bulkhostset' id='bulkhostset'>
+			{% if hostsets %} {{ hostsets|safe }} {% endif %}
+		</select>
+		<br>
+		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>A bulk acquisition is similar to a normal forensic acquisition in HX but is targeting a list of hosts instead of individual hosts. You need to provide a compatible acquisition script and select a target host-set.<br>Also note that the download feature is only available once you have set the background processing credentials on the "<a href='/settings'>settings</a>" page.</div>
+		
+	        <input class='tableActionButton' type='submit' value='Start Bulk Acquisition'>
+	</div>
+</form>
+
+<br>
+
+<div class='tableTitle'>
+	<i class="fas fa-th-list fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+	Bulk acquisitions on the controller
+</div>
+
+<table id='bulktable' style='width: 100%' class='genericTable genericTableBulk'></table>
+
+{% endblock %}
