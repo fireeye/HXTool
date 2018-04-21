@@ -30,6 +30,22 @@
 				{ title: "next_run", "data": "next_run" },
 				{ title: "immutable", "data": "immutable" },
 				{ title: "state", "data": "state" }
+			],
+			"columnDefs": [	
+				{ "className": "dt-center", "targets": [0, 1, 2, 3, 4, 5, 6, 7] },
+				{
+				"targets": [ 3, 6 ], 
+				render: function ( data, type, row, meta ) {
+					if (data == true) {
+						data = "<i class='fas fa-check fa-1x fa-fw' style='color: green; margin-right: 2px;' aria-hidden='true'></i> Yes";
+					}
+					else if (data == false) {
+						data = "<i class='fas fa-ban fa-1x fa-fw' style='color: red; margin-right: 2px;' aria-hidden='true'></i> No";
+					}
+					return data;
+					}
+				},
+
 			]
 		});
 
@@ -43,7 +59,9 @@
 
 <br>
 
-<div id='schedulerHealth'></div>
+<div style='float: left; margin-right: 10px;'>Scheduler status:</div>
+<div style='float: left;' id='schedulerHealth'></div>
+<div style='clear: both; margin-bottom: 15px;'></div>
 
 <table id='tableContainer' class='genericTable'></table>
 

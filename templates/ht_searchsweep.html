@@ -136,6 +136,10 @@
 			window.document.location = "/searchresult?id=" + $(this).attr("id");
 		});
 
+		setInterval( function () {
+			es_datatable.ajax.reload();
+		}, 5000 );
+
 
 	});
 </script>
