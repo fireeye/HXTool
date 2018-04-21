@@ -74,6 +74,9 @@
 				$("div[id^='crate_']").each(function() {
 					$(this).progress()
 				});
+				$("div[id^='prog_']").each(function() {
+					$(this).progress()
+				});
 			},
 			"createdRow": function( row, data, index ) {
 				$('td', row).eq(7).css( 'background-color', '#eeeeee' );
@@ -124,7 +127,6 @@
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
 				 		data = "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + row.DT_RowId + "' data-percent='" + Math.round(data) + "'></div></div>";
-				 			$("#crate_" + row.DT_RowId).progress();
 				 	}
 				 	return data;
 				 }
@@ -135,7 +137,6 @@
 				 	if(type === 'display') {
 				 		if (data === parseInt(data, 10)) {
 					 		data = "<div class='htMyBar htBarWrap'><div class='htBar' id='prog_" + row.DT_RowId + "' data-percent='" + Math.round(data) + "'></div></div>";
-					 		$("#prog_" + row.DT_RowId).progress();
 				 		}
 				 		else {
 				 			data = "N/A";
