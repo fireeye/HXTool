@@ -171,7 +171,7 @@
 	vertical-align: bottom;
 }
 
-.genericTableES thead th:nth-child(n+10):nth-last-child(n+3) {
+.genericTableES thead th:nth-child(n+11):nth-last-child(n+3) {
 	padding: 0;
 	height: 100px;
 	min-width: 40px;

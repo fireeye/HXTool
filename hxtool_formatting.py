@@ -9,9 +9,9 @@ def formatBulkHostsTable(hoststable):
 	x = "<table id='bulkTable' class='genericTable' style='font-size: 13px; width: 100%;'>" \
 		"<thead>" \
 		"<tr>" \
-		"<td style='width: 100px;'>hostname</td>" \
-		"<td style='width: 100px;'>queued at</td>" \
-		"<td style='width: 100px;'>completed at</td>" \
+		"<td>hostname</td>" \
+		"<td style='width: 150px;'>queued at</td>" \
+		"<td style='width: 150px;'>completed at</td>" \
 		"<td style='width: 100px;'>state</td>" \
 		"<td>actions</td>" \
 		"</tr>" \
@@ -50,7 +50,7 @@ def formatIOCResults(iocs, mycategories):
 	x += "<td style='width: 80px;'>Platforms</td>"
 	x += "<td style='width: 80px;'>Conditions</td>"
 	x += "<td style='width: 60px;'>Hosts</td>"
-	x += "<td style='width: 60px;'>Action</td>"
+	x += "<td style='width: 260px;'>Action</td>"
 	x += "</tr>"
 	x += "</thead>"
 	x += "<tbody>"
