@@ -42,7 +42,7 @@ class stacking_task_module(task_module):
 					os.remove(os.path.realpath(bulk_download_path))
 					
 			else:
-				self.logger.warn("bulk_download_path is empty!")
+				self.logger.error("bulk_download_path is empty!")
 				
 			return(ret, None)
 		except Exception as e:
