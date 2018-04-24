@@ -709,27 +709,35 @@ def bulkaction(hx_api_object):
 	if request.args.get('action') == "download":
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
 		
-		bulk_acquisition_hosts = {}
-		for host in response_data['data']['entries']:
-			bulk_acquisition_hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' :  host['host']['hostname']}
-			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
-			bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
-														'bulk_acquisition_id' : request.args.get('id'),
-														'host_id' : host['host']['_id'],
-														'host_name' : host['host']['hostname']
-													})
-			hxtool_global.hxtool_scheduler.add(bulk_acquisition_download_task)
+		if ret and response_data and len(response_data['data']['entries']) > 0:
+			bulk_acquisition_hosts = {}
+			task_list = []
+			for host in response_data['data']['entries']:
+				bulk_acquisition_hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' :  host['host']['hostname']}
+				bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
+				bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
+															'bulk_acquisition_id' : request.args.get('id'),
+															'host_id' : host['host']['_id'],
+															'host_name' : host['host']['hostname']
+														})
+				# This works around a nasty race condition where the task would start before the download job was added to the database				
+				task_list.append(bulk_acquisition_download_task)
 		
-		hostset_id = -1
-		(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
-		if ret:
-			if response_data['data']['comment'] and 'hostset_id' in response_data['data']['comment']:
-				hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
-			elif 'host_set' in response_data['data']:
-				hostset_id = int(response_data['data']['host_set']['_id'])
+			hostset_id = -1
+			(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
+			if ret:
+				if response_data['data']['comment'] and 'hostset_id' in response_data['data']['comment']:
+					hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
+				elif 'host_set' in response_data['data']:
+					hostset_id = int(response_data['data']['host_set']['_id'])
+			
+			app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), bulk_acquisition_hosts, hostset_id = hostset_id)	
 		
-		ret = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), bulk_acquisition_hosts, hostset_id = hostset_id)
-		app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			hxtool_global.hxtool_scheduler.add_list(task_list)
+			
+			app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		else:
+			app.logger.warn("No host entries were returned for bulk acquisition: {}. Did you just start the job? If so, wait for the hosts to be queued up.".format(request.args.get('id')))
 		return redirect("/bulkacq", code=302)
 		
 	if request.args.get('action') == "stopdownload":
@@ -1992,9 +2000,10 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, hand
 																'host_name' : host['hostname'],
 																'delete_bulk_download' : False
 															})
-			hxtool_global.hxtool_scheduler.add(bulk_acquisition_download_task)
 		
 		app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], bulk_acquisition_id, bulk_acquisition_hosts, hostset_id = hostset_id, post_download_handler = handler)
+		
+		hxtool_global.hxtool_scheduler.add(bulk_acquisition_download_task)	
 			
 	return bulk_acquisition_id
 	
