@@ -86,6 +86,11 @@ class hxtool_scheduler:
 	def add(self, task):
 		with self._lock:
 			self.task_queue.append(task)
+	
+	def add_list(self, tasks):
+		if isinstance(tasks, list):
+			with self._lock:
+				self.task_queue.extend(tasks)
 		
 	def remove(self, id = None, name = None):
 		if id:
