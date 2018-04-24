@@ -49,6 +49,5 @@ class bulk_download_task_module(task_module):
 				self.parent_task.stop()
 		except Exception as e:
 			self.logger.error(e)
-			self.logger.error(traceback.format_exc())
 		finally:	
 			return(ret, result)		
