@@ -286,9 +286,11 @@ def search(hx_api_object):
 			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])['ioc']
 		
 		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task")
-		enterprise_search_task.add_step(enterprise_search_task_module(enterprise_search_task).run, 
-										(ioc_script, request.form['sweephostset'],), 
-										{'skip_base64' : skip_base64})
+		enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
+											'script' : ioc_script,
+											'hostset_id' : request.form['sweephostset'],
+											'skip_base64': skip_base64
+										})
 		hxtool_global.hxtool_scheduler.add(enterprise_search_task)
 		app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/search", code=302)
@@ -711,8 +713,11 @@ def bulkaction(hx_api_object):
 		for host in response_data['data']['entries']:
 			bulk_acquisition_hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' :  host['host']['hostname']}
 			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
-			# TODO: pull poll interval from config
-			bulk_acquisition_download_task.add_step(bulk_download_task_module(bulk_acquisition_download_task).run, (request.args.get('id'), host['host']['_id'], host['host']['hostname']))
+			bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
+														'bulk_acquisition_id' : request.args.get('id'),
+														'host_id' : host['host']['_id'],
+														'host_name' : host['host']['hostname']
+													})
 			hxtool_global.hxtool_scheduler.add(bulk_acquisition_download_task)
 		
 		hostset_id = -1
@@ -855,8 +860,11 @@ def multifile(hx_api_object):
 						}
 						mf_job_id = app.hxtool_db.multiFileAddJob(multi_file_id, job_record)
 						file_acquisition_task = hxtool_scheduler_task(profile_id, "File Acquisition: {}".format(cf['hostname']))
-						file_acquisition_task.add_step(file_acquisition_task_module(file_acquisition_task).run,
-														(multi_file_id, int(acq_id), cf['hostname']))
+						file_acquisition_task.add_step(file_acquisition_task_module, kwargs = {
+															'multi_file_id' : multi_file_id,
+															'file_acquisition_id' : int(acq_id),
+															'host_name' : cf['hostname']
+														})
 						hxtool_global.hxtool_scheduler.add(file_acquisition_task)
 						app.logger.info('File acquisition requested from host %s at path %s- User: %s@%s:%s - host: %s', cf['hostname'], cf['FullPath'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, agent_id)
 						file_jobs.append(acq_id)
@@ -1963,20 +1971,27 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, hand
 		for host in response_data['data']['entries']:
 			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host['hostname']}
 			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']))
-			bulk_acquisition_download_task.add_step(bulk_download_task_module(bulk_acquisition_download_task).run, 
-													(bulk_acquisition_id, host['_id'], host['hostname']))
+			bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
+														'bulk_acquisition_id' : bulk_acquisition_id,
+														'host_id' : host['_id'],
+														'host_name' : host['hostname']
+													})
 
 			# TODO: This is awful, needs to be rewritten where the individual function(stacking, multifile, etc) adds the necessary step
 			# TODO: and each module defines the necessary parameters required.
 			if handler:
 				if handler == 'stacking':
-					bulk_acquisition_download_task.add_step(stacking_task_module(bulk_acquisition_download_task).run, 
-															(bulk_acquisition_id, host['hostname']), 
-															{'delete_bulk_download' : True})
+					bulk_acquisition_download_task.add_step(stacking_task_module, kwargs = {
+																'bulk_acquisition_id' : bulk_acquisition_id,
+																'host_name' : host['hostname'],
+																'delete_bulk_download' : True
+															})
 				elif handler == 'file_listing':
-					bulk_acquisition_download_task.add_step(file_listing_task_module(bulk_acquisition_download_task).run,
-															(bulk_acquisition_id, host['hostname']), 
-															{'delete_bulk_download' : False})
+					bulk_acquisition_download_task.add_step(file_listing_task_module, kwargs = {
+																'bulk_acquisition_id' : bulk_acquisition_id,
+																'host_name' : host['hostname'],
+																'delete_bulk_download' : False
+															})
 			hxtool_global.hxtool_scheduler.add(bulk_acquisition_download_task)
 		
 		app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], bulk_acquisition_id, bulk_acquisition_hosts, hostset_id = hostset_id, post_download_handler = handler)

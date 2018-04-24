@@ -127,12 +127,11 @@ class hxtool_scheduler_task:
 		self.name = name
 		self.enabled = enabled
 		self.immutable = immutable
-		self.state = 0
+		self.state = TASK_STATE_QUEUED
 		self.interval = interval
 		self.start_time = start_time
 		self.end_time = end_time
 		self.last_run = None
-		self.run_state = None
 		self.next_run = start_time
 		self.stop_on_fail = stop_on_fail
 		self.steps = []
@@ -143,9 +142,12 @@ class hxtool_scheduler_task:
 		self._defer_signal = False
 		
 
-	def add_step(self, func, args = (), kwargs = {}):
+	def add_step(self, module, func = "run", args = (), kwargs = {}):
+		# This is an HXTool task module, we need to init it.
+		if isinstance(module, type) and 'task_module' in str(module.__bases__):
+			module = module(self)
 		with self._lock:
-			self.steps.append((func, args, kwargs))
+			self.steps.append((module, func, args, kwargs))
 		
 	def _calculate_next_run(self):
 		self.next_run = None
@@ -168,22 +170,41 @@ class hxtool_scheduler_task:
 		if self.enabled:
 			
 			with self._lock:
-				ret = False
 				
 				self.state = TASK_STATE_RUNNING
 				
 				# Reset microseconds to keep from drifting too badly
 				self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
 				
-				for func, args, kwargs in self.steps:
+				for module, func, args, kwargs in self.steps:
+					self.logger.debug("Have module: {}, function: {}".format(module.__module__, func))
 					# This is an HXTool task_module - need to find a better way to do this.
-					if 'task_module' in func.__str__():
-						if self.stored_result:
+					if 'task_module' in module.__module__:
+						
+						# Retrieve the arguments and compare them to what we have
+						run_args = module.run_args().sort()
+						
+						# Add the stored result args to kwargs - taking care not stomp over existing args
+						if not run_args == kwargs.keys().sort() and self.stored_result and self.stored_result.keys() in run_args:
 							kwargs.update(self.stored_result)
-						(ret, result) = func(*args, **kwargs)
-						self.stored_result = result
+					
+						if not run_args == kwargs.keys().sort():
+							self.logger.error("Module {} requires arguments that were not found! Bailing!".format(module.__module__))
+							break
+				
+					result = getattr(module, func)(*args, **kwargs)
+					
+					if isinstance(result, tuple) and len(result) > 1:
+						ret = result[0]
+						# Store the result - make sure it is of type dict
+						if isinstance(result[1], dict):
+							self.stored_result = result[1]
+						elif result[1] != None:
+							self.logger.error("Task module {} returned a value that was not a dictionary or None. Discarding the result.".format(module.__module__))
 					else:
-						ret = func(*args, **kwargs)
+						ret = result
+					
+					
 					
 					if self._stop_signal:
 						self.state = TASK_STATE_STOPPED
