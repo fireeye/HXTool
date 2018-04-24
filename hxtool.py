@@ -283,7 +283,8 @@ def search(hx_api_object):
 			ioc_script = f.read()
 		elif 'store' in request.form.keys():
 			skip_base64 = True
-			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])
+			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])['ioc']
+		
 		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task")
 		enterprise_search_task.add_step(enterprise_search_task_module(enterprise_search_task).run, 
 										(ioc_script, request.form['sweephostset'],), 
