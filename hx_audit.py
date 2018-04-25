@@ -65,7 +65,7 @@ class AuditPackage:
 		if audit_xml:
 			xml_et = ET.parse(audit_xml).getroot()
 			if xml_et.tag == 'itemList':
-				return self.xml_to_dict(xml_et)
+				return self.xml_to_dict(xml_et)['itemList']
 		return None
 
 	def xml_to_dict(self, element):
