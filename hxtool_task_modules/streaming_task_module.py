@@ -29,20 +29,11 @@ class streaming_task_module(task_module):
 			ret = False
 			if bulk_download_path:
 				audit_objects = []
-				with AuditPackage(bulk_download_path) as audit_pkg:
-					for audit in audit_pkg.audits:
-						for result in audit['results']:
-							if result['type'] == 'application/xml':							
-								audit_dict = audit_pkg.audit_to_dict(result['payload'])
-								if audit_dict:
-									audit_objects.append({
-										'hostname' : host_name,
-										'generator' : audit['generator'],
-										'generatorVersion' : audit['generatorVersion'],
-										'timestamps' : audit['timestamps'],
-										'results' : audit_dict
-									})
-								
+				with AuditPackage(bulk_download_path) as audit_package:
+					for audit in audit_package.audits:
+						audit_object = audit_package.audit_to_dict(audit)
+						if audit_object:
+							audit_objects.append(audit_object)
 				if len(audit_objects) > 0:
 					socket_type = socket.SOCK_STREAM
 					if stream_protocol == 'udp':
