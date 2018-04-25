@@ -52,7 +52,7 @@ class hxtool_session_interface(SessionInterface):
 		
 		# Schedule session_reaper
 		session_reaper_task = hxtool_scheduler_task("System", "Session Reaper", interval=datetime.timedelta(minutes=30), immutable=True)
-		session_reaper_task.add_step(self.session_reaper, (app,))
+		session_reaper_task.add_step(self, "session_reaper", args = (app,))
 		hxtool_global.hxtool_scheduler.add(session_reaper_task)
 	
 	def get_expiration_time(self, app, session):

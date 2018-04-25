@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import zipfile
 import json
+from collections import OrderedDict
 
 def get_mime_type(generator):
 	return (generator in ['w32apifile-acquisition', 'w32disk-acquisition']) and 'application/octet-stream' or 'application/xml'
@@ -57,17 +58,44 @@ class AuditPackage:
 				for results in audit['results']:
 					if results['type'] == mime_type:
 						return results['payload']
-		return ''
+		return None
 
+	def audit_to_dict(self, payload_name):
+		audit_xml = self.get_audit(payload_name = payload_name)
+		if audit_xml:
+			xml_et = ET.parse(audit_xml).getroot()
+			if xml_et.tag == 'itemList':
+				return self.xml_to_dict(xml_et)
+		return None
+
+	def xml_to_dict(self, element):
+		d = OrderedDict()
+
+		if len(element) > 0:
+			for child_element in element:
+				rc_element_dict = self.xml_to_dict(child_element)
+				sub_value = rc_element_dict[child_element.tag]
+
+				if child_element.tag in d:
+					if isinstance(d[child_element.tag], list):
+						d[child_element.tag].append(sub_value)
+					else:
+						d[child_element.tag] = [d[child_element.tag], sub_value]
+				else:
+					d[child_element.tag] = sub_value
+
+			return {element.tag : d}
+		else:
+			return {element.tag : element.text}
+
+		
 	def get_audit(self, payload_name=None, generator=None, destination_path=None):
 		if not payload_name and not generator:
 			raise ValueError("You must specify payload_name or generator.")
 		if payload_name and payload_name not in self.package.namelist():
 			return None
 		elif generator:
-			payload_name = self.get_audit_id(generator)
-			if payload_name == '':
-				return None
+			return self.get_audit_id(generator)
 				
 		if destination_path:
 			self.package.extract(payload_name, destination_path)
