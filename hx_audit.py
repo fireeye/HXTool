@@ -60,12 +60,21 @@ class AuditPackage:
 						return results['payload']
 		return None
 
-	def audit_to_dict(self, payload_name):
-		audit_xml = self.get_audit(payload_name = payload_name)
-		if audit_xml:
-			xml_et = ET.parse(audit_xml).getroot()
-			if xml_et.tag == 'itemList':
-				return self.xml_to_dict(xml_et)
+	def audit_to_dict(self, audit, hostname):
+		for result in audit['results']:
+			# We can only convert XML
+			if result['type'] == 'application/xml':							
+				audit_xml = self.get_audit(result['payload'])
+				if audit_xml:
+					xml_et = ET.parse(audit_xml).getroot()
+					if xml_et.tag == 'itemList':
+						return {
+							'hostname' : hostname,
+							'generator' : audit['generator'],
+							'generatorVersion' : audit['generatorVersion'],
+							'timestamps' : audit['timestamps'],
+							'results' : self.xml_to_dict(xml_et)['itemList']
+						}
 		return None
 
 	def xml_to_dict(self, element):
