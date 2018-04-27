@@ -50,7 +50,6 @@ class hxtool_scheduler:
 			for task in self.task_queue:
 				if task.should_run():
 					self.run_queue.put((task.id, task.name, task.run))
-					task.set_state(TASK_STATE_QUEUED)
 			self._stop_event.wait(.01)
 		
 	def _await_task(self):
