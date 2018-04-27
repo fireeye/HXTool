@@ -1976,6 +1976,7 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, hand
 	if download:
 		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset_id)
 		bulk_acquisition_hosts = {}
+		task_list = []
 		for host in response_data['data']['entries']:
 			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host['hostname']}
 			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']))
@@ -2000,10 +2001,12 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, hand
 																'host_name' : host['hostname'],
 																'delete_bulk_download' : False
 															})
-		
+			
+			task_list.append(bulk_acquisition_download_task)
+			
 		app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], bulk_acquisition_id, bulk_acquisition_hosts, hostset_id = hostset_id, post_download_handler = handler)
 		
-		hxtool_global.hxtool_scheduler.add(bulk_acquisition_download_task)	
+		hxtool_global.hxtool_scheduler.add_list(task_list)	
 			
 	return bulk_acquisition_id
 	
