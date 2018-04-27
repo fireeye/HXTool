@@ -4,7 +4,6 @@
 import logging
 import threading
 import datetime
-import uuid
 import random
 
 try:
@@ -119,11 +118,8 @@ class hxtool_scheduler:
 	def status(self):
 		return self._poll_thread.is_alive()
 			
-# Interval must be zero or a time delta
-# To run a job once at a specific time, specify start_time with an interval of zero
-# States:
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, id = str(uuid.uuid4()), interval = 0, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, defer_interval = 30, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, id = str(secure_uuid4()), interval = None, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, defer_interval = 30, logger = logging.getLogger(__name__)):
 		self.logger = hxtool_global.hxtool_scheduler.logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id

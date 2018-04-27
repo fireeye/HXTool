@@ -3,9 +3,9 @@
 
 import threading
 import datetime
-import uuid
 import logging
 from hxtool_global import hxtool_schema_version
+from hxtool_util import *
 
 try:
 	import tinydb
@@ -64,7 +64,7 @@ class hxtool_db:
 	"""	
 	def profileCreate(self, hx_name, hx_host, hx_port):
 		# Generate a unique profile id
-		profile_id = str(uuid.uuid4())
+		profile_id = str(secure_uuid4())
 		r = None
 		with self._lock:
 			try:
