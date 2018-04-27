@@ -119,5 +119,5 @@ def make_download_directory(hx_host, download_id, job_type=None):
 	return download_directory
 
 def secure_uuid4():
-	return uuid.UUID(bytes=os.urandom(16), version=4)
+	return uuid.UUID(bytes=crypt_generate_random(16), version=4)
 	
