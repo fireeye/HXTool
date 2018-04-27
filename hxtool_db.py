@@ -417,7 +417,32 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('openioc').get((tinydb.Query()['ioc_id'] == ioc_id))
 
+	def taskCreate(self, profile_id, task_id, serialized_task):
+		with self._lock:
+			return self._db.table('tasks').insert({
+													'profile_id' : profile_id,
+													'task_id' : task_id,
+													'task_data' : serialized_task
+			})
+	
+	def taskList(self):
+		with self._lock:
+			return self._db.table('tasks').all()
+	
+	def taskGet(self, profile_id, task_id):
+		with self._lock:
+			return self._db.table('tasks').get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['task_id'] == task_id))
+	
+	def taskUpdate(self, profile_id, task_id, serialized_task):
+		with self._lock:
+			return self._db.table('tasks').update({'task_data' : serialized_task}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['task_id'] == task_id))
+	
+	def taskDelete(self, profile_id, task_id):
+		with self._lock:
+			return self._db.table('tasks').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['task_id'] == task_id))
 
+
+			
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
 			if type(dict_values) is dict:
