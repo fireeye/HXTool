@@ -11,8 +11,10 @@ try:
 except ImportError:
 	import queue
 
-import hxtool_global	
-
+import hxtool_global
+from hx_lib import HXAPI
+import hxtool_task_modules
+from hxtool_util import *
 
 TASK_STATE_QUEUED = 0
 TASK_STATE_RUNNING = 1
@@ -49,7 +51,7 @@ class hxtool_scheduler:
 		while not self._stop_event.is_set():
 			for task in self.task_queue:
 				if task.should_run():
-					self.run_queue.put((task.id, task.name, task.run))
+					self.run_queue.put((task.task_id, task.name, task.run))
 			self._stop_event.wait(.01)
 		
 	def _await_task(self):
@@ -81,18 +83,22 @@ class hxtool_scheduler:
 		del self.task_threads[:]
 		self.logger.debug('stop() exit.')
 	
-	def add(self, task):
+	def add(self, task, store = True):
 		with self._lock:
 			self.task_queue.append(task)
+		
+		# Don't store system tasks or tasks that have been restored from the DB
+		if store and not task.immutable:
+			hxtool_global.hxtool_db.taskCreate(task.profile_id, task.task_id, task.serialize())
 	
 	def add_list(self, tasks):
 		if isinstance(tasks, list):
-			with self._lock:
-				self.task_queue.extend(tasks)
+			for t in tasks:
+				self.add(t)
 		
-	def remove(self, id = None, name = None):
-		if id:
-			t = [_ for _ in self.task_queue if _.id == id]
+	def remove(self, task_id = None, name = None):
+		if task_id:
+			t = [_ for _ in self.task_queue if _.task_id == task_id]
 			with self.lock:
 				self.task_queue.remove(t[0])
 		elif name:
@@ -101,9 +107,9 @@ class hxtool_scheduler:
 				self.task_queue.remove(t[0])		
 	
 	# Note get() is destructive, it will remove the task from the queue, you will need to add it back when done if you want to run it again.
-	def get(self, id = None, name = None):
-		if id:
-			t = [_ for _ in self.task_queue if _.id == id]
+	def get(self, task_id = None, name = None):
+		if task_id:
+			t = [_ for _ in self.task_queue if _.task_id == task_id]
 			with self.lock:
 				return self.task_queue.pop(self.task_queue.index(t[0]))
 		elif name:
@@ -118,11 +124,13 @@ class hxtool_scheduler:
 		return self._poll_thread.is_alive()
 			
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, id = str(secure_uuid4()), interval = None, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, defer_interval = 30, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, task_id = None, interval = None, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, defer_interval = 30, logger = logging.getLogger(__name__)):
 		self.logger = hxtool_global.hxtool_scheduler.logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
-		self.id = id
+		self.task_id = task_id
+		if not self.task_id:
+			self.task_id = str(secure_uuid4())
 		self.parent_id = parent_id
 		self.name = name
 		self.enabled = enabled
@@ -161,7 +169,7 @@ class hxtool_scheduler_task:
 	def set_state(self, state):
 		with self._lock:
 			self.state = state
-	
+		
 	def run(self):
 		self._stop_signal = False
 		self._defer_signal = False
@@ -220,7 +228,13 @@ class hxtool_scheduler_task:
 										
 		else:
 			self.set_state(TASK_STATE_STOPPED)
-			
+		
+		if not self.immutable:				
+			if self.state != TASK_STATE_QUEUED:
+				hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
+			else:
+				hxtool_global.hxtool_db.taskUpdate(self.profile_id, self.task_id, self.serialize())
+		
 		return ret
 
 	def stop(self):
@@ -235,4 +249,50 @@ class hxtool_scheduler_task:
 				len(self.steps) > 0 and 
 				((datetime.datetime.utcnow() - self.next_run).seconds == 0 or 
 				self.start_time == self.next_run))
+				
+	def serialize(self):
+		return {
+			'profile_id' : self.profile_id,
+			'task_id' : self.task_id,
+			'name' : self.name,
+			'interval' : self.interval.seconds if type(self.interval) is datetime.timedelta else None,
+			'start_time' : str(self.start_time),
+			'end_time' : str(self.end_time) if self.end_time else None,
+			'enabled' : self.enabled,
+			'immutable' : self.immutable,
+			'stop_on_fail' : self.stop_on_fail,
+			'parent_id' : self.parent_id,
+			'defer_interval' : self.defer_interval,
+			'state' : self.state,
+			'stored_result' : self.stored_result,
+			'steps' : [{ 
+						'module' : m.__module__,
+						'function' : f,
+						'args' : a,
+						'kwargs' : ka
+						}
+						for m, f, a, ka in self.steps
+			]
+		}
+	
+	@staticmethod	
+	def deserialize(d):
+		task = hxtool_scheduler_task(d['profile_id'],
+									d['name'],
+									task_id = d['task_id'],
+									interval = datetime.timedelta(seconds = d['interval']) if d['interval'] else None,
+									start_time = HXAPI.dt_from_str(d['start_time']),
+									end_time = HXAPI.dt_from_str(d['end_time']) if d['end_time'] else None,
+									enabled = d['enabled'],
+									immutable = d['immutable'],
+									stop_on_fail = d['stop_on_fail'],
+									defer_interval = d['defer_interval'])
+		task.set_state(d['state'])
+		for s in d['steps']:
+			# I hate this
+			step_module = eval(s['module'])
+			task.add_step(step_module, s['function'], s['args'], s['kwargs'])
+		return task
+									
+									
 		
