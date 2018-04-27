@@ -3,6 +3,8 @@
 
 from functools import wraps
 import os
+import uuid
+
 
 try:
 	from flask import request, session, redirect, url_for
@@ -116,5 +118,6 @@ def make_download_directory(hx_host, download_id, job_type=None):
 			
 	return download_directory
 
-
+def secure_uuid4():
+	return uuid.UUID(bytes=os.urandom(16), version=4)
 	
