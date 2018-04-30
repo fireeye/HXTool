@@ -199,6 +199,8 @@ class hxtool_scheduler_task:
 					
 						if not set(module.run_args()) == set(kwargs.keys()):
 							self.logger.error("Module {} requires arguments that were not found! Bailing!".format(module.__module__))
+							ret = False
+							self.state = TASK_STATE_FAILED
 							break
 				
 					result = getattr(module, func)(*args, **kwargs)
