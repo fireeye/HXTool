@@ -464,7 +464,10 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
-	def restNewAcquisition(self, agent_id, scriptname, script):
+	def restNewAcquisition(self, agent_id, scriptname, script, skip_base64 = False):
+		
+		if not skip_base64:
+			script = HXAPI.b64(script)
 
 		data = json.dumps({'name' : scriptname, 'script' : {'b64' : HXAPI.b64(script)}})
 		
