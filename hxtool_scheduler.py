@@ -16,13 +16,15 @@ from hx_lib import HXAPI
 import hxtool_task_modules
 from hxtool_util import *
 
-TASK_STATE_QUEUED = 0
-TASK_STATE_RUNNING = 1
-TASK_STATE_COMPLETE = 2
-TASK_STATE_STOPPED = 3
-TASK_STATE_FAILED = 4
+TASK_STATE_SCHEDULED = 0
+TASK_STATE_QUEUED = 1
+TASK_STATE_RUNNING = 2
+TASK_STATE_COMPLETE = 3
+TASK_STATE_STOPPED = 4
+TASK_STATE_FAILED = 5
 
 task_state_description = {
+	TASK_STATE_SCHEDULED: "Scheduled",
 	TASK_STATE_QUEUED 	: "Queued",
 	TASK_STATE_RUNNING	: "Running",
 	TASK_STATE_COMPLETE : "Complete",
@@ -49,9 +51,11 @@ class hxtool_scheduler:
 
 	def _scan_task_queue(self):
 		while not self._stop_event.is_set():
-			for task in self.task_queue:
-				if task.should_run():
-					self.run_queue.put((task.task_id, task.name, task.run))
+			with self._lock:
+				for task in self.task_queue:
+					if task.should_run():
+						self.run_queue.put((task.task_id, task.name, task.run))
+						task.set_state(TASK_STATE_QUEUED)
 			self._stop_event.wait(.01)
 		
 	def _await_task(self):
@@ -86,6 +90,7 @@ class hxtool_scheduler:
 	def add(self, task, store = True):
 		with self._lock:
 			self.task_queue.append(task)
+			task.set_state(TASK_STATE_SCHEDULED)
 		
 		# Don't store system tasks or tasks that have been restored from the DB
 		if store and not task.immutable:
@@ -135,7 +140,7 @@ class hxtool_scheduler_task:
 		self.name = name
 		self.enabled = enabled
 		self.immutable = immutable
-		self.state = TASK_STATE_QUEUED
+		self.state = None
 		self.interval = interval
 		self.start_time = start_time
 		self.end_time = end_time
@@ -222,7 +227,7 @@ class hxtool_scheduler_task:
 				self._calculate_next_run()
 			
 				if self.next_run:
-					self.state = TASK_STATE_QUEUED
+					self.state = TASK_STATE_SCHEDULED
 				elif not (self.state == TASK_STATE_FAILED or self.state == TASK_STATE_STOPPED):
 					self.state = TASK_STATE_COMPLETE
 										
@@ -230,7 +235,7 @@ class hxtool_scheduler_task:
 			self.set_state(TASK_STATE_STOPPED)
 		
 		if not self.immutable:				
-			if self.state != TASK_STATE_QUEUED:
+			if self.state != TASK_STATE_SCHEDULED:
 				hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
 			else:
 				hxtool_global.hxtool_db.taskUpdate(self.profile_id, self.task_id, self.serialize())
@@ -244,12 +249,11 @@ class hxtool_scheduler_task:
 		self._defer_signal = True
 	
 	def should_run(self):
-		with self._lock:
-			return (self.enabled and  
-					self.state == TASK_STATE_QUEUED and 
-					len(self.steps) > 0 and 
-					((datetime.datetime.utcnow() - self.next_run).seconds == 0 or 
-					self.start_time == self.next_run))
+		return (self.enabled and  
+				self.state == TASK_STATE_SCHEDULED and 
+				len(self.steps) > 0 and 
+				((datetime.datetime.utcnow() - self.next_run).seconds == 0 or 
+				self.start_time == self.next_run))
 				
 	def serialize(self):
 		return {
