@@ -244,11 +244,12 @@ class hxtool_scheduler_task:
 		self._defer_signal = True
 	
 	def should_run(self):
-		return (self.enabled and  
-				self.state == TASK_STATE_QUEUED and 
-				len(self.steps) > 0 and 
-				((datetime.datetime.utcnow() - self.next_run).seconds == 0 or 
-				self.start_time == self.next_run))
+		with self._lock:
+			return (self.enabled and  
+					self.state == TASK_STATE_QUEUED and 
+					len(self.steps) > 0 and 
+					((datetime.datetime.utcnow() - self.next_run).seconds == 0 or 
+					self.start_time == self.next_run))
 				
 	def serialize(self):
 		return {
