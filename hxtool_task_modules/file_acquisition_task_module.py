@@ -36,6 +36,9 @@ class file_acquisition_task_module(task_module):
 					if ret:
 						hxtool_global.hxtool_db.multiFileUpdateFile(self.parent_task.profile_id, multifile_id, file_acquisition_id)
 						self.logger.info("File Acquisition download complete. Acquisition ID: {0}, Batch: {1}".format(file_acquisition_id, multifile_id))
+				elif response_code == 404:
+					self.logger.error("File acquisition ID: {} not found on the controller.".format(file_acquisition_id))
+					self.parent_task.stop()
 				else:
 					self.logger.debug("Deferring file acquisition for: {}".format(host_name))
 					self.parent_task.defer()
