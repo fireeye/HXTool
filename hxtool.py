@@ -869,7 +869,7 @@ def multifile(hx_api_object):
 						mf_job_id = app.hxtool_db.multiFileAddJob(multi_file_id, job_record)
 						file_acquisition_task = hxtool_scheduler_task(profile_id, "File Acquisition: {}".format(cf['hostname']))
 						file_acquisition_task.add_step(file_acquisition_task_module, kwargs = {
-															'multi_file_id' : multi_file_id,
+															'multifile_id' : multi_file_id,
 															'file_acquisition_id' : int(acq_id),
 															'host_name' : cf['hostname']
 														})
