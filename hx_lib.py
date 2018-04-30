@@ -262,8 +262,8 @@ class HXAPI:
 		is_valid = False
 		current_token = self.get_token(update_last_use_timestamp=False)
 		if current_token:
-			last_use_delta = (datetime.datetime.utcnow() - datetime.datetime.strptime(current_token['last_use_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds / 60
-			grant_time_delta = (datetime.datetime.utcnow() - datetime.datetime.strptime(current_token['grant_timestamp'], '%Y-%m-%d %H:%M:%S.%f')).seconds / 60
+			last_use_delta = (datetime.datetime.utcnow() - HXAPI.dt_from_str(current_token['grant_timestamp'])).seconds / 60
+			grant_time_delta = (datetime.datetime.utcnow() - HXAPI.dt_from_str(current_token['grant_timestamp'])).seconds / 60
 			self.logger.debug("Token last_use_timestamp is: {}, grant_timestamp is: {}, last_use_delta is: {}, grant_time_delta is: {}".format(current_token['last_use_timestamp'], current_token['grant_timestamp'], last_use_delta, grant_time_delta))
 			is_valid = (last_use_delta < 15 and grant_time_delta < 150)
 		
@@ -1088,3 +1088,7 @@ class HXAPI:
 			return unicode(s)
 		except NameError:
 			return str(s)
+
+	@staticmethod
+	def dt_from_str(s):
+		return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S.%f')
