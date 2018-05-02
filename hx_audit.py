@@ -104,8 +104,10 @@ class AuditPackage:
 		if payload_name and payload_name not in self.package.namelist():
 			return None
 		elif generator:
-			return self.get_audit_id(generator)
-				
+			payload_name = self.get_audit_id(generator)
+			if not payload_name:
+				return None
+			
 		if destination_path:
 			self.package.extract(payload_name, destination_path)
 			return None

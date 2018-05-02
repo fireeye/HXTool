@@ -36,7 +36,8 @@ class bulk_download_task_module(task_module):
 					elif ret and response_data and response_data['data']['state'] == 'FAILED':
 						ret = False
 					elif ret and response_data and (response_data['data']['state'] in {'CANCELLED', 'ABORTED'} or 
-													(response_code == 404 and response_data['details'][0]['message'].lower() == "bulk acquisition not found.")):
+													(response_code == 404 and response_data['details'][0]['code'] == 1005)):
+						self.logger.debug("Controller returned code: {}, data: {}".format(response_code, response_data))
 						self.parent_task.stop()
 						ret = False
 					else:

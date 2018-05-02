@@ -277,19 +277,17 @@ def acqs(hx_api_object):
 def search(hx_api_object):	
 	# If we get a post it's a new sweep
 	if request.method == 'POST':
-		skip_base64 = False
 		if 'file' in request.form.keys():
 			f = request.files['newioc']
-			ioc_script = f.read()
+			ioc_script = HXAPI.b64(f.read())
 		elif 'store' in request.form.keys():
-			skip_base64 = True
 			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])['ioc']
 		
 		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task")
 		enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
 											'script' : ioc_script,
 											'hostset_id' : request.form['sweephostset'],
-											'skip_base64': skip_base64
+											'skip_base64': True
 										})
 		hxtool_global.hxtool_scheduler.add(enterprise_search_task)
 		app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
@@ -869,7 +867,7 @@ def multifile(hx_api_object):
 						mf_job_id = app.hxtool_db.multiFileAddJob(multi_file_id, job_record)
 						file_acquisition_task = hxtool_scheduler_task(profile_id, "File Acquisition: {}".format(cf['hostname']))
 						file_acquisition_task.add_step(file_acquisition_task_module, kwargs = {
-															'multi_file_id' : multi_file_id,
+															'multifile_id' : multi_file_id,
 															'file_acquisition_id' : int(acq_id),
 															'host_name' : cf['hostname']
 														})
