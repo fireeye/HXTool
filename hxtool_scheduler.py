@@ -121,7 +121,7 @@ class hxtool_scheduler:
 			t = [_ for _ in self.task_queue if _.name == name]
 			with self.lock:
 				return self.task_queue.pop(self.task_queue.index(t[0]))
-				
+		
 	def tasks(self):
 		return [_.__dict__ for _ in self.task_queue]
 		
@@ -129,7 +129,7 @@ class hxtool_scheduler:
 		return self._poll_thread.is_alive()
 			
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, task_id = None, interval = None, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, defer_interval = 30, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, task_id = None, interval = None, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
 		self.logger = hxtool_global.hxtool_scheduler.logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
@@ -137,6 +137,7 @@ class hxtool_scheduler_task:
 		if not self.task_id:
 			self.task_id = str(secure_uuid4())
 		self.parent_id = parent_id
+		self.wait_for_parent = wait_for_parent
 		self.name = name
 		self.enabled = enabled
 		self.immutable = immutable
@@ -269,6 +270,7 @@ class hxtool_scheduler_task:
 			'immutable' : self.immutable,
 			'stop_on_fail' : self.stop_on_fail,
 			'parent_id' : self.parent_id,
+			'wait_for_parent' : self.wait_for_parent,
 			'defer_interval' : self.defer_interval,
 			'state' : self.state,
 			'stored_result' : self.stored_result,
@@ -287,6 +289,8 @@ class hxtool_scheduler_task:
 		task = hxtool_scheduler_task(d['profile_id'],
 									d['name'],
 									task_id = d['task_id'],
+									parent_id = d['parent_id'] if parent_id in d else None,
+									wait_for_parent = d['wait_for_parent'] if 'wait_for_parent' in d else True,
 									interval = datetime.timedelta(seconds = d['interval']) if d['interval'] else None,
 									start_time = HXAPI.dt_from_str(d['start_time']),
 									end_time = HXAPI.dt_from_str(d['end_time']) if d['end_time'] else None,
