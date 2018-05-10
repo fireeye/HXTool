@@ -933,6 +933,22 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	def restModifyHostset(self, hostset_name, hostset_id, addlist = None, removelist = None):
+
+		data = {}
+		data['name'] = hostset_name
+		data['changes'] = []
+		data['changes'].append({})
+		data['changes'][0]['command'] = "change"
+		if addlist:
+			data['changes'][0]['add'] = addlist
+		if removelist:
+			data['changes'][0]['remove'] = removelist
+
+		request = self.build_request(self.build_api_route('host_sets/static/{0}'.format(hostset_id)), method = 'PUT', data = json.dumps(data))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
 
 	##################
 	# Config Channels
@@ -994,22 +1010,6 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
-	def restModifyHostset(self, hostset_name, hostset_id, addlist = None, removelist = None):
-
-		data = {}
-		data['name'] = hostset_name
-		data['changes'] = []
-		data['changes'].append({})
-		data['changes'][0]['command'] = "change"
-		if addlist:
-			data['changes'][0]['add'] = addlist
-		if removelist:
-			data['changes'][0]['remove'] = removelist
-
-		request = self.build_request(self.build_api_route('host_sets/static/{0}'.format(hostset_id)), method = 'PUT', data = json.dumps(data))
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-		
-		return(ret, response_code, response_data)
 			
 	####
 	# Generic functions
