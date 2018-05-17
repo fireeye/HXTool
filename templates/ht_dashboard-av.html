@@ -38,6 +38,7 @@
 		}
 
 		function datatable_last_alerts() {
+			$.fn.dataTable.ext.errMode = 'none';
 			var row2_cell1_datatable = $('#row2_cell1_table').DataTable( {
 				"ajax": "/api/v1/datatable_alerts?limit=15&source=MAL",
 				"paging":   false,

@@ -24,6 +24,7 @@
 	}
 
 	$(document).ready(function() {
+		$.fn.dataTable.ext.errMode = 'none';
 		var bulk_datatable = $('#bulktable').DataTable( {
 			"ajax": "/api/v1/datatable_bulk",
 			"paging":   false,

@@ -37,6 +37,7 @@
 			enableFile();
 		});
 
+		$.fn.dataTable.ext.errMode = 'none';
 		var es_datatable = $('#esTable').DataTable( {
 			"ajax": "/api/v1/datatable_es",
 			"paging":   false,
