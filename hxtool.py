@@ -1581,10 +1581,13 @@ def vegalite_malwarecontent(hx_api_object):
 			for host in response_data['data']['entries']:
 				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
 				if 'malware' in sresponse_data['data'].keys():
-					if not sresponse_data['data']['malware']['content']['version'] in myContent.keys():
-						myContent[sresponse_data['data']['malware']['content']['version']] = 1
+					if 'content' in sresponse_data['data']['malware'].keys():
+						if not sresponse_data['data']['malware']['content']['version'] in myContent.keys():
+							myContent[sresponse_data['data']['malware']['content']['version']] = 1
+						else:
+							myContent[sresponse_data['data']['malware']['content']['version']] += 1
 					else:
-						myContent[sresponse_data['data']['malware']['content']['version']] += 1
+						myContent['none'] += 1
 				else:
 					myContent['none'] += 1
 
@@ -1610,10 +1613,13 @@ def vegalite_malwareengine(hx_api_object):
 			for host in response_data['data']['entries']:
 				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
 				if 'malware' in sresponse_data['data'].keys():
-					if not sresponse_data['data']['malware']['engine']['version'] in myContent.keys():
-						myContent[sresponse_data['data']['malware']['engine']['version']] = 1
+					if 'engine' in sresponse_data['data']['malware'].keys():
+						if not sresponse_data['data']['malware']['engine']['version'] in myContent.keys():
+							myContent[sresponse_data['data']['malware']['engine']['version']] = 1
+						else:
+							myContent[sresponse_data['data']['malware']['engine']['version']] += 1
 					else:
-						myContent[sresponse_data['data']['malware']['engine']['version']] += 1
+						myContent['none'] += 1
 				else:
 					myContent['none'] += 1
 
