@@ -442,6 +442,24 @@ class hxtool_db:
 			return self._db.table('tasks').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['task_id'] == task_id))
 
 
+	def taskProfileAdd(self, name, actor, module, params):
+		with self._lock:
+			return self._db.table('taskprofiles').insert({'taskprofile_id' : str(uuid.uuid4()), 
+														'name': str(name), 
+														'actor' : str(actor),
+														'module' : str(module),
+														'params' : params, 
+														'create_timestamp' : str(datetime.datetime.utcnow()), 
+														'update_timestamp' : str(datetime.datetime.utcnow())})
+
+	def taskProfileList(self):
+		with self._lock:
+			return self._db.table('taskprofiles').all()
+
+	def taskProfileDelete(self, taskprofile_id):
+		with self._lock:
+			return self._db.table('taskprofiles').remove((tinydb.Query()['taskprofile_id'] == taskprofile_id))
+
 			
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):

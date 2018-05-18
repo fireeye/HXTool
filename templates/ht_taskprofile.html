@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - OpenIOC{% endblock %}
+{% block content %}
+
+<script>
+
+	$(document).ready(function() {
+
+		$('body').on('change','select',function() {
+			var mymodule = $(this).val();
+
+			if(mymodule == 1) {
+				$("#params").html("<b>Local file</b><br><input style='width: 300px;' name='file_filepath' type='text'><br>");
+				$("#params").append("<br>");
+				$("#params").append("<b>Format</b><br>");
+				$("#params").append("<select name='file_format'><option value='json'>JSON<option value='xml'>XML</select><br>");
+				$("#params").append("<br>");
+			}
+			if(mymodule == 2) {
+				$("#params").html("<b>Protocol</b><br>");
+				$("#params").append("<select name='ip_protocol'><option value='tcp'>TCP<option value='udp'>UDP</select><br>");
+				$("#params").append("<br>");
+				$("#params").append("<b>Target IP</b><br><input style='width: 300px;' name='ip_targetip' type='text'><br>");
+				$("#params").append("<br>");
+				$("#params").append("<b>Target port</b><br><input style='width: 100px;' name='ip_targetport' type='text'><br>");
+				$("#params").append("<br>");
+				$("#params").append("<b>Format</b><br>");
+				$("#params").append("<select name='ip_format'><option value='json'>JSON<option value='xml'>XML</select><br>");
+				$("#params").append("<br>");
+			}
+			if(mymodule == 3) {
+				$("#params").html("<b>Table name</b><br><input name='db_tablename' type='text'><br>");
+				$("#params").append("<br>");
+			}
+
+		});
+
+		var taskprofileTable = $('#taskprofileTable').DataTable( {
+			"ajax": {
+				"url": "/api/v1/datatable_taskprofiles",
+				"dataSrc": ""
+			},
+			"paging":   false,
+			"info":     false,
+			"columns": [
+				{ "data": "name", title: "Profile name" },
+				{ "data": "actor", title: "Created by" },
+				{ "data": "module", title: "Module" },
+				{ "data": "create_timestamp", title: "Created" },
+				{ "data": "update_timestamp", title: "Updated" },
+				{ "data": "params", title: "Parameters" },
+				{ "data": "taskprofile_id", title: "Action" }
+			],
+			"columnDefs": [	
+				{
+				 targets: 6,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		data = "<a href='/taskprofile?action=delete&id=" + data + "' class='tableActionButton'>delete</a>"
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 targets: 5,
+				 render: function ( data, type, row, meta ) {
+				 	var myparams = ""
+				 	if(type === 'display'){
+				 		Object.keys(data).forEach(function(key) {
+				 			myparams += "<b>" + key + "</b> = " + data[key] + "<br>";
+				 		});
+				 	}
+				 	return myparams;
+				 }
+				}
+			]
+		});
+
+	});
+
+</script>
+
+<form method='POST' action='/taskprofile' style='margin-bottom: 20px;'>
+		<div class='tableTitle'>
+			<i class="fas fa-database fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+			Create new task profile
+		</div>
+	<div class='inputArea' style='width: 600px;'>
+		<b>Profile name</b><br>
+		<input type='text' name='taskprofile_name' style='width: 400px;'><br>
+		<br>
+
+		<b>Core task profile module</b><br>
+		<select name='module'>
+			<option value='0'>-- select a module --
+			<option value='1'>File writer
+			<option value='2'>IP sender
+			<option value='3'>Store in HXTool
+		</select>
+
+		<div style='margin-top: 10px;' id='params'></div>
+
+		<br>
+
+        <input class='tableActionButton' type='submit' value='Create new profile'>
+	</div>
+</form>
+
+<div class='tableTitle'>
+	<i class="fas fa-database fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+	My task profiles
+</div>
+
+<table id='taskprofileTable' class='genericTable' style='width: 100%;'>
+</table>
+
+{% endblock %}

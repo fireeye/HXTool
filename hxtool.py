@@ -94,6 +94,42 @@ def alert(hx_api_object):
 def scheduler_view(hx_api_object):
 	return render_template('ht_scheduler.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### Task profile page
+@app.route('/taskprofile', methods=['GET', 'POST'])
+@valid_session_required
+def taskprofile(hx_api_object):
+
+	if request.args.get('action'):
+		if request.args.get('action') == "delete":
+			app.hxtool_db.taskProfileDelete(request.args.get('id'))
+			return redirect("/taskprofile", code=302)
+
+	if request.method == 'POST':
+		params = {}
+		if 'taskprofile_name' in request.form.keys():
+			if request.form.get('module') == "1":
+				for key, val in request.form.items():
+					if key.startswith("file_"):
+						params[key] = val
+				app.hxtool_db.taskProfileAdd(request.form.get('taskprofile_name'), session['ht_user'], 'filewriter', params)
+			elif request.form.get('module') == "2":
+				for key, val in request.form.items():
+					if key.startswith("ip_"):
+						params[key] = val
+				app.hxtool_db.taskProfileAdd(request.form.get('taskprofile_name'), session['ht_user'], 'ipsender', params)
+			elif request.form.get('module') == "3":
+				for key, val in request.form.items():
+					if key.startswith("db_"):
+						params[key] = val
+				app.hxtool_db.taskProfileAdd(request.form.get('taskprofile_name'), session['ht_user'], 'db', params)
+			else:
+				print("unsupported function")
+
+			return redirect("/taskprofile", code=302)
+	else:
+		return render_template('ht_taskprofile.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+
 ### Bulk acq page
 @app.route('/bulkacq', methods=['GET', 'POST'])
 @valid_session_required
@@ -117,7 +153,10 @@ def bulkacq_view(hx_api_object):
 		myscripts = app.hxtool_db.scriptList()
 		scripts = formatScripts(myscripts)
 
-	return render_template('ht_bulkacq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, scripts=scripts)
+		mytaskprofiles = app.hxtool_db.taskProfileList()
+		taskprofiles = formatTaskprofiles(mytaskprofiles)
+
+	return render_template('ht_bulkacq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, scripts=scripts, taskprofiles=taskprofiles)
 
 
 ### Hosts
@@ -1675,6 +1714,12 @@ def datatable_openioc(hx_api_object):
 		myiocs = app.hxtool_db.oiocList()
 		return(app.response_class(response=json.dumps(myiocs), status=200, mimetype='application/json'))
 
+@app.route('/api/v{0}/datatable_taskprofiles'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_taskprofiles(hx_api_object):
+	if request.method == 'GET':
+		mytaskprofiles = app.hxtool_db.taskProfileList()
+		return(app.response_class(response=json.dumps(mytaskprofiles), status=200, mimetype='application/json'))
 
 @app.route('/api/v{0}/datatable_acqs'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
@@ -1811,7 +1856,6 @@ def datatable_es_result(hx_api_object):
 @app.route('/api/v{0}/scheduler_health'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def scheduler_health(hx_api_object):
-	print(hxtool_global.hxtool_scheduler.status())
 	return(app.response_class(response=json.dumps(hxtool_global.hxtool_scheduler.status()), status=200, mimetype='application/json'))
 
 @app.route('/api/v{0}/scheduler_tasks'.format(HXTOOL_API_VERSION), methods=['GET'])

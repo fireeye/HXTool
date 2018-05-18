@@ -824,3 +824,11 @@ def formatScripts(scripts):
 			x += "<option value='" + entry['script_id'] + "'>" + entry['scriptname']
 	x += "</select>"
 	return(x)
+
+def formatTaskprofiles(mytaskprofiles):
+
+	x = "<select name='taskprofile_id' id='taskprofile_id'>"
+	for entry in mytaskprofiles:
+			x += "<option value='" + entry['taskprofile_id'] + "'>" + entry['name']
+	x += "</select>"
+	return(x)	
