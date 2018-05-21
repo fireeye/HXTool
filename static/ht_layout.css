@@ -155,3 +155,44 @@
 	font-size: 11px;
 }
 
+
+.auditTabMenuLink {
+	padding: 10px;
+	padding-right: 5px;
+	border-bottom: 1px solid #cccccc;
+	cursor: pointer;
+}
+
+.auditTabMenuLink:hover {
+	background: #cccccc;
+}
+
+.auditTabMenuLinkSelected {
+	background: #dddddd;
+}
+
+.auditContent {
+	padding: 10px;
+	padding-top: 0;
+	border-left: 1px solid #cccccc;
+}
+
+.auditName {
+	font-size: 18px;
+	font-weight: 700;
+}
+
+.auditNameUUID {
+	color: #aaaaaa;
+	font-size: 10px;
+	margin-bottom: 10px;
+}
+
+.auditDescription {
+	font-size: 12px;
+}
+
+.auditParameterTitle {
+	font-weight: 700;
+	margin-bottom: 5px;
+}

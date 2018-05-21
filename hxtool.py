@@ -94,6 +94,16 @@ def alert(hx_api_object):
 def scheduler_view(hx_api_object):
 	return render_template('ht_scheduler.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### Script builder page
+@app.route('/scriptbuilder', methods=['GET', 'POST'])
+@valid_session_required
+def scriptbuilder_view(hx_api_object):
+	myauditspacefile = open('static/acquisitions.json', 'r')
+	auditspace = myauditspacefile.read()
+	myauditspacefile.close()
+	return render_template('ht_scriptbuilder.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), auditspace=auditspace)
+
+
 ### Task profile page
 @app.route('/taskprofile', methods=['GET', 'POST'])
 @valid_session_required
