@@ -17,5 +17,14 @@
 		"parameters": [
 			{"name": "ConfigChannel", "required": true, "repeatable": false, "type": "text"}
 		]
+	},
+	"cookiehistory": {
+		"description": "The following input parameters are available for this audit. Some parameters are supported only in Windows environments.",
+		"platforms": ["win", "osx"],
+		"parameters": [
+			{"name": "TargetBrowser", "required": false, "repeatable": true, "type": "dropdown", "values": ["Firefox", "Internet Explorer", "Chrome", "Safari"]},
+			{"name": "PathToHistoryFiles", "required": false, "repeatable": false, "type": "text"},
+			{"name": "PreventHibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"]}
+		]
 	}
 }

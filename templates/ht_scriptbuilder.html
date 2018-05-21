@@ -70,18 +70,20 @@
 	function renderAuditText(objData, myObj, my_uuid, auditname) {
 		if (objData['name'] != false) {
 			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
-			$(myObj).append($('<input>', {class: 'auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_select"}));
+			$(myObj).append($('<input>', {class: 'auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			$(myObj).append('<br><br>');
 		}
 	}
 
 	function renderAuditDropdown(objData, myObj, my_uuid, auditname) {
 		if (objData['name'] != false) {
 			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
-			$(myObj).append($('<select>', {class: 'auditSelectInput', id: auditname + "_" + my_uuid + "_select"}));
+			$(myObj).append($('<select>', {class: 'auditSelectInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
 			for (option in objData['values']) {
-				thiselement = document.getElementById(auditname + "_" + my_uuid + "_select");
+				thiselement = document.getElementById(auditname + "_" + my_uuid + "_" + objData['name']);
 				$(thiselement).append($('<option>', {value:objData['values'][option], text:objData['values'][option]}));
 			}
+			$(myObj).append('<br><br>');
 		}
 	}
 
