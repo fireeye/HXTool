@@ -173,6 +173,7 @@
 
 .auditContent {
 	padding: 10px;
+	padding-left: 25px;
 	padding-top: 0;
 	border-left: 1px solid #cccccc;
 }
@@ -180,6 +181,26 @@
 .auditName {
 	font-size: 18px;
 	font-weight: 700;
+	float: left;
+}
+
+.auditRemove {
+	float: right;
+	color: red;
+	background: #dddddd;
+	padding: 5px;
+	border: 1px solid #dddddd;
+	border-radius: 5px;
+	font-weight: bold;
+}
+
+.auditRemove:hover {
+	background: #cccccc;
+	cursor: pointer;
+}
+
+.auditClear {
+	clear: both;
 }
 
 .auditNameUUID {

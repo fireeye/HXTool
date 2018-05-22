@@ -33,6 +33,9 @@
 		myObj = document.getElementById(myaudit);
 
 		$(myObj).append($('<div>', {class: 'auditName', text: auditname}));
+		$(myObj).append($('<div>', {class: 'auditRemove', html: "<i class='fas fa-trash-alt fa-lg fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> Remove"}));
+		$(myObj).append($('<div>', {class: 'auditClear'}));
+
 		$(myObj).append($('<div>', {class: 'auditNameUUID', text: myaudit}));
 
 		$(myObj).append($('<div>', {class: 'auditParameterTitle', text: "Description"}));
@@ -143,6 +146,11 @@
 			if (myauditname != "none") {
 				addAudit(myauditname, auditspace);
 			}
+
+			// Select the first entry again
+			$("#add_audit option:selected").prop("selected", false);
+			$("#add_audit option:first").prop("selected", "selected");
+
 		});
 
 		// User wants to view another tab, show and hide the relevant div
@@ -194,6 +202,17 @@
 			$('#scriptName').css("background", "rgb(255,255,255)");
 		});
 
+		// User requests the audit module to be removed
+		$(document).on('click', '.auditRemove', function () {
+			myDataArr = $(this).parent().attr('id').split("_");
+			myUUID = myDataArr[1];
+			$("#tab_" + myUUID).remove();
+			$(this).parent().remove();
+
+			// Highlight the first audit module again
+			$("#tabMenu li:first").click();
+		});
+
 
 	});
 
@@ -217,7 +236,7 @@
 		</select>
 
 		<div id='scriptArea' style='margin-top: 15px; margin-bottom: 15px;'>
-			<ul id='tabMenu' style='float: left; width: 100px; list-style-type: none; margin: 0; padding: 0; text-align: right;'>
+			<ul id='tabMenu' style='float: left; width: 140px; list-style-type: none; margin: 0; padding: 0; text-align: right;'>
 			</ul>
 			<div id='scriptItems' style='float: left;'>
 			</div>

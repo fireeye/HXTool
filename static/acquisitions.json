@@ -24,7 +24,7 @@
 		"parameters": [
 			{"name": "TargetBrowser", "required": false, "repeatable": true, "type": "dropdown", "values": ["Firefox", "Internet Explorer", "Chrome", "Safari"]},
 			{"name": "PathToHistoryFiles", "required": false, "repeatable": false, "type": "text"},
-			{"name": "PreventHibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"]}
+			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"]}
 		]
 	},
 	"multifile-acquisition-api": {
@@ -40,7 +40,7 @@
 			{"name": "Filter SHA256", "required": false, "repeatable": false, "type": "text"},
 			{"name": "Content Regex", "required": false, "repeatable": false, "type": "textarea"},
 			{"name": "AND Operator", "required": false, "repeatable": false, "type": "text"},
-			{"name": "PreventHibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"]}
+			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"]}
 		]
 	}
 }
