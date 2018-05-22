@@ -26,5 +26,21 @@
 			{"name": "PathToHistoryFiles", "required": false, "repeatable": false, "type": "text"},
 			{"name": "PreventHibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"]}
 		]
+	},
+	"multifile-acquisition-api": {
+		"description": "Collects multiple files from host endpoints based on filter criteria (such as path or filename) using system calls for file access.",
+		"platforms": ["win", "osx", "linux"],
+		"parameters": [
+			{"name": "Path", "required": true, "repeatable": false, "type": "text"},
+			{"name": "Path Regex", "required": false, "repeatable": false, "type": "textarea"},
+			{"name": "Minimum Sizes", "required": false, "repeatable": false, "type": "text"},
+			{"name": "Maximum Sizes", "required": false, "repeatable": false, "type": "text"},
+			{"name": "Filter MD5", "required": false, "repeatable": false, "type": "text"},
+			{"name": "Filter SHA1", "required": false, "repeatable": false, "type": "text"},
+			{"name": "Filter SHA256", "required": false, "repeatable": false, "type": "text"},
+			{"name": "Content Regex", "required": false, "repeatable": false, "type": "textarea"},
+			{"name": "AND Operator", "required": false, "repeatable": false, "type": "text"},
+			{"name": "PreventHibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"]}
+		]
 	}
 }

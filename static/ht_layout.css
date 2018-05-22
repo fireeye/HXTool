@@ -196,3 +196,13 @@
 	font-weight: 700;
 	margin-bottom: 5px;
 }
+
+.auditTextInput {
+	width: 400px;
+}
+
+.auditTextAreaInput {
+	width: 400px;
+	height: 100px;
+	resize: none;
+}

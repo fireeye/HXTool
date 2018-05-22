@@ -60,6 +60,9 @@
 				else if (thisAuditspace['parameters'][parameter]['type'] == "text") {
 					renderAuditText(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname);
 				}
+				else if (thisAuditspace['parameters'][parameter]['type'] == "textarea") {
+					renderAuditTextArea(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname);
+				}
 			}
 		}
 	}
@@ -75,6 +78,14 @@
 		}
 	}
 
+	function renderAuditTextArea(objData, myObj, my_uuid, auditname) {
+		if (objData['name'] != false) {
+			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
+			$(myObj).append($('<textarea>', {class: 'auditTextAreaInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			$(myObj).append('<br><br>');
+		}
+	}
+
 	function renderAuditDropdown(objData, myObj, my_uuid, auditname) {
 		if (objData['name'] != false) {
 			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
@@ -85,6 +96,36 @@
 			}
 			$(myObj).append('<br><br>');
 		}
+	}
+
+	// Scan script and build JSON
+	function generateScript() {
+
+		myScript = {"commands": []}
+
+		$('#tabMenu li').each(function(i, li) {
+			myIdArr = $(li).attr('id').split("_");
+			myId = myIdArr[1];
+
+			myParams = []
+			$('#audit_' + myId).children().each(function(ix, item) {
+				
+				if ($(item).attr('id')) {
+
+					myParamArr = $(item).attr('id').split("_");
+					myParamName = myParamArr[2]
+					
+					myParams.push({"name": myParamName, "value": $(item).val()})
+		
+				}
+				
+			});
+
+			myAuditname = $(li).html();
+			myScript['commands'].push({"name": myAuditname, "parameters": myParams});
+
+		});
+		return (myScript);
 	}
 
 	$(document).ready(function() {
@@ -104,6 +145,7 @@
 			}
 		});
 
+		// User wants to view another tab, show and hide the relevant div
 		$(document).on('click', '.auditTabMenuLink', function () {
 			thisguidArr = $(this).attr('id').split("_");
 			thisguid = thisguidArr[1];
@@ -116,6 +158,43 @@
 
 		});
 
+		// User clicked create script, generate the script and grab the name
+		$('#generateScript').click(function() {
+			generatedScript = generateScript();
+			
+			if ($('#scriptName').val() != "") {
+
+				myData = {"scriptName": $('#scriptName').val(), "script": generatedScript};
+
+				$.ajax
+				({
+					type: "POST",
+					url: '/scriptbuilder',
+					dataType: 'json',
+					contentType: 'application/json',
+					data: JSON.stringify(myData, null, 4),
+					success: function () {
+						window.location.href = "/scripts";
+					},
+					error: function (xhr, status) {
+						enableStatusBarLive("An error occured while storing the script in HXTool", 200, "ht_statusbar_notifyRed");
+					}
+				});
+
+
+			}
+			else {
+				$('#scriptName').css("background", "rgb(255, 181, 181)");
+			}
+
+		});
+
+		// When the user starts typing in the name field, change the background to white
+		$('#scriptName').keypress(function() {
+			$('#scriptName').css("background", "rgb(255,255,255)");
+		});
+
+
 	});
 
 </script>
@@ -127,6 +206,12 @@
 		</div>
 	<div class='inputArea' style=''>
 
+		<b>Script name</b><br>
+		<input type='text' id='scriptName' style='width: 400px;'>
+
+		<br><br>
+
+		<b>Audit modules</b><br>
 		<select name='add_audit' id=add_audit>
 			<option value='none'>-- Select an audit module to add --
 		</select>
@@ -139,7 +224,7 @@
 			<div style='clear: both;'></div>
 		</div>
 		
-        <input class='tableActionButton' type='button' value='create script'>
+        <input class='tableActionButton' id='generateScript' type='button' value='create script'>
 	</div>
 </form>
 

@@ -98,10 +98,17 @@ def scheduler_view(hx_api_object):
 @app.route('/scriptbuilder', methods=['GET', 'POST'])
 @valid_session_required
 def scriptbuilder_view(hx_api_object):
-	myauditspacefile = open('static/acquisitions.json', 'r')
-	auditspace = myauditspacefile.read()
-	myauditspacefile.close()
-	return render_template('ht_scriptbuilder.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), auditspace=auditspace)
+	if request.method == 'POST':
+		
+		mydata = request.get_json(silent=True)
+
+		app.hxtool_db.scriptCreate(mydata['scriptName'], HXAPI.b64(json.dumps(mydata['script'], indent=4).encode()), session['ht_user'])
+		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+	else:
+		myauditspacefile = open('static/acquisitions.json', 'r')
+		auditspace = myauditspacefile.read()
+		myauditspacefile.close()
+		return render_template('ht_scriptbuilder.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), auditspace=auditspace)
 
 
 ### Task profile page
