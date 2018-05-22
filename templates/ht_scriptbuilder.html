@@ -13,9 +13,18 @@
     	return _p8() + _p8(true) + _p8(true) + _p8();
 	}
 
-	function renderAuditDropDown(auditspace) {
+	// Renders the audit dropdown menu
+	function renderAuditSelector(auditspace, targetOS) {
+
+		// First remove all options in case we are chaning platform
+		$('#add_audit').children().remove();
+		$('#add_audit').append($('<option>', {value: "none", text: "-- Select an audit module to add --"}));
+
+		// Then add all supported audit modules
 		$.each( auditspace, function( ikey, ivalue ) {
-			$('#add_audit').append($('<option>', {value:ikey, text:ikey}));
+			if(jQuery.inArray(targetOS, auditspace[ikey]['platforms']) != -1) {
+				$('#add_audit').append($('<option>', {value:ikey, text:ikey}));
+			}
 		});
 	}
 
@@ -33,7 +42,7 @@
 		myObj = document.getElementById(myaudit);
 
 		$(myObj).append($('<div>', {class: 'auditName', text: auditname}));
-		$(myObj).append($('<div>', {class: 'auditRemove', html: "<i class='fas fa-trash-alt fa-lg fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> Remove"}));
+		$(myObj).append($('<div>', {class: 'auditRemove', html: "<i class='fas fa-trash-alt fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> Remove"}));
 		$(myObj).append($('<div>', {class: 'auditClear'}));
 
 		$(myObj).append($('<div>', {class: 'auditNameUUID', text: myaudit}));
@@ -41,61 +50,79 @@
 		$(myObj).append($('<div>', {class: 'auditParameterTitle', text: "Description"}));
 		$(myObj).append($('<div>', {class: 'auditDescription', text: thisAuditspace['description']}));
 
-		// Display platforms
-		$(myObj).append('<br>');
-		$(myObj).append($('<div>', {class: 'auditParameterTitle', text: "Supported platforms"}));
-		for (var platform in thisAuditspace['platforms']) {
-			$(myObj).append(datatables_parsePlatform(thisAuditspace['platforms'][platform]) + thisAuditspace['platforms'][platform]);
-		}
-
-		$(myObj).append('<br><br><br>');
+		$(myObj).append('<br><br>');
 
 		// Check if this audit has parameters
 		if (thisAuditspace['parameters'] == false) {
 			$(myObj).append($('<div>', {class: 'auditDescription', text: "This audit modules does not offer any parameters."}));
 		}
 		else {
-			// Parameters exist, we need to render them
+			// Parameters exist, we need to render them if the platform chosen supports the audit parameter
 			for (var parameter in thisAuditspace['parameters']) {
+
+				// Check if this is a required field
+				req_state = "optional";
+				if (thisAuditspace['parameters'][parameter]['required'] == true) {
+					req_state = "required";
+				}
+
+				// Check if this is a repeatable field
+				repeat = false;
+				if (thisAuditspace['parameters'][parameter]['repeatable'] == true) {
+					repeat = true;
+				}
+
 				if (thisAuditspace['parameters'][parameter]['type'] == "dropdown") {
-					renderAuditDropdown(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname);
+					if(jQuery.inArray($("#platform :selected").val(), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
+						renderAuditDropdown(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname, req_state, repeat);
+					}
 				}
 				else if (thisAuditspace['parameters'][parameter]['type'] == "text") {
-					renderAuditText(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname);
+					if(jQuery.inArray($("#platform :selected").val(), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
+						renderAuditText(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname, req_state, repeat);
+					}
 				}
 				else if (thisAuditspace['parameters'][parameter]['type'] == "textarea") {
-					renderAuditTextArea(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname);
+					if(jQuery.inArray($("#platform :selected").val(), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
+						renderAuditTextArea(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname, req_state, repeat);
+					}
 				}
 			}
 		}
 	}
 
-	// {"name": "ConfigChannel", "required": true, "repeatable": false, "type": "text"}
-	// {"name": "format", "required": false, "repeatable": false, "type": "dropdown", "values": ["kvpairs", "acquisition"]}
-
-	function renderAuditText(objData, myObj, my_uuid, auditname) {
+	function renderAuditText(objData, myObj, my_uuid, auditname, req_state, repeat) {
 		if (objData['name'] != false) {
-			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
+			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name'] + " - " + req_state}));
 			$(myObj).append($('<input>', {class: 'auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			if (repeat) {
+				$(myObj).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+			}
 			$(myObj).append('<br><br>');
 		}
 	}
 
-	function renderAuditTextArea(objData, myObj, my_uuid, auditname) {
+	function renderAuditTextArea(objData, myObj, my_uuid, auditname, req_state, repeat) {
 		if (objData['name'] != false) {
-			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
+			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name'] + " - " + req_state}));
 			$(myObj).append($('<textarea>', {class: 'auditTextAreaInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			if (repeat) {
+				$(myObj).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+			}
 			$(myObj).append('<br><br>');
 		}
 	}
 
-	function renderAuditDropdown(objData, myObj, my_uuid, auditname) {
+	function renderAuditDropdown(objData, myObj, my_uuid, auditname, req_state, repeat) {
 		if (objData['name'] != false) {
-			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
+			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name'] + " - " + req_state}));
 			$(myObj).append($('<select>', {class: 'auditSelectInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
 			for (option in objData['values']) {
 				thiselement = document.getElementById(auditname + "_" + my_uuid + "_" + objData['name']);
 				$(thiselement).append($('<option>', {value:objData['values'][option], text:objData['values'][option]}));
+			}
+			if (repeat) {
+				$(myObj).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
 			}
 			$(myObj).append('<br><br>');
 		}
@@ -136,8 +163,23 @@
 		// Import audit data
 		{% if auditspace %}
 			var auditspace = JSON.parse({{auditspace|tojson|safe}});
-			renderAuditDropDown(auditspace);
+			targetOS = $('#platform :selected').val();
+			renderAuditSelector(auditspace, targetOS);
 		{% endif %}
+
+		// The user changed platform
+		$('#platform').change(function() {
+			targetOS = $('#platform :selected').val();
+			renderAuditSelector(auditspace, targetOS);
+
+			$('#tabMenu li').each(function(i, li) {
+				myIdArr = $(li).attr('id').split("_");
+				myId = myIdArr[1];
+
+				$("#tab_" + myId).remove();
+				$("#audit_" + myId).remove();
+			});
+		});
 
 		// When the user requests another audit to be added
 		$('#add_audit').change(function() {
@@ -213,6 +255,12 @@
 			$("#tabMenu li:first").click();
 		});
 
+		// User wants to repeat a parameter
+		$(document).on('click', '.auditRepeat', function () {
+			$('<div style="margin-bottom: 5px;"></div>').insertAfter($(this));
+			$(this).prev().clone().insertAfter($(this).next());
+		});
+
 
 	});
 
@@ -230,9 +278,17 @@
 
 		<br><br>
 
+		<b>Platform</b><br>
+		<select name='platform' id='platform'>
+			<option value='win'>Microsoft Windows
+			<option value='osx'>Apple MacOS
+			<option value='linux'>Linux
+		</select>
+
+		<br><br>
+
 		<b>Audit modules</b><br>
 		<select name='add_audit' id=add_audit>
-			<option value='none'>-- Select an audit module to add --
 		</select>
 
 		<div id='scriptArea' style='margin-top: 15px; margin-bottom: 15px;'>

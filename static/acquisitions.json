@@ -8,39 +8,49 @@
 		"description": "The config audit collects key-value pairs from the agent configuration file or acquires the entire agent configuration file, depending on the format of the audit request",
 		"platforms": ["win", "osx", "linux"],
 		"parameters": [
-			{"name": "format", "required": false, "repeatable": false, "type": "dropdown", "values": ["kvpairs", "acquisition"]}
+			{"name": "format", "required": false, "repeatable": false, "type": "dropdown", "values": ["kvpairs", "acquisition"], "platforms": ["win", "osx", "linux"]}
 		]
 	},
 	"configuration": {
 		"description": "The configuration audit collects information about the configuration channel to which the agents should subscribe",
 		"platforms": ["win", "osx", "linux"],
 		"parameters": [
-			{"name": "ConfigChannel", "required": true, "repeatable": false, "type": "text"}
+			{"name": "ConfigChannel", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]}
 		]
 	},
 	"cookiehistory": {
 		"description": "The following input parameters are available for this audit. Some parameters are supported only in Windows environments.",
 		"platforms": ["win", "osx"],
 		"parameters": [
-			{"name": "TargetBrowser", "required": false, "repeatable": true, "type": "dropdown", "values": ["Firefox", "Internet Explorer", "Chrome", "Safari"]},
-			{"name": "PathToHistoryFiles", "required": false, "repeatable": false, "type": "text"},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"]}
+			{"name": "TargetBrowser", "required": false, "repeatable": true, "type": "dropdown", "values": ["Firefox", "Internet Explorer", "Chrome", "Safari"], "platforms": ["win", "osx"]},
+			{"name": "PathToHistoryFiles", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx"]},
+			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
 		]
 	},
 	"multifile-acquisition-api": {
 		"description": "Collects multiple files from host endpoints based on filter criteria (such as path or filename) using system calls for file access.",
 		"platforms": ["win", "osx", "linux"],
 		"parameters": [
-			{"name": "Path", "required": true, "repeatable": false, "type": "text"},
-			{"name": "Path Regex", "required": false, "repeatable": false, "type": "textarea"},
-			{"name": "Minimum Sizes", "required": false, "repeatable": false, "type": "text"},
-			{"name": "Maximum Sizes", "required": false, "repeatable": false, "type": "text"},
-			{"name": "Filter MD5", "required": false, "repeatable": false, "type": "text"},
-			{"name": "Filter SHA1", "required": false, "repeatable": false, "type": "text"},
-			{"name": "Filter SHA256", "required": false, "repeatable": false, "type": "text"},
-			{"name": "Content Regex", "required": false, "repeatable": false, "type": "textarea"},
-			{"name": "AND Operator", "required": false, "repeatable": false, "type": "text"},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"]}
+			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Path Regex", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "Depth", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Minimum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Maximum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Filter MD5", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "Filter SHA1", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "Filter SHA256", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "Content Regex", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "AND Operator", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
+		]
+	},
+	"eventlogs": {
+		"description": "Collects complete lists of the operating system event logs in Windows environments. If a specific log is not requested, this audit enumerates and acquires all logs.",
+		"platforms": ["win"],
+		"parameters": [
+			{"name": "eventlog", "required": false, "repeatable": true, "type": "text", "platforms": ["win"]},
+			{"name": "eventlogfullpath", "required": false, "repeatable": true, "type": "text", "platforms": ["win"]},
+			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
 		]
 	}
 }
