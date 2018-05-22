@@ -441,8 +441,31 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('tasks').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['task_id'] == task_id))
 
-
+	def auditCreate(self, profile_id, host_id, hostname, generator, start_time, end_time, results):
+		with self._lock:
+			return self._db.table('audits').insert({'profile_id' : profile_id,
+													'audit_id'	: str(secure_uuid4()),
+													'host_id:'	: host_id,
+													'hostname'	: hostname,
+													'generator'	: generator,
+													'start_time': start_time,
+													'end_time'	: end_time,
+													'results'	: results})
+	
+	def auditList(self, profile_id):
+		with self._lock:
+			return self._db.table('audits').get((tinydb.Query()['profile_id'] == profile_id))
+	
+	def auditGet(self, profile_id, audit_id):
+		with self._lock:
+			return self._db.table('audits').get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['audit_id']))
 			
+	def auditDelete(self, profile_id, audit_id):
+		with self._lock:
+			return self._db.table('audits').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['audit_id']))
+			
+	
+	
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
 			if type(dict_values) is dict:
