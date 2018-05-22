@@ -52,6 +52,7 @@
 		}
 
 		function datatable_hosts_with_alerts() {
+			$.fn.dataTable.ext.errMode = 'none';
 			var row1_cell3_datatable = $('#row1_cell3_table').DataTable( {
 				"ajax": "/api/v1/datatable_hosts_with_alerts",
 				"paging":   false,
@@ -81,6 +82,7 @@
 		}
 
 		function datatable_last_alerts() {
+			$.fn.dataTable.ext.errMode = 'none';
 			var row2_cell1_datatable = $('#row2_cell1_table').DataTable( {
 				"ajax": "/api/v1/datatable_alerts?limit=10",
 				"paging":   false,
@@ -127,7 +129,7 @@
 
         $(document).ready(function() {
 
-        	myInterval = 6000;
+        	myInterval = 60000;
 
         	myWidthThree = ($( window ).width() / 3) - 90;
         	myWidthOne = $( window ).width() - 230;

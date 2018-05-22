@@ -464,8 +464,8 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('audits').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['audit_id']))
 			
-	
-	
+			
+				
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
 			if type(dict_values) is dict:

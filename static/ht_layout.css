@@ -155,3 +155,92 @@
 	font-size: 11px;
 }
 
+
+.auditTabMenuLink {
+	padding: 10px;
+	padding-right: 5px;
+	border-bottom: 1px solid #cccccc;
+	cursor: pointer;
+}
+
+.auditTabMenuLink:hover {
+	background: #cccccc;
+}
+
+.auditTabMenuLinkSelected {
+	background: #dddddd;
+}
+
+.auditContent {
+	padding: 10px;
+	padding-left: 25px;
+	padding-top: 0;
+	border-left: 1px solid #cccccc;
+}
+
+.auditName {
+	font-size: 18px;
+	font-weight: 700;
+	float: left;
+}
+
+.auditRemove {
+	float: right;
+	color: red;
+	background: #dddddd;
+	padding: 5px;
+	border: 1px solid #dddddd;
+	border-radius: 5px;
+	font-weight: bold;
+	font-size: 12px;
+}
+
+.auditRemove:hover {
+	background: #cccccc;
+	cursor: pointer;
+}
+
+.auditRepeat {
+	margin-left: 5px;
+	font-size: 11px;
+	color: green;
+	display: inline-block;
+	padding: 2px;
+	border: 1px solid #dddddd;
+	border-radius: 5px;
+	font-weight: bold;
+}
+
+.auditRepeat:hover {
+	background: #cccccc;
+	cursor: pointer;
+}
+
+.auditClear {
+	clear: both;
+}
+
+.auditNameUUID {
+	color: #aaaaaa;
+	font-size: 10px;
+	margin-bottom: 10px;
+}
+
+.auditDescription {
+	font-size: 12px;
+}
+
+.auditParameterTitle {
+	font-weight: 700;
+	margin-bottom: 5px;
+}
+
+.auditTextInput {
+	width: 400px;
+}
+
+.auditTextAreaInput {
+	width: 400px;
+	height: 100px;
+	resize: none;
+}

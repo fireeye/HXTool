@@ -24,6 +24,7 @@
 	}
 
 	$(document).ready(function() {
+		$.fn.dataTable.ext.errMode = 'none';
 		var bulk_datatable = $('#bulktable').DataTable( {
 			"ajax": "/api/v1/datatable_bulk",
 			"paging":   false,
@@ -217,9 +218,24 @@
 			{% if hostsets %} {{ hostsets|safe }} {% endif %}
 		</select>
 		<br>
-		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>A bulk acquisition is similar to a normal forensic acquisition in HX but is targeting a list of hosts instead of individual hosts. You need to provide a compatible acquisition script and select a target host-set.<br>Also note that the download feature is only available once you have set the background processing credentials on the "<a href='/settings'>settings</a>" page.</div>
 		
-	        <input class='tableActionButton' type='submit' value='Start Bulk Acquisition'>
+		<div style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 10px;'>&nbsp;</div>
+
+		<input type='radio' name='scheduled' checked><b> Run now</b><br>
+		<input type='radio' name='scheduled'><b> Run at specific date/time</b><br><br>
+		Run at
+		<input type='text' id='scheduled_timestamp' name='scheduled_timestamp' style='margin-left: 5px;'>
+
+		<br>
+		<div style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 10px;'>&nbsp;</div>
+
+		<input type='checkbox' name='taskprocessor' id='checkboxStore'>
+		<b>Use task-processor profile</b><br><br>
+		{% if taskprofiles %} {{ taskprofiles|safe }} {% endif %}
+		<br>
+		<br>
+
+        <input class='tableActionButton' type='submit' value='Commit'>
 	</div>
 </form>
 

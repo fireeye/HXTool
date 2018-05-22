@@ -139,7 +139,7 @@
 		});
 
 
-
+		$.fn.dataTable.ext.errMode = 'none';
 		var alert_datatable = $('#alertTable').DataTable( {
 			"ajax": "/api/v1/datatable_alerts_full?startDate=" + pastDate + "&endDate=" + currentDate,
 			"paging":   false,

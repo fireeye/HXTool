@@ -1,0 +1,306 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Scriptbuilder{% endblock %}
+{% block content %}
+
+<script>
+
+
+	function guid() {
+	    function _p8(s) {
+	        var p = (Math.random().toString(16)+"000000000").substr(2,8);
+	        return s ? "-" + p.substr(0,4) + "-" + p.substr(4,4) : p ;
+	    }
+    	return _p8() + _p8(true) + _p8(true) + _p8();
+	}
+
+	// Renders the audit dropdown menu
+	function renderAuditSelector(auditspace, targetOS) {
+
+		// First remove all options in case we are chaning platform
+		$('#add_audit').children().remove();
+		$('#add_audit').append($('<option>', {value: "none", text: "-- Select an audit module to add --"}));
+
+		// Then add all supported audit modules
+		$.each( auditspace, function( ikey, ivalue ) {
+			if(jQuery.inArray(targetOS, auditspace[ikey]['platforms']) != -1) {
+				$('#add_audit').append($('<option>', {value:ikey, text:ikey}));
+			}
+		});
+	}
+
+	function addAudit(auditname, auditspace) {
+		var my_uuid = guid();
+		$('#tabMenu').append($('<li>', {id: "tab_" + my_uuid, class: 'auditTabMenuLink', text:auditname}));
+		$('.auditTabMenuLink').removeClass('auditTabMenuLinkSelected');
+		$("#tab_" + my_uuid).addClass('auditTabMenuLinkSelected');
+		$("#scriptItems").children().hide();
+		$('#scriptItems').append($('<div>', {id: "audit_" + my_uuid, class: 'auditContent'}));
+		buildAudit(auditspace[auditname], "audit_" + my_uuid, auditname, my_uuid);
+	}
+
+	function buildAudit(thisAuditspace, myaudit, auditname, my_uuid) {
+		myObj = document.getElementById(myaudit);
+
+		$(myObj).append($('<div>', {class: 'auditName', text: auditname}));
+		$(myObj).append($('<div>', {class: 'auditRemove', html: "<i class='fas fa-trash-alt fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> Remove"}));
+		$(myObj).append($('<div>', {class: 'auditClear'}));
+
+		$(myObj).append($('<div>', {class: 'auditNameUUID', text: myaudit}));
+
+		$(myObj).append($('<div>', {class: 'auditParameterTitle', text: "Description"}));
+		$(myObj).append($('<div>', {class: 'auditDescription', text: thisAuditspace['description']}));
+
+		$(myObj).append('<br><br>');
+
+		// Check if this audit has parameters
+		if (thisAuditspace['parameters'] == false) {
+			$(myObj).append($('<div>', {class: 'auditDescription', text: "This audit modules does not offer any parameters."}));
+		}
+		else {
+			// Parameters exist, we need to render them if the platform chosen supports the audit parameter
+			for (var parameter in thisAuditspace['parameters']) {
+
+				// Check if this is a required field
+				req_state = "optional";
+				if (thisAuditspace['parameters'][parameter]['required'] == true) {
+					req_state = "required";
+				}
+
+				// Check if this is a repeatable field
+				repeat = false;
+				if (thisAuditspace['parameters'][parameter]['repeatable'] == true) {
+					repeat = true;
+				}
+
+				if (thisAuditspace['parameters'][parameter]['type'] == "dropdown") {
+					if(jQuery.inArray($("#platform :selected").val(), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
+						renderAuditDropdown(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname, req_state, repeat);
+					}
+				}
+				else if (thisAuditspace['parameters'][parameter]['type'] == "text") {
+					if(jQuery.inArray($("#platform :selected").val(), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
+						renderAuditText(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname, req_state, repeat);
+					}
+				}
+				else if (thisAuditspace['parameters'][parameter]['type'] == "textarea") {
+					if(jQuery.inArray($("#platform :selected").val(), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
+						renderAuditTextArea(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname, req_state, repeat);
+					}
+				}
+			}
+		}
+	}
+
+	function renderAuditText(objData, myObj, my_uuid, auditname, req_state, repeat) {
+		if (objData['name'] != false) {
+			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name'] + " - " + req_state}));
+			$(myObj).append($('<input>', {class: 'auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			if (repeat) {
+				$(myObj).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+			}
+			$(myObj).append('<br><br>');
+		}
+	}
+
+	function renderAuditTextArea(objData, myObj, my_uuid, auditname, req_state, repeat) {
+		if (objData['name'] != false) {
+			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name'] + " - " + req_state}));
+			$(myObj).append($('<textarea>', {class: 'auditTextAreaInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			if (repeat) {
+				$(myObj).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+			}
+			$(myObj).append('<br><br>');
+		}
+	}
+
+	function renderAuditDropdown(objData, myObj, my_uuid, auditname, req_state, repeat) {
+		if (objData['name'] != false) {
+			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name'] + " - " + req_state}));
+			$(myObj).append($('<select>', {class: 'auditSelectInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			for (option in objData['values']) {
+				thiselement = document.getElementById(auditname + "_" + my_uuid + "_" + objData['name']);
+				$(thiselement).append($('<option>', {value:objData['values'][option], text:objData['values'][option]}));
+			}
+			if (repeat) {
+				$(myObj).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+			}
+			$(myObj).append('<br><br>');
+		}
+	}
+
+	// Scan script and build JSON
+	function generateScript() {
+
+		myScript = {"commands": []}
+
+		$('#tabMenu li').each(function(i, li) {
+			myIdArr = $(li).attr('id').split("_");
+			myId = myIdArr[1];
+
+			myParams = []
+			$('#audit_' + myId).children().each(function(ix, item) {
+				
+				if ($(item).attr('id')) {
+
+					myParamArr = $(item).attr('id').split("_");
+					myParamName = myParamArr[2]
+					
+					myParams.push({"name": myParamName, "value": $(item).val()})
+		
+				}
+				
+			});
+
+			myAuditname = $(li).html();
+			myScript['commands'].push({"name": myAuditname, "parameters": myParams});
+
+		});
+		return (myScript);
+	}
+
+	$(document).ready(function() {
+
+		// Import audit data
+		{% if auditspace %}
+			var auditspace = JSON.parse({{auditspace|tojson|safe}});
+			targetOS = $('#platform :selected').val();
+			renderAuditSelector(auditspace, targetOS);
+		{% endif %}
+
+		// The user changed platform
+		$('#platform').change(function() {
+			targetOS = $('#platform :selected').val();
+			renderAuditSelector(auditspace, targetOS);
+
+			$('#tabMenu li').each(function(i, li) {
+				myIdArr = $(li).attr('id').split("_");
+				myId = myIdArr[1];
+
+				$("#tab_" + myId).remove();
+				$("#audit_" + myId).remove();
+			});
+		});
+
+		// When the user requests another audit to be added
+		$('#add_audit').change(function() {
+			var myauditname = $('#add_audit :selected').val();
+
+			if (myauditname != "none") {
+				addAudit(myauditname, auditspace);
+			}
+
+			// Select the first entry again
+			$("#add_audit option:selected").prop("selected", false);
+			$("#add_audit option:first").prop("selected", "selected");
+
+		});
+
+		// User wants to view another tab, show and hide the relevant div
+		$(document).on('click', '.auditTabMenuLink', function () {
+			thisguidArr = $(this).attr('id').split("_");
+			thisguid = thisguidArr[1];
+
+			$('.auditTabMenuLink').removeClass('auditTabMenuLinkSelected');
+			$("#tab_" + thisguid).addClass('auditTabMenuLinkSelected');
+
+			$("#scriptItems").children().hide();
+			$("#audit_" + thisguid).show();
+
+		});
+
+		// User clicked create script, generate the script and grab the name
+		$('#generateScript').click(function() {
+			generatedScript = generateScript();
+			
+			if ($('#scriptName').val() != "") {
+
+				myData = {"scriptName": $('#scriptName').val(), "script": generatedScript};
+
+				$.ajax
+				({
+					type: "POST",
+					url: '/scriptbuilder',
+					dataType: 'json',
+					contentType: 'application/json',
+					data: JSON.stringify(myData, null, 4),
+					success: function () {
+						window.location.href = "/scripts";
+					},
+					error: function (xhr, status) {
+						enableStatusBarLive("An error occured while storing the script in HXTool", 200, "ht_statusbar_notifyRed");
+					}
+				});
+
+
+			}
+			else {
+				$('#scriptName').css("background", "rgb(255, 181, 181)");
+			}
+
+		});
+
+		// When the user starts typing in the name field, change the background to white
+		$('#scriptName').keypress(function() {
+			$('#scriptName').css("background", "rgb(255,255,255)");
+		});
+
+		// User requests the audit module to be removed
+		$(document).on('click', '.auditRemove', function () {
+			myDataArr = $(this).parent().attr('id').split("_");
+			myUUID = myDataArr[1];
+			$("#tab_" + myUUID).remove();
+			$(this).parent().remove();
+
+			// Highlight the first audit module again
+			$("#tabMenu li:first").click();
+		});
+
+		// User wants to repeat a parameter
+		$(document).on('click', '.auditRepeat', function () {
+			$('<div style="margin-bottom: 5px;"></div>').insertAfter($(this));
+			$(this).prev().clone().insertAfter($(this).next());
+		});
+
+
+	});
+
+</script>
+
+<form method='POST' action='/openioc' style='margin-bottom: 20px;'>
+		<div class='tableTitle'>
+			<i class="fas fa-code-branch fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
+			Script builder
+		</div>
+	<div class='inputArea' style=''>
+
+		<b>Script name</b><br>
+		<input type='text' id='scriptName' style='width: 400px;'>
+
+		<br><br>
+
+		<b>Platform</b><br>
+		<select name='platform' id='platform'>
+			<option value='win'>Microsoft Windows
+			<option value='osx'>Apple MacOS
+			<option value='linux'>Linux
+		</select>
+
+		<br><br>
+
+		<b>Audit modules</b><br>
+		<select name='add_audit' id=add_audit>
+		</select>
+
+		<div id='scriptArea' style='margin-top: 15px; margin-bottom: 15px;'>
+			<ul id='tabMenu' style='float: left; width: 140px; list-style-type: none; margin: 0; padding: 0; text-align: right;'>
+			</ul>
+			<div id='scriptItems' style='float: left;'>
+			</div>
+			<div style='clear: both;'></div>
+		</div>
+		
+        <input class='tableActionButton' id='generateScript' type='button' value='create script'>
+	</div>
+</form>
+
+{% endblock %}

@@ -13,7 +13,7 @@
 		function vega_malwarecontent(embedOpt, myWidthThree) {
 	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-version.json', function(spec) {
 	        	spec.width = myWidthThree;
-	        	spec.height = 180;
+	        	spec.height = 300;
 	        	spec.data.url = "/api/v1/vegalite_malwarecontent";
 				vegaEmbed("#row1_cell1", spec, embedOpt);
 			});			
@@ -22,7 +22,7 @@
 		function vega_malwareengine(embedOpt, myWidthThree) {
 	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-version.json', function(spec) {
 	        	spec.width = myWidthThree;
-	        	spec.height = 180;
+	        	spec.height = 300;
 	        	spec.data.url = "/api/v1/vegalite_malwareengine";
 				vegaEmbed("#row1_cell2", spec, embedOpt);
 			});			
@@ -31,15 +31,16 @@
 		function vega_malwarestatus(embedOpt, myWidthThree) {
 	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-mode.json', function(spec) {
 	        	spec.width = myWidthThree;
-	        	spec.height = 180;
+	        	spec.height = 300;
 	        	spec.data.url = "/api/v1/vegalite_malwarestatus";
 				vegaEmbed("#row1_cell3", spec, embedOpt);
 			});			
 		}
 
 		function datatable_last_alerts() {
+			$.fn.dataTable.ext.errMode = 'none';
 			var row2_cell1_datatable = $('#row2_cell1_table').DataTable( {
-				"ajax": "/api/v1/datatable_alerts?limit=20&source=MAL",
+				"ajax": "/api/v1/datatable_alerts?limit=15&source=MAL",
 				"paging":   false,
 				"ordering": false,
 				"info":     false,
@@ -84,7 +85,7 @@
 
         $(document).ready(function() {
 
-        	myInterval = 6000;
+        	myInterval = 60000;
 
         	myWidthThree = ($( window ).width() / 3) - 90;
         	myWidthOne = $( window ).width() - 230;
@@ -211,7 +212,7 @@
 			<div style='float: left;'>
 				<i class="fas fa-table fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 			</div>
-			Last 20 Anti-virus alerts
+			Last 15 Anti-virus alerts
 			<div style='float: right;'>
 				<input type='checkbox' id='row2_cell1_auto'> auto
 			</div>
