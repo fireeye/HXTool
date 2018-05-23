@@ -2168,7 +2168,8 @@ if __name__ == "__main__":
 	tasks = hxtool_global.hxtool_db.taskList()
 	for task_entry in tasks:
 		task = hxtool_scheduler_task.deserialize(task_entry['task_data'])
-		hxtool_global.hxtool_scheduler.add(task, store = False)
+		task.set_stored()
+		hxtool_global.hxtool_scheduler.add(task)
 	
 	# Initialize configured log handlers
 	for log_handler in app.hxtool_config.log_handlers():
