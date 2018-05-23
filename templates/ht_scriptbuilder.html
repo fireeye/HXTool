@@ -42,7 +42,7 @@
 		myObj = document.getElementById(myaudit);
 
 		$(myObj).append($('<div>', {class: 'auditName', text: auditname}));
-		$(myObj).append($('<div>', {class: 'auditRemove', html: "<i class='fas fa-trash-alt fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> Remove"}));
+		$(myObj).append($('<div>', {class: 'auditRemove', html: "<i class='fas fa-trash-alt fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> remove"}));
 		$(myObj).append($('<div>', {class: 'auditClear'}));
 
 		$(myObj).append($('<div>', {class: 'auditNameUUID', text: myaudit}));
@@ -93,38 +93,56 @@
 
 	function renderAuditText(objData, myObj, my_uuid, auditname, req_state, repeat) {
 		if (objData['name'] != false) {
-			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name'] + " - " + req_state}));
-			$(myObj).append($('<input>', {class: 'auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name']}));
-			if (repeat) {
-				$(myObj).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+			$(myObj).append('<div class="auditParameterPlaceholder">');
+			newdiv = $(myObj).children(":last");
+			if (req_state == "optional") {
+				$(newdiv).append($('<div>', {class: 'auditParameterTitleOptional', html: objData['name'] + " " + "<i class='far fa-trash-alt fa-sm fa-fw auditParameterRemove' aria-hidden='true'></i>"}));
 			}
-			$(myObj).append('<br><br>');
+			else {
+				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
+			}
+			$(newdiv).append($('<input>', {class: 'auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			if (repeat) {
+				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+			}
 		}
 	}
 
 	function renderAuditTextArea(objData, myObj, my_uuid, auditname, req_state, repeat) {
 		if (objData['name'] != false) {
-			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name'] + " - " + req_state}));
-			$(myObj).append($('<textarea>', {class: 'auditTextAreaInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
-			if (repeat) {
-				$(myObj).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+			$(myObj).append('<div class="auditParameterPlaceholder">');
+			newdiv = $(myObj).children(":last");
+			if (req_state == "optional") {
+				$(newdiv).append($('<div>', {class: 'auditParameterTitleOptional', html: objData['name'] + " " + "<i class='far fa-trash-alt fa-sm fa-fw auditParameterRemove' aria-hidden='true'></i>"}));
 			}
-			$(myObj).append('<br><br>');
+			else {
+				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
+			}
+			$(newdiv).append($('<textarea>', {class: 'auditTextAreaInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			if (repeat) {
+				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+			}
 		}
 	}
 
 	function renderAuditDropdown(objData, myObj, my_uuid, auditname, req_state, repeat) {
 		if (objData['name'] != false) {
-			$(myObj).append($('<div>', {class: 'auditParameterTitle', text: objData['name'] + " - " + req_state}));
-			$(myObj).append($('<select>', {class: 'auditSelectInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			$(myObj).append('<div class="auditParameterPlaceholder">');
+			newdiv = $(myObj).children(":last");
+			if (req_state == "optional") {
+				$(newdiv).append($('<div>', {class: 'auditParameterTitleOptional', html: objData['name'] + " " + "<i class='far fa-trash-alt fa-sm fa-fw auditParameterRemove' aria-hidden='true'></i>"}));
+			}
+			else {
+				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
+			}
+			$(newdiv).append($('<select>', {class: 'auditSelectInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
 			for (option in objData['values']) {
 				thiselement = document.getElementById(auditname + "_" + my_uuid + "_" + objData['name']);
 				$(thiselement).append($('<option>', {value:objData['values'][option], text:objData['values'][option]}));
 			}
 			if (repeat) {
-				$(myObj).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
 			}
-			$(myObj).append('<br><br>');
 		}
 	}
 
@@ -261,6 +279,10 @@
 			$(this).prev().clone().insertAfter($(this).next());
 		});
 
+		// User wants to remove an optional parameter
+		$(document).on('click', '.auditParameterRemove', function () {
+			$(this).parent().parent().remove();
+		});
 
 	});
 
