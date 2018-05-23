@@ -158,7 +158,7 @@ class hxtool_scheduler_task:
 
 	def add_step(self, module, func = "run", args = (), kwargs = {}):
 		# This is an HXTool task module, we need to init it.
-		if isinstance(module, type) and 'task_module' in str(module.__bases__):
+		if hasattr(module, 'hxtool_task_module'):
 			module = module(self)
 		with self._lock:
 			self.steps.append((module, func, args, kwargs))
@@ -192,8 +192,7 @@ class hxtool_scheduler_task:
 				
 				for module, func, args, kwargs in self.steps:
 					self.logger.debug("Have module: {}, function: {}".format(module.__module__, func))
-					# This is an HXTool task_module - need to find a better way to do this.
-					if 'task_module' in module.__module__:
+					if hasattr(module, 'hxtool_task_module'):
 						# Add the stored result args to kwargs - taking care not stomp over existing args
 						if not set(module.run_args()) == set(kwargs.keys()) and isinstance(self.stored_result, dict) and bool(set(module.run_args()).intersection(self.stored_result.keys())):
 							kwargs.update(self.stored_result)

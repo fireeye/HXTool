@@ -20,3 +20,8 @@ class task_module(object):
 	# Note: function return must be a tuple of (boolean, result)
 	def run(self, **kwargs):
 		raise NotImplementedError("You must override run() in your task module.")
+		
+	# Used by the task scheduler to signal that we are an HXTool Task Module
+	@staticmethod
+	def hxtool_task_module():
+		return True
