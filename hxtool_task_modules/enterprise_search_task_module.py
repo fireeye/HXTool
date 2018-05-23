@@ -24,9 +24,9 @@ class enterprise_search_task_module(task_module):
 			if hx_api_object and hx_api_object.restIsSessionValid():
 				(ret, response_code, response_data) = hx_api_object.restSubmitSweep(script, hostset_id, skip_base64 = skip_base64)
 				if ret:
-					self.logger.debug("Enterprise Search successfully submitted.")
+					self.logger.info("Enterprise Search successfully submitted.")
 				else:
-					self.logger.debug("Enterprise Search submission failed. Response code: {}, response data: {}".format(response_code, response_data))
+					self.logger.error("Enterprise Search submission failed. Response code: {}, response data: {}".format(response_code, response_data))
 			else:
 				self.logger.warn("No task API session for profile: {}".format(self.parent_task.profile_id))	
 		return(ret, None)
