@@ -1890,7 +1890,7 @@ def scheduler_tasks(hx_api_object):
 			"last_run": str(task['last_run']),
 			"next_run": str(task['next_run']),
 			"immutable": task['immutable'],
-			"state": task_state_description.get(task['state'])
+			"state": task_state_description.get(task['state'], "Unknown")
 			})
 	return(app.response_class(response=json.dumps(mytasks), status=200, mimetype='application/json'))
 
