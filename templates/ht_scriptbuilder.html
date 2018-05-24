@@ -146,7 +146,7 @@
 		}
 	}
 
-	// Scan script and build JSON
+	// Scan script and build
 	function generateScript() {
 
 		myScript = {"commands": []}
@@ -158,13 +158,14 @@
 			myParams = []
 			$('#audit_' + myId).children().each(function(ix, item) {
 				
-				if ($(item).attr('id')) {
-
-					myParamArr = $(item).attr('id').split("_");
-					myParamName = myParamArr[2]
-					
-					myParams.push({"name": myParamName, "value": $(item).val()})
-		
+				if ($(item).attr('class') == "auditParameterPlaceholder") {
+					$(item).children().each(function(mx, mitem) {
+						if ($(mitem).attr('id')) {
+							myParamArr = $(mitem).attr('id').split("_");
+							myParamName = myParamArr[2]
+							myParams.push({"name": myParamName, "value": $(mitem).val()})
+						}
+					});
 				}
 				
 			});
