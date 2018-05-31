@@ -119,5 +119,110 @@
 			{"name": "eventlogfullpath", "required": false, "repeatable": true, "type": "text", "platforms": ["win"]},
 			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
 		]
+	},
+	"file-acquisition-api": {
+		"description": "Collects the contents of files on host endpoints using system calls for file access.",
+		"platforms": ["win", "osx", "linux"],
+		"parameters": [
+			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Filename", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Preserve Times", "required": false, "repeatable": true, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
+		]
+	},
+	"file-acquisition-raw": {
+		"description": "Collects and downloads a specific file from Windows host endpoints using a method that may bypass security or access restrictions and retrieve deleted files. If the Inode parameter is not specified, this audit returns only the first match of a deleted file.",
+		"platforms": ["win"],
+		"parameters": [
+			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win"]},
+			{"name": "Filename", "required": true, "repeatable": false, "type": "text", "platforms": ["win"]},
+			{"name": "Inode", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
+			{"name": "Deleted", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
+		]
+	},
+	"filedownloadhistory": {
+		"description": "Collects a history of files downloaded through a browser by host endpoints.",
+		"platforms": ["win", "osx"],
+		"parameters": [
+			{"name": "TargetBrowser", "required": false, "repeatable": true, "type": "dropdown", "values": ["Firefox", "Internet Explorer", "Chrome", "Safari"], "platforms": ["win", "osx"]},
+			{"name": "PathToHistoryFiles", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx"]},
+			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
+		]
+	},
+	"files-api": {
+		"description": "Collects a list of the files on host endpoints using system calls. This audit may return more information than expected if the Get Resources parameter is requested for the audit. FireEye strongly recommends using the Get Resources parameter only when targeting a single file.",
+		"platforms": ["win", "osx", "linux"],
+		"parameters": [
+			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Regex", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Path Regex", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Depth", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "MD5", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "SHA1", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "SHA256", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "Preserve Times", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "linux"]},
+			{"name": "Minimum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Maximum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Filter MD5", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "Filter SHA1", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "Filter SHA256", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "Verify Digital Signatures", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx"]},
+			{"name": "Content Regex", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "AND Operator", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "Include Files", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "Include Directories", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "Include Remote Locations", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx"]},
+			{"name": "Analyze Entropy", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Enumerate Imports", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Enumerate Exports", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Analyze File Anomalies", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Scan Entry Point Distance", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
+			{"name": "Strings", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "shortest matched string", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
+			{"name": "Get Resources", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Get Resource Data", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Get Version Info", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Exclude Resource Types", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
+			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
+		]
+	},
+	"files-raw": {
+		"description": "Collects a list of the files on host endpoints by directly examining structures on the host's disks. This audit may return more information than expected if the Get Resources parameter is requested for the audit. FireEye strongly recommends using the Get Resources parameter only when targeting a single file.",
+		"platforms": ["win", "osx", "linux"],
+		"parameters": [
+			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Regex", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Path Regex", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Depth", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "MD5", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "SHA1", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "SHA256", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "Minimum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Maximum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
+			{"name": "Filter MD5", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "Filter SHA1", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "Filter SHA256", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "Verify Digital Signatures", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx"]},
+			{"name": "Content Regex", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
+			{"name": "AND Operator", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "Include Files", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "Include Directories", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
+			{"name": "Analyze Entropy", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Enumerate Imports", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Enumerate Exports", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Analyze File Anomalies", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Scan Entry Point Distance", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
+			{"name": "Strings", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "shortest matched string", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
+			{"name": "Get Resources", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Get Resource Data", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Get Version Info", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Exclude Resource Types", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
+			{"name": "Active Files", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Deleted Files", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Parse NTFS INDX Buffers", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
+			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
+		]
 	}
 }

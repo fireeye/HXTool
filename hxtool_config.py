@@ -100,11 +100,13 @@ class hxtool_config:
 			elif handler_name == 'syslog_handler':
 				handler_config = self._config['log_handlers'][handler_name]
 
-				address_tuple = ('127.0.0.1', logging.handlers.SYSLOG_UDP_PORT)
+				syslog_address = '127.0.0.1'
+				syslog_port = logging.handlers.SYSLOG_UDP_PORT
 				if 'address' in handler_config:
-					address_tuple[0] = handler_config['address']
+					syslog_address = handler_config['address']
+
 				if 'port' in handler_config and 0 < handler_config['port'] < 65535:
-					address_tuple[1] = handler_config['port']
+					syslog_port = handler_config['port']
 
 				facility = logging.handlers.SysLogHandler.LOG_USER
 				if 'facility' in handler_config:
@@ -114,7 +116,7 @@ class hxtool_config:
 				if 'protocol' in handler_config and handler_config['protocol'].lower() == 'tcp':
 					socket_type = socket.SOCK_STREAM
 					
-				h = logging.handlers.SysLogHandler(address = address_tuple, facility = facility, socktype = socket_type)
+				h = logging.handlers.SysLogHandler(address = (syslog_address, syslog_port), facility = facility, socktype = socket_type)
 				
 				self._set_level_and_format(handler_config, h)
 				yield(h)
