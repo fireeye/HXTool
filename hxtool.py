@@ -1145,6 +1145,10 @@ def settings(hx_api_object):
 			app.logger.error("Failed to initialized task API session for profile {}".format(session['ht_profileid']))
 	if request.args.get('unset'):
 		out = app.hxtool_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
+		hx_api_object = hxtool_global.task_hx_api_sessions.get(session['ht_profileid'])
+		if hx_api_object and hx_api_object.restIsSessionValid():
+			(ret, response_code, response_data) = hx_api_object.restLogout()
+			del hxtool_global.task_hx_api_sessions[session['ht_profileid']]
 		app.logger.info("Background Processing credentials unset profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/settings", code=302)
 	
