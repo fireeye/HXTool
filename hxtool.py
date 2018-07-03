@@ -105,7 +105,7 @@ def scriptbuilder_view(hx_api_object):
 		app.hxtool_db.scriptCreate(mydata['scriptName'], HXAPI.b64(json.dumps(mydata['script'], indent=4).encode()), session['ht_user'])
 		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 	else:
-		myauditspacefile = open('static/acquisitions.json', 'r')
+		myauditspacefile = open(combine_app_path('static/acquisitions.json'), 'r')
 		auditspace = myauditspacefile.read()
 		myauditspacefile.close()
 		return render_template('ht_scriptbuilder.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), auditspace=auditspace)
@@ -523,7 +523,7 @@ def rtioc(hx_api_object):
 		# New indicator mode
 		if request.method == 'GET':
 			
-			myEventFile = open('static/eventbuffer.json', 'r')
+			myEventFile = open(combine_app_path('static/eventbuffer.json'), 'r')
 			eventspace = myEventFile.read()
 			myEventFile.close()
 
@@ -2030,6 +2030,10 @@ def stack_job_results(hx_api_object, stack_id):
 ####################
 # Utility Functions
 ####################
+def combine_app_path(path):
+	return os.path.join(app.root_path, path)
+
+
 def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, handler = None, skip_base64 = False):
 	
 	bulk_acquisition_id = None
