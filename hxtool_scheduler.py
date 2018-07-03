@@ -53,7 +53,8 @@ class hxtool_scheduler:
 	def _scan_task_queue(self):
 		while not self._stop_event.is_set():
 			with self._lock:
-				for task_id, task in self.task_queue:
+				for task_id in self.task_queue:
+					task = self.task_queue[task_id]
 					if task.should_run():
 						self.run_queue.put((task_id, task.name, task.run))
 						task.set_state(TASK_STATE_QUEUED)
@@ -90,9 +91,10 @@ class hxtool_scheduler:
 	
 	def signal_child_tasks(self, task_id):
 		with self._lock:
-			for k, v in self.task_queue:
-				if v.parent_id == task_id:
-					v.parent_complete = True
+			for task_id in self.task_queue:
+				task = self.task_queue[task_id]
+				if task.parent_id == task_id:
+					task.parent_complete = True
 	
 	def add(self, task, store = True):
 		with self._lock:
@@ -117,7 +119,7 @@ class hxtool_scheduler:
 				return self.task_queue.get(task_id)
 		
 	def tasks(self):
-		return self.task_queue.values()
+		return [_.to_json() for _ in self.task_queue.values()]
 		
 	def status(self):
 		return self._poll_thread.is_alive()
@@ -233,7 +235,7 @@ class hxtool_scheduler_task:
 		else:
 			self.set_state(TASK_STATE_STOPPED)
 		
-		if self._stored and not self.immutable:				
+		if not self.immutable and self._stored:				
 			if self.state != TASK_STATE_SCHEDULED:
 				hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
 				self._stored = False
@@ -254,7 +256,7 @@ class hxtool_scheduler_task:
 	def should_run(self):
 		return (self.enabled and  
 				self.state == TASK_STATE_SCHEDULED and
-				(self.parent_id and self.wait_for_parent and self.parent_complete) and	
+				(self.parent_complete if self.parent_id and self.wait_for_parent else True) and	
 				len(self.steps) > 0 and 
 				((datetime.datetime.utcnow() - self.next_run).seconds == 0 or 
 				self.start_time == self.next_run))
@@ -265,9 +267,33 @@ class hxtool_scheduler_task:
 			self._stored = stored
 			
 	def store(self):
-		if not (self._stored and self.immutable):
+		if not self.immutable and not self._stored:
 			hxtool_global.hxtool_db.taskCreate(self.profile_id, self.task_id, self.serialize())
 			self.set_stored()
+	
+	def to_json(self):
+		# For use by the task scheduler API
+		# TODO: maybe we should just use serialize and show the modules too?
+		return {
+			'profile_id' : self.profile_id,
+			'task_id' : self.task_id,
+			'name' : self.name,
+			'interval' : self.interval.seconds if type(self.interval) is datetime.timedelta else None,
+			'start_time' : str(self.start_time),
+			'end_time' : str(self.end_time) if self.end_time else None,
+			'last_run' : str(self.last_run) if self.last_run else None,
+			'next_run' : str(self.next_run) if self.next_run else None,
+			'enabled' : self.enabled,
+			'immutable' : self.immutable,
+			'stop_on_fail' : self.stop_on_fail,
+			'parent_id' : self.parent_id,
+			'parent_complete' : self.parent_complete,
+			'wait_for_parent' : self.wait_for_parent,
+			'defer_interval' : self.defer_interval,
+			'state' : self.state,
+			'last_run_state' : self.last_run_state,
+			'stored_result' : self.stored_result,
+		}
 		
 	def serialize(self):
 		return {
@@ -277,6 +303,7 @@ class hxtool_scheduler_task:
 			'interval' : self.interval.seconds if type(self.interval) is datetime.timedelta else None,
 			'start_time' : str(self.start_time),
 			'end_time' : str(self.end_time) if self.end_time else None,
+			'last_run' : str(self.last_run) if self.last_run else None,
 			'enabled' : self.enabled,
 			'immutable' : self.immutable,
 			'stop_on_fail' : self.stop_on_fail,
@@ -302,8 +329,8 @@ class hxtool_scheduler_task:
 		task = hxtool_scheduler_task(d['profile_id'],
 									d['name'],
 									task_id = d['task_id'],
-									parent_id = d.get('parent_id', None)
-									wait_for_parent = d.get('wait_for_parent', True)
+									parent_id = d.get('parent_id', None),
+									wait_for_parent = d.get('wait_for_parent', True),
 									interval = datetime.timedelta(seconds = d['interval']) if d['interval'] else None,
 									start_time = HXAPI.dt_from_str(d['start_time']),
 									end_time = HXAPI.dt_from_str(d['end_time']) if d['end_time'] else None,
@@ -311,6 +338,7 @@ class hxtool_scheduler_task:
 									immutable = d['immutable'],
 									stop_on_fail = d['stop_on_fail'],
 									defer_interval = d['defer_interval'])
+		task.last_run = d.get('last_run', None)
 		task.parent_complete = d.get('parent_complete', False)
 		task.last_run_state = d.get('last_run_state', None)							
 		task.state = d.get('state')
