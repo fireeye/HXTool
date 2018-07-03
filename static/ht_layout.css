@@ -186,11 +186,10 @@
 
 .auditRemove {
 	float: right;
-	color: red;
-	background: #dddddd;
-	padding: 5px;
-	border: 1px solid #dddddd;
-	border-radius: 5px;
+	color: rgb(145, 59, 33);
+	padding: 3px;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
 	font-weight: bold;
 	font-size: 12px;
 }
@@ -235,6 +234,12 @@
 	margin-bottom: 5px;
 }
 
+.auditParameterTitleOptional {
+	font-weight: 700;
+	margin-bottom: 5px;
+	color: rgb(31, 69, 130);
+}
+
 .auditTextInput {
 	width: 400px;
 }
@@ -243,4 +248,22 @@
 	width: 400px;
 	height: 100px;
 	resize: none;
+}
+
+.auditParameterPlaceholder {
+	margin-bottom: 15px;
+}
+
+.auditParameterRemove {
+	color: rgb(31, 69, 130);
+	padding: 2px;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	margin-bottom: -2px;
+	margin-left: 10px;
+}
+
+.auditParameterRemove:hover {
+	background: #cccccc;
+	cursor: pointer;
 }

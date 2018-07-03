@@ -6,7 +6,13 @@
 		  "backup_count":5,
 		  "level":"info",
           "format":"[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s"
-	   }
+	   },
+      "syslog_handler": {
+         "address": "192.168.1.247",
+         "protocol": "udp",
+         "port": 514,
+         "level":"info"
+      }
 	},
    "network":{  
       "ssl":"enabled",
