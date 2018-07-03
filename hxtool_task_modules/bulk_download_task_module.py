@@ -8,14 +8,41 @@ from hxtool_util import *
 class bulk_download_task_module(task_module):
 	def __init__(self, parent_task):
 		super(type(self), self).__init__(parent_task)
-
-	def run_args(self):
+	
+	@staticmethod
+	def input_args():
 		return [
-			'bulk_acquisition_id',
-			'host_id',
-			'host_name'
+			{ 
+				'name' : 'bulk_acquisition_id',
+				'type' : int,
+				'required' : True,
+				'description' : "The ID of the bulk acquisition job on the HX controller."
+			}, 
+			{
+				'name' : 'host_id',
+				'type' : str,
+				'required' : True,
+				'description' : "The host/agent ID of the bulk acquisition to download."
+			},
+			{
+				'name' : 'host_name',
+				'type' : str,
+				'required' : True,
+				'description' : "The host name of the agent."
+			}
 		]
 	
+	@staticmethod
+	def output_args():
+		return [
+			{ 
+				'name' : 'bulk_download_path',
+				'type' : str,
+				'required' : True,
+				'description' : "The fully qualified path to the bulk acquisition package."
+			}
+		]	
+		
 	def run(self, bulk_acquisition_id = None, host_id = None, host_name = None):
 		ret = False
 		result = {}

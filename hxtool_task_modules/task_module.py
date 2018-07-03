@@ -14,8 +14,19 @@ class task_module(object):
 			return hxtool_global.task_hx_api_sessions[self.parent_task.profile_id]
 		return None
 		
-	def run_args(self):
+	# Input and output args are a list of dictionary objects containing the following four keys: name, type, required and description 
+	# these define the modules inputs and outputs, for example:
+	# @staticmethod
+	# def input_args():
+	# 	return [ {'name' : 'foo', 'type' : str, 'required' : True, 'description' : "Foo argument"} ]
+	# 
+	@staticmethod
+	def input_args():
 		raise NotImplementedError("You must define a list of arguments that your module's run() function requires!")
+	
+	@staticmethod
+	def output_args():
+		raise NotImplementedError("You must define a list of arguments that your module will output!")
 	
 	# Note: function return must be a tuple of (boolean, result)
 	def run(self, **kwargs):

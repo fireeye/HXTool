@@ -193,14 +193,15 @@ class hxtool_scheduler_task:
 					self.logger.debug("Have module: {}, function: {}".format(module.__module__, func))
 					if hasattr(module, 'hxtool_task_module'):
 						# Add the stored result args to kwargs - taking care not stomp over existing args
-						if not set(module.run_args()) == set(kwargs.keys()) and isinstance(self.stored_result, dict) and bool(set(module.run_args()).intersection(self.stored_result.keys())):
-							kwargs.update(self.stored_result)
-					
-						if not set(module.run_args()) == set(kwargs.keys()):
-							self.logger.error("Module {} requires arguments that were not found! Bailing!".format(module.__module__))
-							ret = False
-							self.state = TASK_STATE_FAILED
-							break
+						for arg_i in module.input_args():
+							if kwargs.get(arg_i['name'], None) == None:
+								if arg_i['name'] in self.stored_result.keys():
+									kwargs[arg_i['name']] = self.stored_result
+								else:
+									self.logger.error("Module {} requires arguments that were not found! Bailing!".format(module.__module__))
+									ret = False
+									self.state = TASK_STATE_FAILED
+									break
 				
 					result = getattr(module, func)(*args, **kwargs)
 					

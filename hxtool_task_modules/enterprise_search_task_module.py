@@ -8,15 +8,34 @@ from hx_lib import *
 class enterprise_search_task_module(task_module):
 	def __init__(self, parent_task):
 		super(type(self), self).__init__(parent_task)
-
+	
 	@staticmethod
-	def run_args():
+	def input_args():
 		return [
-			'script',
-			'hostset_id',
-			'skip_base64'
+			{
+				'name' : 'script',
+				'type' : str,
+				'required' : True,
+				'description' : "The OpenIOC 1.1 formatted script to utilize."
+			},
+			{
+				'name' : 'hostset_id',
+				'type' : int,
+				'required' : True,
+				'description' : "The ID of the host set to execute the script against."
+			},
+			{
+				'name' : 'skip_base64',
+				'type' : bool,
+				'required' : False,
+				'description' : "Specifies whether the contents of the script argument are already base64 encoded. Defaults to False"
+			}
 		]
 		
+	@staticmethod
+	def output_args():
+		return []
+	
 	def run(self, script = None, hostset_id = None, skip_base64 = False):
 		ret = False
 		if script:
