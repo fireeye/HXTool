@@ -1,7 +1,7 @@
 To build a Docker image from the HXTool source, do the following:
 1. Move the HXTool code to a folder called 'src'
 2. Move/copy the Dockerfile to the directory above 'src'
-3. Run 'docker build hxtool:latest .'
+3. Run 'docker build -t hxtool:latest .'
 
 Your directory structure should look like so:
 
