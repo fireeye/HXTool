@@ -13,13 +13,37 @@ class stacking_task_module(task_module):
 		super(type(self), self).__init__(parent_task)
 	
 	@staticmethod
-	def run_args():
+	def input_args():
 		return [
-			'bulk_acquisition_id',
-			'host_name',
-			'bulk_download_path',
-			'delete_bulk_download'
+			{
+				'name' : 'bulk_acquisition_id',
+				'type' : int,
+				'required' : True,
+				'description' : "The bulk acquisition ID assigned to the bulk acquisition job by the controller."
+			},
+			{
+				'name' : 'host_name',
+				'type' : str,
+				'required' : True,
+				'description' : "The host name of this bulk acquisition package."
+			},
+			{
+				'name' : 'bulk_download_path',
+				'type' : str,
+				'required' : True,
+				'description' : "The fully qualified path to the bulk acquisition package."
+			},
+			{
+				'name' : 'delete_bulk_download',
+				'type' : bool,
+				'required' : False,
+				'description' : "Flag whether to delete the bulk acquisition package locally once complete. Defaults to False"
+			}
 		]
+	
+	@staticmethod
+	def output_args():
+		return []
 	
 	def run(self, bulk_acquisition_id = None, host_name = None, bulk_download_path = None, delete_bulk_download = False):
 		try:

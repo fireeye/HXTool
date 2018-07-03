@@ -14,17 +14,52 @@ class streaming_task_module(task_module):
 		super(type(self), self).__init__(parent_task)
 	
 	@staticmethod
-	def run_args():
+	def input_args():
 		return [
-			'host_name',
-			'bulk_download_path',
-			'delete_bulk_download',
-			'stream_protocol',
-			'stream_host',
-			'stream_port'
+			{
+				'name' : 'host_name',
+				'type' : str,
+				'required' : True,
+				'description' : "The host name belonging to the bulk acquisition package."
+			},
+			{
+				'name' : 'bulk_download_path',
+				'type' : str,
+				'required' : True,
+				'description' : "The fully qualified path to the bulk acquisition package."
+			},
+			{
+				'name' : 'delete_bulk_download',
+				'type' : bool,
+				'required' : False,
+				'description' : "Flag whether to delete the bulk acquisition package locally once complete. Defaults to False"
+			},
+			{
+				'name' : 'stream_protocol',
+				'type' : str,
+				'required' : False,
+				'description' : "The protocol to use when streaming. Defaults to TCP"
+			},
+			{
+				'name' : 'stream_host',
+				'type' : str,
+				'required' : True,
+				'description' : "The FQDN or IP address of the host to stream to."
+			},
+			{
+				'name' : 'stream_port',
+				'type' : int,
+				'required' : True,
+				'description' : "The port on which to stream to."
+			}
+				
 		]
 	
-	def run(self, host_name = None, bulk_download_path = None, delete_bulk_download = False, stream_protocol = 'tcp', stream_host = None, stream_port = None):
+	@staticmethod
+	def output_args():
+		return []
+	
+	def run(self, host_name = None, bulk_download_path = None, delete_bulk_download = False, stream_host = None, stream_port = None, stream_protocol = 'tcp'):
 		try:
 			ret = False
 			if bulk_download_path:
