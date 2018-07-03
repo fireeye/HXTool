@@ -194,7 +194,7 @@ class hxtool_scheduler_task:
 					if hasattr(module, 'hxtool_task_module'):
 						# Add the stored result args to kwargs - taking care not stomp over existing args
 						for arg_i in module.input_args():
-							if kwargs.get(arg_i['name'], None) == None:
+							if arg_i['required'] and kwargs.get(arg_i['name'], None) == None:
 								if arg_i['name'] in self.stored_result.keys():
 									kwargs[arg_i['name']] = self.stored_result
 								else:
