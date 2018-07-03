@@ -2106,13 +2106,9 @@ def sigint_handler(signum, frame):
 	if app.hxtool_db:
 		app.hxtool_db.close()	
 	exit(0)	
-	
-if __name__ == "__main__":
-	signal.signal(signal.SIGINT, sigint_handler)
-	
-	debug_mode = False
-	if len(sys.argv) == 2 and sys.argv[1] == '-debug':
-		debug_mode = True
+
+
+def app_init(debug = False):
 	
 	# Log early init/failures to stdout
 	console_log = logging.StreamHandler(sys.stdout)
@@ -2124,7 +2120,7 @@ if __name__ == "__main__":
 	hxtool_global.hxtool_db = app.hxtool_db
 	
 	# If we're debugging use a static key
-	if debug_mode:
+	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
 		app.logger.setLevel(logging.DEBUG)
 		app.logger.debug("Running in debugging mode.")
@@ -2132,7 +2128,7 @@ if __name__ == "__main__":
 		app.secret_key = crypt_generate_random(32)
 		app.logger.setLevel(logging.INFO)
 	
-	app.hxtool_config = hxtool_config('conf.json', logger = app.logger)
+	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
 	hxtool_global.hxtool_config = app.hxtool_config
 	
 	app.task_api_key = 'Z\\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
@@ -2182,7 +2178,20 @@ if __name__ == "__main__":
 	# Initialize configured log handlers
 	for log_handler in app.hxtool_config.log_handlers():
 		app.logger.addHandler(log_handler)
+	
+	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
+	app.permanent_session_lifetime = datetime.timedelta(days=7)
+	app.session_interface = hxtool_session_interface(app, logger = app.logger, expiration_delta=app.hxtool_config['network']['session_timeout'])
 
+debug_mode = False
+if __name__ == "__main__":
+	signal.signal(signal.SIGINT, sigint_handler)
+	
+	if len(sys.argv) == 2 and sys.argv[1] == '-debug':
+		debug_mode = True
+	
+	app_init(debug_mode)
+	
 	# WSGI request log - when not running under gunicorn or mod_wsgi
 	logger = logging.getLogger('werkzeug')
 	if logger:
@@ -2195,11 +2204,7 @@ if __name__ == "__main__":
 	# Start
 	app.logger.info('Application starting')
 	
-	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
-	
-	app.permanent_session_lifetime = datetime.timedelta(days=7)
 
-	app.session_interface = hxtool_session_interface(app, logger = app.logger, expiration_delta=app.hxtool_config['network']['session_timeout'])
 	
 	# TODO: This should really be after app.run, but you cannot run code after app.run, so we'll leave this here for now.
 	app.logger.info("Application is running. Please point your browser to http{0}://{1}:{2}. Press Ctrl+C/Ctrl+Break to exit.".format(
@@ -2217,3 +2222,6 @@ if __name__ == "__main__":
 		app.run(host=app.hxtool_config['network']['listen_address'], 
 				port=app.hxtool_config['network']['port'])
 	
+else:
+	# Running under gunicorn/mod_wsgi
+	app_init(False)
