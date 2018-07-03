@@ -4,8 +4,10 @@
 import threading
 import datetime
 import logging
+
 from hxtool_global import hxtool_schema_version
 from hxtool_util import *
+from hx_lib import *
 
 try:
 	import tinydb
@@ -142,7 +144,7 @@ class hxtool_db:
 	
 	def alertAddAnnotation(self, profile_id, hx_alert_id, annotation, state, create_user):
 		with self._lock:
-			return self._db.table('alert').update(self._db_append_to_list('annotations', {'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : str(datetime.datetime.utcnow())}), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['hx_alert_id'] == int(hx_alert_id)))
+			return self._db.table('alert').update(self._db_append_to_list('annotations', {'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['hx_alert_id'] == int(hx_alert_id)))
 		
 	def bulkDownloadCreate(self, profile_id, bulk_download_id, hosts, hostset_id = -1, hostset_name = None, post_download_handler = None):
 		r = None
@@ -156,8 +158,8 @@ class hxtool_db:
 															'stopped' : False,
 															'complete' : False,
 															'post_download_handler' : post_download_handler, 
-															'create_timestamp' : str(datetime.datetime.utcnow()), 
-															'update_timestamp' : str(datetime.datetime.utcnow())})
+															'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
+															'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})
 			except:
 				self._db.table('bulk_download').remove(eids = [r])
 				raise
@@ -196,7 +198,7 @@ class hxtool_db:
 	def fileListingCreate(self, profile_id, username, bulk_download_id, path, regex, depth, display_name, api_mode=False):
 		r = None
 		with self._lock:
-			ts = str(datetime.datetime.utcnow())
+			ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
 			try:
 				r = self._db.table('file_listing').insert({'profile_id' : profile_id, 
 														'display_name': display_name,
@@ -237,7 +239,7 @@ class hxtool_db:
 
 	def fileListingStop(self, file_listing_id):
 		with self._lock:
-			return self._db.table('file_listing').update({'stopped' : True, 'update_timestamp' : str(datetime.datetime.utcnow())}, eids = [int(file_listing_id)])		
+			return self._db.table('file_listing').update({'stopped' : True, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, eids = [int(file_listing_id)])		
 	
 	def fileListingDelete(self, file_listing_id):
 		with self._lock:
@@ -246,7 +248,7 @@ class hxtool_db:
 	def multiFileCreate(self, username, profile_id, display_name=None, file_listing_id=None, api_mode=False):
 		r = None
 		with self._lock:
-			ts = str(datetime.datetime.utcnow())
+			ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
 			try:
 				return self._db.table('multi_file').insert({
 					'display_name': display_name or "Unnamed File Request",
@@ -291,7 +293,7 @@ class hxtool_db:
 																			
 	def multiFileStop(self, multi_file_id):
 		with self._lock:
-			return self._db.table('multi_file').update({'stopped' : True, 'update_timestamp' : str(datetime.datetime.utcnow())}, eids = [int(multi_file_id)])		
+			return self._db.table('multi_file').update({'stopped' : True, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, eids = [int(multi_file_id)])		
 	
 	def multiFileDelete(self, multi_file_id):
 		with self._lock:
@@ -300,7 +302,7 @@ class hxtool_db:
 	def stackJobCreate(self, profile_id, bulk_download_id, stack_type):
 		r = None
 		with self._lock:
-			ts = str(datetime.datetime.utcnow())
+			ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
 			try:
 				r = self._db.table('stacking').insert({'profile_id' : profile_id, 
 														'bulk_download_id' : int(bulk_download_id), 
@@ -338,15 +340,15 @@ class hxtool_db:
 			
 	def stackJobUpdateIndex(self, profile_id, bulk_download_id, last_index):
 		with self._lock:
-			return self._db.table('stacking').update({'last_index' : last_index, 'update_timestamp' : str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+			return self._db.table('stacking').update({'last_index' : last_index, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
 	
 	def stackJobUpdateGroupBy(self, profile_id, bulk_download_id, last_groupby):
 		with self._lock:
-			return self._db.table('stacking').update({'last_groupby' : last_groupby, 'update_timestamp' : str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+			return self._db.table('stacking').update({'last_groupby' : last_groupby, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
 	
 	def stackJobStop(self, stack_job_id):
 		with self._lock:
-			return self._db.table('stacking').update({'stopped' : True, 'update_timestamp' : str(datetime.datetime.utcnow())}, eids = [int(stack_job_id)])		
+			return self._db.table('stacking').update({'stopped' : True, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, eids = [int(stack_job_id)])		
 	
 	def stackJobDelete(self, stack_job_id):
 		with self._lock:
@@ -368,7 +370,7 @@ class hxtool_db:
 		
 	def sessionUpdate(self, session_id, session_data):
 		with self._lock:
-			return self._db.table('session').update({'session_data' : session_data, 'update_timestamp' : str(datetime.datetime.utcnow())}, (tinydb.Query()['session_id'] == session_id))
+			return self._db.table('session').update({'session_data' : session_data, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, (tinydb.Query()['session_id'] == session_id))
 		
 	def sessionDelete(self, session_id):
 		with self._lock:
@@ -380,8 +382,8 @@ class hxtool_db:
 														'scriptname': str(scriptname), 
 														'username' : str(username),
 														'script' : str(script), 
-														'create_timestamp' : str(datetime.datetime.utcnow()), 
-														'update_timestamp' : str(datetime.datetime.utcnow())})		
+														'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
+														'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})		
 
 	def scriptList(self):
 		with self._lock:
@@ -402,8 +404,8 @@ class hxtool_db:
 														'iocname': str(iocname), 
 														'username' : str(username),
 														'ioc' : str(ioc), 
-														'create_timestamp' : str(datetime.datetime.utcnow()), 
-														'update_timestamp' : str(datetime.datetime.utcnow())})		
+														'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
+														'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})		
 
 	def oiocList(self):
 		with self._lock:
@@ -448,8 +450,8 @@ class hxtool_db:
 														'actor' : str(actor),
 														'module' : str(module),
 														'params' : params, 
-														'create_timestamp' : str(datetime.datetime.utcnow()), 
-														'update_timestamp' : str(datetime.datetime.utcnow())})
+														'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
+														'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})
 
 	def taskProfileList(self):
 		with self._lock:
@@ -492,7 +494,7 @@ class hxtool_db:
 			else:
 				element[dict_name][dict_key] = dict_values
 			if update_timestamp and 'update_timestamp' in element:
-					element['update_timestamp'] =  str(datetime.datetime.utcnow())		
+					element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())		
 		return transform
 	
 	def _db_append_to_list(self, list_name, value, update_timestamp = True):
@@ -502,7 +504,7 @@ class hxtool_db:
 			else:
 				element[list_name].append(value)
 			if update_timestamp and 'update_timestamp' in element:
-				element['update_timestamp'] =  str(datetime.datetime.utcnow())
+				element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())
 		return transform
 	
 	def _db_update_dict_in_list(self, list_name, query_key, query_value, k, v, update_timestamp = True):
@@ -512,5 +514,5 @@ class hxtool_db:
 					i[k] = v
 					break
 			if update_timestamp and 'update_timestamp' in element:
-				element['update_timestamp'] =  str(datetime.datetime.utcnow())		
+				element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())		
 		return transform

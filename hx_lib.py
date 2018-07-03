@@ -168,7 +168,7 @@ class HXAPI:
 	def set_token(self, token):
 		self.logger.debug('set_token called')
 		
-		timestamp = str(datetime.datetime.utcnow())
+		timestamp = HXAPI.dt_to_str(datetime.datetime.utcnow())
 		if token:
 			self.fe_token = {'token' : token, 'grant_timestamp' : timestamp, 'last_use_timestamp' : timestamp}
 			# Removed the code setting the X-FeApi-Token header from here because the last_use_timestamp would never get updated
@@ -181,7 +181,7 @@ class HXAPI:
 		if not self.fe_token:
 			self.logger.debug("fe_token is empty.")
 		elif update_last_use_timestamp:
-			self.fe_token['last_use_timestamp'] = str(datetime.datetime.utcnow())
+			self.fe_token['last_use_timestamp'] = HXAPI.dt_to_str(datetime.datetime.utcnow())
 
 		return(self.fe_token)
 	
@@ -1093,5 +1093,17 @@ class HXAPI:
 			return str(s)
 
 	@staticmethod
-	def dt_from_str(s):
-		return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S.%f')
+	def dt_from_str(s, precision = 's'):
+		format_string = '%Y-%m-%d %H:%M:%S'
+		if precision == 'ms':
+			format_string = '%Y-%m-%d %H:%M:%S.%f'
+		elif '.' in s:
+			s = s[:s.find('.'):]
+		return datetime.datetime.strptime(s, format_string)
+		
+	@staticmethod
+	def dt_to_str(s, precision = 's'):
+		format_string = '%Y-%m-%d %H:%M:%S'
+		if precision == 'ms':
+			format_string = '%Y-%m-%d %H:%M:%S.%f'
+		return datetime.datetime.strftime(s, format_string)
