@@ -47,13 +47,49 @@ class hxtool_db:
 				current_schema_version = int(current_schema_version['schema_version'])
 		if not current_schema_version:
 			self.logger.warning("The current HXTool database has no schema version set, a DB schema upgrade may be required.")
-			# Upgrade code goes here
-			self._db.table('schema_version').insert({'schema_version' : hxtool_schema_version})
+			if self.upgrade_schema():
+				self.logger.info("Database schema upgraded successfully.")
+				self._db.table('schema_version').insert({'schema_version' : hxtool_schema_version})
 		elif current_schema_version < hxtool_schema_version:
 			self.logger.warning("The current HXTool database has a schema version: {} that is older than the current version of: {}, a DB schema upgrade may be required.".format(current_schema_version, hxtool_schema_version))
-			# Upgrade code goes here
-			self._db.table('schema_version').update({'schema_version' : hxtool_schema_version}, eids = [1])
+			if self.upgrade_schema():
+				self.logger.info("Database schema upgraded successfully.")
+				self._db.table('schema_version').update({'schema_version' : hxtool_schema_version}, eids = [1])
 		
+	def upgrade_schema(self):
+		try:
+			with self._lock:
+				# Schema upgrade code - will change from release to release
+				
+				# Upgrade stack and file listing jobs to 4.0 schema
+				for r in self._db.table('stacking').all():
+					if 'bulk_download_id' in r and r['bulk_download_id'] > 0:
+						b = self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == r['profile_id']) & (tinydb.Query()['bulk_download_id'] == r['bulk_download_id']))
+						if b:
+							self._db.table('stacking').update({'bulk_download_eid' : b.eid}, eids = [r.eid])
+							self._db.table('stacking').update(tinydb.operations.delete('bulk_download_id'), eids = [r.eid])
+				
+				for r in self._db.table('file_listing').all():
+					if 'bulk_download_id' in r and r['bulk_download_id'] > 0:
+						b = self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == r['profile_id']) & (tinydb.Query()['bulk_download_id'] == r['bulk_download_id']))
+						if b:
+							self._db.table('file_listing').update({'bulk_download_eid' : b.eid}, eids = [r.eid])
+							self._db.table('file_listing').update(tinydb.operations.delete('bulk_download_id'), eids = [r.eid])
+				
+				# Rename bulk_download_id to bulk_acquisition_id in the bulk_download table, post_download_handler to task_profile
+				for r in self._db.table('bulk_download').all():
+					if 'bulk_download_id' in r and r['bulk_download_id'] > 0:
+						self._db.table('bulk_download').update({'bulk_acquisition_id' : r['bulk_download_id']}, eids = [r.eid])
+						self._db.table('bulk_download').update(tinydb.operations.delete('bulk_download_id'), eids = [r.eid])
+					if 'post_download_handler' in r:	
+						self._db.table('bulk_download').update({'task_profile' : r['post_download_handler']}, eids = [r.eid])
+						self._db.table('bulk_download').update(tinydb.operations.delete('post_download_handler'), eids = [r.eid])
+				
+			return True
+		except:
+			raise
+			return False
+			
 	
 	"""
 	Add a profile
