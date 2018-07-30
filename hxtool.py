@@ -156,11 +156,11 @@ def bulkacq_view(hx_api_object):
 		if 'file' in request.form.keys():
 			f = request.files['bulkscript']
 			bulk_acquisition_script = f.read()
-			bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
+			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		elif 'store' in request.form.keys():
 			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
-			bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
+			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulkacq", code=302)
 	else:
@@ -660,11 +660,11 @@ def listbulk(hx_api_object):
 		if 'file' in request.form.keys():
 			f = request.files['bulkscript']
 			bulk_acquisition_script = f.read()
-			bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
+			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		elif 'store' in request.form.keys():
 			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
-			bulk_id = submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
+			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulk", code=302)
 	else:
@@ -738,7 +738,7 @@ def download_multi_file_single(hx_api_object):
 		if multi_file:
 			file_records = list(filter(lambda f: int(f['acquisition_id']) == int(request.args.get('acq_id')), multi_file['files']))
 			if file_records and file_records[0]:
-				# TODO: fix this
+				# TODO: should multi_file be hardcoded?
 				path = combine_app_path(_download_directory_base, hx_api_object.hx_host, 'multi_file', request.args.get('mf_id'), '{}_{}.zip'.format(file_records[0]['hostname'], request.args.get('acq_id')))
 				app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('acq_id'))
 				return send_file(path, attachment_filename=path.rsplit('/',1)[-1], as_attachment=True)
@@ -795,7 +795,7 @@ def bulkaction(hx_api_object):
 		return redirect("/bulkacq", code=302)
 		
 	if request.args.get('action') == "stopdownload":
-		ret = app.hxtool_db.bulkDownloadStop(session['ht_profileid'], request.args.get('id'))
+		ret = app.hxtool_db.bulkDownloadUpdate(request.args.get('id'), stopped = True)
 		# TODO: don't delete the job because the task module needs to know if the job is stopped or not.
 		#ret = app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
 		app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
@@ -946,23 +946,25 @@ def multifile(hx_api_object):
 @valid_session_required
 def file_listing(hx_api_object):
 	if request.args.get('stop'):
-		fl_job = app.hxtool_db.fileListingGetById(request.args.get('stop'))
-		if fl_job:
-			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', fl_job['bulk_download_id'])
+		file_listing_job = app.hxtool_db.fileListingGetById(request.args.get('stop'))
+		if file_listing_job:
+			bulk_download_job = app.hxtool_db.bulkDownloadGet(file_listing_job['bulk_download_eid'])
+			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
 			if ret:
-				app.hxtool_db.fileListingStop(fl_job.eid)
-				app.hxtool_db.bulkDownloadStop(session['ht_profileid'], fl_job['bulk_download_id'])
-				app.logger.info('File Listing ID {0} action STOP - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, fl_job.eid))
+				app.hxtool_db.fileListingStop(file_listing_job.eid)
+				app.hxtool_db.bulkDownloadUpdate(file_listing_job['bulk_download_eid'], stopped = True)
+				app.logger.info('File Listing ID {0} action STOP - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, file_listing_job.eid))
 		return redirect("/multifile", code=302)
 
 	elif request.args.get('remove'):
-		fl_job = app.hxtool_db.fileListingGetById(request.args.get('remove'))
-		if fl_job:
-			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', fl_job['bulk_download_id'])
-			if ret:
-				app.hxtool_db.fileListingDelete(fl_job.eid)
-				app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], fl_job['bulk_download_id'])
-				app.logger.info('File Listing ID {0} action REMOVE - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, fl_job.eid))
+		file_listing_job = app.hxtool_db.fileListingGetById(request.args.get('remove'))
+		if file_listing_job:
+			bulk_download_job = app.hxtool_db.bulkDownloadGet(file_listing_job['bulk_download_eid'])
+			if bulk_download_job.get('bulk_acquisition_id', None):
+				(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
+			app.hxtool_db.bulkDownloadDelete(file_listing_job['bulk_download_eid'])
+			app.hxtool_db.fileListingDelete(file_listing_job.eid)
+			app.logger.info('File Listing ID {0} action REMOVE - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, file_listing_job.eid))
 		return redirect("/multifile", code=302)
 
 	elif request.method == 'POST':
@@ -994,8 +996,9 @@ def file_listing(hx_api_object):
 			#TODO: Handle invalid regex with response. (Inline AJAX?)
 			raise
 		if script_xml:
-			bulkid = submit_bulk_job(hx_api_object, hostset, script_xml.encode(default_encoding), handler="file_listing")
-			ret = app.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulkid, path, regex, depth, display_name, api_mode=use_api_mode)
+			bulk_download_eid = submit_bulk_job(hx_api_object, hostset, script_xml.encode(default_encoding), task_profile = "file_listing")
+			#TODO fix
+			ret = app.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, depth, display_name, api_mode=use_api_mode)
 			app.logger.info('New File Listing - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/multifile", code=302)
 		else:
@@ -1047,7 +1050,7 @@ def get_file_listings(hx_api_object):
 		job['file_count'] = len(job.pop('files'))
 
 		# Completion rate
-		bulk_download = app.hxtool_db.bulkDownloadGet(profile_id, job['bulk_download_id'])
+		bulk_download = app.hxtool_db.bulkDownloadGet(bulk_download_eid = job['bulk_download_eid'])
 		if bulk_download:
 			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
 			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
@@ -1073,35 +1076,39 @@ def get_file_listings(hx_api_object):
 @valid_session_required
 def stacking(hx_api_object):
 	if request.args.get('stop'):
-		stack_job = app.hxtool_db.stackJobGetById(request.args.get('stop'))
+		stack_job = app.hxtool_db.stackJobGet(stack_job_eid = request.args.get('stop'))
+		bulk_download_job = app.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
 		if stack_job:
-			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', stack_job['bulk_download_id'])
+			
+			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
 			if ret:
-				app.hxtool_db.stackJobStop(stack_job.eid)
-				app.hxtool_db.bulkDownloadStop(session['ht_profileid'], stack_job['bulk_download_id'])
+				app.hxtool_db.stackJobStop(stack_job_eid = stack_job.eid)
+				app.hxtool_db.bulkDownloadUpdate(bulk_download_job.eid, stopped = True)
 				app.logger.info('Data stacking action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 
 	if request.args.get('remove'):
-		stack_job = app.hxtool_db.stackJobGetById(request.args.get('remove'))
+		stack_job = app.hxtool_db.stackJobGet(request.args.get('remove'))
 		if stack_job:
-			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', stack_job['bulk_download_id'])
-			if ret:
-				app.hxtool_db.stackJobDelete(stack_job.eid)
-				app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], stack_job['bulk_download_id'])
-				app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+			bulk_download_job = app.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
+			if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
+				(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])	
+				app.hxtool_db.bulkDownloadDelete(bulk_download_job.eid)
+				
+			app.hxtool_db.stackJobDelete(stack_job.eid)
+			app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 
 		
 	if request.method == 'POST':
 		stack_type = hxtool_data_models.stack_types.get(request.form['stack_type'])
 		if stack_type:
-			with open(os.path.join('scripts', stack_type['script']), 'rb') as f:
+			with open(combine_app_path('scripts', stack_type['script']), 'r') as f:
 				script_xml = f.read()
 				hostset_id = int(request.form['stackhostset'])
 				app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-				bulk_id = submit_bulk_job(hx_api_object, hostset_id, script_xml, handler="stacking")
-				ret = app.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_id, request.form['stack_type'])
+				bulk_download_eid = submit_bulk_job(hx_api_object, hostset_id, script_xml, task_profile = "stacking")
+				ret = app.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
 				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
 		return redirect("/stacking", code=302)
 	
@@ -1952,7 +1959,7 @@ def datatable_bulk(hx_api_object):
 				completerate = 100
 
 			# Download rate
-			bulk_download = app.hxtool_db.bulkDownloadGet(session['ht_profileid'], acq['_id'])
+			bulk_download = app.hxtool_db.bulkDownloadGet(profile_id = session['ht_profileid'], bulk_acquisition_id = acq['_id'])
 
 			if bulk_download:
 				total_hosts = len(bulk_download['hosts'])
@@ -1970,13 +1977,10 @@ def datatable_bulk(hx_api_object):
 				dlprogress = "N/A"
 
 			# Handle buttons
-			if bulk_download:
-				if bulk_download['post_download_handler']:
-					myaction = bulk_download['post_download_handler']
-				else:
-					myaction = acq['_id']
-			else:
-				myaction = acq['_id']
+			myaction = acq['_id']
+			if bulk_download and bulk_download['task_profile']:
+				myaction = bulk_download['task_profile']
+				
 
 
 			mybulk['data'].append({
@@ -2012,56 +2016,66 @@ def datatable_bulk(hx_api_object):
 ####################
 # Utility Functions
 ####################
-def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, handler = None, skip_base64 = False):
+def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, task_profile = None, skip_base64 = False):
+	bulk_download_eid = None
+	task_list = None
 	
-	bulk_acquisition_id = None
-	(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script_xml, hostset_id = hostset_id, skip_base64 = skip_base64)
-	if ret:
-		bulk_acquisition_id = response_data['data']['_id']
-		
-		
+	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending')
+	
 	# So it turns out theres a nasty race condition that was happening here:
 	# the call to restListBulkHosts() was returning no hosts because the bulk
 	# acquisition hadn't been queued up yet. So instead, we walk the host set
 	# in order to retrieve the hosts targeted for the job.
 	if download:
+		bulk_download_eid = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], hostset_id = hostset_id, task_profile = task_profile)
+		
 		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset_id)
 		bulk_acquisition_hosts = {}
 		task_list = []
 		for host in response_data['data']['entries']:
-			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host['hostname']}
-			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']))
-			bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
-														'bulk_acquisition_id' : bulk_acquisition_id,
+			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host ['hostname']}
+			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']), parent_id = bulk_acquisition_task.task_id)
+			download_and_process_task.add_step(bulk_download_task_module, kwargs = {
+														'bulk_download_eid' : bulk_download_eid,
 														'host_id' : host['_id'],
 														'host_name' : host['hostname']
 													})
 
 			# TODO: This is awful, needs to be rewritten where the individual function(stacking, multifile, etc) adds the necessary step
 			# TODO: and each module defines the necessary parameters required.
-			if handler:
-				if handler == 'stacking':
-					bulk_acquisition_download_task.add_step(stacking_task_module, kwargs = {
-																'bulk_acquisition_id' : bulk_acquisition_id,
-																'host_name' : host['hostname'],
+			# The bulk_acquisition_task_module passes the host_id and host_name values to these modules
+			if task_profile:
+				if task_profile == 'stacking':
+					download_and_process_task.add_step(stacking_task_module, kwargs = {
 																'delete_bulk_download' : True
 															})
-				elif handler == 'file_listing':
-					bulk_acquisition_download_task.add_step(file_listing_task_module, kwargs = {
-																'bulk_acquisition_id' : bulk_acquisition_id,
-																'host_name' : host['hostname'],
+				elif task_profile == 'file_listing':
+					download_and_process_task.add_step(file_listing_task_module, kwargs = {
 																'delete_bulk_download' : False
 															})
+				else:
+					pass
+					# TODO: add code to parse task profile modules, extract the arguments and pass them to the modules
 			
-			task_list.append(bulk_acquisition_download_task)
-			
-		app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], bulk_acquisition_id, bulk_acquisition_hosts, hostset_id = hostset_id, post_download_handler = handler)
+			task_list.append(download_and_process_task)
 		
-		hxtool_global.hxtool_scheduler.add_list(task_list)	
-			
-	return bulk_acquisition_id
+		app.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts)
+		
+	bulk_acquisition_task.add_step(bulk_acquisition_task_module, kwargs = {
+									'script' : script_xml,
+									'hostset_id' : hostset_id,
+									'skip_base64' : skip_base64,
+									'download' : download,
+									'bulk_download_eid' : bulk_download_eid
+								})
 	
-
+	hxtool_global.hxtool_scheduler.add(bulk_acquisition_task)	
+	
+	if task_list:
+		hxtool_global.hxtool_scheduler.add_list(task_list)	
+	
+	return bulk_download_eid
+		
 		
 ###########
 ### Main ####
