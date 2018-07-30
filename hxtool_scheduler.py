@@ -120,7 +120,24 @@ class hxtool_scheduler:
 		
 	def tasks(self):
 		return [_.to_json() for _ in self.task_queue.values()]
-		
+	
+	# Load queued tasks from the database
+	def load_from_database(self):
+		if self.status():
+			tasks = hxtool_global.hxtool_db.taskList()
+			for task_entry in tasks:
+				p_id = task_entry.get('parent_id')
+				if task_entry['parent_id'] and not hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['parent_id']):
+					self.logger.warn("Deleting orphan task {}, {}".format(task_entry['name'], task_entry['task_id']))
+					hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['task_id'])
+				else:
+					task = hxtool_scheduler_task.deserialize(task_entry)
+					task.set_stored()
+					# Set should_store to False as we've already been stored, and we skip a needless update
+					self.add(task, should_store = False)
+		else:
+			self.logger.warn("Task scheduler must be running before loading queued tasks from the database.")
+	
 	def status(self):
 		return self._poll_thread.is_alive()
 			

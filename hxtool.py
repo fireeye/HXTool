@@ -2147,13 +2147,8 @@ def app_init(debug = False):
 	# Initialize the scheduler
 	hxtool_global.hxtool_scheduler = hxtool_scheduler(task_thread_count = app.hxtool_config['background_processor']['poll_threads'], logger = app.logger)
 	hxtool_global.hxtool_scheduler.start()
+	hxtool_global.hxtool_scheduler.load_from_database()
 	
-	# Load queued tasks from the database
-	tasks = hxtool_global.hxtool_db.taskList()
-	for task_entry in tasks:
-		task = hxtool_scheduler_task.deserialize(task_entry['task_data'])
-		task.set_stored()
-		hxtool_global.hxtool_scheduler.add(task)
 	
 	# Initialize configured log handlers
 	for log_handler in app.hxtool_config.log_handlers():
