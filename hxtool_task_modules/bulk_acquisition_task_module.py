@@ -29,12 +29,30 @@ class bulk_acquisition_task_module(task_module):
 				'type' : bool,
 				'required' : False,
 				'description' : "Specifies whether the contents of the script argument are already base64 encoded. Defaults to False"
+			},
+			{
+				'name' : 'download',
+				'type' : bool,
+				'required' : False,
+				'description' : "Specifies whether we should create a bulk download job after this bulk acquisition is submitted."
+			},
+			{
+				'name' : 'bulk_download_eid',
+				'type' : int,
+				'required' : False,
+				'description' : "The document ID of the bulk download job."
 			}
 		]
 		
 	@staticmethod
 	def output_args():
 		return [
+			{
+				'name' : 'bulk_download_eid',
+				'type' : int,
+				'required' : False,
+				'description' : "The document ID of the bulk download job."
+			},
 			{
 				'name' : 'bulk_acquisition_id',
 				'type' : int,
@@ -43,7 +61,7 @@ class bulk_acquisition_task_module(task_module):
 			}
 		]
 		
-	def run(self, script = None, hostset_id = None, skip_base64 = False):
+	def run(self, script = None, hostset_id = None, skip_base64 = False, download = False, bulk_download_eid = None):
 		ret = False
 		if script:
 			result = {}
@@ -53,7 +71,11 @@ class bulk_acquisition_task_module(task_module):
 				(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script, hostset_id = hostset_id, skip_base64 = skip_base64)
 				if ret and '_id' in response_data['data']:
 					result['bulk_acquisition_id'] = response_data['data']['_id']
+					self.parent_task.name = "Bulk Acquisition ID: {}".format(response_data['data']['_id'])
 					self.logger.info("Bulk acquisition ID {} submitted successfully.".format(response_data['data']['_id']))
+					if download and bulk_download_eid:
+						hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_eid, bulk_acquisition_id = response_data['data']['_id'])
+						result['bulk_download_eid'] = bulk_download_eid
 				else:
 					self.logger.error("Bulk acquisition submission failed. Response code: {}, response data: {}".format(response_code, response_data))
 			else:

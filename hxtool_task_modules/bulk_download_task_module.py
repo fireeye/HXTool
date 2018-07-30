@@ -13,10 +13,10 @@ class bulk_download_task_module(task_module):
 	def input_args():
 		return [
 			{ 
-				'name' : 'bulk_acquisition_id',
+				'name' : 'bulk_download_eid',
 				'type' : int,
 				'required' : True,
-				'description' : "The ID of the bulk acquisition job on the HX controller."
+				'description' : "The document ID of the bulk download job."
 			}, 
 			{
 				'name' : 'host_id',
@@ -38,28 +38,40 @@ class bulk_download_task_module(task_module):
 			{ 
 				'name' : 'bulk_download_path',
 				'type' : str,
-				'required' : True,
 				'description' : "The fully qualified path to the bulk acquisition package."
+			},
+			{
+				'name' : 'host_id',
+				'type' : str,
+				'description' : "The host/agent ID of the bulk acquisition that was downloaded"
+			},
+			{
+				'name' : 'host_name',
+				'type' : str,
+				'description' : "The host name of the bulk acquisition that was downloaded."
 			}
 		]	
 		
-	def run(self, bulk_acquisition_id = None, host_id = None, host_name = None):
+	def run(self, bulk_download_eid = None, host_id = None, host_name = None):
 		ret = False
 		result = {}
 		try:
-			if hxtool_global.hxtool_db.bulkDownloadGet(self.parent_task.profile_id, bulk_acquisition_id)['stopped'] == False:			
+			bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = bulk_download_eid)
+			if bulk_download_job['stopped'] == False:			
 				hx_api_object = self.get_task_api_object()	
 				if hx_api_object and hx_api_object.restIsSessionValid():
-					(ret, response_code, response_data) = hx_api_object.restGetBulkHost(bulk_acquisition_id, host_id)
+					(ret, response_code, response_data) = hx_api_object.restGetBulkHost(bulk_download_job['bulk_acquisition_id'], host_id)
 					if ret and response_data and (response_data['data']['state'] == "COMPLETE" and response_data['data']['result']):
 						self.logger.debug("Processing bulk download for host: {0}".format(host_name))
-						download_directory = make_download_directory(hx_api_object.hx_host, bulk_acquisition_id)
+						download_directory = make_download_directory(hx_api_object.hx_host, bulk_download_job['bulk_acquisition_id'])
 						full_path = os.path.join(download_directory, get_download_filename(host_name, host_id))
 						(ret, response_code, response_data) = hx_api_object.restDownloadFile(response_data['data']['result']['url'], full_path)
 						if ret:
-							hxtool_global.hxtool_db.bulkDownloadUpdateHost(self.parent_task.profile_id, bulk_acquisition_id, host_id)
+							hxtool_global.hxtool_db.bulkDownloadUpdateHost(bulk_download_eid, host_id)
 							self.logger.debug("Bulk download for host {} successfully downloaded to {}".format(host_name, full_path))
 							result['bulk_download_path'] = full_path
+							result['host_id'] = host_id
+							result['host_name'] = host_name
 					elif ret and response_data and response_data['data']['state'] == 'FAILED':
 						ret = False
 					elif ret and response_data and (response_data['data']['state'] in {'CANCELLED', 'ABORTED'} or 
