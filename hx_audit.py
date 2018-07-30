@@ -6,6 +6,7 @@ from collections import OrderedDict
 def get_mime_type(generator):
 	return (generator in ['w32apifile-acquisition', 'w32disk-acquisition']) and 'application/octet-stream' or 'application/xml'
 
+# TODO: replace code that uses this with AuditPackage.audit_to_dict	
 def get_audit_records(audit_data, generator, item_name, fields=None, post_process=None, **static_values):
 	items = []
 	mime_type = get_mime_type(generator)
@@ -36,6 +37,7 @@ def get_audit_records(audit_data, generator, item_name, fields=None, post_proces
 	return items
 
 class AuditPackage:
+	# TODO: if the audit format is set to JSON, no conversion is necessary - detect that
 	def __init__(self, acquisition_package_path):
 		self.package = zipfile.ZipFile(acquisition_package_path)
 		self.manifest = ('manifest.json' in self.package.namelist()) and json.loads(self.package.read('manifest.json').decode('utf-8')) or {}
