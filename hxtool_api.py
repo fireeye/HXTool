@@ -10,6 +10,7 @@ except ImportError:
 
 from hx_lib import *
 from hxtool_util import *
+from hxtool_data_models import *
 
 HXTOOL_API_VERSION = 1
 
@@ -60,4 +61,21 @@ def profile_by_id(profile_id):
 			return make_response_by_code(200)
 		else:
 			return make_response_by_code(404)
+
+#####################
+# Stacking Results
+#####################
+@ht_api.route('/api/v{0}/stacking/<int:stack_job_eid>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def stack_job_results(hx_api_object, stack_job_eid):
+	stack_job = app.hxtool_db.stackJobGet(stack_job_eid = stack_job_eid)
+	
+	if stack_job is None:
+		return make_response_by_code(404)
+
+	if session['ht_profileid'] != stack_job['profile_id']:
+		return make_response_by_code(401)
 		
+	ht_data_model = hxtool_data_models(stack_job['stack_type'])
+	return ht_data_model.stack_data(stack_job['results'])	
+			

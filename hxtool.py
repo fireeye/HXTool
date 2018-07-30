@@ -2007,24 +2007,6 @@ def datatable_bulk(hx_api_object):
 	else:
 		return('HX API Call failed',500)
 
-
-
-#####################
-# Stacking Results
-#####################
-@app.route('/api/v{0}/stacking/<int:stack_id>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
-@valid_session_required
-def stack_job_results(hx_api_object, stack_id):
-	stack_job = app.hxtool_db.stackJobGetById(stack_id)
-	
-	if stack_job is None:
-		return make_response_by_code(404)
-
-	if session['ht_profileid'] != stack_job['profile_id']:
-		return make_response_by_code(401)
-		
-	ht_data_model = hxtool_data_models(stack_job['stack_type'])
-	return ht_data_model.stack_data(stack_job['results'])	
 		
 		
 ####################
