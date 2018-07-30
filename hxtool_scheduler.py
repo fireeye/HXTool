@@ -164,7 +164,7 @@ class hxtool_scheduler_task:
 		self.next_run = start_time
 		self.stop_on_fail = stop_on_fail
 		self.steps = []
-		self.stored_result = None
+		self.stored_result = {}
 		self.defer_interval = defer_interval
 		
 		self._stored = False
@@ -209,85 +209,92 @@ class hxtool_scheduler_task:
 				for module, func, args, kwargs in self.steps:
 					self.logger.debug("Have module: {}, function: {}".format(module.__module__, func))
 					if hasattr(module, 'hxtool_task_module'):
-						# Add the stored result args to kwargs - taking care not stomp over existing args
 						for arg_i in module.input_args():
-							if arg_i['required'] and kwargs.get(arg_i['name'], None) == None:
+							if not kwargs.get(arg_i['name'], None):
 								if arg_i['name'] in self.stored_result.keys():
-									kwargs[arg_i['name']] = self.stored_result
-								else:
+									kwargs[arg_i['name']] = self.stored_result[arg_i['name']]
+								elif arg_i['required']:
 									self.logger.error("Module {} requires arguments that were not found! Bailing!".format(module.__module__))
 									ret = False
 									self.state = TASK_STATE_FAILED
 									break
 				
-					result = getattr(module, func)(*args, **kwargs)
-					
-					if isinstance(result, tuple) and len(result) > 1:
-						ret = result[0]
-						# Store the result - make sure it is of type dict
-						if isinstance(result[1], dict):
-							self.stored_result = result[1]
-						elif result[1] != None:
-							self.logger.error("Task module {} returned a value that was not a dictionary or None. Discarding the result.".format(module.__module__))
-					else:
-						ret = result
-					
-					
-					if self._defer_signal:
-						break
-					elif self._stop_signal:
-						self.state = TASK_STATE_STOPPED
-						break
-					elif not ret and self.stop_on_fail:
-						self.state = TASK_STATE_FAILED
-						break
-			
+					if self.state != TASK_STATE_FAILED:
+						result = getattr(module, func)(*args, **kwargs)
+						
+						if isinstance(result, tuple) and len(result) > 1:
+							ret = result[0]
+							# Store the result - make sure it is of type dict
+							if isinstance(result[1], dict):
+								# Use update so we don't clobber existing values
+								self.stored_result.update(result[1])
+							elif result[1] != None:
+								self.logger.error("Task module {} returned a value that was not a dictionary or None. Discarding the result.".format(module.__module__))
+						else:
+							ret = result
+						
+						
+						if self._defer_signal:
+							break
+						elif self._stop_signal:
+							self.state = TASK_STATE_STOPPED
+							break
+						elif not ret and self.stop_on_fail:
+							self.state = TASK_STATE_FAILED
+							break
+				
 				self._calculate_next_run()
 				
 				if self.next_run:
 					self.last_run_state = self.state
 					self.state = TASK_STATE_SCHEDULED
+					if not self._defer_signal:
+						# Reset parent_complete for recurring tasks
+						self.parent_complete = False
 				elif self.state < TASK_STATE_STOPPED:
 					self.state = TASK_STATE_COMPLETE
-										
+				
+				hxtool_global.hxtool_scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
 		else:
 			self.set_state(TASK_STATE_STOPPED)
 		
-		if not self.immutable and self._stored:				
-			if self.state != TASK_STATE_SCHEDULED:
-				hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
-				self._stored = False
-			else:
-				hxtool_global.hxtool_db.taskUpdate(self.profile_id, self.task_id, self.serialize())
-		
-		if self.state < TASK_STATE_STOPPED:
-			hxtool_global.hxtool_scheduler.signal_child_tasks(self.task_id)
-		
+		if self.state != TASK_STATE_SCHEDULED and self._stored:
+			self.logger.debug("Deleting task_id = {} from DB".format(self.task_id))
+			hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
+			self.set_stored(stored = False)
+		else:
+			self.store()
+				
 		return ret
 
+	def parent_state_callback(self, parent_task_id, parent_state, parent_stored_result):
+		if self.parent_id:
+			self.logger.debug("parent_state_callback(): task_id = {}, parent_id = {}, parent_state = {}".format(self.task_id, parent_task_id, parent_state))
+			if self.parent_id == parent_task_id:
+				if parent_state == TASK_STATE_COMPLETE:
+					self.logger.debug("Received signal that parent task is complete.")
+					with self._lock:
+						self.stored_result = parent_stored_result
+						self.parent_complete = True
+						# Now that the parent is complete set the next run
+						self.next_run = (datetime.datetime.utcnow() + datetime.timedelta(seconds = random.randint(15, 90)))
+				elif parent_state == TASK_STATE_STOPPED:
+					self.stop()
+				elif parent_state == TASK_STATE_FAILED:
+					self.set_state(TASK_STATE_FAILED)
+		
 	def stop(self):
 		self._stop_signal = True
 	
 	def defer(self):
 		self._defer_signal = True
-		
-	def should_run(self):
-		return (self.enabled and  
-				self.state == TASK_STATE_SCHEDULED and
-				(self.parent_complete if self.parent_id and self.wait_for_parent else True) and	
-				len(self.steps) > 0 and 
-				((datetime.datetime.utcnow() - self.next_run).seconds == 0 or 
-				self.start_time == self.next_run))
-				
-	
-	def set_stored(self, stored = True):
-		with self._lock:
-			self._stored = stored
 			
 	def store(self):
-		if not self.immutable and not self._stored:
-			hxtool_global.hxtool_db.taskCreate(self.profile_id, self.task_id, self.serialize())
+		if not (self.immutable or self._stored):
+			hxtool_global.hxtool_db.taskCreate(self.serialize())
 			self.set_stored()
+		elif self._stored:
+			hxtool_global.hxtool_db.taskUpdate(self.profile_id, self.task_id, self.serialize())
 	
 	def to_json(self):
 		# For use by the task scheduler API
