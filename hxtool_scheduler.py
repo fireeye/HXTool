@@ -89,19 +89,20 @@ class hxtool_scheduler:
 		del self.task_threads[:]
 		self.logger.debug('stop() exit.')
 	
-	def signal_child_tasks(self, task_id):
+	def signal_child_tasks(self, parent_task_id, parent_task_state, parent_stored_result):
 		with self._lock:
 			for task_id in self.task_queue:
-				task = self.task_queue[task_id]
-				if task.parent_id == task_id:
-					task.parent_complete = True
+				self.task_queue[task_id].parent_state_callback(parent_task_id, parent_task_state, parent_stored_result)
 	
-	def add(self, task, store = True):
+	def add(self, task, should_store = True):
 		with self._lock:
 			self.task_queue[task.task_id] = task
 			task.set_state(TASK_STATE_SCHEDULED)
+			# Note: this must be within the lock otherwise we run into a nasty race condition where the task runs before the stored state is set -
+			# with the run lock taking precedence.
+			if should_store:	
+				task.store()
 		
-		task.store()
 		
 	def add_list(self, tasks):
 		if isinstance(tasks, list):
@@ -142,7 +143,7 @@ class hxtool_scheduler:
 		return self._poll_thread.is_alive()
 			
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, task_id = None, interval = None, start_time = datetime.datetime.utcnow(), end_time = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, task_id = None, interval = None, start_time = datetime.datetime.utcnow(), end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
 		self.logger = hxtool_global.hxtool_scheduler.logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
@@ -161,7 +162,11 @@ class hxtool_scheduler_task:
 		self.start_time = start_time
 		self.end_time = end_time
 		self.last_run = None
-		self.next_run = start_time
+		self.next_run = next_run
+		if not self.next_run:
+			self.next_run = self.start_time
+		if parent_id and wait_for_parent:
+			self.next_run = None
 		self.stop_on_fail = stop_on_fail
 		self.steps = []
 		self.stored_result = {}
@@ -172,13 +177,6 @@ class hxtool_scheduler_task:
 		self._defer_signal = False
 		
 
-	def add_step(self, module, func = "run", args = (), kwargs = {}):
-		# This is an HXTool task module, we need to init it.
-		if hasattr(module, 'hxtool_task_module'):
-			module = module(self)
-		with self._lock:
-			self.steps.append((module, func, args, kwargs))
-		
 	def _calculate_next_run(self):
 		self.next_run = None
 		if type(self.interval) is datetime.timedelta:
@@ -187,11 +185,28 @@ class hxtool_scheduler_task:
 			# Add some random seconds to the interval to keep the task threads from deadlocking
 			self.next_run = (self.last_run + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
 	
+	def should_run(self):
+		return (self.enabled and  
+				self.state == TASK_STATE_SCHEDULED and
+				(self.parent_complete if self.parent_id and self.wait_for_parent else True) and	
+				datetime.datetime.utcnow() >= self.next_run)
+					
+	def add_step(self, module, func = "run", args = (), kwargs = {}):
+		# This is an HXTool task module, we need to init it.
+		if hasattr(module, 'hxtool_task_module'):
+			module = module(self)
+		with self._lock:
+			self.steps.append((module, func, args, kwargs))
+		
 	# Use this to set state, its thread-safe
 	def set_state(self, state):
 		with self._lock:
 			self.state = state
-	
+			
+	def set_stored(self, stored = True):
+		with self._lock:
+			self._stored = stored
+		
 	def run(self):
 		self._stop_signal = False
 		self._defer_signal = False
@@ -329,6 +344,7 @@ class hxtool_scheduler_task:
 			'start_time' : str(self.start_time),
 			'end_time' : str(self.end_time) if self.end_time else None,
 			'last_run' : str(self.last_run) if self.last_run else None,
+			'next_run' : str(self.next_run) if self.next_run else None,
 			'enabled' : self.enabled,
 			'immutable' : self.immutable,
 			'stop_on_fail' : self.stop_on_fail,
@@ -359,6 +375,7 @@ class hxtool_scheduler_task:
 									interval = datetime.timedelta(seconds = d['interval']) if d['interval'] else None,
 									start_time = HXAPI.dt_from_str(d['start_time']),
 									end_time = HXAPI.dt_from_str(d['end_time']) if d['end_time'] else None,
+									next_run = HXAPI.dt_from_str(d['next_run']) if d['next_run'] else None,
 									enabled = d['enabled'],
 									immutable = d['immutable'],
 									stop_on_fail = d['stop_on_fail'],
