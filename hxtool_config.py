@@ -6,6 +6,8 @@ import logging
 from os import path
 import sys, logging, logging.handlers, socket
 
+from hxtool_util import *
+
 #TODO: Add config documentation
 
 class hxtool_config:
@@ -87,7 +89,7 @@ class hxtool_config:
 			if handler_name == 'rotating_file_handler':
 				handler_config = self._config['log_handlers'][handler_name]
 				if 'file' in handler_config:
-					h = logging.handlers.RotatingFileHandler(handler_config['file'])
+					h = logging.handlers.RotatingFileHandler(combine_app_path(handler_config['file']))
 					
 					if 'max_bytes' in handler_config:
 						h.maxBytes = handler_config['max_bytes']

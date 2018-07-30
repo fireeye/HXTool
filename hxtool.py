@@ -739,7 +739,7 @@ def download_multi_file_single(hx_api_object):
 			file_records = list(filter(lambda f: int(f['acquisition_id']) == int(request.args.get('acq_id')), multi_file['files']))
 			if file_records and file_records[0]:
 				# TODO: fix this
-				path = os.path.join("bulkdownload", hx_api_object.hx_host, 'multi_file', request.args.get('mf_id'), '{}_{}.zip'.format(file_records[0]['hostname'], request.args.get('acq_id')))
+				path = combine_app_path(_download_directory_base, hx_api_object.hx_host, 'multi_file', request.args.get('mf_id'), '{}_{}.zip'.format(file_records[0]['hostname'], request.args.get('acq_id')))
 				app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('acq_id'))
 				return send_file(path, attachment_filename=path.rsplit('/',1)[-1], as_attachment=True)
 		else:
@@ -985,7 +985,7 @@ def file_listing(hx_api_object):
 				template_path = 'templates/api_file_listing_script_template.xml'
 			else:
 				template_path = 'templates/file_listing_script_template.xml'
-			with open(template_path) as f:
+			with open(combine_app_path(template_path), 'r') as f:
 				t = Template(f.read())
 				script_xml = t.substitute(regex=regex, path=path, depth=depth)
 			if not display_name:
@@ -2030,10 +2030,6 @@ def stack_job_results(hx_api_object, stack_id):
 ####################
 # Utility Functions
 ####################
-def combine_app_path(path):
-	return os.path.join(app.root_path, path)
-
-
 def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, handler = None, skip_base64 = False):
 	
 	bulk_acquisition_id = None
@@ -2109,6 +2105,8 @@ def sigint_handler(signum, frame):
 
 
 def app_init(debug = False):
+	hxtool_global.app_instance_path = app.root_path
+	
 	
 	# Log early init/failures to stdout
 	console_log = logging.StreamHandler(sys.stdout)
