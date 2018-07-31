@@ -16,30 +16,35 @@ class bulk_acquisition_task_module(task_module):
 				'name' : 'script',
 				'type' : str,
 				'required' : True,
+				'user_supplied' : True,
 				'description' : "The OpenIOC 1.1 formatted script to utilize."
 			},
 			{
 				'name' : 'hostset_id',
 				'type' : int,
 				'required' : True,
+				'user_supplied' : True,
 				'description' : "The ID of the host set to execute the script against."
 			},
 			{
 				'name' : 'skip_base64',
 				'type' : bool,
 				'required' : False,
+				'user_supplied' : True,
 				'description' : "Specifies whether the contents of the script argument are already base64 encoded. Defaults to False"
 			},
 			{
 				'name' : 'download',
 				'type' : bool,
 				'required' : False,
+				'user_supplied' : True,
 				'description' : "Specifies whether we should create a bulk download job after this bulk acquisition is submitted."
 			},
 			{
 				'name' : 'bulk_download_eid',
 				'type' : int,
 				'required' : False,
+				'user_supplied' : False,
 				'description' : "The document ID of the bulk download job."
 			}
 		]
@@ -68,6 +73,7 @@ class bulk_acquisition_task_module(task_module):
 			hx_api_object = self.get_task_api_object()	
 			if hx_api_object and hx_api_object.restIsSessionValid():
 				bulk_acquisition_id = None
+				# TODO: replace macro values in bulk acquisition script
 				(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script, hostset_id = hostset_id, skip_base64 = skip_base64)
 				if ret and '_id' in response_data['data']:
 					result['bulk_acquisition_id'] = response_data['data']['_id']

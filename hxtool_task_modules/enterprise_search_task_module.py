@@ -16,18 +16,21 @@ class enterprise_search_task_module(task_module):
 				'name' : 'script',
 				'type' : str,
 				'required' : True,
+				'user_supplied' : True,
 				'description' : "The OpenIOC 1.1 formatted script to utilize."
 			},
 			{
 				'name' : 'hostset_id',
 				'type' : int,
 				'required' : True,
+				'user_supplied' : True,
 				'description' : "The ID of the host set to execute the script against."
 			},
 			{
 				'name' : 'skip_base64',
 				'type' : bool,
 				'required' : False,
+				'user_supplied' : True,
 				'description' : "Specifies whether the contents of the script argument are already base64 encoded. Defaults to False"
 			}
 		]

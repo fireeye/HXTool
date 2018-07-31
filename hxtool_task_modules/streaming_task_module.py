@@ -20,36 +20,42 @@ class streaming_task_module(task_module):
 				'name' : 'host_name',
 				'type' : str,
 				'required' : True,
+				'user_supplied' : False,
 				'description' : "The host name belonging to the bulk acquisition package."
 			},
 			{
 				'name' : 'bulk_download_path',
 				'type' : str,
 				'required' : True,
+				'user_supplied' : False,
 				'description' : "The fully qualified path to the bulk acquisition package."
 			},
 			{
 				'name' : 'delete_bulk_download',
 				'type' : bool,
 				'required' : False,
+				'user_supplied' : True,
 				'description' : "Flag whether to delete the bulk acquisition package locally once complete. Defaults to False"
 			},
 			{
 				'name' : 'stream_protocol',
 				'type' : str,
 				'required' : False,
+				'user_supplied' : True,
 				'description' : "The protocol to use when streaming. Defaults to TCP"
 			},
 			{
 				'name' : 'stream_host',
 				'type' : str,
 				'required' : True,
+				'user_supplied' : True,
 				'description' : "The FQDN or IP address of the host to stream to."
 			},
 			{
 				'name' : 'stream_port',
 				'type' : int,
 				'required' : True,
+				'user_supplied' : True,
 				'description' : "The port on which to stream to."
 			}
 				

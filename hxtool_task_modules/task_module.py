@@ -14,11 +14,11 @@ class task_module(object):
 			return hxtool_global.task_hx_api_sessions[self.parent_task.profile_id]
 		return None
 		
-	# Input and output args are a list of dictionary objects containing the following four keys: name, type, required and description 
+	# Input and output args are a list of dictionary objects containing the following five keys: name, type, required user_supplied, and description 
 	# these define the modules inputs and outputs, for example:
 	# @staticmethod
 	# def input_args():
-	# 	return [ {'name' : 'foo', 'type' : str, 'required' : True, 'description' : "Foo argument"} ]
+	# 	return [ {'name' : 'foo', 'type' : str, 'required' : True, 'user_supplied' : True, 'description' : "Foo argument"} ]
 	# 
 	@staticmethod
 	def input_args():

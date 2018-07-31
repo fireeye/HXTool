@@ -19,24 +19,28 @@ class stacking_task_module(task_module):
 				'name' : 'bulk_download_eid',
 				'type' : int,
 				'required' : True,
+				'user_supplied' : False,
 				'description' : "The document ID of the bulk download job."
 			},
 			{
 				'name' : 'host_name',
 				'type' : str,
 				'required' : True,
+				'user_supplied' : False,
 				'description' : "The host name of this bulk acquisition package."
 			},
 			{
 				'name' : 'bulk_download_path',
 				'type' : str,
 				'required' : True,
+				'user_supplied' : False,
 				'description' : "The fully qualified path to the bulk acquisition package."
 			},
 			{
 				'name' : 'delete_bulk_download',
 				'type' : bool,
 				'required' : False,
+				'user_supplied' : True,
 				'description' : "Flag whether to delete the bulk acquisition package locally once complete. Defaults to False"
 			}
 		]

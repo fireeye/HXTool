@@ -16,18 +16,21 @@ class bulk_download_task_module(task_module):
 				'name' : 'bulk_download_eid',
 				'type' : int,
 				'required' : True,
+				'user_supplied' : False,
 				'description' : "The document ID of the bulk download job."
 			}, 
 			{
 				'name' : 'host_id',
 				'type' : str,
 				'required' : True,
+				'user_supplied' : False,
 				'description' : "The host/agent ID of the bulk acquisition to download."
 			},
 			{
 				'name' : 'host_name',
 				'type' : str,
 				'required' : True,
+				'user_supplied' : False,
 				'description' : "The host name of the agent."
 			}
 		]
@@ -38,16 +41,19 @@ class bulk_download_task_module(task_module):
 			{ 
 				'name' : 'bulk_download_path',
 				'type' : str,
+				'required' : True,
 				'description' : "The fully qualified path to the bulk acquisition package."
 			},
 			{
 				'name' : 'host_id',
 				'type' : str,
+				'required' : True,
 				'description' : "The host/agent ID of the bulk acquisition that was downloaded"
 			},
 			{
 				'name' : 'host_name',
 				'type' : str,
+				'required' : True,
 				'description' : "The host name of the bulk acquisition that was downloaded."
 			}
 		]	
