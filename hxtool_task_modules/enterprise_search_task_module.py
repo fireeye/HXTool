@@ -36,7 +36,7 @@ class enterprise_search_task_module(task_module):
 	def output_args():
 		return [
 			{
-				'name' : enterprise_search_id',
+				'name' : 'enterprise_search_id',
 				'type' : int,
 				'required' : True,
 				'description' : "The Enterprise Search ID assigned to the search job by the controller."
