@@ -739,9 +739,9 @@ def download_multi_file_single(hx_api_object):
 			file_records = list(filter(lambda f: int(f['acquisition_id']) == int(request.args.get('acq_id')), multi_file['files']))
 			if file_records and file_records[0]:
 				# TODO: should multi_file be hardcoded?
-				path = combine_app_path(_download_directory_base, hx_api_object.hx_host, 'multi_file', request.args.get('mf_id'), '{}_{}.zip'.format(file_records[0]['hostname'], request.args.get('acq_id')))
+				path = combine_app_path(download_directory_base(), hx_api_object.hx_host, 'multi_file', request.args.get('mf_id'), '{}_{}.zip'.format(file_records[0]['hostname'], request.args.get('acq_id')))
 				app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('acq_id'))
-				return send_file(path, attachment_filename=path.rsplit('/',1)[-1], as_attachment=True)
+				return send_file(path, attachment_filename=os.path.basename(path), as_attachment=True)
 		else:
 			return "HX controller responded with code {0}: {1}".format(response_code, response_data)
 	abort(404)		
@@ -897,12 +897,12 @@ def multifile(hx_api_object):
 			choice_files, agent_ids = [], {}
 			for fl_id, file_ids in list(choices.items()):
 				# Gather the records for files to acquire from the file listing
-				file_listing = app.hxtool_db._db.table('file_listing').get(eid=int(fl_id))
+				file_listing = app.hxtool_db.fileListingGetById(fl_id)
 				if not file_listing:
 					app.logger.warn('File Listing %s does not exist - User: %s@%s:%s', session['ht_user'], fl_id, hx_api_object.hx_host, hx_api_object.hx_port)
 					continue
 				choice_files = [file_listing['files'][i] for i in file_ids if i <= len(file_listing['files'])]
-				multi_file_id = app.hxtool_db.multiFileCreate(session['ht_user'], profile_id, display_name=display_name, file_listing_id=file_listing.eid, api_mode=use_api_mode)
+				multi_file_eid = app.hxtool_db.multiFileCreate(session['ht_user'], profile_id, display_name=display_name, file_listing_id=file_listing.eid, api_mode=use_api_mode)
 				# Create a data acquisition for each file from its host
 				for cf in choice_files:
 					if cf['hostname'] in agent_ids:
@@ -920,10 +920,10 @@ def multifile(hx_api_object):
 							'path': cf['FullPath'],
 							'downloaded': False
 						}
-						mf_job_id = app.hxtool_db.multiFileAddJob(multi_file_id, job_record)
+						mf_job_id = app.hxtool_db.multiFileAddJob(multi_file_eid, job_record)
 						file_acquisition_task = hxtool_scheduler_task(profile_id, "File Acquisition: {}".format(cf['hostname']))
 						file_acquisition_task.add_step(file_acquisition_task_module, kwargs = {
-															'multifile_id' : multi_file_id,
+															'multi_file_eid' : multi_file_eid,
 															'file_acquisition_id' : int(acq_id),
 															'host_name' : cf['hostname']
 														})
@@ -997,7 +997,6 @@ def file_listing(hx_api_object):
 			raise
 		if script_xml:
 			bulk_download_eid = submit_bulk_job(hx_api_object, hostset, script_xml.encode(default_encoding), task_profile = "file_listing")
-			#TODO fix
 			ret = app.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, depth, display_name, api_mode=use_api_mode)
 			app.logger.info('New File Listing - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/multifile", code=302)
