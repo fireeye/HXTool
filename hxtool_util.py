@@ -24,9 +24,6 @@ except ImportError:
 import hxtool_global	
 from hx_lib import *
 
-		
-# TODO: should be configurable
-_download_directory_base = "bulkdownload"
 
 def valid_session_required(f):
 	@wraps(f)
@@ -104,6 +101,10 @@ def iter_chunk(r, chunk_size = 1024):
 	for chunk in r.iter_content(chunk_size = chunk_size):
 		yield chunk
 
+def download_directory_base():
+	# TODO: check configuration, if none, return the default
+	return "bulkdownload"
+		
 def combine_app_path(path, *paths):
 	if not os.path.isabs(path):
 		return os.path.join(hxtool_global.app_instance_path, path, *paths)
@@ -114,9 +115,9 @@ def get_download_filename(host_name, host_id):
 	return '{0}_{1}.zip'.format(host_name, host_id)
 
 def make_download_directory(hx_host, download_id, job_type=None):
-	download_directory = combine_app_path(_download_directory_base, hx_host, str(download_id))
+	download_directory = combine_app_path(download_directory_base(), hx_host, str(download_id))
 	if job_type:
-		download_directory = combine_app_path(_download_directory_base, hx_host, job_type, str(download_id))
+		download_directory = combine_app_path(download_directory_base(), hx_host, job_type, str(download_id))
 	if not os.path.exists(download_directory):
 		try:
 			os.makedirs(download_directory)
