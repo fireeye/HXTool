@@ -27,6 +27,13 @@ class bulk_acquisition_task_module(task_module):
 				'description' : "The ID of the host set to execute the script against."
 			},
 			{
+				'name' : 'comment',
+				'type' : str,
+				'required' : False,
+				'user_supplied' : True,
+				'description' : "A name/comment to associate with this bulk acquisition."
+			},
+			{
 				'name' : 'skip_base64',
 				'type' : bool,
 				'required' : False,
@@ -66,7 +73,7 @@ class bulk_acquisition_task_module(task_module):
 			}
 		]
 		
-	def run(self, script = None, hostset_id = None, skip_base64 = False, download = False, bulk_download_eid = None):
+	def run(self, script = None, hostset_id = None, comment = None, skip_base64 = False, download = False, bulk_download_eid = None):
 		ret = False
 		if script:
 			result = {}
@@ -74,7 +81,7 @@ class bulk_acquisition_task_module(task_module):
 			if hx_api_object and hx_api_object.restIsSessionValid():
 				bulk_acquisition_id = None
 				# TODO: replace macro values in bulk acquisition script
-				(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script, hostset_id = hostset_id, skip_base64 = skip_base64)
+				(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script, hostset_id = hostset_id, comment = comment, skip_base64 = skip_base64)
 				if ret and '_id' in response_data['data']:
 					result['bulk_acquisition_id'] = response_data['data']['_id']
 					self.parent_task.name = "Bulk Acquisition ID: {}".format(response_data['data']['_id'])
