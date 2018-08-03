@@ -984,9 +984,9 @@ def file_listing(hx_api_object):
 				app.logger.warn("Regex is empty!!")
 				regex = ''
 			if use_api_mode:
-				template_path = 'templates/api_file_listing_script_template.xml'
+				template_path = 'scripts/api_file_listing_script_template.xml'
 			else:
-				template_path = 'templates/file_listing_script_template.xml'
+				template_path = 'scripts/file_listing_script_template.xml'
 			with open(combine_app_path(template_path), 'r') as f:
 				t = Template(f.read())
 				script_xml = t.substitute(regex=regex, path=path, depth=depth)
