@@ -314,7 +314,7 @@ def formatStackTable(ht_db, profile_id, hs):
 	x += "<tbody>"
 	
 	for job in stack_jobs:
-		bulk_download = ht_db.bulkDownloadGet(job['profile_id'], job['bulk_download_id'])
+		bulk_download = ht_db.bulkDownloadGet(bulk_download_eid = job['bulk_download_eid'])
 		x += "<tr>"
 		x += "<td>" + HXAPI.compat_str(job.eid) + "</td>"
 		x += "<td>" + HXAPI.compat_str(job['create_timestamp']) + "</td>"
@@ -322,7 +322,7 @@ def formatStackTable(ht_db, profile_id, hs):
 		x += "<td>" + job['stack_type'] + "</td>"
 		x += "<td>" + ("STOPPED" if job['stopped'] else "RUNNING") + "</td>"
 		x += "<td>" + HXAPI.compat_str(job['profile_id'])	+ "</td>"
-		x += "<td>" + HXAPI.compat_str(job['bulk_download_id']) + "</td>"		
+		x += "<td>" + (HXAPI.compat_str(bulk_download['bulk_acquisition_id']) if 'bulk_acquisition_id' in bulk_download else "N/A") + "</td>"		
 		x += "<td>" + HXAPI.compat_str(bulk_download['hostset_id']) + "</td>"
 		
 		# Completion rate

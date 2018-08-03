@@ -4,8 +4,10 @@
 import threading
 import datetime
 import logging
+
 from hxtool_global import hxtool_schema_version
 from hxtool_util import *
+from hx_lib import *
 
 try:
 	import tinydb
@@ -45,13 +47,49 @@ class hxtool_db:
 				current_schema_version = int(current_schema_version['schema_version'])
 		if not current_schema_version:
 			self.logger.warning("The current HXTool database has no schema version set, a DB schema upgrade may be required.")
-			# Upgrade code goes here
-			self._db.table('schema_version').insert({'schema_version' : hxtool_schema_version})
+			if self.upgrade_schema():
+				self.logger.info("Database schema upgraded successfully.")
+				self._db.table('schema_version').insert({'schema_version' : hxtool_schema_version})
 		elif current_schema_version < hxtool_schema_version:
 			self.logger.warning("The current HXTool database has a schema version: {} that is older than the current version of: {}, a DB schema upgrade may be required.".format(current_schema_version, hxtool_schema_version))
-			# Upgrade code goes here
-			self._db.table('schema_version').update({'schema_version' : hxtool_schema_version}, eids = [1])
+			if self.upgrade_schema():
+				self.logger.info("Database schema upgraded successfully.")
+				self._db.table('schema_version').update({'schema_version' : hxtool_schema_version}, eids = [1])
 		
+	def upgrade_schema(self):
+		try:
+			with self._lock:
+				# Schema upgrade code - will change from release to release
+				
+				# Upgrade stack and file listing jobs to 4.0 schema
+				for r in self._db.table('stacking').all():
+					if 'bulk_download_id' in r and r['bulk_download_id'] > 0:
+						b = self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == r['profile_id']) & (tinydb.Query()['bulk_download_id'] == r['bulk_download_id']))
+						if b:
+							self._db.table('stacking').update({'bulk_download_eid' : b.eid}, eids = [r.eid])
+							self._db.table('stacking').update(tinydb.operations.delete('bulk_download_id'), eids = [r.eid])
+				
+				for r in self._db.table('file_listing').all():
+					if 'bulk_download_id' in r and r['bulk_download_id'] > 0:
+						b = self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == r['profile_id']) & (tinydb.Query()['bulk_download_id'] == r['bulk_download_id']))
+						if b:
+							self._db.table('file_listing').update({'bulk_download_eid' : b.eid}, eids = [r.eid])
+							self._db.table('file_listing').update(tinydb.operations.delete('bulk_download_id'), eids = [r.eid])
+				
+				# Rename bulk_download_id to bulk_acquisition_id in the bulk_download table, post_download_handler to task_profile
+				for r in self._db.table('bulk_download').all():
+					if 'bulk_download_id' in r and r['bulk_download_id'] > 0:
+						self._db.table('bulk_download').update({'bulk_acquisition_id' : r['bulk_download_id']}, eids = [r.eid])
+						self._db.table('bulk_download').update(tinydb.operations.delete('bulk_download_id'), eids = [r.eid])
+					if 'post_download_handler' in r:	
+						self._db.table('bulk_download').update({'task_profile' : r['post_download_handler']}, eids = [r.eid])
+						self._db.table('bulk_download').update(tinydb.operations.delete('post_download_handler'), eids = [r.eid])
+				
+			return True
+		except:
+			raise
+			return False
+			
 	
 	"""
 	Add a profile
@@ -142,65 +180,69 @@ class hxtool_db:
 	
 	def alertAddAnnotation(self, profile_id, hx_alert_id, annotation, state, create_user):
 		with self._lock:
-			return self._db.table('alert').update(self._db_append_to_list('annotations', {'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : str(datetime.datetime.utcnow())}), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['hx_alert_id'] == int(hx_alert_id)))
+			return self._db.table('alert').update(self._db_append_to_list('annotations', {'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['hx_alert_id'] == int(hx_alert_id)))
 		
-	def bulkDownloadCreate(self, profile_id, bulk_download_id, hosts, hostset_id = -1, hostset_name = None, post_download_handler = None):
+	def bulkDownloadCreate(self, profile_id, hostset_name = None, hostset_id = None, task_profile = None):
 		r = None
 		with self._lock:
 			try:
+				ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
 				r = self._db.table('bulk_download').insert({'profile_id' : profile_id, 
-															'bulk_download_id': int(bulk_download_id), 
-															'hosts' : hosts, 
 															'hostset_id' : int(hostset_id),
-															'hostset_name' : hostset_name,		
+															'hostset_name' : hostset_name,
+															'task_profile' : task_profile,
 															'stopped' : False,
 															'complete' : False,
-															'post_download_handler' : post_download_handler, 
-															'create_timestamp' : str(datetime.datetime.utcnow()), 
-															'update_timestamp' : str(datetime.datetime.utcnow())})
+															'create_timestamp' : ts, 
+															'update_timestamp' : ts})
 			except:
 				self._db.table('bulk_download').remove(eids = [r])
 				raise
 		return r		
 	
-	def bulkDownloadGet(self, profile_id, bulk_download_id):
-		with self._lock:
-			return self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+	def bulkDownloadGet(self, bulk_download_eid = None, profile_id = None, bulk_acquisition_id = None):
+		if bulk_download_eid:
+			with self._lock:
+				return self._db.table('bulk_download').get(eid = int(bulk_download_eid))
+		elif profile_id and bulk_acquisition_id:
+			with self._lock:
+				return self._db.table('bulk_download').get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_acquisition_id'] == bulk_acquisition_id))
 	
 	def bulkDownloadList(self, profile_id):
 		with self._lock:
 			return self._db.table('bulk_download').search((tinydb.Query()['profile_id'] == profile_id))
 	
-	def bulkDownloadUpdateHost(self, profile_id, bulk_download_id, host_id):
+	def bulkDownloadUpdate(self, bulk_download_eid, bulk_acquisition_id = None, hosts = None, stopped = None, complete = None):
 		with self._lock:
-			e_id = self._db.table('bulk_download').update(self._db_update_nested_dict('hosts', host_id, {'downloaded' : True}), 
-														(tinydb.Query()['profile_id'] == profile_id) & 
-														(tinydb.Query()['bulk_download_id'] == int(bulk_download_id)) &
-														(tinydb.Query()['hosts'].any(host_id)))
-			return e_id
-																			
-	def bulkDownloadStop(self, profile_id, bulk_download_id):
-		with self._lock:
-			return self._db.table('bulk_download').update({'stopped' : True}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+			d = {'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}
+			
+			if bulk_acquisition_id:
+				d['bulk_acquisition_id'] = bulk_acquisition_id
+			if hosts:
+				d['hosts'] = hosts
+			if stopped:
+				d['stopped'] = stopped
+			if complete:
+				d['complete'] = complete
+				
+			return self._db.table('bulk_download').update(d, eids = [int(bulk_download_eid)])
 	
-	def bulkDownloadComplete(self, profile_id, bulk_download_id):
+	def bulkDownloadUpdateHost(self, bulk_download_eid, host_id):
 		with self._lock:
-			return self._db.table('bulk_download').update({'complete' : True}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
-	
-	def bulkDownloadDelete(self, profile_id, bulk_download_id):
+			return self._db.table('bulk_download').update(self._db_update_nested_dict('hosts', host_id, {'downloaded' : True}), eids = [int(bulk_download_eid)])
+																				
+	def bulkDownloadDelete(self, bulk_download_eid):
 		with self._lock:
-			return self._db.table('bulk_download').remove((tinydb.Query()['profile_id'] == profile_id) & 
-														(tinydb.Query()['bulk_download_id'] == int(bulk_download_id)) & 
-														(tinydb.Query()['stopped'] == True))
+			return self._db.table('bulk_download').remove(eids = [int(bulk_download_eid)])
 	
-	def fileListingCreate(self, profile_id, username, bulk_download_id, path, regex, depth, display_name, api_mode=False):
+	def fileListingCreate(self, profile_id, username, bulk_download_eid, path, regex, depth, display_name, api_mode=False):
 		r = None
 		with self._lock:
-			ts = str(datetime.datetime.utcnow())
+			ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
 			try:
 				r = self._db.table('file_listing').insert({'profile_id' : profile_id, 
 														'display_name': display_name,
-														'bulk_download_id' : int(bulk_download_id),
+														'bulk_download_eid' : int(bulk_download_eid),
 														'username': username,
 														'stopped' : False,
 														'files' : [],
@@ -218,13 +260,13 @@ class hxtool_db:
 				raise
 		return r
 		
-	def fileListingAddResult(self, profile_id, bulk_download_id, result):
+	def fileListingAddResult(self, profile_id, bulk_download_eid, result):
 		with self._lock:
-			return self._db.table('file_listing').update(self._db_append_to_list('files', result), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+			return self._db.table('file_listing').update(self._db_append_to_list('files', result), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == int(bulk_download_eid)))
 	
-	def fileListingGetByBulkId(self, profile_id, bulk_download_id):
+	def fileListingGetByBulkId(self, profile_id, bulk_download_eid):
 		with self._lock:
-			result = self._db.table('file_listing').search((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+			result = self._db.table('file_listing').search((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == int(bulk_download_eid)))
 			return result and result[0] or None
 	
 	def fileListingGetById(self, flid):
@@ -237,7 +279,7 @@ class hxtool_db:
 
 	def fileListingStop(self, file_listing_id):
 		with self._lock:
-			return self._db.table('file_listing').update({'stopped' : True, 'update_timestamp' : str(datetime.datetime.utcnow())}, eids = [int(file_listing_id)])		
+			return self._db.table('file_listing').update({'stopped' : True, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, eids = [int(file_listing_id)])		
 	
 	def fileListingDelete(self, file_listing_id):
 		with self._lock:
@@ -246,7 +288,7 @@ class hxtool_db:
 	def multiFileCreate(self, username, profile_id, display_name=None, file_listing_id=None, api_mode=False):
 		r = None
 		with self._lock:
-			ts = str(datetime.datetime.utcnow())
+			ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
 			try:
 				return self._db.table('multi_file').insert({
 					'display_name': display_name or "Unnamed File Request",
@@ -291,19 +333,19 @@ class hxtool_db:
 																			
 	def multiFileStop(self, multi_file_id):
 		with self._lock:
-			return self._db.table('multi_file').update({'stopped' : True, 'update_timestamp' : str(datetime.datetime.utcnow())}, eids = [int(multi_file_id)])		
+			return self._db.table('multi_file').update({'stopped' : True, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, eids = [int(multi_file_id)])		
 	
 	def multiFileDelete(self, multi_file_id):
 		with self._lock:
 			return self._db.table('multi_file').remove(eids = [int(multi_file_id)])
 	
-	def stackJobCreate(self, profile_id, bulk_download_id, stack_type):
+	def stackJobCreate(self, profile_id, bulk_download_eid, stack_type):
 		r = None
 		with self._lock:
-			ts = str(datetime.datetime.utcnow())
+			ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
 			try:
 				r = self._db.table('stacking').insert({'profile_id' : profile_id, 
-														'bulk_download_id' : int(bulk_download_id), 
+														'bulk_download_eid' : int(bulk_download_eid), 
 														'stopped' : False,
 														'stack_type' : stack_type,
 														'hosts' : [],		
@@ -318,39 +360,39 @@ class hxtool_db:
 				raise
 		return r
 		
-	def stackJobGetById(self, stack_job_id):
-		with self._lock:
-			return self._db.table('stacking').get(eid = int(stack_job_id))
-	
-	def stackJobGet(self, profile_id, bulk_download_id):
-		with self._lock:
-			return self._db.table('stacking').get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
-	
+	def stackJobGet(self, stack_job_eid = None, profile_id = None, bulk_download_eid = None):
+		if stack_job_eid:
+			with self._lock:
+				return self._db.table('stacking').get(eid = int(stack_job_eid))
+		elif profile_id and bulk_download_eid:		
+			with self._lock:
+				return self._db.table('stacking').get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == bulk_download_eid))
+		
 	def stackJobList(self, profile_id):
 		with self._lock:
 			return self._db.table('stacking').search((tinydb.Query()['profile_id'] == profile_id))
 	
-	def stackJobAddResult(self, profile_id, bulk_download_id, hostname, result):
+	def stackJobAddResult(self, profile_id, bulk_download_eid, hostname, result):
 		with self._lock:
-			e_id = self._db.table('stacking').update(self._db_append_to_list('results', result), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+			e_id = self._db.table('stacking').update(self._db_append_to_list('results', result), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == int(bulk_download_eid)))
 			return self._db.table('stacking').update(self._db_append_to_list('hosts', {'hostname' : hostname, 'processed' : True}), eids = e_id)
 			
 			
-	def stackJobUpdateIndex(self, profile_id, bulk_download_id, last_index):
+	def stackJobUpdateIndex(self, profile_id, bulk_download_eid, last_index):
 		with self._lock:
-			return self._db.table('stacking').update({'last_index' : last_index, 'update_timestamp' : str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+			return self._db.table('stacking').update({'last_index' : last_index, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == int(bulk_download_eid)))
 	
-	def stackJobUpdateGroupBy(self, profile_id, bulk_download_id, last_groupby):
+	def stackJobUpdateGroupBy(self, profile_id, bulk_download_eid, last_groupby):
 		with self._lock:
-			return self._db.table('stacking').update({'last_groupby' : last_groupby, 'update_timestamp' : str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_id'] == int(bulk_download_id)))
+			return self._db.table('stacking').update({'last_groupby' : last_groupby, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == int(bulk_download_eid)))
 	
-	def stackJobStop(self, stack_job_id):
+	def stackJobStop(self, stack_job_eid):
 		with self._lock:
-			return self._db.table('stacking').update({'stopped' : True, 'update_timestamp' : str(datetime.datetime.utcnow())}, eids = [int(stack_job_id)])		
+			return self._db.table('stacking').update({'stopped' : True, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, eids = [int(stack_job_eid)])		
 	
-	def stackJobDelete(self, stack_job_id):
+	def stackJobDelete(self, stack_job_eid):
 		with self._lock:
-			return self._db.table('stacking').remove(eids = [int(stack_job_id)])
+			return self._db.table('stacking').remove(eids = [int(stack_job_eid)])
 	
 	def sessionCreate(self, session_id):
 		with self._lock:
@@ -368,7 +410,7 @@ class hxtool_db:
 		
 	def sessionUpdate(self, session_id, session_data):
 		with self._lock:
-			return self._db.table('session').update({'session_data' : session_data, 'update_timestamp' : str(datetime.datetime.utcnow())}, (tinydb.Query()['session_id'] == session_id))
+			return self._db.table('session').update({'session_data' : session_data, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, (tinydb.Query()['session_id'] == session_id))
 		
 	def sessionDelete(self, session_id):
 		with self._lock:
@@ -380,8 +422,8 @@ class hxtool_db:
 														'scriptname': str(scriptname), 
 														'username' : str(username),
 														'script' : str(script), 
-														'create_timestamp' : str(datetime.datetime.utcnow()), 
-														'update_timestamp' : str(datetime.datetime.utcnow())})		
+														'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
+														'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})		
 
 	def scriptList(self):
 		with self._lock:
@@ -402,8 +444,8 @@ class hxtool_db:
 														'iocname': str(iocname), 
 														'username' : str(username),
 														'ioc' : str(ioc), 
-														'create_timestamp' : str(datetime.datetime.utcnow()), 
-														'update_timestamp' : str(datetime.datetime.utcnow())})		
+														'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
+														'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})		
 
 	def oiocList(self):
 		with self._lock:
@@ -417,13 +459,9 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('openioc').get((tinydb.Query()['ioc_id'] == ioc_id))
 
-	def taskCreate(self, profile_id, task_id, serialized_task):
+	def taskCreate(self, serialized_task):
 		with self._lock:
-			return self._db.table('tasks').insert({
-													'profile_id' : profile_id,
-													'task_id' : task_id,
-													'task_data' : serialized_task
-			})
+			return self._db.table('tasks').insert(serialized_task)
 	
 	def taskList(self):
 		with self._lock:
@@ -435,13 +473,12 @@ class hxtool_db:
 	
 	def taskUpdate(self, profile_id, task_id, serialized_task):
 		with self._lock:
-			return self._db.table('tasks').update({'task_data' : serialized_task}, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['task_id'] == task_id))
+			return self._db.table('tasks').update(serialized_task, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['task_id'] == task_id))
 	
 	def taskDelete(self, profile_id, task_id):
 		with self._lock:
 			return self._db.table('tasks').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['task_id'] == task_id))
-
-
+			
 	def taskProfileAdd(self, name, actor, module, params):
 		with self._lock:
 			return self._db.table('taskprofiles').insert({'taskprofile_id' : str(uuid.uuid4()), 
@@ -449,8 +486,8 @@ class hxtool_db:
 														'actor' : str(actor),
 														'module' : str(module),
 														'params' : params, 
-														'create_timestamp' : str(datetime.datetime.utcnow()), 
-														'update_timestamp' : str(datetime.datetime.utcnow())})
+														'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
+														'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})
 
 	def taskProfileList(self):
 		with self._lock:
@@ -460,7 +497,32 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('taskprofiles').remove((tinydb.Query()['taskprofile_id'] == taskprofile_id))
 
+
+	def auditCreate(self, profile_id, host_id, hostname, generator, start_time, end_time, results):
+		with self._lock:
+			return self._db.table('audits').insert({'profile_id' : profile_id,
+													'audit_id'	: str(secure_uuid4()),
+													'host_id:'	: host_id,
+													'hostname'	: hostname,
+													'generator'	: generator,
+													'start_time': start_time,
+													'end_time'	: end_time,
+													'results'	: results})
+	
+	def auditList(self, profile_id):
+		with self._lock:
+			return self._db.table('audits').get((tinydb.Query()['profile_id'] == profile_id))
+	
+	def auditGet(self, profile_id, audit_id):
+		with self._lock:
+			return self._db.table('audits').get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['audit_id']))
 			
+	def auditDelete(self, profile_id, audit_id):
+		with self._lock:
+			return self._db.table('audits').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['audit_id']))
+			
+			
+				
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
 			if type(dict_values) is dict:
@@ -468,7 +530,7 @@ class hxtool_db:
 			else:
 				element[dict_name][dict_key] = dict_values
 			if update_timestamp and 'update_timestamp' in element:
-					element['update_timestamp'] =  str(datetime.datetime.utcnow())		
+					element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())		
 		return transform
 	
 	def _db_append_to_list(self, list_name, value, update_timestamp = True):
@@ -478,7 +540,7 @@ class hxtool_db:
 			else:
 				element[list_name].append(value)
 			if update_timestamp and 'update_timestamp' in element:
-				element['update_timestamp'] =  str(datetime.datetime.utcnow())
+				element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())
 		return transform
 	
 	def _db_update_dict_in_list(self, list_name, query_key, query_value, k, v, update_timestamp = True):
@@ -488,5 +550,5 @@ class hxtool_db:
 					i[k] = v
 					break
 			if update_timestamp and 'update_timestamp' in element:
-				element['update_timestamp'] =  str(datetime.datetime.utcnow())		
+				element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())		
 		return transform
