@@ -984,9 +984,9 @@ def file_listing(hx_api_object):
 				app.logger.warn("Regex is empty!!")
 				regex = ''
 			if use_api_mode:
-				template_path = 'templates/api_file_listing_script_template.xml'
+				template_path = 'scripts/api_file_listing_script_template.xml'
 			else:
-				template_path = 'templates/file_listing_script_template.xml'
+				template_path = 'scripts/file_listing_script_template.xml'
 			with open(combine_app_path(template_path), 'r') as f:
 				t = Template(f.read())
 				script_xml = t.substitute(regex=regex, path=path, depth=depth)
@@ -2015,7 +2015,7 @@ def datatable_bulk(hx_api_object):
 ####################
 # Utility Functions
 ####################
-def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, task_profile = None, skip_base64 = False):
+def submit_bulk_job(hx_api_object, hostset_id, script_xml, comment = None, download = True, task_profile = None, skip_base64 = False):
 	bulk_download_eid = None
 	task_list = None
 	
@@ -2048,10 +2048,12 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, task
 					download_and_process_task.add_step(stacking_task_module, kwargs = {
 																'delete_bulk_download' : True
 															})
+					comment = "HXTool Stacking Acquisition"										
 				elif task_profile == 'file_listing':
 					download_and_process_task.add_step(file_listing_task_module, kwargs = {
 																'delete_bulk_download' : False
 															})
+					comment = "HXTool Multifile File Listing Acquisition"										
 				else:
 					pass
 					# TODO: add code to parse task profile modules, extract the arguments and pass them to the modules
@@ -2063,6 +2065,7 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, download = True, task
 	bulk_acquisition_task.add_step(bulk_acquisition_task_module, kwargs = {
 									'script' : script_xml,
 									'hostset_id' : hostset_id,
+									'comment' : comment,
 									'skip_base64' : skip_base64,
 									'download' : download,
 									'bulk_download_eid' : bulk_download_eid

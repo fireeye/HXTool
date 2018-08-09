@@ -1,0 +1,8 @@
+**/.git
+**/__pycache__
+**/*.pyc
+*.db
+log/*
+!log/README
+bulkdownload/*
+!bulkdownload/README

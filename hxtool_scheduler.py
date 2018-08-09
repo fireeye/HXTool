@@ -35,6 +35,8 @@ task_state_description = {
 
 # Special task indicator that we need to exit now
 SIGINT_TASK_ID = -1
+
+MAX_HISTORY_QUEUE_LENGTH = 1000
 		
 # Note: scheduler resolution is a little less than a second
 class hxtool_scheduler:
@@ -118,9 +120,15 @@ class hxtool_scheduler:
 		if task_id:
 			with self.lock:
 				return self.task_queue.get(task_id)
-		
+	
+	def move_to_history(self, task_id):
+		with _self.lock:
+			self.history_queue[task_id] = self.task_queue.pop(task_id).metadata()
+		if len(self.history_queue) > MAX_HISTORY_QUEUE_LENGTH:
+			self.history_queue.popitem()
+	
 	def tasks(self):
-		return [_.to_json() for _ in self.task_queue.values()]
+		return [_.metadata() for _ in self.task_queue.values()] + self.history_queue.values()
 	
 	# Load queued tasks from the database
 	def load_from_database(self):
@@ -277,6 +285,7 @@ class hxtool_scheduler_task:
 			self.logger.debug("Deleting task_id = {} from DB".format(self.task_id))
 			hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
 			self.set_stored(stored = False)
+			hxtool_global.hxtool_scheduler.move_to_history(self.task_id)
 		else:
 			self.store()
 				
@@ -311,32 +320,11 @@ class hxtool_scheduler_task:
 		elif self._stored:
 			hxtool_global.hxtool_db.taskUpdate(self.profile_id, self.task_id, self.serialize())
 	
-	def to_json(self):
-		# For use by the task scheduler API
-		# TODO: maybe we should just use serialize and show the modules too?
-		return {
-			'profile_id' : self.profile_id,
-			'task_id' : self.task_id,
-			'name' : self.name,
-			'interval' : self.interval.seconds if type(self.interval) is datetime.timedelta else None,
-			'start_time' : str(self.start_time),
-			'end_time' : str(self.end_time) if self.end_time else None,
-			'last_run' : str(self.last_run) if self.last_run else None,
-			'next_run' : str(self.next_run) if self.next_run else None,
-			'enabled' : self.enabled,
-			'immutable' : self.immutable,
-			'stop_on_fail' : self.stop_on_fail,
-			'parent_id' : self.parent_id,
-			'parent_complete' : self.parent_complete,
-			'wait_for_parent' : self.wait_for_parent,
-			'defer_interval' : self.defer_interval,
-			'state' : self.state,
-			'last_run_state' : self.last_run_state,
-			'stored_result' : self.stored_result,
-		}
+	def metadata(self):
+		return self.serialize(include_module_data = False)
 		
-	def serialize(self):
-		return {
+	def serialize(self, include_module_data = True):
+		r = {
 			'profile_id' : self.profile_id,
 			'task_id' : self.task_id,
 			'name' : self.name,
@@ -354,8 +342,10 @@ class hxtool_scheduler_task:
 			'defer_interval' : self.defer_interval,
 			'state' : self.state,
 			'last_run_state' : self.last_run_state,
-			'stored_result' : self.stored_result,
-			'steps' : [{ 
+		}
+		if include_module_data:
+			r['stored_result'] = self.stored_result
+			r['steps'] = [{ 
 						'module' : m.__module__,
 						'function' : f,
 						'args' : a,
@@ -363,7 +353,7 @@ class hxtool_scheduler_task:
 						}
 						for m, f, a, ka in self.steps
 			]
-		}
+		return r	
 	
 	@staticmethod	
 	def deserialize(d):
