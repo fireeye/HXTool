@@ -4,34 +4,59 @@
 
 <script>
 
+	function guid() {
+		function _p8(s) {
+			var p = (Math.random().toString(16)+"000000000").substr(2,8);
+			return s ? "-" + p.substr(0,4) + "-" + p.substr(4,4) : p ;
+		}
+		return _p8() + _p8(true) + _p8(true) + _p8();
+	}
+
 	$(document).ready(function() {
+
+		$(document).on('click', '.taskProfileRemove', function() {
+			$(this).parent().parent().fadeTo(300,0.1, function(){
+				$(this).remove();
+			});
+		});
 
 		$('body').on('change','select',function() {
 			var mymodule = $(this).val();
 
+			myguid = guid();
+
 			if(mymodule == 1) {
-				$("#params").html("<b>Local file</b><br><input style='width: 300px;' name='file_filepath' type='text'><br>");
-				$("#params").append("<br>");
-				$("#params").append("<b>Format</b><br>");
-				$("#params").append("<select name='file_format'><option value='json'>JSON<option value='xml'>XML</select><br>");
-				$("#params").append("<br>");
+				$("#params").append("<div class='taskProfileItem' id='file_" + myguid + "'></div>");
+				$("#file_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>File Writer</div>");
+				$("#file_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
+				$("#file_" + myguid).append("<div style='clear: both;'></div>");
+				$("#file_" + myguid).append("<hr class='taskProfileBar'>");
+				$("#file_" + myguid).append("<b>Local file</b><br><input style='width: 400px;' name='" + myguid + "_file_filepath' type='text'><br>");
 			}
 			if(mymodule == 2) {
-				$("#params").html("<b>Protocol</b><br>");
-				$("#params").append("<select name='ip_protocol'><option value='tcp'>TCP<option value='udp'>UDP</select><br>");
-				$("#params").append("<br>");
-				$("#params").append("<b>Target IP</b><br><input style='width: 300px;' name='ip_targetip' type='text'><br>");
-				$("#params").append("<br>");
-				$("#params").append("<b>Target port</b><br><input style='width: 100px;' name='ip_targetport' type='text'><br>");
-				$("#params").append("<br>");
-				$("#params").append("<b>Format</b><br>");
-				$("#params").append("<select name='ip_format'><option value='json'>JSON<option value='xml'>XML</select><br>");
-				$("#params").append("<br>");
+				$("#params").append("<div class='taskProfileItem' id='ip_" + myguid + "'></div>");
+				$("#ip_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>IP Sender</div>");
+				$("#ip_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
+				$("#ip_" + myguid).append("<div style='clear: both;'></div>");
+				$("#ip_" + myguid).append("<hr class='taskProfileBar'>");
+				$("#ip_" + myguid).append("<b>Protocol</b><br>");
+				$("#ip_" + myguid).append("<select name='" + myguid + "_ip_protocol'><option value='tcp'>TCP<option value='udp'>UDP</select><br>");
+				$("#ip_" + myguid).append("<br>");
+				$("#ip_" + myguid).append("<b>Target IP</b><br><input style='width: 400px;' name='" + myguid + "_ip_targetip' type='text'><br>");
+				$("#ip_" + myguid).append("<br>");
+				$("#ip_" + myguid).append("<b>Target port</b><br><input style='width: 100px;' name='" + myguid + "_ip_targetport' type='text'><br>");
 			}
 			if(mymodule == 3) {
-				$("#params").html("<b>Table name</b><br><input name='db_tablename' type='text'><br>");
-				$("#params").append("<br>");
+				$("#params").append("<div class='taskProfileItem' id='db_" + myguid + "'></div>");
+				$("#db_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>Store in HXTool</div>");
+				$("#db_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
+				$("#db_" + myguid).append("<div style='clear: both;'></div>");
+				$("#db_" + myguid).append("<hr class='taskProfileBar'>");
+				$("#db_" + myguid).append("<b>Table name</b><br><input style='width: 400px' name='" + myguid + "_db_tablename' type='text'><br>");
 			}
+
+			// reset the drop-down
+			$(this).prop("selectedIndex", 0);
 
 		});
 
@@ -45,7 +70,6 @@
 			"columns": [
 				{ "data": "name", title: "Profile name" },
 				{ "data": "actor", title: "Created by" },
-				{ "data": "module", title: "Module" },
 				{ "data": "create_timestamp", title: "Created" },
 				{ "data": "update_timestamp", title: "Updated" },
 				{ "data": "params", title: "Parameters" },
@@ -53,7 +77,7 @@
 			],
 			"columnDefs": [	
 				{
-				 targets: 6,
+				 targets: 5,
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		data = "<a href='/taskprofile?action=delete&id=" + data + "' class='tableActionButton'>delete</a>"
@@ -62,13 +86,20 @@
 				 }
 				},
 				{
-				 targets: 5,
+				 targets: 4,
 				 render: function ( data, type, row, meta ) {
 				 	var myparams = ""
 				 	if(type === 'display'){
-				 		Object.keys(data).forEach(function(key) {
-				 			myparams += "<b>" + key + "</b> = " + data[key] + "<br>";
-				 		});
+				 		myparams += JSON.stringify(data);
+//				 		Object.keys(data).forEach(function(key) {
+
+//				 			Object.keys(data[key]).forEach(function(kkey)) {
+//				 				myparams += kkey + " = " + data[key][kkey] + "<br>";
+//				 			}
+//							myparams += JSON.stringify(data);
+
+				 			// myparams += "<b>" + key + "</b> = " + data[key] + "<br>";
+//				 		});
 				 	}
 				 	return myparams;
 				 }

@@ -479,12 +479,11 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('tasks').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['task_id'] == task_id))
 			
-	def taskProfileAdd(self, name, actor, module, params):
+	def taskProfileAdd(self, name, actor, params):
 		with self._lock:
 			return self._db.table('taskprofiles').insert({'taskprofile_id' : str(uuid.uuid4()), 
 														'name': str(name), 
 														'actor' : str(actor),
-														'module' : str(module),
 														'params' : params, 
 														'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
 														'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})

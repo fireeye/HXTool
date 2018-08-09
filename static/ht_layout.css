@@ -267,3 +267,23 @@
 	background: #cccccc;
 	cursor: pointer;
 }
+
+.taskProfileItem {
+	border: 1px solid #cccccc;
+	border-radius: 5px;
+	padding: 15px;
+	margin-bottom: 10px;
+	background: #ffffff;
+}
+
+.taskProfileBar {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #cccccc;
+    padding: 0; 
+}
+
+.taskProfileRemovePH {
+	float: right;
+}
