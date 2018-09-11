@@ -21,43 +21,54 @@
 		});
 
 		$('body').on('change','select',function() {
-			var mymodule = $(this).val();
 
-			myguid = guid();
+			if ($(this).attr('id') == "module") {
 
-			if(mymodule == 1) {
-				$("#params").append("<div class='taskProfileItem' id='file_" + myguid + "'></div>");
-				$("#file_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>File Writer</div>");
-				$("#file_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
-				$("#file_" + myguid).append("<div style='clear: both;'></div>");
-				$("#file_" + myguid).append("<hr class='taskProfileBar'>");
-				$("#file_" + myguid).append("<b>Local file</b><br><input style='width: 400px;' name='" + myguid + "_file_filepath' type='text'><br>");
+				var mymodule = $(this).val();
+
+				myguid = guid();
+
+				if(mymodule == 1) {
+					$("#params").append("<div class='taskProfileItem' id='file_" + myguid + "'></div>");
+					$("#file_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>File Writer</div>");
+					$("#file_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
+					$("#file_" + myguid).append("<div style='clear: both;'></div>");
+					$("#file_" + myguid).append("<hr class='taskProfileBar'>");
+					$("#file_" + myguid).append("<b>Local file</b><br><input style='width: 400px;' name='" + myguid + "_file_filepath' type='text'><br>");
+					$("#file_" + myguid).append("<br>");
+					$("#file_" + myguid).append("<b>Event mode</b><br>");
+					$("#file_" + myguid).append("<select name='" + myguid + "_ip_eventmode'><option value='per-event'>per-event<option value='batch'>batch</select><br>");
+					$("#file_" + myguid).append("<br>");
+				}
+				if(mymodule == 2) {
+					$("#params").append("<div class='taskProfileItem' id='ip_" + myguid + "'></div>");
+					$("#ip_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>IP Sender</div>");
+					$("#ip_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
+					$("#ip_" + myguid).append("<div style='clear: both;'></div>");
+					$("#ip_" + myguid).append("<hr class='taskProfileBar'>");
+					$("#ip_" + myguid).append("<b>Protocol</b><br>");
+					$("#ip_" + myguid).append("<select name='" + myguid + "_ip_protocol'><option value='tcp'>TCP<option value='udp'>UDP</select><br>");
+					$("#ip_" + myguid).append("<br>");
+					$("#ip_" + myguid).append("<b>Target IP</b><br><input style='width: 400px;' name='" + myguid + "_ip_targetip' type='text'><br>");
+					$("#ip_" + myguid).append("<br>");
+					$("#ip_" + myguid).append("<b>Target port</b><br><input style='width: 100px;' name='" + myguid + "_ip_targetport' type='text'><br>");
+					$("#ip_" + myguid).append("<br>");
+					$("#ip_" + myguid).append("<b>Event mode</b><br>");
+					$("#ip_" + myguid).append("<select name='" + myguid + "_ip_eventmode'><option value='per-event'>per-event<option value='batch'>batch</select><br>");
+					$("#ip_" + myguid).append("<br>");
+				}
+				if(mymodule == 3) {
+					$("#params").append("<div class='taskProfileItem' id='db_" + myguid + "'></div>");
+					$("#db_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>Store in HXTool</div>");
+					$("#db_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
+					$("#db_" + myguid).append("<div style='clear: both;'></div>");
+					$("#db_" + myguid).append("<hr class='taskProfileBar'>");
+					$("#db_" + myguid).append("<b>Table name</b><br><input style='width: 400px' name='" + myguid + "_db_tablename' type='text'><br>");
+				}
+
+				// reset the drop-down
+				$(this).prop("selectedIndex", 0);
 			}
-			if(mymodule == 2) {
-				$("#params").append("<div class='taskProfileItem' id='ip_" + myguid + "'></div>");
-				$("#ip_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>IP Sender</div>");
-				$("#ip_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
-				$("#ip_" + myguid).append("<div style='clear: both;'></div>");
-				$("#ip_" + myguid).append("<hr class='taskProfileBar'>");
-				$("#ip_" + myguid).append("<b>Protocol</b><br>");
-				$("#ip_" + myguid).append("<select name='" + myguid + "_ip_protocol'><option value='tcp'>TCP<option value='udp'>UDP</select><br>");
-				$("#ip_" + myguid).append("<br>");
-				$("#ip_" + myguid).append("<b>Target IP</b><br><input style='width: 400px;' name='" + myguid + "_ip_targetip' type='text'><br>");
-				$("#ip_" + myguid).append("<br>");
-				$("#ip_" + myguid).append("<b>Target port</b><br><input style='width: 100px;' name='" + myguid + "_ip_targetport' type='text'><br>");
-			}
-			if(mymodule == 3) {
-				$("#params").append("<div class='taskProfileItem' id='db_" + myguid + "'></div>");
-				$("#db_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>Store in HXTool</div>");
-				$("#db_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
-				$("#db_" + myguid).append("<div style='clear: both;'></div>");
-				$("#db_" + myguid).append("<hr class='taskProfileBar'>");
-				$("#db_" + myguid).append("<b>Table name</b><br><input style='width: 400px' name='" + myguid + "_db_tablename' type='text'><br>");
-			}
-
-			// reset the drop-down
-			$(this).prop("selectedIndex", 0);
-
 		});
 
 		var taskprofileTable = $('#taskprofileTable').DataTable( {
@@ -122,11 +133,11 @@
 		<br>
 
 		<b>Core task profile module</b><br>
-		<select name='module'>
+		<select name='module' id='module'>
 			<option value='0'>-- select a module --
 			<option value='1'>File writer
 			<option value='2'>IP sender
-			<option value='3'>Store in HXTool
+			<!-- <option value='3'>Store in HXTool -->
 		</select>
 
 		<div style='margin-top: 10px;' id='params'></div>
