@@ -20,10 +20,13 @@
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}" />
 	<script type="text/javascript" src="/static/progress.js"></script>
 	<script type="text/javascript" src="/static/jquery.multi-select.js"></script>
+	<script type="text/javascript" src="/static/datetimepicker/moment.min.js"></script>
+	<script type="text/javascript" src="/static/datetimepicker/daterangepicker.js"></script>
 	<script src="/static/vega/vega.min.js"></script>
 	<script src="/static/vega/vega-lite.min.js"></script>
 	<script src="/static/vega/vega-embed.min.js"></script>
     <link rel="stylesheet" type="text/css" href="static/ht.css">
+    <link rel="stylesheet" type="text/css" href="static/datetimepicker/daterangepicker.css">
     <link rel="stylesheet" type="text/css" href="static/ht_layout.css">
 	<link rel="stylesheet" type="text/css" href="static/multi-select.css">
 	<link rel="stylesheet" href="static/fontawesome/on-server/css/fontawesome.min.css">
@@ -31,6 +34,19 @@
 </head>
 <body>
 	<script>
+
+		// Function to check if current HX version is equal or greater than a specific version
+		function checkVersion(version) {
+			myVersionArr = version.split(".");
+			currversion = JSON.parse("{{session['hx_version']}}");
+
+			if (currversion[0] >= myVersionArr[0] && currversion[1] >= myVersionArr[1] && currversion[2] >= myVersionArr[2]) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
 
 		function showPopup(height, width, url, elementToRestrict, includeWidthRestriction=false) {
 			$('#shader').popupshow();
@@ -330,10 +346,12 @@
 	<div class='htLayoutTopBarTopBox'></div>
 	<div style='position: absolute; left: 0; top: 0; z-index: 30; width: 100%;'>
 		<div class='htLayoutTopBarBox' style='float: left;'>
-			<img src='/static/fireeye.svg' style='height: 46px; position: absolute; top: -4px; left: 75px; clip: rect(0px,103px,60px,30px);'>
-			<div style='position: absolute; left: 62px; top: 35px; color: rgb(67,67,67); font-size: 12px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-weight: bold;'>Endpoint HXTool 4.0</div>
-			<i class="fas fa-search fa-2x fa-fw" style='left: 10px; top: 15px; position: absolute; color: rgb(120,120,120); margin-right: 2px;' aria-hidden="true"></i>
+			<img src='/static/fireeye.svg' style='height: 30px; position: absolute; top: 4px; left: 38px; clip: rect(0px,70px,30px,19px);'>
+			<div style='position: absolute; left: 58px; top: 32px; color: rgb(67,67,67); font-size: 12px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-weight: bold;'>Endpoint HXTool 4.0</div>
+			<i class="fas fa-search fa-2x fa-fw" style='left: 10px; top: 15px; position: absolute; color: rgb(67,67,67); margin-right: 2px;' aria-hidden="true"></i>
+			<!--
 			<div style='width: 130px; left: 50px; top: 14px; position: absolute; border-bottom: 1px solid rgb(67,67,67);'>&nbsp;</div>
+			-->
 		</div>
 		<!-- <div class='htLayoutTriangle-topleft'>▼</div> -->
 		<div class='htLayoutTriangle-topleft' style='float: left;'></div>

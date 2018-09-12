@@ -231,6 +231,12 @@
 
 .auditParameterTitle {
 	font-weight: 700;
+	margin-bottom: 2px;
+}
+
+.auditParameterUsage {
+	font-style: italic;
+	font-size: 11px;
 	margin-bottom: 5px;
 }
 

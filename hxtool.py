@@ -167,11 +167,11 @@ def bulkacq_view(hx_api_object):
 		if 'file' in request.form.keys():
 			f = request.files['bulkscript']
 			bulk_acquisition_script = f.read()
-			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
+			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False, comment=str(request.form['bulkhostset']))
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		elif 'store' in request.form.keys():
 			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
-			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
+			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True, comment=str(request.form['bulkhostset']))
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulkacq", code=302)
 	else:
@@ -350,6 +350,14 @@ def search(hx_api_object):
 		elif 'store' in request.form.keys():
 			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])['ioc']
 		
+		if 'escomment' in request.form.keys():
+			# TODO INCLUDE THIS IN THE TASK
+			print("ES Comment: " + request.form['escomment'])
+
+		if 'esskipterms' in request.form.keys():
+			# TODO INCLUDE THIS IN THE TASK
+			print("ES Skipterms: " + request.form['esskipterms'])
+
 		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task")
 		enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
 											'script' : ioc_script,
@@ -1230,6 +1238,7 @@ def login():
 					session['ht_user'] = request.form['ht_user']
 					session['ht_profileid'] = ht_profile['profile_id']
 					session['ht_api_object'] = hx_api_object.serialize()
+					session['hx_version'] = hx_api_object.hx_version
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
@@ -1996,6 +2005,7 @@ def datatable_bulk(hx_api_object):
 			mybulk['data'].append({
 				"DT_RowId": acq['_id'],
 				"state": acq['state'],
+				"comment": acq['comment'],
 				"hostset": myhostsetname,
 				"create_time": acq['create_time'],
 				"update_time": acq['update_time'],

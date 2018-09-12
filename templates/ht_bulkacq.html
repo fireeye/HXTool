@@ -23,6 +23,57 @@
 			$("#checkboxStore").prop('checked', false);
 	}
 
+	function renderInterval(intervalType) {
+
+		out = "";
+
+		if (intervalType == "month") {
+			out += " on the ";
+			out += "<select name='intervalDay'>";
+			for (var i=1; i < 32; i += 1){
+				out += "<option value='" + i + "'>" + i;
+			}
+			out += "</select>";
+			out += " ";
+		}
+
+		if (intervalType == "week") {
+			out += " on ";
+			out += "<select name='intervalWeek'>";
+			out += "<option value='monday'>Monday";
+			out += "<option value='tuesday'>Tuesday";
+			out += "<option value='wednesday'>Wednesday";
+			out += "<option value='thursday'>Thursday";
+			out += "<option value='friday'>Friday";
+			out += "<option value='saturday'>Saturday";
+			out += "<option value='sunday'>Sunday";
+			out += "</select>";
+			out += " ";
+		}
+
+		if (intervalType == "day" || intervalType == "week" || intervalType == "month") {
+			out += " at the ";
+			out += "<select name='intervalHour'>";
+			for (var i=0; i < 24; i += 1){
+				out += "<option value='" + i + "'>" + i;
+			}
+			out += "</select>";
+			out += " hour ";
+		}
+
+		if (intervalType == "hour" || intervalType == "day" || intervalType == "week" || intervalType == "month") {
+			out += " on the ";
+			out += "<select name='intervalMin'>";
+			for (var i=0; i < 60; i += 1){
+				out += "<option value='" + i + "'>" + i;
+			}
+			out += "</select>";
+			out += " minute ";
+		}
+
+		$("#intervalSettings").html(out);
+	}
+
 	$(document).ready(function() {
 		$.fn.dataTable.ext.errMode = 'none';
 		var bulk_datatable = $('#bulktable').DataTable( {
@@ -35,9 +86,9 @@
 			"columns": [
 				{ "title": "id", "data": "DT_RowId" },
 				{ "title": "state", "data": "state" },
+				{ "title": "comment", "data": "comment" },
 				{ "title": "hostset", "data": "hostset" },
 				{ "title": "created", "data": "create_time" },
-				{ "title": "updated", "data": "update_time" },
 				{ "title": "user", "data": "create_actor" },
 				{ "title": "size", "data": "total_size" },
 				{ "title": "", "data": "stat_runtime_avg" },
@@ -191,6 +242,24 @@
 			enableFile();
 		});
 
+		$('body').on('change','select',function(){
+
+			if ($(this).attr('id') == "intervalMetric") {
+				renderInterval($(this).val());
+			}
+		});
+
+		jQuery('#scheduled_timestamp').daterangepicker({
+			singleDatePicker: true,
+			autoApply: true,
+			timePicker: true,
+			timePicker24Hour: true,
+			buttonClasses: "tableActionButton",
+			locale: {
+     		 format: 'YYYY-MM-DD hh:mm'
+		    }
+		});
+
 	});
 </script>
 
@@ -199,7 +268,7 @@
         	<i class="fas fa-plus-square fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
 			New bulk acquisition
 		</div>
-	<div class='inputArea' style='width: 900px;'>
+	<div class='inputArea' style='width: 1200px;'>
 
 		<div id='divStore' style='width: 250px; float: left; padding: 10px; margin-right: 15px; vertical-align: top; border: 1px solid rgb(215,215,215); border-radius: 5px; background: rgb(225,225,225);'>
 			<input type='checkbox' name='store' id='checkboxStore' checked>
@@ -213,6 +282,11 @@
 		<div style='clear: both;'></div>
 
 		<br>
+
+		<b>Comment</b><br>
+		<input type='text' id='bulkcomment' name='bulkcomment' style='width: 250px;'>
+		<br>
+		<br>
 		<b>Hostset</b><br>
 		<select name='bulkhostset' id='bulkhostset'>
 			{% if hostsets %} {{ hostsets|safe }} {% endif %}
@@ -222,9 +296,21 @@
 		<div style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 10px;'>&nbsp;</div>
 
 		<input type='radio' name='scheduled' checked><b> Run now</b><br>
-		<input type='radio' name='scheduled'><b> Run at specific date/time</b><br><br>
-		Run at
+		<input type='radio' name='scheduled'><b> Run at specific date/time</b>
 		<input type='text' id='scheduled_timestamp' name='scheduled_timestamp' style='margin-left: 5px;'>
+		<br>
+		<input type='radio' name='scheduled'><b> Run on an interval</b><br><br>
+		<span style='margin-left: 15px;'>
+			Every 
+			<select name='intervalMetric' id='intervalMetric'>
+				<option value='min'>Minute
+				<option value='hour'>Hour
+				<option value='day'>Day
+				<option value='week'>Week
+				<option value='month'>Month
+			</select>
+		</span>
+		<span id='intervalSettings'></span>
 
 		<br>
 		<div style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 10px;'>&nbsp;</div>

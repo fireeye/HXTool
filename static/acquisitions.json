@@ -1,228 +1,4849 @@
 {
-	"agentinfo": {
-		"description": "Collects basic information about the agents on host endpoints that does not appear in the sysinfo audit.",
-		"platforms": ["win", "osx", "linux"],
-		"parameters": false
-	},
-	"config": {
-		"description": "The config audit collects key-value pairs from the agent configuration file or acquires the entire agent configuration file, depending on the format of the audit request",
-		"platforms": ["win", "osx", "linux"],
-		"parameters": [
-			{"name": "format", "required": false, "repeatable": false, "type": "dropdown", "values": ["kvpairs", "acquisition"], "platforms": ["win", "osx", "linux"]}
-		]
-	},
-	"configuration": {
-		"description": "The configuration audit collects information about the configuration channel to which the agents should subscribe",
-		"platforms": ["win", "osx", "linux"],
-		"parameters": [
-			{"name": "ConfigChannel", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]}
-		]
-	},
-	"cookiehistory": {
-		"description": "The following input parameters are available for this audit. Some parameters are supported only in Windows environments.",
-		"platforms": ["win", "osx"],
-		"parameters": [
-			{"name": "TargetBrowser", "required": false, "repeatable": true, "type": "dropdown", "values": ["Firefox", "Internet Explorer", "Chrome", "Safari"], "platforms": ["win", "osx"]},
-			{"name": "PathToHistoryFiles", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"diagnostic": {
-		"description": "Runs a canned diagnostic script. The full version runs about 15 audits, depending on the operating system of the endpoint. These audits may include system, agent info, process API, log, file acquisitions, registry raw audits, ARP, DNS, route, raw file listing, and the config audits. The simplified version consists of only two audits: log and config. The diagnostic script varies slightly by operating system platform.",
-		"platforms": ["win", "osx", "linux"],
-		"parameters": [
-			{"name": "format", "required": false, "repeatable": false, "type": "dropdown", "values": ["standard", "simple"], "platforms": ["win", "osx", "linux"]}
-		]
-	},
-	"disk-acquisition": {
-		"description": "Collects the contents of a disk drive from Windows host endpoints.",
-		"platforms": ["win"],
-		"parameters": [
-			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Filename", "required": true, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "offset", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "size", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"disks": {
-		"description": "Collects information about the physical devices of host endpoints that may be acquired as a disk image.",
-		"platforms": ["win", "osx"],
-		"parameters": [
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"dissolve": {
-		"description": "Uninstalls the agent software on Windows host endpoints. If you dissolve an agent on a host endpoint that has been contained, the host endpoint will no longer be contained. Examine your list of contained hosts before you dissolve the agent software on a host.",
-		"platforms": ["win"],
-		"parameters": [
-			{"name": "immediate", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"driver-memoryacquire": {
-		"description": "Collects a driver from live memory or from a memory image of Windows host endpoints.",
-		"platforms": ["win"],
-		"parameters": [
-			{"name": "driver name", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "memory file", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"drivers-modulelist": {
-		"description": "Collects a list of loaded drivers, maintained by the operating system, for Windows host endpoints.",
-		"platforms": ["win"],
-		"parameters": [
-			{"name": "memory file", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"drivers-signature": {
-		"description": "Collects a list of loaded drivers, maintained by the operating system, for Windows host endpoints.",
-		"platforms": ["win"],
-		"parameters": [
-			{"name": "memory file", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "enumerate imports", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "enumerate exports", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "strings", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "shortest matched string", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Preserve Times", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "MD5", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "SHA1", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "SHA256", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Verify Digital Signatures", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "raw mode", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"multifile-acquisition-api": {
-		"description": "Collects multiple files from host endpoints based on filter criteria (such as path or filename) using system calls for file access.",
-		"platforms": ["win", "osx", "linux"],
-		"parameters": [
-			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Path Regex", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "Depth", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Minimum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Maximum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Filter MD5", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "Filter SHA1", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "Filter SHA256", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "Content Regex", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "AND Operator", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"eventlogs": {
-		"description": "Collects complete lists of the operating system event logs in Windows environments. If a specific log is not requested, this audit enumerates and acquires all logs.",
-		"platforms": ["win"],
-		"parameters": [
-			{"name": "eventlog", "required": false, "repeatable": true, "type": "text", "platforms": ["win"]},
-			{"name": "eventlogfullpath", "required": false, "repeatable": true, "type": "text", "platforms": ["win"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"file-acquisition-api": {
-		"description": "Collects the contents of files on host endpoints using system calls for file access.",
-		"platforms": ["win", "osx", "linux"],
-		"parameters": [
-			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Filename", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Preserve Times", "required": false, "repeatable": true, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"file-acquisition-raw": {
-		"description": "Collects and downloads a specific file from Windows host endpoints using a method that may bypass security or access restrictions and retrieve deleted files. If the Inode parameter is not specified, this audit returns only the first match of a deleted file.",
-		"platforms": ["win"],
-		"parameters": [
-			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Filename", "required": true, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Inode", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Deleted", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"filedownloadhistory": {
-		"description": "Collects a history of files downloaded through a browser by host endpoints.",
-		"platforms": ["win", "osx"],
-		"parameters": [
-			{"name": "TargetBrowser", "required": false, "repeatable": true, "type": "dropdown", "values": ["Firefox", "Internet Explorer", "Chrome", "Safari"], "platforms": ["win", "osx"]},
-			{"name": "PathToHistoryFiles", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"files-api": {
-		"description": "Collects a list of the files on host endpoints using system calls. This audit may return more information than expected if the Get Resources parameter is requested for the audit. FireEye strongly recommends using the Get Resources parameter only when targeting a single file.",
-		"platforms": ["win", "osx", "linux"],
-		"parameters": [
-			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Regex", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Path Regex", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Depth", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "MD5", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "SHA1", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "SHA256", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "Preserve Times", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "linux"]},
-			{"name": "Minimum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Maximum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Filter MD5", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "Filter SHA1", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "Filter SHA256", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "Verify Digital Signatures", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx"]},
-			{"name": "Content Regex", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "AND Operator", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "Include Files", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "Include Directories", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "Include Remote Locations", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx"]},
-			{"name": "Analyze Entropy", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Enumerate Imports", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Enumerate Exports", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Analyze File Anomalies", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Scan Entry Point Distance", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Strings", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "shortest matched string", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Get Resources", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Get Resource Data", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Get Version Info", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Exclude Resource Types", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	},
-	"files-raw": {
-		"description": "Collects a list of the files on host endpoints by directly examining structures on the host's disks. This audit may return more information than expected if the Get Resources parameter is requested for the audit. FireEye strongly recommends using the Get Resources parameter only when targeting a single file.",
-		"platforms": ["win", "osx", "linux"],
-		"parameters": [
-			{"name": "Path", "required": true, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Regex", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Path Regex", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Depth", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "MD5", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "SHA1", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "SHA256", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "Minimum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Maximum Sizes", "required": false, "repeatable": false, "type": "text", "platforms": ["win", "osx", "linux"]},
-			{"name": "Filter MD5", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "Filter SHA1", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "Filter SHA256", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "Verify Digital Signatures", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx"]},
-			{"name": "Content Regex", "required": false, "repeatable": false, "type": "textarea", "platforms": ["win", "osx", "linux"]},
-			{"name": "AND Operator", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "Include Files", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "Include Directories", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win", "osx", "linux"]},
-			{"name": "Analyze Entropy", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Enumerate Imports", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Enumerate Exports", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Analyze File Anomalies", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Scan Entry Point Distance", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Strings", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "shortest matched string", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Get Resources", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Get Resource Data", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Get Version Info", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Exclude Resource Types", "required": false, "repeatable": false, "type": "text", "platforms": ["win"]},
-			{"name": "Active Files", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Deleted Files", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Parse NTFS INDX Buffers", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]},
-			{"name": "Prevent Hibernation", "required": false, "repeatable": false, "type": "dropdown", "values": ["true", "false"], "platforms": ["win"]}
-		]
-	}
+    "agentinfo": {
+        "description": "Basic information about the agent that doesn't belong to the sysinfo audit.",
+        "parameters": [],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "config": {
+        "description": "Either pulls the key-value pairs representing the xAgent configuration or acquires the configuration file, depending on the specified format.",
+        "parameters": [
+            {
+                "name": "format",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Enter \"kvpairs\" for configuration key-value pairs or \"acquisition\" for a config file acquisition. Default is \"kvpairs\"."
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "configuration": {
+        "description": "HX notifies the agent of the config channel to which it should subscribe. If it's different from the config channel to which the agent is currently subscribed, config pull is triggered.",
+        "parameters": [
+            {
+                "name": "ConfigChannel",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Config channel to which the agent should subscribe."
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "containment": {
+        "description": "Contain or uncontain the agent machine.",
+        "parameters": [
+            {
+                "name": "Type",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Requested containment action. \"contain\" or \"uncontain\"."
+            },
+            {
+                "name": "Component",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "The component sitting in the designated location. Should be \"containmentdriver\"."
+            },
+            {
+                "name": "Version",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "xAgent version you are containing."
+            },
+            {
+                "name": "Platform",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Platform on which you are upgrading. \"win32\" or \"win64\"."
+            },
+            {
+                "name": "HashAlgorithm",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Algorithm used for hashing MSI. Available algorithms: \"md5\", \"sha1\", \"sha256\", \"sha384\", \"sha512\"."
+            },
+            {
+                "name": "HashValue",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Hash value of the containment driver."
+            },
+            {
+                "name": "Location",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "URL where the containment driver can be found."
+            },
+            {
+                "name": "Length",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Size of containment driver in bytes."
+            },
+            {
+                "name": "Whitelist",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Containment whitelist."
+            },
+            {
+                "name": "NotifyEnabled",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Whether to enable containment notification.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "NotifyURI",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Location of containment notification. Must use IP address rather than hostname because DNS resolution is disabled on contained endpoints. Example: \"http://192.168.1.1/message.html\""
+            },
+            {
+                "name": "NotifyHTML",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Base64-encoded HTML to be used as containment notification."
+            },
+            {
+                "name": "NotifyImage",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Base64-encoded image to be used as containment notification (.jpeg, .jpg, .png, or .gif file)."
+            },
+            {
+                "name": "NotifyImageName",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Containment notification title, e.g. \"FireEye Security Alert\"."
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "cookiehistory": {
+        "description": "Returns a history of Cookies stored on the system.",
+        "parameters": [
+            {
+                "name": "TargetBrowser",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "The name of the supported browser whose history will be extracted (Firefox, Internet Explorer, or Chrome)."
+            },
+            {
+                "name": "PathToHistoryFiles",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The path to a user profile directory, the base profile directory, or a single history file from supported browser types."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "diagnostic": {
+        "description": "This command runs a canned diagnostic script. The full version consists of about 15 audits and acquisitions, among them: system, agent info, process API, log, file acquisitions, registry raw audits, arp, dns, route, raw file listing, and config audit. The simplified version consists of only two: log acquisition and config acquisition. Scripts vary slightly by OS.",
+        "parameters": [
+            {
+                "name": "format",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Enter \"standard\" for full diagnostics, the results of which are intended for the support team. Enter \"simple\" for simplified version of diagnostics, the results of which are intended for customers. Default is \"standard\"."
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "disk-acquisition": {
+        "description": "Acquires contents of a disk drive.",
+        "parameters": [
+            {
+                "name": "Path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "The global path of the symbolic link for the disk or volume to acquire. The trailing back-slash is optional. Example: \\\\.\\"
+            },
+            {
+                "name": "Filename",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "The name of the file to acquire. Example: PhysicalDrive0"
+            },
+            {
+                "name": "offset",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the offset in bytes from the beginning of the disk."
+            },
+            {
+                "name": "size",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the size to acquire in bytes."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "disks": {
+        "description": "List of physical devices which may be acquired as a Disk Image.",
+        "parameters": [
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "dissolve": {
+        "description": "Uninstalls the agent.",
+        "parameters": [
+            {
+                "name": "immediate",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Execute the command immediately without waiting for existing audits to finish. Default value is \"false\".",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "driver-memoryacquire": {
+        "description": "Acquires a driver from live memory or from a memory image.",
+        "parameters": [
+            {
+                "name": "driver name",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The driver name to acquire."
+            },
+            {
+                "name": "memory file",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The full path and filename of the file that represents the host's physical memory."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "drivers-modulelist": {
+        "description": "Parses an operating system-maintained list of loaded drivers.",
+        "parameters": [
+            {
+                "name": "memory file",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The full path and filename of the file that represents the host's physical memory."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "drivers-signature": {
+        "description": "Scans memory for loaded driver structures.",
+        "parameters": [
+            {
+                "name": "memory file",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The full path and filename of the file that represents the host's physical memory."
+            },
+            {
+                "name": "enumerate imports",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to enumerate imports of all loaded modules for a given driver.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "enumerate exports",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to enumerate exports of all loaded modules for a given driver.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "strings",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to parse a specified driver for strings.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "shortest matched string",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Minimum Recognized String Length."
+            },
+            {
+                "name": "Preserve Times",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Manually reset last access times for audited files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the MD5 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA1 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA256 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Verify Digital Signatures",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to verify if the loaded drivers are digitally signed. This operation can not be performed on a memory image.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "raw mode",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Open files for hashing in raw mode.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "eventbuffer": {
+        "description": "Identical to stateagentinspector, except that this audit outputs data in a compact form which allows matching of event properties using IOCs. The input parameters are the same.",
+        "parameters": [
+            {
+                "name": "intervalStart",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Used for audit type 1. Beginning of collection interval."
+            },
+            {
+                "name": "intervalStop",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Used for audit type 1. End of collection interval."
+            },
+            {
+                "name": "eventTypes",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "Used for both audit types. Describes event types to report. If not specified, all types are returned."
+            },
+            {
+                "name": "maxEventsPerType",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Used for both audit types. Max number of events per type. Same number used for each type collected."
+            },
+            {
+                "name": "timeOfInterest",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Used for audit type 2. Time of interest, for events to be collected around."
+            },
+            {
+                "name": "maxEventsPerTypeBeforeTimeOfInterest",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "Used for audit type 2. Number of events to be collected before time of interest."
+            },
+            {
+                "name": "maxEventsPerTypeAfterTimeOfInterest",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "Used for audit type 2. Number of events to be collected after time of interest."
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "eventlogs": {
+        "description": "Acquire complete listings of the operating system event logs. Enumerates and acquires all logs if none is specified.",
+        "parameters": [
+            {
+                "name": "eventlog",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "The event logs in which to parse (e.g. Application\nSystem\nSecurity)."
+            },
+            {
+                "name": "eventlogfullpath",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "The full path and filename to the event log(s) to parse."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "file-acquisition-api": {
+        "description": "Acquires contents of files using system calls for file access.",
+        "parameters": [
+            {
+                "name": "Path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "The absolute path of the directory containing the file to acquire. The trailing back-slash is optional. Example: C:\\WINDOWS\\"
+            },
+            {
+                "name": "Filename",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "The name of the file to acquire. Example: notepad.exe."
+            },
+            {
+                "name": "Preserve Times",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Manually reset last access times for audited files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "file-acquisition-raw": {
+        "description": "Acquires and downloads a specific file using a method that may bypass security or access restrictions and retrieve deleted files.",
+        "parameters": [
+            {
+                "name": "Path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "The absolute path of the directory containing the file to acquire. Example: 1) D:\\ 2) C:\\WINDOWS\\"
+            },
+            {
+                "name": "Filename",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "The name of the file to acquire. Example: notepad.exe:malware.ads"
+            },
+            {
+                "name": "Inode",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The Inode of the file to return. Note: if the inode is not specified and deleted is set to true, the first file encountered is returned."
+            },
+            {
+                "name": "Deleted",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Acquire deleted files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "filedownloadhistory": {
+        "description": "Returns a history of files downloaded through a browser.",
+        "parameters": [
+            {
+                "name": "TargetBrowser",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "The name of the supported browser whose history will be extracted (Firefox, Internet Explorer, or Chrome)."
+            },
+            {
+                "name": "PathToHistoryFiles",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The path to a user profile directory, the base profile directory, or a single history file from supported browser types."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "files-api": {
+        "description": "Gathers a list of files using system calls.",
+        "parameters": [
+            {
+                "name": "Path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Path where search starts. The trailing back-slash is optional. Examples: 1) C:\\ 2) D:\\WINDOWS\\ (note: escape backslashes)."
+            },
+            {
+                "name": "Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the Regular Expression a file must match to be returned. You must use standard Regular Expression escaping ( '\\\\' matches a single '\\', '\\.' matches '.' ) Examples: 1) Match all files in any subdirectory: .* 2) Match .xls files in any subdirectory: .*\\.xls 3) Match .xls files in a subdirectory named Temp: .*\\\\Temp\\\\.*\\.xls (note that backslashes must be escaped)."
+            },
+            {
+                "name": "Path Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "An alias for the \"Regex\" parameter."
+            },
+            {
+                "name": "Depth",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Number of directory levels to include, with -1 representing full depth"
+            },
+            {
+                "name": "MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the MD5 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA1 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA256 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Preserve Times",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Manually reset last access times for audited files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Minimum Sizes",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "The minimum file size (in bytes) of a returned file."
+            },
+            {
+                "name": "Maximum Sizes",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "The maximum file size (in bytes) of a returned file."
+            },
+            {
+                "name": "Filter MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific MD5 hash."
+            },
+            {
+                "name": "Filter SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific SHA1 hash."
+            },
+            {
+                "name": "Filter SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific SHA256 hash."
+            },
+            {
+                "name": "Verify Digital Signatures",
+                "platform": [
+                    "win",
+                    "osx"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Verify the digital signature on executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Content Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Search files for particular content."
+            },
+            {
+                "name": "AND Operator",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "A file's content must match all regex parameters.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Include Files",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return file item types.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Include Directories",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return directory item types.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Include Remote Locations",
+                "platform": [
+                    "osx",
+                    "linux"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Include remote locations such as NFS mounted directories.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Analyze Entropy",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Calculate entropy for executable files. High entropy may indicate a packed executable.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Enumerate Imports",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Identify modules and functions imported by executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Enumerate Exports",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Identify modules and functions exported by executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Analyze File Anomalies",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Detect higher-order anomalies which may indicate malicious files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Scan Entry Point Distance",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the number of bytes from the entry point to scan for jumps."
+            },
+            {
+                "name": "Strings",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Bool indicating whether or not to parse specified files for strings. If strings is enabled, default string length is 4.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "shortest matched string",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Minimum Recognized String Length. Default: 4."
+            },
+            {
+                "name": "Get Resources",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return resources stored in a PE file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Get Resource Data",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return all data associated with all resources in a PE file. WARNING: This option can return very large amounts of data even with narrowly-scoped audits. Consider using \"Exclude Resource Types\" and verifying the size of the results from a single host before running on multiple hosts.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Get Version Info",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return version information stored in a PE file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Exclude Resource Types",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "List of resource types to exclude when extracting PE resources."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "files-raw": {
+        "description": "Gathers listing of files by directly examining structures on the target system\u2019s disks.",
+        "parameters": [
+            {
+                "name": "Path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Path where search starts. The trailing back-slash is optional. Examples: 1) C:\\ 2) D:\\WINDOWS\\"
+            },
+            {
+                "name": "Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the Perl Compatible Regular Expression a key or value name must match to be returned. You must use standard Regular Expression escaping ( '\\\\' matches a single '\\', '\\.' matches '.' ) Examples: 1) Match all files in any subdirectory: .* 2) Match .xls files in any subdirectory: .*\\.xls 3) Match .xls files in a subdirectory named Temp: .*\\\\Temp\\\\.*\\.xls (note that backslashes must be escaped)."
+            },
+            {
+                "name": "Path Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "An alias for the \"Regex\" parameter."
+            },
+            {
+                "name": "Depth",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Number of directory levels to include, with -1 representing full depth."
+            },
+            {
+                "name": "MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the MD5 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA1 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA256 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Analyze Entropy",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Calculate entropy for executable files. High entropy may indicate a packed executable.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Enumerate Imports",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Identify modules and functions imported by executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Enumerate Exports",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Identify modules and functions exported by executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Analyze File Anomalies",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Detect higher-order anomalies which may indicate malicious files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Scan Entry Point Distance",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the number of bytes from the entry point to scan for jumps."
+            },
+            {
+                "name": "Verify Digital Signatures",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Verify the digital signature on executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Minimum Sizes",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "The minimum file size (in bytes) of a returned file."
+            },
+            {
+                "name": "Maximum Sizes",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "The maximum file size (in bytes) of a returned file."
+            },
+            {
+                "name": "Active Files",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Enumerate the active files. Active means non-deleted files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Deleted Files",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Enumerate the deleted files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Parse NTFS INDX Buffers",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Parse unused space in NTFS INDX buffers to find previous directory entries.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Filter MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific MD5 hash."
+            },
+            {
+                "name": "Filter SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific SHA1 hash."
+            },
+            {
+                "name": "Filter SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific SHA256 hash."
+            },
+            {
+                "name": "Content Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Search files for particular content."
+            },
+            {
+                "name": "AND Operator",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "A file's content must match all regex parameters.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Strings",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Bool indicating whether or not to parse specified files for strings. If strings is enabled, default string length is 4.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "shortest matched string",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Minimum Recognized String Length. Default: 4."
+            },
+            {
+                "name": "Include Files",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return file item types.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Include Directories",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return directory item types.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Get Resources",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return resources stored in a PE file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Get Version Info",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return version information stored in a PE file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Get Resource Data",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return all data associated with all resources in a PE file. WARNING: This option can return very large amounts of data even with narrowly-scoped audits. Consider using \"Exclude Resource Types\" and verifying the size of the results from a single host before running on multiple hosts.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Exclude Resource Types",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "List of resource types to exclude when extracting PE resources."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "formhistory": {
+        "description": "Returns a history of forms edited through a browser.",
+        "parameters": [
+            {
+                "name": "TargetBrowser",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "The name of the supported browser whose history will be extracted (Firefox, Internet Explorer, or Chrome)."
+            },
+            {
+                "name": "PathToHistoryFiles",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The path to a user profile directory, the base profile directory, or a single history file from supported browser types."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "groups": {
+        "description": "Retrieves a list of user groups from the target system.",
+        "parameters": [],
+        "platforms": [
+            "osx"
+        ]
+    },
+    "hivelist": {
+        "description": "Lists registry hives for use in a Registry Listing audit. Includes hives which can only be acquired in Raw mode (such as the SAM hive).",
+        "parameters": [
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "intel-key": {
+        "description": "HX passes a key to the agent for decrypting intel. This command is part of the sysinfo for newly provisioned agents. The agent will cache the symmetric key and cipher type for use on receipt of intel.",
+        "parameters": [
+            {
+                "name": "Cipher",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Type of key. Should be \"aes256\"."
+            },
+            {
+                "name": "HexKey",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Symmetric key."
+            },
+            {
+                "name": "Created",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Timestamp for key. If agent receives a second intel-key command, it will compare timestamps to determine whether it should replace the first key with the second."
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "iocload": {
+        "description": "Potentially forces a check for new intel. Intel channel and intel refresh interval are no longer passed to the agent in this audit; they are now agent configurations (and can be set in the config file).",
+        "parameters": [
+            {
+                "name": "IntelForceCheck",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Whether to trigger an intel pull immediately.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "iocmatch": {
+        "description": "Collects matches.",
+        "parameters": [
+            {
+                "name": "LastSeenID",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The ID of the last match that was sent; used to avoid sending the same matches every time this audit is run. If this parameter is not included in the script, all matches are returned."
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "kernel-hookdetection": {
+        "description": "Finds the presence of rootkits using IRP, System Service Descriptor Table Hooks, and Interrupt Descriptor Table Hooks (IDT).",
+        "parameters": [
+            {
+                "name": "idt",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to verify certain entries in the IDT.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "ssdt_index",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to verify the System Service Descriptor Table.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "ssdt_inline",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to check System Service Descriptor Table's functions for modifications to their prologues.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "drivers",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to check the systems drivers for IRP hooks.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "memory file",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The full path and filename of the file that represents the host's physical memory."
+            },
+            {
+                "name": "Verify Digital Signatures",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Bool indicating whether or not to verify if the hooked and hooking modules are digitally signed. This operation can not be performed on a memory image.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "log-audit": {
+        "description": "Retrieve the agent log file.",
+        "parameters": [
+            {
+                "name": "start-time",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Pull the log from this starting time."
+            },
+            {
+                "name": "end-time",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Pull the log until this end time."
+            },
+            {
+                "name": "level",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Minimum log level: \"DEBUG\", \"INFO\", \"NOTICE\", \"WARN\", \"ERR\", \"CRIT\", \"ALERT\", or \"EMERG\"."
+            },
+            {
+                "name": "message",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Matches log message strings that start with this string."
+            },
+            {
+                "name": "format",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Select \"standard\" format for log audit with json output or \"textfile\" format for log acquisition returning a text file. Default value is \"standard\"."
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "memory-acquisition": {
+        "description": "Acquires contents of a target system's memory.",
+        "parameters": [
+            {
+                "name": "offset",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the offset in bytes from the beginning of physical memory. Note: This will be rounded to the lower page boundary."
+            },
+            {
+                "name": "size",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the size of memory to return. Note: This will be rounded to the next page boundary."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "multifile-acquisition-api": {
+        "description": "Acquires multiple files based on filter criteria (e.g. path, filename) using Windows system calls for file access.",
+        "parameters": [
+            {
+                "name": "Path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Path where search starts. The trailing back-slash is optional. Examples: 1) C:\\ 2) D:\\WINDOWS\\"
+            },
+            {
+                "name": "Path Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the Perl Compatible Regular Expression a file must match to be returned. You must use standard Regular Expression escaping ( '\\\\' matches a single '\\', '\\.' matches '.' ) Examples: 1) Match all files in any subdirectory: .* 2) Match .xls files in any subdirectory: .*\\.xls 3) Match .xls files in a subdirectory named Temp: .*\\\\Temp\\\\.*\\.xls"
+            },
+            {
+                "name": "Depth",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Number of directory levels to include, with -1 representing full depth."
+            },
+            {
+                "name": "Minimum Sizes",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "The minimum file size (in bytes) of a returned file."
+            },
+            {
+                "name": "Maximum Sizes",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "The maximum file size (in bytes) of a returned file."
+            },
+            {
+                "name": "Filter MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific MD5 hash."
+            },
+            {
+                "name": "Filter SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific SHA1 hash."
+            },
+            {
+                "name": "Filter SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific SHA256 hash."
+            },
+            {
+                "name": "Content Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Search files for particular content."
+            },
+            {
+                "name": "AND Operator",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "A file's content must match all regex parameters.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "multifile-acquisition-raw": {
+        "description": "Acquires multiple files based on filter criteria (e.g. path, filename) using a method that may bypass security or access restrictions and retrieve deleted files.",
+        "parameters": [
+            {
+                "name": "Path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Path where search starts. The trailing back-slash is optional. Examples: 1) C:\\ 2) D:\\WINDOWS\\"
+            },
+            {
+                "name": "Path Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the Perl Compatible Regular Expression a file must match to be returned. You must use standard Regular Expression escaping ( '\\\\' matches a single '\\', '\\.' matches '.' ) Examples: 1) Match all files in any subdirectory: .* 2) Match .xls files in any subdirectory: .*\\.xls 3) Match .xls files in a subdirectory named Temp: .*\\\\Temp\\\\.*\\.xls"
+            },
+            {
+                "name": "Depth",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Number of directory levels to include, with -1 representing full depth."
+            },
+            {
+                "name": "Minimum Sizes",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "The minimum file size (in bytes) of a returned file."
+            },
+            {
+                "name": "Maximum Sizes",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "The maximum file size (in bytes) of a returned file."
+            },
+            {
+                "name": "Active Files",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Enumerate the active files. Active means non-deleted files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Deleted Files",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Enumerate the deleted files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Filter MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific MD5 hash."
+            },
+            {
+                "name": "Filter SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific SHA1 hash."
+            },
+            {
+                "name": "Filter SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Filter the results based on a specific SHA256 hash."
+            },
+            {
+                "name": "Content Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Search files for particular content."
+            },
+            {
+                "name": "AND Operator",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "A file's content must match all regex parameters.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "network-arp": {
+        "description": "Returns information about entries in the IPv4 and IPv6 Address Resolution Protocol (ARP) tables on a host. Each host maintains its own ARP table necessary for basic network traffic routing. Entries in the ARP table describe mappings from IP addresses to physical interface addresses.",
+        "parameters": [
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "network-dns": {
+        "description": "Returns DNS records stored in the computer's in-memory DNS cache table, which is maintained by the DNS Client Services windows component (which must be running for the table to be resident). The DNS cache table stores various DNS records that describe recently visited website domains.",
+        "parameters": [
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "network-route": {
+        "description": "Displays the IPv4 and IPv6 routing tables which store information about how a network destination is routed on a given interface.",
+        "parameters": [
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "persistence": {
+        "description": "Get details of the persistence locations.",
+        "parameters": [
+            {
+                "name": "MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the MD5 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA1 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA256 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Preserve Times",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Manually reset last access times for audited files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Verify Digital Signatures",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Verify the digital signature on executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Analyze Entropy",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Calculate entropy for executable files. High entropy may indicate a packed executable.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Enumerate Imports",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Identify modules and functions imported by executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Enumerate Exports",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Identify modules and functions exported by executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Analyze File Anomalies",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Detect higher-order anomalies which may indicate malicious files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Scan Entry Point Distance",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the number of bytes from the entry point to scan for jumps."
+            },
+            {
+                "name": "Get Resources",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return resources stored in a PE file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Get Version Info",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Return version information stored in a PE file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "lua_script",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Base64-encoded lua script to execute."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "plist-acquisition": {
+        "description": "Acquires plist file on mac.",
+        "parameters": [
+            {
+                "name": "Path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "The absolute path of the directory containing the plist file to acquire."
+            },
+            {
+                "name": "Filename",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "The name of the plist file to acquire. Example: Info.plist."
+            }
+        ],
+        "platforms": [
+            "osx"
+        ]
+    },
+    "ports": {
+        "description": "Active and listening ports and, where available, the process associated with them.",
+        "parameters": [
+            {
+                "name": "IncludeIPv6",
+                "platform": [
+                    "osx",
+                    "linux"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Include ports used by IPv6 connections.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "prefetch": {
+        "description": "Get details of the prefetch files kept in %SystemRoot%\\Prefetch.",
+        "parameters": [
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "processes-api": {
+        "description": "Lists running processes as reported by the operating system.",
+        "parameters": [
+            {
+                "name": "pid",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the Process ID (PID) of the process to analyze."
+            },
+            {
+                "name": "process name",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The first 15 characters of the process name. Cannot be specified in conjunction with PID."
+            },
+            {
+                "name": "handles",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to parse the process handles.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "sections",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to parse the process memory sections.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "detect injected dlls",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to detect injected dlls.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "processes-handle": {
+        "description": "Obtains a list of running processes by using Windows system calls to enumerate handles.",
+        "parameters": [
+            {
+                "name": "pid",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the Process ID (PID) of the process to analyze."
+            },
+            {
+                "name": "process name",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The first 15 characters of the process name. Cannot be specified in conjunction with PID."
+            },
+            {
+                "name": "handles",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to parse the process handles.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "sections",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to parse the process memory sections.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "detect injected dlls",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to detect injected dlls.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "processes-memory": {
+        "description": "Lists running processes with comprehensive information about imported modules, sections, and other data gathered from advanced memory scanning techniques.",
+        "parameters": [
+            {
+                "name": "pid",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the Process ID (PID) of the process to analyze."
+            },
+            {
+                "name": "process name",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The first 15 characters of the process name. Cannot be specified in conjunction with PID."
+            },
+            {
+                "name": "handles",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to parse the process handles.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "sections",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to parse the process memory sections.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "ports",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to parse the process for open ports.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "enumerate imports",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to enumerate imports of all loaded modules for a given process.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "enumerate exports",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to enumerate exports of all loaded modules for a given process.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Content Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Only return processes with particular content."
+            },
+            {
+                "name": "Preserve Times",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Manually reset last access times for audited files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "MemD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the MD5 hash for each returned file from memory.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the MD5 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA1 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA256 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Verify Digital Signatures",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to verify if the loaded modules within the processes address space are digitally signed. This operation can not be performed on a memory image.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "raw mode",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Open files for hashing in raw mode.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "detect injected dlls",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to detect injected dlls.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "strings",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to parse a specified process for strings. If strings is enabled, default string length is 4.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "shortest matched string",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Minimum Recognized String Length. Default: 4."
+            },
+            {
+                "name": "memory file",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The full path and filename of the file that represents the host's physical memory."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "processes-memoryacquire": {
+        "description": "Acquires memory space for a specified process.",
+        "parameters": [
+            {
+                "name": "pid",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the Process ID (PID) of the process to analyze."
+            },
+            {
+                "name": "process name",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The first 15 characters of the process name. Cannot be specified in conjunction with PID."
+            },
+            {
+                "name": "Content Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Only return processes with particular content."
+            },
+            {
+                "name": "memory file",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The full path and filename of the file that represents the host's physical memory."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "quarantine-acquire-file": {
+        "description": "Acquire a quarantine file using quarantine ID. The file will be decrypted and sent.",
+        "parameters": [
+            {
+                "name": "Quarantine ID",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Specify quarantine ID."
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "quarantine-events": {
+        "description": "Enumerate quarantined internet downloads.",
+        "parameters": [
+            {
+                "name": "path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Path of user directory for which event data is to be gathered. If no path is specified, data is returned for all user accounts."
+            },
+            {
+                "name": "URLStringMaxSize",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Size limit in bytes for DataURLString and OriginURLString fields. A value of 0 disables this limit. Default: 102400"
+            }
+        ],
+        "platforms": [
+            "osx"
+        ]
+    },
+    "quarantine-list-items": {
+        "description": "List quarantined items.",
+        "parameters": [],
+        "platforms": [
+            "win"
+        ]
+    },
+    "quarantine-purge-file": {
+        "description": "Purge a file from quarantine  using quarantine ID.",
+        "parameters": [
+            {
+                "name": "Quarantine ID",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Specify quarantine ID."
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "quarantine-restore-file": {
+        "description": "Restore a quarantine file using quarantine ID.",
+        "parameters": [
+            {
+                "name": "Quarantine ID",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Specify quarantine ID."
+            },
+            {
+                "name": "Restore path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specify restore path, if not specified restore at original location."
+            },
+            {
+                "name": "Force",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Overwrite existing file at restore path if true, default it will not overwrite and give error.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Purge",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Purge the file from quarantine after restoring the file successfully, default is true.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "registry-api": {
+        "description": "Returns a listing of registry keys using standard API methods.",
+        "parameters": [
+            {
+                "name": "Path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Top-level Registry key to walk from. Path if specified must include the hive name (such as HKLM)."
+            },
+            {
+                "name": "Path Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the Perl Compatible Regular Expression a key or value name must match to be returned. Examples: 1) Match any key or value in any sub-key of the root: .* 2) Match any key or value named Run in any sub-key: .*\\\\Run 3) Match any key or value in a sub-key of Services: .*\\\\Services\\\\.* (note that backslashes must be escaped)."
+            },
+            {
+                "name": "Value Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Return results only for values that contain data matching a Perl Compatible regular expression, such as \"svchost(\\d\\d)?\\.exe\". Note that REG_SZ values are automatically converted from UTF16 to UTF8 for comparison, all other values are compared \"as-is\"."
+            },
+            {
+                "name": "Type",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Control whether keys and values are returned. Valid values for type are \"KeysOnly\", \"ValuesOnly\", or \"All\". Default is \"All\"."
+            },
+            {
+                "name": "Depth",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the number of levels to recurse in the tree of keys rooted at root_key. Use -1 to recurse the entire tree. Starting depth is not relative to the hive."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "registry-raw": {
+        "description": "Returns a listing of registry keys using Raw methods which may bypass security and access restrictions.",
+        "parameters": [
+            {
+                "name": "Path",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Top-level Registry key to walk from. Path if specified must include the hive name (such as HKLM)."
+            },
+            {
+                "name": "Path Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the Perl Compatible Regular Expression a key or value name must match to be returned. Examples: 1) Match any key or value in any sub-key of the root: .* 2) Match any key or value named Run in any sub-key: .*\\\\Run 3) Match any key or value in a sub-key of Services: .*\\\\Services\\\\.* (note that backslashes must be escaped)."
+            },
+            {
+                "name": "Value Regex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Return results only for values that contain data matching a Perl Compatible regular expression, such as \"svchost(\\d\\d)?\\.exe\". Note that REG_SZ values are automatically converted from UTF16 to UTF8 for comparison, all other values are compared \"as-is\"."
+            },
+            {
+                "name": "Type",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Control whether keys and values are returned. Valid values for type are \"KeysOnly\", \"ValuesOnly\", or \"All\". Default is \"All\"."
+            },
+            {
+                "name": "Depth",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Specifies the number of levels to recurse in the tree of keys rooted at root_key. Use -1 to recurse the entire tree. Starting depth is relative to the hive (eg \\HKLM\\SOFTWARE)."
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "reprovision": {
+        "description": "Agent reprovisions, saves the newly received certificate and key, and restarts.",
+        "parameters": [],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "restart": {
+        "description": "Restarts the agent service.",
+        "parameters": [],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "services": {
+        "description": "Gathers a list of configured and running services on the target system.",
+        "parameters": [
+            {
+                "name": "MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the MD5 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA1 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA256 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Verify Digital Signatures",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Verify the digital signature on executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Preserve Times",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Manually reset last access times for audited files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "raw mode",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Open files for hashing in raw mode.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "shell-history": {
+        "description": "Collects command histories from bash, zsh, and ksh93.",
+        "parameters": [
+            {
+                "name": "UserList",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "List of users whose histories to collect. Collects all users if unspecified."
+            },
+            {
+                "name": "ShellList",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Limit collection to histories for specified shells."
+            },
+            {
+                "name": "CommandRegex",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "textarea",
+                "usage": "Limit collection to commands matching one of the supplied regular expressions."
+            },
+            {
+                "name": "IncludeBefore",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Limit collection to command executed before the given value. Commands that do not have an associated timestamp are still included."
+            },
+            {
+                "name": "IncludeAfter",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Limit collection to commands executed after the given value. Commands that do not have an associated timestamp are still included."
+            }
+        ],
+        "platforms": [
+            "linux"
+        ]
+    },
+    "stateagentinspector": {
+        "description": "Retrieves contents of the events database. Two audit types: first uses time interval (start/stop times) and max event count per type, second uses target time and max event counts per type for before and after the target time",
+        "parameters": [
+            {
+                "name": "intervalStart",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Used for audit type 1. Beginning of collection interval."
+            },
+            {
+                "name": "intervalStop",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Used for audit type 1. End of collection interval."
+            },
+            {
+                "name": "eventTypes",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "Used for both audit types. Describes event types to report. If not specified, all types are returned."
+            },
+            {
+                "name": "maxEventsPerType",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Used for both audit types. Max number of events per type. Same number used for each type collected."
+            },
+            {
+                "name": "timeOfInterest",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "Used for audit type 2. Time of interest, for events to be collected around."
+            },
+            {
+                "name": "maxEventsPerTypeBeforeTimeOfInterest",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "Used for audit type 2. Number of events to be collected before time of interest."
+            },
+            {
+                "name": "maxEventsPerTypeAfterTimeOfInterest",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "Used for audit type 2. Number of events to be collected after time of interest."
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "sysinfo": {
+        "description": "General system information such as network devices, registration information, and local time.",
+        "parameters": [],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "syslog": {
+        "description": "Parses syslog records.",
+        "parameters": [],
+        "platforms": [
+            "osx"
+        ]
+    },
+    "systemrestore": {
+        "description": "Get details associated with each restore point on the system.",
+        "parameters": [
+            {
+                "name": "Prevent Hibernation",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win"
+        ]
+    },
+    "tasks": {
+        "description": "List of Scheduled tasks (created via the 'at' command or Task Scheduler).",
+        "parameters": [
+            {
+                "name": "MD5",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the MD5 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA1",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA1 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "SHA256",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Compute the SHA256 hash for each returned file.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Verify Digital Signatures",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Verify the digital signature on executable files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Preserve Times",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Manually reset last access times for audited files.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "raw mode",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Open files for hashing in raw mode.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "upgrade": {
+        "description": "Upgrade the agent.",
+        "parameters": [
+            {
+                "name": "Type",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Requested upgrade action. Should be \"upgrade\"."
+            },
+            {
+                "name": "Component",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "The component sitting in the designated location. Should be \"agentmsi\"."
+            },
+            {
+                "name": "Version",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "xAgent version to which you are upgrading."
+            },
+            {
+                "name": "Platform",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Platform on which you are upgrading. \"win32\", \"win64\", \"osx\", \"linux\"."
+            },
+            {
+                "name": "HashAlgorithm",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Algorithm used for hashing the .msi.cms, .mpkg.cms, or .tar.gz.cms file. Available algorithms: \"md5\", \"sha1\", \"sha256\", \"sha384\", \"sha512\"."
+            },
+            {
+                "name": "HashValue",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Hash value of the .msi.cms, .mpkg.cms, or .tar.gz.cms file."
+            },
+            {
+                "name": "Length",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "Size of the .msi.cms, .mpkg.cms, or .tar.gz.cms file in bytes."
+            },
+            {
+                "name": "Location",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": true,
+                "type": "text",
+                "usage": "URL where the .msi.cms, .mpkg.cms, .tar.gz.cms file can be found."
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx",
+            "linux"
+        ]
+    },
+    "urlhistory": {
+        "description": "Returns a history of URLs visited. The options \"GetThumbnails\" and \"GetIndexedPageContent\" are only available for Chrome.",
+        "parameters": [
+            {
+                "name": "TargetBrowser",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": true,
+                "required": false,
+                "type": "text",
+                "usage": "The name of the supported browser whose history will be extracted (Firefox, Internet Explorer, or Chrome)."
+            },
+            {
+                "name": "PathToHistoryFiles",
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "text",
+                "usage": "The path to a user profile directory, the base profile directory, or a single history file from supported browser types."
+            },
+            {
+                "name": "GetThumbnails",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to retrieve thumbnail images of websites visited.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "GetIndexedPageContent",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Indicates whether or not to retrieve indexed page content of websites visited.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            },
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "useraccounts": {
+        "description": "Retrieves a list of user accounts from the target system.",
+        "parameters": [
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    },
+    "volumes": {
+        "description": "List volumes which may be mounted by physical disks.",
+        "parameters": [
+            {
+                "name": "Prevent Hibernation",
+                "platform": [
+                    "win"
+                ],
+                "platforms": [
+                    "win",
+                    "osx",
+                    "linux"
+                ],
+                "repeatable": false,
+                "required": false,
+                "type": "dropdown",
+                "usage": "Prevents the host machine from entering hibernation while this module is executed.",
+                "values": [
+                    "true",
+                    "false"
+                ]
+            }
+        ],
+        "platforms": [
+            "win",
+            "osx"
+        ]
+    }
 }
