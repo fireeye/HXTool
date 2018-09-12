@@ -101,6 +101,7 @@
 			else {
 				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
 			}
+			$(newdiv).append($('<div>', {class: 'auditParameterUsage', text: objData['usage']}));
 			$(newdiv).append($('<input>', {class: 'auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name']}));
 			if (repeat) {
 				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
@@ -118,6 +119,7 @@
 			else {
 				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
 			}
+			$(newdiv).append($('<div>', {class: 'auditParameterUsage', text: objData['usage']}));
 			$(newdiv).append($('<textarea>', {class: 'auditTextAreaInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
 			if (repeat) {
 				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
@@ -135,6 +137,7 @@
 			else {
 				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
 			}
+			$(newdiv).append($('<div>', {class: 'auditParameterUsage', text: objData['usage']}));
 			$(newdiv).append($('<select>', {class: 'auditSelectInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
 			for (option in objData['values']) {
 				thiselement = document.getElementById(auditname + "_" + my_uuid + "_" + objData['name']);
