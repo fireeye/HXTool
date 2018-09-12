@@ -35,6 +35,19 @@
 <body>
 	<script>
 
+		// Function to check if current HX version is equal or greater than a specific version
+		function checkVersion(version) {
+			myVersionArr = version.split(".");
+			currversion = JSON.parse("{{session['hx_version']}}");
+
+			if (currversion[0] >= myVersionArr[0] && currversion[1] >= myVersionArr[1] && currversion[2] >= myVersionArr[2]) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
 		function showPopup(height, width, url, elementToRestrict, includeWidthRestriction=false) {
 			$('#shader').popupshow();
 			$('#ht_popup_div').css({height : height });

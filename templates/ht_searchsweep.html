@@ -20,6 +20,15 @@
 	}
 
 	$(document).ready(function() {
+
+		if (checkVersion("4.5.0")) {
+			$('#comment').show();
+			$('#skipterms').show();
+		}
+		else {
+			$('#comment').remove();
+			$('#skipterms').remove();			
+		}
 		
 		$("#checkboxStore").click(function() {
 			enableStore();
@@ -172,6 +181,20 @@
 		<div style='clear: both;'></div>
 
 		<br>
+
+		<div id='comment' style='display: none; margin-bottom: 10px;'>
+			<b>Comment</b><br>
+			<input type='text' id='escomment' name='escomment' style='width: 250px;'>
+		</div>
+
+		<div id='skipterms' style='display: none; margin-bottom: 10px;'>
+			<b>Skip unsupported terms</b><br>
+			<select name='esskipterms' id='esskipterms'>
+				<option value='true'>True
+				<option value='false'>False
+			</select>
+		</div>
+
 		<b>Hostset</b><br>
 		<select name='sweephostset' id='sweephostset'>
 			{% if hostsets %} {{ hostsets|safe }} {% endif %}

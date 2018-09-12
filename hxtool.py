@@ -350,6 +350,14 @@ def search(hx_api_object):
 		elif 'store' in request.form.keys():
 			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])['ioc']
 		
+		if 'escomment' in request.form.keys():
+			# TODO INCLUDE THIS IN THE TASK
+			print("ES Comment: " + request.form['escomment'])
+
+		if 'esskipterms' in request.form.keys():
+			# TODO INCLUDE THIS IN THE TASK
+			print("ES Skipterms: " + request.form['esskipterms'])
+
 		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task")
 		enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
 											'script' : ioc_script,
@@ -1230,6 +1238,7 @@ def login():
 					session['ht_user'] = request.form['ht_user']
 					session['ht_profileid'] = ht_profile['profile_id']
 					session['ht_api_object'] = hx_api_object.serialize()
+					session['hx_version'] = hx_api_object.hx_version
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
