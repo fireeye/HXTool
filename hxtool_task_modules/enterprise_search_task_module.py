@@ -27,6 +27,13 @@ class enterprise_search_task_module(task_module):
 				'description' : "The ID of the host set to execute the script against."
 			},
 			{
+				'name' : 'ignore_unsupported_items',
+				'type' : bool,
+				'required' : False,
+				'user_supplied' : True,
+				'description' : "Specifies whether to instruct the HX controller to ignore unsupported items in the script. Defaults to False"
+			},
+			{
 				'name' : 'skip_base64',
 				'type' : bool,
 				'required' : False,
@@ -46,13 +53,13 @@ class enterprise_search_task_module(task_module):
 			}
 		]
 	
-	def run(self, script = None, hostset_id = None, skip_base64 = False):
+	def run(self, script = None, hostset_id = None, ignore_unsupported_items = False, skip_base64 = False):
 		ret = False
 		result = {}
 		if script:
 			hx_api_object = self.get_task_api_object()	
 			if hx_api_object and hx_api_object.restIsSessionValid():
-				(ret, response_code, response_data) = hx_api_object.restSubmitSweep(script, hostset_id, skip_base64 = skip_base64)
+				(ret, response_code, response_data) = hx_api_object.restSubmitSweep(script, hostset_id, ignore_unsupported_items = ignore_unsupported_items, skip_base64 = skip_base64)
 				if ret:
 					result['enterprise_search_id'] = response_data['data']['_id']
 					self.logger.info("Enterprise Search ID: {} successfully submitted.".format(result['enterprise_search_id']))

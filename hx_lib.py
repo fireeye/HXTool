@@ -701,14 +701,18 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 
-	def restSubmitSweep(self, indicator, host_set, skip_base64=False):
+	def restSubmitSweep(self, indicator, host_set, ignore_unsupported_items = False, skip_base64 = False):
 		
 		if not skip_base64:
 			indicator = HXAPI.b64(indicator)
 		
 		data = json.dumps({'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
 		
-		request = self.build_request(self.build_api_route('searches'), method = 'POST', data = data)
+		params = None
+		if self.hx_version >= [4,5,0]:
+			params = {'ignore_unsupported_items' : str(ignore_unsupported_items).lower()}
+		
+		request = self.build_request(self.build_api_route('searches'), method = 'POST', params = params, data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)

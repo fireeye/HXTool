@@ -349,14 +349,15 @@ def search(hx_api_object):
 		elif 'store' in request.form.keys():
 			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])['ioc']
 		
+		ignore_unsupported_items = False
 		if 'esskipterms' in request.form.keys():
-			# TODO INCLUDE THIS IN THE TASK
-			print("ES Skipterms: " + request.form['esskipterms'])
+			ignore_unsupported_items = (request.form['esskipterms'] == 'true')
 
 		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task")
 		enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
 											'script' : ioc_script,
 											'hostset_id' : request.form['sweephostset'],
+											'ignore_unsupported_items' : ignore_unsupported_items,
 											'skip_base64': True
 										})
 		hxtool_global.hxtool_scheduler.add(enterprise_search_task)
