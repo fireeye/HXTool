@@ -6,17 +6,21 @@
 :root {
 /*    --bg-color-topbar: rgb(225, 225, 225); */
 	--bg-color-topbar: rgb(210,210,210);
-    --bg-color-topmenubar: rgb(73, 110, 150);
-/*    --bg-color-topmenubar: rgb(121, 161, 190); */
-    --text-color-topbar: rgb(255, 255, 255);
+/*    --bg-color-topmenubar: rgb(73, 110, 150); */
+    --bg-color-topmenubar: #eee;
+    --text-color-topbar: #151515;
+    --bg-color-top-element: linear-gradient(180deg, #4A71A0 0%, #262636 100%);
     font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 }
 
 .htLayoutTopBarBox {
-	width: 200px;
+	width: 150px;
 	height: 60px;
-	background: var(--bg-color-topbar);
+	background: var(--bg-color-top-element);
 	z-index: 50;
+	position: absolute;
+
+	border: 0.5px solid #151515;
 }
 
 .htLayoutTopBarTopBox {
@@ -29,8 +33,38 @@
 	top: 0;
 }
 
+.htLayoutTopBarLogo {
+	height: 30px; 
+	position: absolute; 
+	top: 0px; 
+	left: 36px; 
+	clip: rect(0px,70px,30px,19px);
+}
+
+.htLayoutTopBarLogoText {
+	position: absolute; 
+	left: 58px; 
+	top: 26px; 
+	color: rgba(255, 255, 255, 0.8);
+	text-transform: uppercase;
+	font-size: 20px; 
+	font-family: "Open Sans","Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-weight: 400;
+	letter-spacing: 3px;
+	z-index: 50;
+}
+
+.htLayoutTopBarLogoIcon {
+	left: 10px; 
+	top: 15px; 
+	position: absolute; 
+	color: rgba(255, 255, 255, 0.8);
+	margin-right: 2px;
+}
+
 .htLayoutTopBarMenuBox {
 	background: var(--bg-color-topmenubar);
+	border-bottom: 0.5px solid #ddd;
 	height: 50px;
 	width: 100%;
 	color: white;
@@ -38,31 +72,37 @@
 	position: absolute;
 	left: 0;
 	top: 0;
+	box-shadow: 0px 2px 12px 0px #ddd;
 }
 
 .htLayoutTriangle-topleft {
-	width: 0;
-	height: 0;
-	border-top: 60px solid var(--bg-color-topbar);
-	border-right: 40px solid transparent;
+	transform: skewX(-45deg);
+	background: var(--bg-color-top-element);
 	z-index: 30;
-/*	position: absolute;
-	left: 160px;
-	top: 0;
-	z-index: 0;
-	color: var(--bg-color-topbar);
-	font-size: 82px;
-	margin-top: -20px;
-	text-shadow: 2px 2px 5px rgb(115, 115, 115);
-*/
+	content: "";
+	height: 60px;
+	width: 78px;
+	left: 120px;
+	position: absolute;
+	box-shadow: 3px 0.5px 3px -2px rgba(0, 0, 0, 0.25);
+	border-top: 0.5px solid #151515;
+	border-bottom: 0.5px solid #151515;
+	border-right: 0.5px solid #151515;
 }
 
 .htLayoutTriangle-topright {
-	width: 0;
-	height: 0;
-	border-top: 60px solid var(--bg-color-topbar);
-	border-left: 40px solid transparent;
-	z-index: 30;
+	transform: skewX(45deg);
+	background: var(--bg-color-top-element);
+	z-index: -30;
+	content: "";
+	height: 60px;
+	width: 78px;
+	right: 120px;
+	position: absolute;
+	border-top: 0.5px solid #151515;
+	border-bottom: 0.5px solid #151515;
+	border-left: 0.5px solid #151515;
+	box-shadow: -3px 0.5px 3px -2px rgba(0, 0, 0, 0.25);
 }
 
 /* Navigation menu */
@@ -70,27 +110,50 @@
 .htLayoutTopBarMenuTextSpan {
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-size: 12px;
-	font-weight: 500;
+	font-weight: bold;
+	text-transform: uppercase;
+	letter-spacing: 0.2px;
 	color: var(--text-color-topbar);
 }
 
+.htLayoutTopBarMenuFindAHost {
+	position: absolute; 
+	right: 260px; 
+	top: 15px; 
+	z-index: 50;
+}
+
 .htLayoutPadIcon {
-	margin-right: 25px;
+	margin-right: 20px;
+}
+
+.htLayoutTopBarMenuContainer {
+	z-index:50; 
+	position: absolute; 
+	top: -4px; 
+	left: 235px; 
+	color: var(--text-color-topbar);
+	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
 }
 
 .htLayoutMenuItem {
 	padding-top: 4px;
-	padding-bottom: 6px;
+	padding-bottom: 3px;
+	border: 1px solid transparent;
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
 	margin-top: 17px;
 	padding-right: 10px;
 	padding-left: 10px;
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
-	font-size: 14px;
-	font-weight: 500;
+	font-weight: bold;
 }
 
 .htLayoutMenuItem:hover {
-	color: rgb(190, 190, 190);
+	color: #0fb8dc;
 	cursor: pointer;
 }
 
@@ -100,6 +163,7 @@
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	right: 150px;
 	padding: 10px;
+	width: 400px;
 	margin-top: 5px;
 	background: white;
 	border: 1px solid rgb(215,215,215);
@@ -108,43 +172,46 @@
 }
 
 .htLayoutLinkIcon {
-	color: rgb(81, 87, 97);
+	color: rgba(255, 255, 255, 0.8);
 }
 
 .htLayoutDropdown-content {
 	position: absolute;
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	margin-left: 0;
-	margin-top: 5px;
+	margin-top: 3px;
 	width: 220px;
-	border: 1px solid rgb(215,215,215);
-	border-radius: 3px;
-	box-shadow: 2px 2px 5px rgb(115, 115, 115);
+	white-space:nowrap;
+	border: 0.5px solid #151515;
+	margin-left: -11px;
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+	border-bottom-left-radius: 3px;
+	box-shadow: 3px 0.5px 3px -2px rgba(0, 0, 0, 0.25);
 	text-align: left;
-	background: white;
-	padding: 5px;
+	background: var(--bg-color-topmenubar);
+	padding-top: 5px;
 	display: none;
-	color: rgb(81, 87, 97);
-	z-index: 999;
+	color: var(--text-color-topbar);
+	z-index: -1;
 }
 
-.htLayoutDropdown-content:hover {
-	color: rgb(81, 87, 97);
-	
-}
 
 .htLayoutDropdown-item {
-	padding: 1px;
-	margin: 10px;
+	padding-left: 8px;
+	margin-left: 1px;
+	margin-right: 1px;
+	margin-bottom: 1px;
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
-	font-size: 14px;
-	font-weight: 600;
-	padding-top: 5px;
-	padding-bottom: 5px;
+	font-size: 12px;
+	font-weight: bold;
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
 
 .htLayoutDropdown-item:hover {
-	color: rgb(139, 148, 162);
+	color: #0fb8dc;
+	background: #ddd;
 }
 
 .htLayoutIconWrapper {

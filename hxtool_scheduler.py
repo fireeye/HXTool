@@ -122,13 +122,13 @@ class hxtool_scheduler:
 				return self.task_queue.get(task_id)
 	
 	def move_to_history(self, task_id):
-		with _self.lock:
+		with self._lock:
 			self.history_queue[task_id] = self.task_queue.pop(task_id).metadata()
 		if len(self.history_queue) > MAX_HISTORY_QUEUE_LENGTH:
 			self.history_queue.popitem()
 	
 	def tasks(self):
-		return [_.metadata() for _ in self.task_queue.values()] + self.history_queue.values()
+		return [_.metadata() for _ in self.task_queue.values()] + list(self.history_queue.values())
 	
 	# Load queued tasks from the database
 	def load_from_database(self):

@@ -22,11 +22,9 @@
 	$(document).ready(function() {
 
 		if (checkVersion("4.5.0")) {
-			$('#comment').show();
 			$('#skipterms').show();
 		}
 		else {
-			$('#comment').remove();
 			$('#skipterms').remove();			
 		}
 		
@@ -155,7 +153,7 @@
 
 		setInterval( function () {
 			es_datatable.ajax.reload();
-		}, 10000 );
+		}, 60000 );
 
 
 	});
@@ -181,11 +179,6 @@
 		<div style='clear: both;'></div>
 
 		<br>
-
-		<div id='comment' style='display: none; margin-bottom: 10px;'>
-			<b>Comment</b><br>
-			<input type='text' id='escomment' name='escomment' style='width: 250px;'>
-		</div>
 
 		<div id='skipterms' style='display: none; margin-bottom: 10px;'>
 			<b>Skip unsupported terms</b><br>
