@@ -30,6 +30,13 @@ class file_write_task_module(task_module):
 				'description' : "The fully qualified path to the bulk acquisition package."
 			},
 			{
+				'name' : 'batch_mode',
+				'type' : bool,
+				'required' : False,
+				'user_supplied' : True,
+				'description' : "Flag whether to batch each audit as single JSON object versus sending each record as a separate object. Defaults to False"
+			},
+			{
 				'name' : 'delete_bulk_download',
 				'type' : bool,
 				'required' : False,
@@ -56,7 +63,7 @@ class file_write_task_module(task_module):
 	def output_args():
 		return []
 	
-	def run(self, host_name = None, bulk_download_path = None, delete_bulk_download = False, file_name = None, file_append = True):
+	def run(self, host_name = None, bulk_download_path = None, batch_mode = False, delete_bulk_download = False, file_name = None, file_append = True):
 		ret = False
 		result = {}
 		try:
@@ -64,7 +71,7 @@ class file_write_task_module(task_module):
 				audit_objects = []
 				with AuditPackage(bulk_download_path) as audit_package:
 					for audit in audit_package.audits:
-						audit_object = audit_package.audit_to_dict(audit)
+						audit_object = audit_package.audit_to_dict(audit, host_name, batch_mode = batch_mode)
 						if audit_object:
 							audit_objects.append(audit_object)
 				if len(audit_objects) > 0:

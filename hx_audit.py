@@ -42,7 +42,22 @@ class AuditPackage:
 		self.package = zipfile.ZipFile(acquisition_package_path)
 		self.manifest = ('manifest.json' in self.package.namelist()) and json.loads(self.package.read('manifest.json').decode('utf-8')) or {}
 		self.audits = ('audits' in self.manifest) and self.manifest['audits'] or []
-
+		self.metadata = ('metadata.json' in self.package.namelist()) and json.loads(self.package.read('metadata.json').decode('utf-8')) or None
+		
+		self.hostname = None
+		self.agent_id = None
+		
+		self._set_metadata()
+	
+	def _set_metadata(self):
+		if self.metadata:
+			self.hostname = self.metadata['agent']['sysinfo']['hostname']
+			self.agent_id = self.metadata['agent']['_id']
+		else:
+			sysinfo_audit = self.get_audit(generator = 'sysinfo')
+			if sysinfo_audit:
+				self.hostname = ET.parse(sysinfo_audit).getroot().find('.//hostname').text
+	
 	def __enter__(self):
 		return self
 		
@@ -62,7 +77,7 @@ class AuditPackage:
 						return results['payload']
 		return None
 
-	def audit_to_dict(self, audit, hostname):
+	def audit_to_dict(self, audit, hostname, batch_mode = True):
 		for result in audit['results']:
 			# We can only convert XML
 			if result['type'] == 'application/xml':							
@@ -70,13 +85,29 @@ class AuditPackage:
 				if audit_xml:
 					xml_et = ET.parse(audit_xml).getroot()
 					if xml_et.tag == 'itemList':
-						return {
-							'hostname' : hostname,
-							'generator' : audit['generator'],
-							'generatorVersion' : audit['generatorVersion'],
-							'timestamps' : audit['timestamps'],
-							'results' : self.xml_to_dict(xml_et)['itemList']
-						}
+						if batch_mode:
+							return {
+								'hostname' : self.hostname or hostname,
+								'agent_id' : self.agent_id or None,
+								'generator' : audit['generator'],
+								'generatorVersion' : audit['generatorVersion'],
+								'timestamps' : audit['timestamps'],
+								'results' : self.xml_to_dict(xml_et)['itemList']
+							}
+						else:
+							ret = []
+							for itm in xml_et:
+								d = self.xml_to_dict(itm)
+								d.update({
+									'hostname' : self.hostname or hostname,
+									'agent_id' : self.agent_id or None,
+									'generator' : audit['generator'],
+									'generatorVersion' : audit['generatorVersion'],
+									'timestamps' : audit['timestamps']
+								})
+								ret.append(d)
+								d = None
+							return ret
 		return None
 
 	def xml_to_dict(self, element):

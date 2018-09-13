@@ -167,11 +167,11 @@ def bulkacq_view(hx_api_object):
 		if 'file' in request.form.keys():
 			f = request.files['bulkscript']
 			bulk_acquisition_script = f.read()
-			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False, comment=str(request.form['bulkhostset']))
+			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		elif 'store' in request.form.keys():
 			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
-			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True, comment=str(request.form['bulkhostset']))
+			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return redirect("/bulkacq", code=302)
 	else:
@@ -1931,6 +1931,7 @@ def datatable_bulk(hx_api_object):
 		for acq in response_data['data']['entries']:
 
 			# Find the host-set id. We have to do this because in some cases hostset is kept in comment and in some cases not.
+			# TODO: remove host set in comment code after several releases. This should no longer be used.
 			if acq['host_set']:
 				try:
 					myhostsetid = acq['host_set']['_id']
