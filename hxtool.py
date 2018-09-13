@@ -350,10 +350,6 @@ def search(hx_api_object):
 		elif 'store' in request.form.keys():
 			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])['ioc']
 		
-		if 'escomment' in request.form.keys():
-			# TODO INCLUDE THIS IN THE TASK
-			print("ES Comment: " + request.form['escomment'])
-
 		if 'esskipterms' in request.form.keys():
 			# TODO INCLUDE THIS IN THE TASK
 			print("ES Skipterms: " + request.form['esskipterms'])
