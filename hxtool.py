@@ -173,16 +173,15 @@ def bulkacq_view(hx_api_object):
 			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
 			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True, comment=request.form['bulkcomment'])
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return redirect("/bulkacq", code=302)
-	else:
-		(ret, response_code, response_data) = hx_api_object.restListHostsets()
-		hostsets = formatHostsets(response_data)
+	
+	(ret, response_code, response_data) = hx_api_object.restListHostsets()
+	hostsets = formatHostsets(response_data)
 
-		myscripts = app.hxtool_db.scriptList()
-		scripts = formatScripts(myscripts)
+	myscripts = app.hxtool_db.scriptList()
+	scripts = formatScripts(myscripts)
 
-		mytaskprofiles = app.hxtool_db.taskProfileList()
-		taskprofiles = formatTaskprofiles(mytaskprofiles)
+	mytaskprofiles = app.hxtool_db.taskProfileList()
+	taskprofiles = formatTaskprofiles(mytaskprofiles)
 
 	return render_template('ht_bulkacq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, scripts=scripts, taskprofiles=taskprofiles)
 
