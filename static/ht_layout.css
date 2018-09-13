@@ -131,7 +131,7 @@
 	z-index:50; 
 	position: absolute; 
 	top: -4px; 
-	left: 260px; 
+	left: 235px; 
 	color: var(--text-color-topbar);
 	font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;
 	font-size: 12px;
@@ -142,6 +142,7 @@
 .htLayoutMenuItem {
 	padding-top: 4px;
 	padding-bottom: 3px;
+	border: 1px solid transparent;
 	border-top-left-radius: 3px;
 	border-top-right-radius: 3px;
 	margin-top: 17px;
