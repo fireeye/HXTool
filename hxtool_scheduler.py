@@ -128,7 +128,7 @@ class hxtool_scheduler:
 			self.history_queue.popitem()
 	
 	def tasks(self):
-		return [_.metadata() for _ in self.task_queue.values()] + self.history_queue.values()
+		return [_.metadata() for _ in self.task_queue.values()] + list(self.history_queue.values())
 	
 	# Load queued tasks from the database
 	def load_from_database(self):
