@@ -99,9 +99,21 @@
 				{
 				 targets: 4,
 				 render: function ( data, type, row, meta ) {
-				 	var myparams = ""
+				 	var myparams = "";
+
 				 	if(type === 'display'){
-				 		myparams += JSON.stringify(data);
+
+				 		$.each(data, function(key, value) {
+				 			myparams += "<div>";
+				 			myparams += "<div><b>module type:</b> " + value['module'] + "</div>"
+				 			$.each(value, function(mykey, myvalue) {
+				 				if (mykey != "module") {
+				 					myparams += "<div style='margin-left: 20px;'><b>" + mykey + ":</b> " + myvalue + "</div>"
+				 				}
+				 			});
+				 			myparams += "</div>"
+				 		});
+
 //				 		Object.keys(data).forEach(function(key) {
 
 //				 			Object.keys(data[key]).forEach(function(kkey)) {
