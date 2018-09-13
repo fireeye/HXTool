@@ -178,6 +178,9 @@
 				$("#dropdown-content-es").hide();
 				$('#ht_info_content').hide();
 				$("#dropdown-content-dashboard").hide();
+				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
+					$(this).css({"border": "none"});
+				});
 			});
 			
 			$('[id^=dropdown-content]').click(function(e) {
@@ -185,52 +188,108 @@
 			});
 
 			$("#navcategory_acquisition").click(function(e) {
+
+				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
+					$(this).css({"border": "none"});
+				});
+
 				$("#dropdown-content-admin").hide();
 				$("#dropdown-content-indicators").hide();
 				$("#dropdown-content-es").hide();
 				$("#dropdown-content-dashboard").hide();
 				$('#ht_info_content').hide();
-				$("#dropdown-content-acquisition").show(150);
+
+				$(this).css({"border-top": "1px solid #151515"});
+				$(this).css({"border-left": "1px solid #151515"});
+				$(this).css({"border-right": "1px solid #151515"});
+				$(this).css({"border-bottom": "1px solid #eee"});
+
+				$("#dropdown-content-acquisition").show(0);
+
 				e.stopPropagation();
 			});
 			
 			$("#navcategory_indicator").click(function(e) {
+
+				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
+					$(this).css({"border": "none"});
+				});
+
 				$("#dropdown-content-admin").hide();
 				$("#dropdown-content-acquisition").hide();
 				$("#dropdown-content-es").hide();
 				$("#dropdown-content-dashboard").hide();
 				$('#ht_info_content').hide();
-				$("#dropdown-content-indicators").show(150);
+
+				$(this).css({"border-top": "1px solid #151515"});
+				$(this).css({"border-left": "1px solid #151515"});
+				$(this).css({"border-right": "1px solid #151515"});
+				$(this).css({"border-bottom": "1px solid #eee"});
+
+				$("#dropdown-content-indicators").show(0);
 				e.stopPropagation();
 			});
 
 			$("#navcategory_admin").click(function(e) {
+
+				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
+					$(this).css({"border": "none"});
+				});
+
 				$("#dropdown-content-indicators").hide();
 				$("#dropdown-content-acquisition").hide();
 				$("#dropdown-content-es").hide();
 				$("#dropdown-content-dashboard").hide();
 				$('#ht_info_content').hide();
-				$("#dropdown-content-admin").show(150);
+
+				$(this).css({"border-top": "1px solid #151515"});
+				$(this).css({"border-left": "1px solid #151515"});
+				$(this).css({"border-right": "1px solid #151515"});
+				$(this).css({"border-bottom": "1px solid #eee"});
+
+				$("#dropdown-content-admin").show(0);
 				e.stopPropagation();
 			});
 
 			$("#navcategory_es").click(function(e) {
+
+				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
+					$(this).css({"border": "none"});
+				});
+
 				$("#dropdown-content-admin").hide();
 				$("#dropdown-content-indicators").hide();
 				$("#dropdown-content-acquisition").hide();
 				$("#dropdown-content-dashboard").hide();
 				$('#ht_info_content').hide();
-				$("#dropdown-content-es").show(150);
+
+				$(this).css({"border-top": "1px solid #151515"});
+				$(this).css({"border-left": "1px solid #151515"});
+				$(this).css({"border-right": "1px solid #151515"});
+				$(this).css({"border-bottom": "1px solid #eee"});
+
+				$("#dropdown-content-es").show(0);
 				e.stopPropagation();
 			});
 
 			$("#navcategory_dashboard").click(function(e) {
+
+				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
+					$(this).css({"border": "none"});
+				});
+
 				$("#dropdown-content-admin").hide();
 				$("#dropdown-content-indicators").hide();
 				$("#dropdown-content-acquisition").hide();
 				$("#dropdown-content-es").hide();
 				$('#ht_info_content').hide();
-				$("#dropdown-content-dashboard").show(150);
+
+				$(this).css({"border-top": "1px solid #151515"});
+				$(this).css({"border-left": "1px solid #151515"});
+				$(this).css({"border-right": "1px solid #151515"});
+				$(this).css({"border-bottom": "1px solid #eee"});
+
+				$("#dropdown-content-dashboard").show(0);
 				e.stopPropagation();
 			});
 			
@@ -241,7 +300,7 @@
 	<div class='ht_popup_div' id='ht_popup_div'></div>
 	<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
 
-	<div style='z-index:50; position: absolute; top: 0px; left: 260px; color: rgb(245,245,245);'>
+	<div class='htLayoutTopBarMenuContainer' id='htLayoutTopBarMenuContainer'>
 
 		<div id='navcategory_dashboard' style='float: left; position: relative;' class='htLayoutMenuItem'>Dashboard <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
 			<div id='dropdown-content-dashboard' class='htLayoutDropdown-content'>
@@ -337,30 +396,28 @@
 			</div>
 		</div>
 	</div>
-	<div style='position: absolute; right: 260px; top: 20px; z-index: 50;'>
+	<div class='htLayoutTopBarMenuFindAHost'>
 		<span class='htLayoutTopBarMenuTextSpan'>Find a host</span>
 		<input type='text' id='findhost' style='width: 200px;'>
 	</div>
 
 	<div class='htLayoutTopBarMenuBox'></div>
-	<div class='htLayoutTopBarTopBox'></div>
 	<div style='position: absolute; left: 0; top: 0; z-index: 30; width: 100%;'>
-		<div class='htLayoutTopBarBox' style='float: left;'>
-			<img src='/static/fireeye.svg' style='height: 30px; position: absolute; top: 4px; left: 38px; clip: rect(0px,70px,30px,19px);'>
-			<div style='position: absolute; left: 58px; top: 32px; color: rgb(67,67,67); font-size: 12px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-weight: bold;'>Endpoint HXTool 4.0</div>
-			<i class="fas fa-search fa-2x fa-fw" style='left: 10px; top: 15px; position: absolute; color: rgb(67,67,67); margin-right: 2px;' aria-hidden="true"></i>
-			<!--
-			<div style='width: 130px; left: 50px; top: 14px; position: absolute; border-bottom: 1px solid rgb(67,67,67);'>&nbsp;</div>
-			-->
+		<div class='htLayoutTopBarBox' style='float: left; border-right: none;'>
+			<img src='/static/fireeye.svg' class='htLayoutTopBarLogo'>
+			<div class='htLayoutTopBarLogoText'>HXTool</div>
+			<i class="htLayoutTopBarLogoIcon fas fa-search fa-2x fa-fw" aria-hidden="true"></i>
 		</div>
 		<!-- <div class='htLayoutTriangle-topleft'>▼</div> -->
 		<div class='htLayoutTriangle-topleft' style='float: left;'></div>
-		<div class='htLayoutTopBarBox' style='float: right;'>
-			<div style='float: right; margin-top: 15px;'>
+		<div class='htLayoutTopBarBox' style='float: right; border-left: none; right: 0;'>
+			<div style='float: right; margin-top: 12px;'>
 				<a class='htLayoutLinkIcon' href='#' id='ht_info'><i class="fas fa-info fa-2x htLayoutPadIcon" aria-hidden="true"></i></a>
 				<div id='ht_info_content' class='htLayoutPopup'>
 					<b>User:</b> {{ user }} <br>
-					<b>Controller:</b> {{ controller }}
+					<b>Controller:</b> {{ controller }}<br>
+					<b>HXTool version</b> 4.0<br>
+					<b>Controller version:</b> {{ session['hx_version'] }}
 				</div>
 				<!-- <a href='#' id='ht_search'><i class="fas fa-search fa-2x htLayoutPadIcon" aria-hidden="true"></i></a> -->
 				<a class='htLayoutLinkIcon' href='/settings'><i class="fas fa-cog fa-2x htLayoutPadIcon" aria-hidden="true"></i></a>
