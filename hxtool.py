@@ -164,14 +164,28 @@ def taskprofile(hx_api_object):
 def bulkacq_view(hx_api_object):
 
 	if request.method == 'POST':
+		start_time = None
+		interval = None
+		
+		if 'schedule' in request.form.keys():
+			if request.form['schedule'] == 'run_at':
+				start_time = HXAPI.dt_from_str(request.form['scheduled_timestamp'])
+				
+			if request.form['schedule'] == 'run_interval':
+				start_time, interval = hxtool_global.hxtool_scheduler.schedule_from_interval(minutes = request.form.get('intervalMin', 0),
+																							hours = request.form.get('intervalHour', 0),
+																							weekday = request.form.get('intervalWeek', None),
+																							weeks = 1,
+																							months = request.form.get('intervalDay', 0))
+			
 		if 'file' in request.form.keys():
 			f = request.files['bulkscript']
 			bulk_acquisition_script = f.read()
-			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False, comment=request.form['bulkcomment'])
+			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, start_time = start_time, interval = interval, download = False, comment=request.form['bulkcomment'])
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		elif 'store' in request.form.keys():
 			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
-			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True, comment=request.form['bulkcomment'])
+			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], start_time = start_time, interval = interval, download = False, skip_base64 = True, comment=request.form['bulkcomment'])
 			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
@@ -2027,17 +2041,15 @@ def datatable_bulk(hx_api_object):
 		return(app.response_class(response=json.dumps(mybulk), status=200, mimetype='application/json'))
 	else:
 		return('HX API Call failed',500)
-
-		
 		
 ####################
 # Utility Functions
 ####################
-def submit_bulk_job(hx_api_object, hostset_id, script_xml, comment = None, download = True, task_profile = None, skip_base64 = False):
+def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, interval = None, comment = None, download = True, task_profile = None, skip_base64 = False):
 	bulk_download_eid = None
 	task_list = None
 	
-	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending')
+	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending', start_time = start_time, interval = interval)
 	
 	# So it turns out theres a nasty race condition that was happening here:
 	# the call to restListBulkHosts() was returning no hosts because the bulk
@@ -2051,7 +2063,7 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, comment = None, downl
 		task_list = []
 		for host in response_data['data']['entries']:
 			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host ['hostname']}
-			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']), parent_id = bulk_acquisition_task.task_id)
+			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']), parent_id = bulk_acquisition_task.task_id, start_time = start_time, interval = interval)
 			download_and_process_task.add_step(bulk_download_task_module, kwargs = {
 														'bulk_download_eid' : bulk_download_eid,
 														'host_id' : host['_id'],
