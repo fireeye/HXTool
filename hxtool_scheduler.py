@@ -149,9 +149,24 @@ class hxtool_scheduler:
 	
 	def status(self):
 		return self._poll_thread.is_alive()
+		
+	def schedule_from_interval(self, minutes = 0, hours = 0, weekday = None, weeks = 0, months = 0):
+		now = datetime.datetime.utcnow()
+		weekday_from_now = 0
+		if weekday:
+			weekday_from_now = ((weekday - now.weekday()) + 7) % 7
+		else:
+			# Must have a weekday in order to set weeks
+			weeks = 0
+		interval = datetime.timedelta(minutes = int(minutes), 
+									hours = int(hours), 
+									days = weekday_from_now,
+									weeks = int(weeks))
+		start_time = now + interval
+		return (start_time, interval)
 			
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, task_id = None, interval = None, start_time = datetime.datetime.utcnow(), end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, task_id = None, interval = None, start_time = None, end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
 		self.logger = hxtool_global.hxtool_scheduler.logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
@@ -167,7 +182,9 @@ class hxtool_scheduler_task:
 		self.state = None
 		self.last_run_state = None
 		self.interval = interval
-		self.start_time = start_time
+		self.start_time = datetime.datetime.utcnow()
+		if start_time:
+			self.start_time = start_time
 		self.end_time = end_time
 		self.last_run = None
 		self.next_run = next_run

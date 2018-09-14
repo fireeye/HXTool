@@ -230,7 +230,11 @@ class hxtool_db:
 	def bulkDownloadUpdateHost(self, bulk_download_eid, host_id):
 		with self._lock:
 			return self._db.table('bulk_download').update(self._db_update_nested_dict('hosts', host_id, {'downloaded' : True}), eids = [int(bulk_download_eid)])
-																				
+	
+	def bulkDownloadDeleteHost(self, bulk_download_eid, host_id):
+		with self._lock:
+			return self._db.table('bulk_download').update(self._db_delete_from_nested_dict('hosts', host_id), eids = [int(bulk_download_eid)])		
+	
 	def bulkDownloadDelete(self, bulk_download_eid):
 		with self._lock:
 			return self._db.table('bulk_download').remove(eids = [int(bulk_download_eid)])
@@ -530,6 +534,14 @@ class hxtool_db:
 				element[dict_name][dict_key] = dict_values
 			if update_timestamp and 'update_timestamp' in element:
 					element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())		
+		return transform
+		
+	def _db_delete_from_nested_dict(self, dict_name, dict_key, update_timestamp = True):
+		def transform(element):
+			if dict_key in element[dict_name]:
+				del element[dict_name][dict_key]
+			if update_timestamp and 'update_timestamp' in element:
+					element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())	
 		return transform
 	
 	def _db_append_to_list(self, list_name, value, update_timestamp = True):

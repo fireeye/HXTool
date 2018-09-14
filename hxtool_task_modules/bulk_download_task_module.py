@@ -78,12 +78,11 @@ class bulk_download_task_module(task_module):
 							result['bulk_download_path'] = full_path
 							result['host_id'] = host_id
 							result['host_name'] = host_name
-					elif ret and response_data and response_data['data']['state'] == 'FAILED':
-						ret = False
-					elif ret and response_data and (response_data['data']['state'] in {'CANCELLED', 'ABORTED'} or 
+					elif ret and response_data and (response_data['data']['state'] in {'FAILED', 'CANCELLED', 'ABORTED'} or 
 													(response_code == 404 and response_data['details'][0]['code'] == 1005)):
-						self.logger.debug("Controller returned code: {}, data: {}".format(response_code, response_data))
+						self.logger.error("Controller returned code: {}, data: {}".format(response_code, response_data))
 						self.parent_task.stop()
+						hxtool_global.hxtool_db.bulkDownloadDeleteHost(bulk_download_eid, host_id)
 						ret = False
 					else:
 						self.logger.debug("Deferring bulk download task for: {}".format(host_name))
