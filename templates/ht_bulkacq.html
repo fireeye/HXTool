@@ -40,13 +40,13 @@
 		if (intervalType == "week") {
 			out += " on ";
 			out += "<select name='intervalWeek'>";
-			out += "<option value='monday'>Monday";
-			out += "<option value='tuesday'>Tuesday";
-			out += "<option value='wednesday'>Wednesday";
-			out += "<option value='thursday'>Thursday";
-			out += "<option value='friday'>Friday";
-			out += "<option value='saturday'>Saturday";
-			out += "<option value='sunday'>Sunday";
+			out += "<option value='0'>Monday";
+			out += "<option value='1'>Tuesday";
+			out += "<option value='2'>Wednesday";
+			out += "<option value='3'>Thursday";
+			out += "<option value='4'>Friday";
+			out += "<option value='5'>Saturday";
+			out += "<option value='6'>Sunday";
 			out += "</select>";
 			out += " ";
 		}
@@ -256,7 +256,7 @@
 			timePicker24Hour: true,
 			buttonClasses: "tableActionButton",
 			locale: {
-     		 format: 'YYYY-MM-DD hh:mm'
+     		 format: 'YYYY-MM-DD hh:mm:ss'
 		    }
 		});
 
@@ -295,11 +295,11 @@
 		
 		<div style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 10px;'>&nbsp;</div>
 
-		<input type='radio' name='scheduled' checked><b> Run now</b><br>
-		<input type='radio' name='scheduled'><b> Run at specific date/time</b>
+		<input type='radio' name='schedule' value='run_now' checked><b> Run now</b><br>
+		<input type='radio' name='schedule' value='run_at'><b> Run at specific date/time</b>
 		<input type='text' id='scheduled_timestamp' name='scheduled_timestamp' style='margin-left: 5px;'>
 		<br>
-		<input type='radio' name='scheduled'><b> Run on an interval</b><br><br>
+		<input type='radio' name='schedule' value='run_interval'><b> Run on an interval</b><br><br>
 		<span style='margin-left: 15px;'>
 			Every 
 			<select name='intervalMetric' id='intervalMetric'>
