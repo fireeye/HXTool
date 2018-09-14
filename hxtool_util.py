@@ -7,7 +7,7 @@ import uuid
 
 
 try:
-	from flask import request, session, redirect, url_for
+	from flask import current_app, request, session, redirect, url_for
 except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
@@ -28,6 +28,7 @@ from hx_lib import *
 def valid_session_required(f):
 	@wraps(f)
 	def is_session_valid(*args, **kwargs):
+		ret = redirect(url_for('login', redirect_uri = request.full_path))	
 		if (session and 'ht_user' in session and 'ht_api_object' in session):
 			o = HXAPI.deserialize(session['ht_api_object'])
 			h = hash(o)
@@ -37,10 +38,8 @@ def valid_session_required(f):
 				session['ht_api_object'] = o.serialize()
 				return ret	
 			else:
-				# Comment out for now - logger needs to be global
-				#app.logger.info("The HX API token for the current session has expired, redirecting to the login page.")
-				pass
-		return redirect(url_for('login', redirect_uri = request.full_path))	
+				current_app.logger.warn("The HX API token for the current session has expired, redirecting to the login page.")
+		return ret
 	return is_session_valid
 	
 def validate_json(keys, j):
