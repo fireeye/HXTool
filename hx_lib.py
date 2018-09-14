@@ -1080,15 +1080,19 @@ class HXAPI:
 	Base64 encoding/decoding - Python 2/3 compatibility
 	"""
 	@staticmethod
-	def b64(s, decode = False, decode_string = False, character_encoding = self.default_encoding):
+	def b64(s, decode = False, decode_string = False, character_encoding = 'utf-8'):
 		if decode:
 			if decode_string:
 				return base64.b64decode(s).decode(character_encoding)
 			return base64.b64decode(s)
-		if type(s) is str:
-			s = s.encode(character_encoding)
-		return base64.b64encode(s).decode(character_encoding)
 		
+		try:
+			return base64.b64encode(s).decode(character_encoding)
+		except TypeError:
+			if type(s) is str:
+				s = s.encode(character_encoding)
+			return base64.b64encode(s).decode(character_encoding)
+	
 	@staticmethod
 	def compat_str(s):
 		if s is None:
