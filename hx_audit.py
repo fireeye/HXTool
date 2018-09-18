@@ -56,7 +56,7 @@ class AuditPackage:
 		else:
 			sysinfo_audit = self.get_audit(generator = 'sysinfo')
 			if sysinfo_audit:
-				self.hostname = ET.parse(sysinfo_audit).getroot().find('.//hostname').text
+				self.hostname = ET.fromstring(sysinfo_audit).find('.//hostname').text
 	
 	def __enter__(self):
 		return self
@@ -83,7 +83,7 @@ class AuditPackage:
 			if result['type'] == 'application/xml':							
 				audit_xml = self.get_audit(result['payload'])
 				if audit_xml:
-					xml_et = ET.parse(audit_xml).getroot()
+					xml_et = ET.fromstring(audit_xml)
 					if xml_et.tag == 'itemList':
 						if batch_mode:
 							return {
