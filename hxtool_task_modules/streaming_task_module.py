@@ -90,15 +90,11 @@ class streaming_task_module(task_module):
 						address_family, socktype, proto, canonname, sockaddr = res
 
 						stream_socket = socket.socket(address_family, socktype, proto)
+\
 						stream_socket.connect(sockaddr)
 
-						## ELAZAR YOU NEED TO CHECK THIS CODE
-						if batch_mode:
-							stream_socket.sendall(json.dumps(audit_objects, sort_keys = False, indent=4).encode('utf-8'))
-						else:
-							for myaudit_object in audit_objects[0]:
-								stream_socket.sendall(json.dumps(myaudit_object, sort_keys = False).encode('utf-8'))
-
+						stream_socket.sendall(json.dumps(audit_objects, sort_keys = False, indent=4).encode('utf-8'))
+						
 						stream_socket.close()
 									
 						ret = True
