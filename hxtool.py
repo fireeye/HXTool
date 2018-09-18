@@ -821,7 +821,7 @@ def bulkaction(hx_api_object):
 				bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
 				bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
 															'bulk_acquisition_id' : request.args.get('id'),
-															'host_id' : host['host']['_id'],
+															'agent_id' : host['host']['_id'],
 															'host_name' : host['host']['hostname']
 														})
 				# This works around a nasty race condition where the task would start before the download job was added to the database				
@@ -830,9 +830,7 @@ def bulkaction(hx_api_object):
 			hostset_id = -1
 			(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
 			if ret:
-				if response_data['data']['comment'] and 'hostset_id' in response_data['data']['comment']:
-					hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
-				elif 'host_set' in response_data['data']:
+				if 'host_set' in response_data['data']:
 					hostset_id = int(response_data['data']['host_set']['_id'])
 			
 			app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), bulk_acquisition_hosts, hostset_id = hostset_id)	
@@ -2087,7 +2085,7 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, in
 			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']), parent_id = bulk_acquisition_task.task_id, start_time = start_time, interval = interval)
 			download_and_process_task.add_step(bulk_download_task_module, kwargs = {
 														'bulk_download_eid' : bulk_download_eid,
-														'host_id' : host['_id'],
+														'agent_id' : host['_id'],
 														'host_name' : host['hostname']
 													})
 

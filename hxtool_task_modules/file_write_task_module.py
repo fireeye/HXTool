@@ -23,6 +23,13 @@ class file_write_task_module(task_module):
 				'description' : "The host name belonging to the bulk acquisition package."
 			},
 			{
+				'name' : 'agent_id',
+				'type' : str,
+				'required' : False,
+				'user_supplied' : False,
+				'description' : "The host/agent ID of the bulk acquisition to download."
+			},
+			{
 				'name' : 'bulk_download_path',
 				'type' : str,
 				'required' : True,
@@ -63,28 +70,20 @@ class file_write_task_module(task_module):
 	def output_args():
 		return []
 	
-	def run(self, host_name = None, bulk_download_path = None, batch_mode = False, delete_bulk_download = False, file_name = None, file_append = True):
+	def run(self, host_name = None, agent_id = None, bulk_download_path = None, batch_mode = False, delete_bulk_download = False, file_name = None, file_append = True):
 		ret = False
 		result = {}
 		try:
 			if bulk_download_path:
-				audit_objects = []
-				with AuditPackage(bulk_download_path) as audit_package:
-					for audit in audit_package.audits:
-						audit_object = audit_package.audit_to_dict(audit, host_name, batch_mode = batch_mode)
-						if audit_object:
-							audit_objects.append(audit_object)
-				if len(audit_objects) > 0:
-					file_mode = 'a'
-					if not file_append:
-						file_mode = 'w'
-					with open(file_name, file_mode) as f:
-						json.dump(audit_objects, f, sort_keys = False, indent = 4)
+				file_mode = 'a'
+				if not file_append:
+					file_mode = 'w'
+				with open(file_name, file_mode) as f:
+					for audit_object in self.yield_audit_results(bulk_download_path, batch_mode, host_name, agent_id):
+						json.dump(audit_object, f, sort_keys = False)
+						f.write('\n')
 					f.close()			
-					ret = True
-				else:
-					self.logger.warn("Streaming: No audit data for {} from bulk acquisition {}".format(host_name, bulk_acquisition_id))
-												
+				ret = True								
 				if ret and delete_bulk_download:
 					os.remove(os.path.realpath(bulk_download_path))
 				
