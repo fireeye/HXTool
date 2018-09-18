@@ -77,7 +77,8 @@ class AuditPackage:
 						return results['payload']
 		return None
 
-	def audit_to_dict(self, audit, hostname, batch_mode = True):
+	
+	def audit_to_dict(self, audit, hostname, agent_id = None, batch_mode = True):
 		for result in audit['results']:
 			# We can only convert XML
 			if result['type'] == 'application/xml':							
@@ -86,29 +87,26 @@ class AuditPackage:
 					xml_et = ET.fromstring(audit_xml)
 					if xml_et.tag == 'itemList':
 						if batch_mode:
-							return {
+							yield {
 								'hostname' : self.hostname or hostname,
-								'agent_id' : self.agent_id or None,
+								'agent_id' : self.agent_id or agent_id,
 								'generator' : audit['generator'],
 								'generatorVersion' : audit['generatorVersion'],
 								'timestamps' : audit['timestamps'],
 								'results' : self.xml_to_dict(xml_et)['itemList']
 							}
 						else:
-							ret = []
 							for itm in xml_et:
 								d = self.xml_to_dict(itm)
 								d.update({
 									'hostname' : self.hostname or hostname,
-									'agent_id' : self.agent_id or None,
+									'agent_id' : self.agent_id or agent_id,
 									'generator' : audit['generator'],
 									'generatorVersion' : audit['generatorVersion'],
 									'timestamps' : result['timestamps']
 								})
-								ret.append(d)
-								d = None
-							return ret
-		return None
+								yield d								
+		return
 
 	def xml_to_dict(self, element):
 		d = OrderedDict()
