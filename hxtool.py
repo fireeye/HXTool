@@ -2114,7 +2114,7 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, in
 								download_and_process_task.add_step(streaming_task_module, kwargs = {
 																	'stream_host' : task_module_params['targetip'],
 																	'stream_port' : task_module_params['targetport'],
-																	'stream_host' : task_module_params['protocol'],
+																	'stream_protocol' : task_module_params['protocol'],
 																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
 																	'delete_bulk_download' : False
 																})
