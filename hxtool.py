@@ -830,9 +830,7 @@ def bulkaction(hx_api_object):
 			hostset_id = -1
 			(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
 			if ret:
-				if response_data['data']['comment'] and 'hostset_id' in response_data['data']['comment']:
-					hostset_id = int(json.loads(response_data['data']['comment'])['hostset_id'])
-				elif 'host_set' in response_data['data']:
+				if 'host_set' in response_data['data']:
 					hostset_id = int(response_data['data']['host_set']['_id'])
 			
 			app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), bulk_acquisition_hosts, hostset_id = hostset_id)	
