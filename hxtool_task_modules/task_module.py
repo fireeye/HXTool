@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import hxtool_global
-from hx_lib import *	
+from hx_lib import *
+from hx_audit import *	
 	
 class task_module(object):
 	def __init__(self, parent_task):
@@ -13,7 +14,13 @@ class task_module(object):
 		if self.parent_task.profile_id in hxtool_global.task_hx_api_sessions:
 			return hxtool_global.task_hx_api_sessions[self.parent_task.profile_id]
 		return None
-		
+	
+	def yield_audit_results(self, bulk_download_path, batch_mode, host_name, agent_id):
+		with AuditPackage(bulk_download_path) as audit_package:
+			for audit in audit_package.audits:
+				for audit_object in audit_package.audit_to_dict(audit, host_name, agent_id = agent_id, batch_mode = batch_mode):
+					yield audit_object
+			
 	# Input and output args are a list of dictionary objects containing the following five keys: name, type, required user_supplied, and description 
 	# these define the modules inputs and outputs, for example:
 	# @staticmethod
