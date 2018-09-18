@@ -103,7 +103,7 @@ class AuditPackage:
 									'agent_id' : self.agent_id or None,
 									'generator' : audit['generator'],
 									'generatorVersion' : audit['generatorVersion'],
-									'timestamps' : audit['timestamps']
+									'timestamps' : result['timestamps']
 								})
 								ret.append(d)
 								d = None
