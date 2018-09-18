@@ -79,7 +79,7 @@ class file_write_task_module(task_module):
 					if not file_append:
 						file_mode = 'w'
 					with open(file_name, file_mode) as f:
-						json.dump(f, audit_objects, sort_keys = False, indent = 4)
+						json.dump(audit_objects, f, sort_keys = False, indent = 4)
 					f.close()			
 					ret = True
 				else:

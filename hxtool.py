@@ -177,16 +177,33 @@ def bulkacq_view(hx_api_object):
 																							weekday = request.form.get('intervalWeek', None),
 																							weeks = 1,
 																							months = request.form.get('intervalDay', 0))
-			
+
+		bulk_acquisition_script = None
+		skip_base64 = False
+		should_download = False
+		
 		if 'file' in request.form.keys():
 			f = request.files['bulkscript']
 			bulk_acquisition_script = f.read()
-			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, start_time = start_time, interval = interval, download = False, comment=request.form['bulkcomment'])
-			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		elif 'store' in request.form.keys():
-			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
-			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], start_time = start_time, interval = interval, download = False, skip_base64 = True, comment=request.form['bulkcomment'])
-			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			bulk_acquisition_script = app.hxtool_db.scriptGet(request.form['script'])['script']
+			skip_base64 = True
+		
+		task_profile = None
+		if request.form.get('taskprocessor', False):
+			task_profile = request.form.get('taskprofile_id', None)
+			should_download = True
+			
+		submit_bulk_job(hx_api_object, 
+						int(request.form['bulkhostset']), 
+						bulk_acquisition_script, 
+						start_time = start_time, 
+						interval = interval, 
+						task_profile = task_profile, 
+						download = should_download,
+						skip_base64 = skip_base64,
+						comment=request.form['bulkcomment'])
+		app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		
 		return redirect("/bulkacq", code=302)
 	else:
@@ -716,8 +733,10 @@ def bulkdetails(hx_api_object):
 	if request.args.get('id'):
 
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
-		bulktable = formatBulkHostsTable(response_data)
-
+		if ret:
+			bulktable = formatBulkHostsTable(response_data)
+		else:
+			abort(Response("Failed to retrieve bulk acquisition details from the controller, response code: {}, response data: {}".format(response_code, response_data)))
 		return render_template('ht_bulk_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable)
 	else:
 		abort(404)
@@ -2086,10 +2105,25 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, in
 																'delete_bulk_download' : False
 															})
 					comment = "HXTool Multifile File Listing Acquisition"										
-				else:
-					pass
-					# TODO: add code to parse task profile modules, extract the arguments and pass them to the modules
-			
+				elif task_profile:
+					task_profile = app.hxtool_db.taskProfileGet(task_profile)
+					if task_profile:
+						#TODO: once task profile page params are dynamic, remove static mappings
+						for task_module_params in task_profile['params']:						
+							if task_module_params['module'] == 'ip':
+								download_and_process_task.add_step(streaming_task_module, kwargs = {
+																	'stream_host' : task_module_params['targetip'],
+																	'stream_port' : task_module_params['targetport'],
+																	'stream_host' : task_module_params['protocol'],
+																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
+																	'delete_bulk_download' : False
+																})
+							elif task_module_params['module'] == 'file':
+								download_and_process_task.add_step(file_write_task_module, kwargs = {
+																	'file_name' : task_module_params['filepath'],
+																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
+																	'delete_bulk_download' : False
+																})
 			task_list.append(download_and_process_task)
 		
 		app.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts)

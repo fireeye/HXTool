@@ -495,6 +495,10 @@ class hxtool_db:
 	def taskProfileList(self):
 		with self._lock:
 			return self._db.table('taskprofiles').all()
+			
+	def taskProfileGet(self, taskprofile_id):
+		with self._lock:
+			return self._db.table('taskprofiles').get((tinydb.Query()['taskprofile_id'] == taskprofile_id))
 
 	def taskProfileDelete(self, taskprofile_id):
 		with self._lock:
