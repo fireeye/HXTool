@@ -716,8 +716,10 @@ def bulkdetails(hx_api_object):
 	if request.args.get('id'):
 
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
-		bulktable = formatBulkHostsTable(response_data)
-
+		if ret:
+			bulktable = formatBulkHostsTable(response_data)
+		else:
+			abort(Response("Failed to retrieve bulk acquisition details from the controller, response code: {}, response data: {}".format(response_code, response_data)))
 		return render_template('ht_bulk_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable)
 	else:
 		abort(404)
