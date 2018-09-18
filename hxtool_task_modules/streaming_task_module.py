@@ -86,13 +86,22 @@ class streaming_task_module(task_module):
 					socket_type = socket.SOCK_STREAM
 					if stream_protocol == 'udp':
 						socket_type = socket.SOCK_DGRAM
-					address_family, socktype, proto, canonname, sockaddr = socket.getaddrinfo(stream_host, stream_port, socket.AF_UNSPEC, socket_type)
-					stream_socket = socket.socket(address_family, socktype, proto)
-					socket.connect(sockaddr)
-					socket.sendall(json.dumps(audit_objects, sort_keys = False, indent = 4))
-					socket.close()
-								
-					ret = True
+					for res in socket.getaddrinfo(stream_host, stream_port, socket.AF_UNSPEC, socket_type):
+						address_family, socktype, proto, canonname, sockaddr = res
+
+						stream_socket = socket.socket(address_family, socktype, proto)
+						stream_socket.connect(sockaddr)
+
+						## ELAZAR YOU NEED TO CHECK THIS CODE
+						if batch_mode:
+							stream_socket.sendall(json.dumps(audit_objects, sort_keys = False, indent=4).encode('utf-8'))
+						else:
+							for myaudit_object in audit_objects[0]:
+								stream_socket.sendall(json.dumps(myaudit_object, sort_keys = False).encode('utf-8'))
+
+						stream_socket.close()
+									
+						ret = True
 				else:
 					self.logger.warn("Streaming: No audit data for {} from bulk acquisition {}".format(host_name, bulk_acquisition_id))
 												
