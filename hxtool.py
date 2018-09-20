@@ -103,6 +103,7 @@ def scriptbuilder_view(hx_api_object):
 		mydata = request.get_json(silent=True)
 
 		app.hxtool_db.scriptCreate(mydata['scriptName'], HXAPI.b64(json.dumps(mydata['script'], indent=4).encode()), session['ht_user'])
+		app.logger.info(format_activity_log(msg="new scriptbuilder acquisiton script", name=mydata['scriptName'], user=session['ht_user'], controller=session['hx_ip']))
 		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 	else:
 		myauditspacefile = open(combine_app_path('static/acquisitions.json'), 'r')
@@ -394,7 +395,7 @@ def search(hx_api_object):
 											'skip_base64': True
 										})
 		hxtool_global.hxtool_scheduler.add(enterprise_search_task)
-		app.logger.info('New Enterprise Search - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		app.logger.info(format_activity_log(msg="new enterprise search", hostset=request.form['sweephostset'], ignore_unsupported_items=ignore_unsupported_items, user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/search", code=302)
 	else:
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
@@ -417,12 +418,13 @@ def searchresult(hx_api_object):
 def searchaction(hx_api_object):
 	if request.args.get('action') == "stop":
 		(ret, response_code, response_data) = hx_api_object.restCancelJob('searches', request.args.get('id'))
-		app.logger.info('User access: Enterprise Search action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		app.logger.info(format_activity_log(msg="enterprise search action", action='stop', user=session['ht_user'], controller=session['hx_ip']))
+		#app.logger.info(format_activity_log(msg="", user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/search", code=302)
 
 	if request.args.get('action') == "remove":
 		(ret, response_code, response_data) = hx_api_object.restDeleteJob('searches', request.args.get('id'))
-		app.logger.info('User access: Enterprise Search action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		app.logger.info(format_activity_log(msg="enterprise search action", action='delete', user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/search", code=302)
 
 ### Manage Indicators
@@ -606,6 +608,7 @@ def rtioc(hx_api_object):
 			elif request.args.get('delete'):
 				(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(request.args.get('category'), request.args.get('delete'))
 				if ret:
+					app.logger.info(format_activity_log(msg="real-time indicator was deleted", name=request.args.get('delete'), category=request.args.get('category'), user=session['ht_user'], controller=session['hx_ip']))
 					return redirect("/indicators", code=302)
 			else:
 				(ret, response_code, response_data) = hx_api_object.restListCategories()
@@ -648,6 +651,7 @@ def rtioc(hx_api_object):
 								(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(mydata['category'], ioc_guid)
 								return ('', 500)
 					# All OK
+					app.logger.info(format_activity_log(msg="new real-time indicator created", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
 					return ('', 204)
 				else:
 					# Failed to create indicator
@@ -692,6 +696,7 @@ def rtioc(hx_api_object):
 					if myState:
 						# Remove the original indicator
 						(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(myOriginalCategory, myOriginalURI)
+					app.logger.info(format_activity_log(msg="real-time indicator was edited", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
 					return('', 204)
 				else:
 					# Failed to create indicator
@@ -857,11 +862,13 @@ def scripts(hx_api_object):
 		fc = request.files['script']				
 		rawscript = fc.read()
 		app.hxtool_db.scriptCreate(request.form['scriptname'], HXAPI.b64(rawscript), session['ht_user'])
+		app.logger.info(format_activity_log(msg="new acquisition script uploaded", name=request.form['scriptname'], user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/scripts", code=302)
 	elif request.method == "GET":
 		if request.args.get('action'):
 			if request.args.get('action') == "delete":
 				app.hxtool_db.scriptDelete(request.args.get('id'))
+				app.logger.info(format_activity_log(msg="acqusition script action", action='delete', user=session['ht_user'], controller=session['hx_ip']))
 				return redirect("/scripts", code=302)
 			elif request.args.get('action') == "view":
 				storedscript = app.hxtool_db.scriptGet(request.args.get('id'))
@@ -879,11 +886,13 @@ def openioc(hx_api_object):
 		fc = request.files['ioc']				
 		rawioc = fc.read()
 		app.hxtool_db.oiocCreate(request.form['iocname'], HXAPI.b64(rawioc), session['ht_user'])
+		app.logger.info(format_activity_log(msg="new openioc file stored", name=request.form['iocname'], user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/openioc", code=302)
 	elif request.method == "GET":
 		if request.args.get('action'):
 			if request.args.get('action') == "delete":
 				app.hxtool_db.oiocDelete(request.args.get('id'))
+				app.logger.info(format_activity_log(msg="openioc file deleted", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 				return redirect("/openioc", code=302)
 			elif request.args.get('action') == "view":
 				storedioc = app.hxtool_db.oiocGet(request.args.get('id'))
@@ -1131,7 +1140,7 @@ def stacking(hx_api_object):
 			if ret:
 				app.hxtool_db.stackJobStop(stack_job_eid = stack_job.eid)
 				app.hxtool_db.bulkDownloadUpdate(bulk_download_job.eid, stopped = True)
-				app.logger.info('Data stacking action STOP - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+				app.logger.info(format_activity_log(msg="data stacking action", action="stop", user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/stacking", code=302)
 
 	if request.args.get('remove'):
@@ -1143,7 +1152,7 @@ def stacking(hx_api_object):
 				app.hxtool_db.bulkDownloadDelete(bulk_download_job.eid)
 				
 			app.hxtool_db.stackJobDelete(stack_job.eid)
-			app.logger.info('Data stacking action REMOVE - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+			app.logger.info(format_activity_log(msg="data stacking action", action="delete", user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/stacking", code=302)
 
 		
@@ -1153,10 +1162,10 @@ def stacking(hx_api_object):
 			with open(combine_app_path('scripts', stack_type['script']), 'r') as f:
 				script_xml = f.read()
 				hostset_id = int(request.form['stackhostset'])
-				app.logger.info('Data stacking: New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 				bulk_download_eid = submit_bulk_job(hx_api_object, hostset_id, script_xml, task_profile = "stacking")
 				ret = app.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
-				app.logger.info('New data stacking job - User: {0}@{1}:{2}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+				app.logger.info(format_activity_log(msg="new stacking job", hostset=request.form['stackhostset'], user=session['ht_user'], controller=session['hx_ip']))
+
 		return redirect("/stacking", code=302)
 	
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
@@ -1268,6 +1277,7 @@ def login():
 					session['ht_profileid'] = ht_profile['profile_id']
 					session['ht_api_object'] = hx_api_object.serialize()
 					session['hx_version'] = hx_api_object.hx_version
+					session['hx_ip'] = hx_api_object.hx_host
 					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
