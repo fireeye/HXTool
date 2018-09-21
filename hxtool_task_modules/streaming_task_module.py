@@ -88,7 +88,7 @@ class streaming_task_module(task_module):
 				if stream_protocol == 'udp':
 					socket_type = socket.SOCK_DGRAM
 				
-				for res in socket.getaddrinfo(stream_host, stream_port, socket.AF_UNSPEC, socket_type):
+				for res in socket.getaddrinfo(stream_host, int(stream_port), socket.AF_UNSPEC, socket_type):
 					address_family, socktype, proto, canonname, sockaddr = res
 
 					stream_socket = socket.socket(address_family, socktype, proto)
@@ -96,7 +96,7 @@ class streaming_task_module(task_module):
 					stream_socket.connect(sockaddr)
 					
 					for audit_object in self.yield_audit_results(bulk_download_path, batch_mode, host_name, agent_id):
-						stream_socket.sendall(json.dumps(audit_object, sort_keys = False).encode('utf-8'))
+						stream_socket.sendall(json.dumps(audit_object, sort_keys = False).encode('utf-8') + '\n'.encode('utf-8'))
 					
 					stream_socket.close()
 								
