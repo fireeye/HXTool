@@ -113,10 +113,10 @@ class AuditPackage:
 			elif result['type'] == 'application/json':
 				audit_json = json.loads(self.get_audit(result['payload']))
 				
-				audit_list = None
+				audit_item = None
 				for e in audit_json:
 					if not e.startswith("@"):
-						audit_list = e
+						audit_item = e
 						break
 						
 				if batch_mode:
@@ -126,18 +126,19 @@ class AuditPackage:
 						'generator' : audit['generator'],
 						'generatorVersion' : audit['generatorVersion'],
 						'timestamps' : result['timestamps'],
-						'results' : audit_json[audit_list]
+						'results' : [{audit_item : _} for _ in audit_json[audit_item]]
 					}
 				else:
-					for itm in audit_json[audit_list]:
-						itm.update({
+					for itm in audit_json[audit_item]:
+						d = {
 							'hostname' : self.hostname or hostname,
 							'agent_id' : self.agent_id or agent_id,
 							'generator' : audit['generator'],
 							'generatorVersion' : audit['generatorVersion'],
 							'timestamps' : result['timestamps']
-						})
-						yield itm
+						}
+						d[audit_item] = itm
+						yield d
 		return
 
 	def xml_to_dict(self, element):
