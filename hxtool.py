@@ -2135,6 +2135,7 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, in
 						#TODO: once task profile page params are dynamic, remove static mappings
 						for task_module_params in task_profile['params']:						
 							if task_module_params['module'] == 'ip':
+								app.logger.debug("Using taskmodule 'ip' with parameters: protocol {}, ip {}, port {}".format(task_module_params['protocol'], task_module_params['targetip'], task_module_params['targetport']))
 								download_and_process_task.add_step(streaming_task_module, kwargs = {
 																	'stream_host' : task_module_params['targetip'],
 																	'stream_port' : task_module_params['targetport'],
