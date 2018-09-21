@@ -810,29 +810,31 @@ def bulkaction(hx_api_object):
 		return redirect("/bulkacq", code=302)	
 		
 	if request.args.get('action') == "download":
+		hostset_id = -1
+		(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
+		if ret:
+			if 'host_set' in response_data['data']:
+				hostset_id = int(response_data['data']['host_set']['_id'])
+		
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
 		
 		if ret and response_data and len(response_data['data']['entries']) > 0:
+			bulk_download_eid = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], hostset_id = hostset_id, task_profile = task_profile)
+			
 			bulk_acquisition_hosts = {}
 			task_list = []
 			for host in response_data['data']['entries']:
 				bulk_acquisition_hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' :  host['host']['hostname']}
 				bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
 				bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
-															'bulk_acquisition_id' : request.args.get('id'),
+															'bulk_acquisition_eid' : bulk_acquisition_eid,
 															'agent_id' : host['host']['_id'],
 															'host_name' : host['host']['hostname']
 														})
 				# This works around a nasty race condition where the task would start before the download job was added to the database				
 				task_list.append(bulk_acquisition_download_task)
-		
-			hostset_id = -1
-			(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
-			if ret:
-				if 'host_set' in response_data['data']:
-					hostset_id = int(response_data['data']['host_set']['_id'])
 			
-			app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], request.args.get('id'), bulk_acquisition_hosts, hostset_id = hostset_id)	
+			app.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts)
 		
 			hxtool_global.hxtool_scheduler.add_list(task_list)
 			
@@ -1043,7 +1045,7 @@ def file_listing(hx_api_object):
 			#TODO: Handle invalid regex with response. (Inline AJAX?)
 			raise
 		if script_xml:
-			bulk_download_eid = submit_bulk_job(hx_api_object, hostset, script_xml.encode(default_encoding), task_profile = "file_listing")
+			bulk_download_eid = submit_bulk_job(hx_api_object, hostset, HXAPI.compat_str(script_xml), task_profile = "file_listing")
 			ret = app.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, depth, display_name, api_mode=use_api_mode)
 			app.logger.info('New File Listing - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 			return redirect("/multifile", code=302)
