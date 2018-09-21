@@ -831,7 +831,7 @@ def bulkaction(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
 		
 		if ret and response_data and len(response_data['data']['entries']) > 0:
-			bulk_download_eid = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], hostset_id = hostset_id, task_profile = task_profile)
+			bulk_download_eid = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], hostset_id = hostset_id, task_profile = None)
 			
 			bulk_acquisition_hosts = {}
 			task_list = []
