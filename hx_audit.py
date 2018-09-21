@@ -96,7 +96,7 @@ class AuditPackage:
 								'agent_id' : self.agent_id or agent_id,
 								'generator' : audit['generator'],
 								'generatorVersion' : audit['generatorVersion'],
-								'timestamps' : audit['timestamps'],
+								'timestamps' : result['timestamps'],
 								'results' : self.xml_to_dict(xml_et)['itemList']
 							}
 						else:
@@ -125,7 +125,7 @@ class AuditPackage:
 						'agent_id' : self.agent_id or agent_id,
 						'generator' : audit['generator'],
 						'generatorVersion' : audit['generatorVersion'],
-						'timestamps' : audit['timestamps'],
+						'timestamps' : result['timestamps'],
 						'results' : audit_json[audit_list]
 					}
 				else:
