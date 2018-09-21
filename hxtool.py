@@ -714,11 +714,13 @@ def listbulk(hx_api_object):
 			f = request.files['bulkscript']
 			bulk_acquisition_script = f.read()
 			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
-			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			#app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			app.logger.info(format_activity_log(msg="new bulk acquisition", source="file", user=session['ht_user'], controller=session['hx_ip']))
 		elif 'store' in request.form.keys():
 			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
 			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
-			app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			#app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			app.logger.info(format_activity_log(msg="new bulk acquisition", source="scriptstore", user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/bulk", code=302)
 	else:
 		(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
@@ -754,8 +756,9 @@ def bulkdownload(hx_api_object):
 	if request.args.get('id'):
 		(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
 		if ret:
-			app.logger.info('Bulk acquisition download - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-			app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
+			#app.logger.info('Bulk acquisition download - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			#app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
+			app.logger.info(format_activity_log(msg="bulk acquisition download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			flask_response = Response(iter_chunk(response_data))
 			flask_response.headers['Content-Type'] = response_data.headers['Content-Type']
 			flask_response.headers['Content-Disposition'] = response_data.headers['Content-Disposition']
@@ -775,7 +778,8 @@ def download(hx_api_object):
 		else:
 			(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
 		if ret:
-			app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
+			#app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
+			app.logger.info(format_activity_log(msg="acquisition download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			flask_response = Response(iter_chunk(response_data))
 			flask_response.headers['Content-Type'] = response_data.headers['Content-Type']
 			flask_response.headers['Content-Disposition'] = response_data.headers['Content-Disposition']
@@ -795,7 +799,8 @@ def download_multi_file_single(hx_api_object):
 			if file_records and file_records[0]:
 				# TODO: should multi_file be hardcoded?
 				path = combine_app_path(download_directory_base(), hx_api_object.hx_host, 'multi_file', request.args.get('mf_id'), '{}_{}.zip'.format(file_records[0]['hostname'], request.args.get('acq_id')))
-				app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('acq_id'))
+				#app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('acq_id'))
+				app.logger.info(format_activity_log(msg="multi-file acquisition download", id=request.args.get('acq_id'), user=session['ht_user'], controller=session['hx_ip']))
 				return send_file(path, attachment_filename=os.path.basename(path), as_attachment=True)
 		else:
 			return "HX controller responded with code {0}: {1}".format(response_code, response_data)
@@ -807,12 +812,14 @@ def bulkaction(hx_api_object):
 
 	if request.args.get('action') == "stop":
 		(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', request.args.get('id'))
-		app.logger.info('Bulk acquisition action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		#app.logger.info('Bulk acquisition action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		app.logger.info(format_activity_log(msg="bulk acquisition action", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/bulkacq", code=302)
 		
 	if request.args.get('action') == "remove":
 		(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', request.args.get('id'))
-		app.logger.info('Bulk acquisition action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		#app.logger.info('Bulk acquisition action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		app.logger.info(format_activity_log(msg="bulk acquisition action", action="delete", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/bulkacq", code=302)	
 		
 	if request.args.get('action') == "download":
@@ -842,7 +849,8 @@ def bulkaction(hx_api_object):
 		
 			hxtool_global.hxtool_scheduler.add_list(task_list)
 			
-			app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			#app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			app.logger.info(format_activity_log(msg="bulk acquisition action", action="download", id=request.args.get('id'), hostset=hostset_id, user=session['ht_user'], controller=session['hx_ip']))
 		else:
 			app.logger.warn("No host entries were returned for bulk acquisition: {}. Did you just start the job? If so, wait for the hosts to be queued up.".format(request.args.get('id')))
 		return redirect("/bulkacq", code=302)
@@ -851,7 +859,8 @@ def bulkaction(hx_api_object):
 		ret = app.hxtool_db.bulkDownloadUpdate(request.args.get('id'), stopped = True)
 		# TODO: don't delete the job because the task module needs to know if the job is stopped or not.
 		#ret = app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
-		app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		#app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		app.logger.info(format_activity_log(msg="bulk acquisition action", action="stop download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/bulkacq", code=302)
 
 ### Scripts
@@ -914,7 +923,8 @@ def multifile(hx_api_object):
 			#TODO: Stop each file acquisition or handle solely in remove?
 			if success:
 				app.hxtool_db.multiFileStop(mf_job.eid)
-				app.logger.info('MultiFile Job ID {0} action STOP - User: {1}@{2}:{3}'.format(mf_job.eid, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+				#app.logger.info('MultiFile Job ID {0} action STOP - User: {1}@{2}:{3}'.format(mf_job.eid, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+				app.logger.info(format_activity_log(msg="multif-file job", action="stop", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
 
 	elif request.args.get('remove'):
 		mf_job = app.hxtool_db.multiFileGetById(request.args.get('remove'))
@@ -932,7 +942,8 @@ def multifile(hx_api_object):
 					success = False		
 			if success:
 				app.hxtool_db.multiFileDelete(mf_job.eid)
-				app.logger.info('MultiFile Job ID {0} action REMOVE - User: {1}@{2}:{3}'.format( mf_job.eid, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+				#app.logger.info('MultiFile Job ID {0} action REMOVE - User: {1}@{2}:{3}'.format( mf_job.eid, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+				app.logger.info(format_activity_log(msg="multif-file job", action="delete", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
 
 	#TODO: Make Configurable both from GUI and config file?
 	elif request.method == 'POST':
@@ -985,7 +996,8 @@ def multifile(hx_api_object):
 															'host_name' : cf['hostname']
 														})
 						hxtool_global.hxtool_scheduler.add(file_acquisition_task)
-						app.logger.info('File acquisition requested from host %s at path %s- User: %s@%s:%s - host: %s', cf['hostname'], cf['FullPath'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, agent_id)
+						#app.logger.info('File acquisition requested from host %s at path %s- User: %s@%s:%s - host: %s', cf['hostname'], cf['FullPath'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, agent_id)
+						app.logger.info(format_activity_log(msg="file acquistion requested", fromhost=cf['hostname'], path=cf['FullPath'], host=agent_id, user=session['ht_user'], controller=session['hx_ip']))
 						file_jobs.append(acq_id)
 						if len(file_jobs) >= MAX_FILE_ACQUISITIONS:
 							break
@@ -993,7 +1005,8 @@ def multifile(hx_api_object):
 						#TODO: Handle fail
 						pass
 			if file_jobs:
-				app.logger.info('New Multi-File Download requested (profile %s) - User: %s@%s:%s', profile_id, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				#app.logger.info('New Multi-File Download requested (profile %s) - User: %s@%s:%s', profile_id, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				app.logger.info(format_activity_log(msg="new multi-file download", action="requested", user=session['ht_user'], controller=session['hx_ip']))
 		
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
 	hostsets = formatHostsets(response_data)
@@ -1010,7 +1023,8 @@ def file_listing(hx_api_object):
 			if ret:
 				app.hxtool_db.fileListingStop(file_listing_job.eid)
 				app.hxtool_db.bulkDownloadUpdate(file_listing_job['bulk_download_eid'], stopped = True)
-				app.logger.info('File Listing ID {0} action STOP - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, file_listing_job.eid))
+				#app.logger.info('File Listing ID {0} action STOP - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, file_listing_job.eid))
+				app.logger.info(format_activity_log(msg="file listing action", action="stop", id=file_listing_job.eid, user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/multifile", code=302)
 
 	elif request.args.get('remove'):
@@ -1021,7 +1035,8 @@ def file_listing(hx_api_object):
 				(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
 			app.hxtool_db.bulkDownloadDelete(file_listing_job['bulk_download_eid'])
 			app.hxtool_db.fileListingDelete(file_listing_job.eid)
-			app.logger.info('File Listing ID {0} action REMOVE - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, file_listing_job.eid))
+			#app.logger.info('File Listing ID {0} action REMOVE - User: {1}@{2}:{3}'.format(session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, file_listing_job.eid))
+			app.logger.info(format_activity_log(msg="file listing action", action="delete", id=file_listing_job.eid, user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/multifile", code=302)
 
 	elif request.method == 'POST':
@@ -1193,7 +1208,7 @@ def settings(hx_api_object):
 		key = crypt_pbkdf2_hmacsha256(salt, app.task_api_key)
 		encrypted_password = crypt_aes(key, iv, request.form['bgpass'])
 		out = app.hxtool_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
-		app.logger.info("Background Processing credentials set profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		app.logger.info(format_activity_log(msg="background processing credentials action", action="set", profile=session['ht_profileid'], user=session['ht_user'], controller=session['hx_ip']))
 		hxtool_global.task_hx_api_sessions[session['ht_profileid']] = HXAPI(hx_api_object.hx_host, 
 																			hx_port = hx_api_object.hx_port, 
 																			proxies = app.hxtool_config['network'].get('proxies'), 
@@ -1212,7 +1227,7 @@ def settings(hx_api_object):
 		if hx_api_object and hx_api_object.restIsSessionValid():
 			(ret, response_code, response_data) = hx_api_object.restLogout()
 			del hxtool_global.task_hx_api_sessions[session['ht_profileid']]
-		app.logger.info("Background Processing credentials unset profileid: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		app.logger.info(format_activity_log(msg="background processing credentials action", action="delete", user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/settings", code=302)
 	
 	bgcreds = formatProfCredsInfo((app.hxtool_db.backgroundProcessorCredentialGet(session['ht_profileid']) is not None))
@@ -1230,11 +1245,11 @@ def channels(hx_api_object):
 	
 		if (request.method == 'POST'):
 			(ret, response_code, response_data) = hx_api_object.restNewConfigChannel(request.form['name'], request.form['description'], request.form['priority'], request.form.getlist('hostsets'), request.form['confjson'])
-			app.logger.info("New configuration channel on profile: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			app.logger.info(format_activity_log(msg="new configuration channel", profile=session['ht_profileid'], user=session['ht_user'], controller=session['hx_ip']))
 		
 		if request.args.get('delete'):
 			(ret, response_code, response_data) = hx_api_object.restDeleteConfigChannel(request.args.get('delete'))
-			app.logger.info("Configuration channel delete on profile: %s by user: %s@%s:%s", session['ht_profileid'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			app.logger.info(format_activity_log(msg="configuration channel action", action="delete", profile=session['ht_profileid'], user=session['ht_user'], controller=session['hx_ip']))
 			return redirect("/channels", code=302)
 		
 		(ret, response_code, response_data) = hx_api_object.restListCustomConfigChannels()
@@ -1278,7 +1293,7 @@ def login():
 					session['ht_api_object'] = hx_api_object.serialize()
 					session['hx_version'] = hx_api_object.hx_version
 					session['hx_ip'] = hx_api_object.hx_host
-					app.logger.info("Successful Authentication - User: %s@%s:%s", session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+					app.logger.info(format_activity_log(msg="user logged in", user=session['ht_user'], controller=session['hx_ip']))
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
 						redirect_uri = "/"
@@ -1295,7 +1310,7 @@ def logout():
 		if 'ht_api_object' in session:
 			hx_api_object = HXAPI.deserialize(session['ht_api_object'])
 			hx_api_object.restLogout()
-			app.logger.info('User logged out: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			app.logger.info(format_activity_log(msg="user logged out", user=session['ht_user'], controller=session['hx_ip']))
 			hx_api_object = None	
 		session.clear()
 	return redirect("/login", code=302)
