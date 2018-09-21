@@ -1100,10 +1100,10 @@ class HXAPI:
 		try:
 			return unicode(s)
 		except NameError:
-			if type(s) is str:
-				return s
-			elif type(s) is bytes:	
+			if type(s) is bytes:	
 				return s.decode(character_encoding)
+			else:
+				return str(s)
 
 	@staticmethod
 	def dt_from_str(s, precision = 's'):
