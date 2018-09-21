@@ -127,4 +127,9 @@ def make_download_directory(hx_host, download_id, job_type=None):
 
 def secure_uuid4():
 	return uuid.UUID(bytes=crypt_generate_random(16), version=4)
-	
+
+def format_activity_log(**kwargs):
+	mystring = "ACTIVITY:"
+	for key, value in kwargs.items():
+		mystring += " " + key + "='" + HXAPI.compat_str(value) + "'"
+	return(mystring)
