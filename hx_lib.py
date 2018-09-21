@@ -1094,13 +1094,16 @@ class HXAPI:
 			return base64.b64encode(s).decode(character_encoding)
 	
 	@staticmethod
-	def compat_str(s):
+	def compat_str(s, character_encoding = 'utf-8'):
 		if s is None:
 			return ''
 		try:
 			return unicode(s)
 		except NameError:
-			return str(s)
+			if type(s) is str:
+				return s
+			elif type(s) is bytes:	
+				return s.decode(character_encoding)
 
 	@staticmethod
 	def dt_from_str(s, precision = 's'):
