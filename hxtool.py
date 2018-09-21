@@ -173,11 +173,10 @@ def bulkacq_view(hx_api_object):
 				start_time = HXAPI.dt_from_str(request.form['scheduled_timestamp'])
 				
 			if request.form['schedule'] == 'run_interval':
-				start_time, interval = hxtool_global.hxtool_scheduler.schedule_from_interval(minutes = request.form.get('intervalMin', 0),
-																							hours = request.form.get('intervalHour', 0),
-																							weekday = request.form.get('intervalWeek', None),
-																							weeks = 1,
-																							months = request.form.get('intervalDay', 0))
+				(start_time, interval) = hxtool_global.hxtool_scheduler.schedule_from_interval(minutes = request.form.get('intervalMin', None),
+																							hours = request.form.get('intervalHour', None),
+																							day_of_week = request.form.get('intervalWeek', None),
+																							day_of_month = request.form.get('intervalDay', None))
 
 		bulk_acquisition_script = None
 		skip_base64 = False
