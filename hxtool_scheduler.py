@@ -150,20 +150,34 @@ class hxtool_scheduler:
 	def status(self):
 		return self._poll_thread.is_alive()
 		
-	def schedule_from_interval(self, minutes = 0, hours = 0, weekday = None, weeks = 0, months = 0):
+	def schedule_from_interval(self, minutes = None, hours = None, day_of_week = None, day_of_month = None):
 		now = datetime.datetime.utcnow()
-		weekday_from_now = 0
-		if weekday:
-			weekday_from_now = ((weekday - now.weekday()) + 7) % 7
-		else:
-			# Must have a weekday in order to set weeks
-			weeks = 0
-		interval = datetime.timedelta(minutes = int(minutes), 
-									hours = int(hours), 
-									days = weekday_from_now,
-									weeks = int(weeks))
-		start_time = now + interval
-		return (start_time, interval)
+		
+		n_minutes = 0
+		n_hours = 0
+		n_days = 0
+		
+		# First figure out the delta to the start time
+		if minutes:
+			n_minutes = (59 - now.minute) + minutes
+		if hours:
+			n_hours = (23 - now.hour) + hours
+		if day_of_week:
+			n_days = (6 - now.weekday()) + day_of_week
+	
+		#TODO: month interval
+	
+		start_time = now + datetime.timedelta(seconds = (60 - now.second), minutes = n_minutes, hours = n_hours, days = n_days)
+		
+		# Week interval
+		if day_of_week:
+			interval = datetime.timedelta(days = 7)
+		elif hours:
+			interval = datetime.timedelta(hours = hours)
+		elif minutes: 
+			interval = datetime.timedelta(minutes = minutes)
+			
+		return (start_time, interval)	
 			
 class hxtool_scheduler_task:
 	def __init__(self, profile_id, name, task_id = None, interval = None, start_time = None, end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
