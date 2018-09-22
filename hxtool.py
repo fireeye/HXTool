@@ -2011,13 +2011,13 @@ def datatable_bulk(hx_api_object):
 			if myhostsetid:
 				if myhostsetid != 9:
 					(hret, hresponse_code, hresponse_data) = hx_api_object.restListHostsets(filter_term={"_id": myhostsetid})
-					if ret:
+					if ret and len(hresponse_data['data']['entries']) > 0:
 						try:
 							myhostsetname = hresponse_data['data']['entries'][0]['name']
 						except(KeyError):
-							myhostsetname = "N/A"
+							myhostsetname = HXAPI.compat_str(myhostsetid)
 					else:
-						myhostsetname = "N/A"
+						myhostsetname = HXAPI.compat_str(myhostsetid)
 				else:
 					myhostsetname = "All Hosts"
 			else:
@@ -2054,9 +2054,8 @@ def datatable_bulk(hx_api_object):
 			# Handle buttons
 			myaction = acq['_id']
 			if bulk_download and bulk_download['task_profile']:
-				myaction = bulk_download['task_profile']
-				
-
+				if bulk_download['task_profile'] in ["file_listing","stacking"]:
+					myaction = bulk_download['task_profile']
 
 			mybulk['data'].append({
 				"DT_RowId": acq['_id'],
