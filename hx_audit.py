@@ -56,8 +56,12 @@ class AuditPackage:
 		else:
 			sysinfo_audit = self.get_audit(generator = 'sysinfo')
 			if sysinfo_audit:
-				self.hostname = ET.fromstring(sysinfo_audit).find('.//hostname').text
-	
+				#TODO: handle JSON sysinfo
+				try:
+					self.hostname = ET.fromstring(sysinfo_audit).find('.//hostname').text
+				except:
+					self.hostname = None
+					
 	def __enter__(self):
 		return self
 		
@@ -77,7 +81,7 @@ class AuditPackage:
 						return results['payload']
 		return None
 
-	
+	# TODO: this function needs to be refactored
 	def audit_to_dict(self, audit, hostname, agent_id = None, batch_mode = True):
 		for result in audit['results']:
 			# We can only convert XML
@@ -92,7 +96,7 @@ class AuditPackage:
 								'agent_id' : self.agent_id or agent_id,
 								'generator' : audit['generator'],
 								'generatorVersion' : audit['generatorVersion'],
-								'timestamps' : audit['timestamps'],
+								'timestamps' : result['timestamps'],
 								'results' : self.xml_to_dict(xml_et)['itemList']
 							}
 						else:
@@ -105,7 +109,36 @@ class AuditPackage:
 									'generatorVersion' : audit['generatorVersion'],
 									'timestamps' : result['timestamps']
 								})
-								yield d								
+								yield d
+			elif result['type'] == 'application/json':
+				audit_json = json.loads(self.get_audit(result['payload']))
+				
+				audit_item = None
+				for e in audit_json:
+					if not e.startswith("@"):
+						audit_item = e
+						break
+						
+				if batch_mode:
+					yield {
+						'hostname' : self.hostname or hostname,
+						'agent_id' : self.agent_id or agent_id,
+						'generator' : audit['generator'],
+						'generatorVersion' : audit['generatorVersion'],
+						'timestamps' : result['timestamps'],
+						'results' : [{audit_item : _} for _ in audit_json[audit_item]]
+					}
+				else:
+					for itm in audit_json[audit_item]:
+						d = {
+							'hostname' : self.hostname or hostname,
+							'agent_id' : self.agent_id or agent_id,
+							'generator' : audit['generator'],
+							'generatorVersion' : audit['generatorVersion'],
+							'timestamps' : result['timestamps']
+						}
+						d[audit_item] = itm
+						yield d
 		return
 
 	def xml_to_dict(self, element):
