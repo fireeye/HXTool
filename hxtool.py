@@ -171,12 +171,15 @@ def bulkacq_view(hx_api_object):
 		if 'schedule' in request.form.keys():
 			if request.form['schedule'] == 'run_at':
 				start_time = HXAPI.dt_from_str(request.form['scheduled_timestamp'])
-				
+			
+			schedule = None	
 			if request.form['schedule'] == 'run_interval':
-				(start_time, interval) = hxtool_global.hxtool_scheduler.schedule_from_interval(minutes = request.form.get('intervalMin', None),
-																							hours = request.form.get('intervalHour', None),
-																							day_of_week = request.form.get('intervalWeek', None),
-																							day_of_month = request.form.get('intervalDay', None))
+				schedule = {
+					'minutes' : request.form.get('intervalMin', None),
+					'hours'  : request.form.get('intervalHour', None),
+					'day_of_week' : request.form.get('intervalWeek', None),
+					'day_of_month' : request.form.get('intervalDay', None)
+				}
 
 		bulk_acquisition_script = None
 		skip_base64 = False
@@ -198,7 +201,7 @@ def bulkacq_view(hx_api_object):
 						int(request.form['bulkhostset']), 
 						bulk_acquisition_script, 
 						start_time = start_time, 
-						interval = interval, 
+						schedule = schedule, 
 						task_profile = task_profile, 
 						download = should_download,
 						skip_base64 = skip_base64,
@@ -2090,11 +2093,18 @@ def datatable_bulk(hx_api_object):
 ####################
 # Utility Functions
 ####################
-def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, interval = None, comment = None, download = True, task_profile = None, skip_base64 = False):
+def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, schedule = None, comment = None, download = True, task_profile = None, skip_base64 = False):
 	bulk_download_eid = None
 	task_list = None
 	
-	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending', start_time = start_time, interval = interval)
+	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending', start_time = start_time)
+	if schedule:
+		bulk_acquisition_task.set_schedule(
+			minutes = schedule.get('minutes', None),
+			hours = schedule.get('hours', None),
+			day_of_week = schedule.get('day_of_week', None),
+			day_of_month = schedule.get('day_of_month', None)
+		)
 	
 	# So it turns out theres a nasty race condition that was happening here:
 	# the call to restListBulkHosts() was returning no hosts because the bulk
@@ -2108,7 +2118,14 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, in
 		task_list = []
 		for host in response_data['data']['entries']:
 			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host ['hostname']}
-			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']), parent_id = bulk_acquisition_task.task_id, start_time = start_time, interval = interval)
+			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']), parent_id = bulk_acquisition_task.task_id, start_time = start_time)
+			if schedule:
+				download_and_process_task.set_schedule(
+					minutes = schedule.get('minutes', None),
+					hours = schedule.get('hours', None),
+					day_of_week = schedule.get('day_of_week', None),
+					day_of_month = schedule.get('day_of_month', None)
+				)
 			download_and_process_task.add_step(bulk_download_task_module, kwargs = {
 														'bulk_download_eid' : bulk_download_eid,
 														'agent_id' : host['_id'],
