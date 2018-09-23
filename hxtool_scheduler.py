@@ -4,6 +4,7 @@
 import logging
 import threading
 import datetime
+import calendar
 import random
 
 try:
@@ -150,37 +151,9 @@ class hxtool_scheduler:
 	def status(self):
 		return self._poll_thread.is_alive()
 		
-	def schedule_from_interval(self, minutes = None, hours = None, day_of_week = None, day_of_month = None):
-		now = datetime.datetime.utcnow()
-		
-		n_minutes = 0
-		n_hours = 0
-		n_days = 0
-		
-		# First figure out the delta to the start time
-		if minutes:
-			n_minutes = (59 - now.minute) + minutes
-		if hours:
-			n_hours = (23 - now.hour) + hours
-		if day_of_week:
-			n_days = (6 - now.weekday()) + day_of_week
-	
-		#TODO: month interval
-	
-		start_time = now + datetime.timedelta(seconds = (60 - now.second), minutes = n_minutes, hours = n_hours, days = n_days)
-		
-		# Week interval
-		if day_of_week:
-			interval = datetime.timedelta(days = 7)
-		elif hours:
-			interval = datetime.timedelta(hours = hours)
-		elif minutes: 
-			interval = datetime.timedelta(minutes = minutes)
-			
-		return (start_time, interval)	
-			
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, task_id = None, interval = None, start_time = None, end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, task_id = None, start_time = None, end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
+		
 		self.logger = hxtool_global.hxtool_scheduler.logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
@@ -195,7 +168,7 @@ class hxtool_scheduler_task:
 		self.immutable = immutable
 		self.state = None
 		self.last_run_state = None
-		self.interval = interval
+		self.schedule = {}
 		self.start_time = datetime.datetime.utcnow()
 		if start_time:
 			self.start_time = start_time
@@ -218,11 +191,62 @@ class hxtool_scheduler_task:
 
 	def _calculate_next_run(self):
 		self.next_run = None
-		if type(self.interval) is datetime.timedelta:
-			self.next_run = (self.last_run + self.interval)
-		elif self._defer_signal:
+	
+		if self._defer_signal:
 			# Add some random seconds to the interval to keep the task threads from deadlocking
 			self.next_run = (self.last_run + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
+		else:
+			if self.schedule.get('day_of_month', None):
+				n_month = self.last_run.month
+				n_year = self.last_run.year
+				if n_month == 12:
+					n_month = 1
+					n_year += 1
+				else:
+					n_month += 1
+				self.next_run = self.last_run.replace(year = n_year, month = n_month)	
+			else:
+				if self.schedule.get('day_of_week', None):
+					self.next_run = self.last_run + datetime.timedelta(days = 7)
+				elif self.schedule.get('hours', None):
+					self.next_run = self.last_run + datetime.timedelta(hours = self.schedule['hours'])
+				elif self.schedule.get('minutes', None): 
+					self.next_run = self.last_run + datetime.timedelta(minutes = self.schedule['minutes'])
+			
+		# Reset microseconds to keep things from drifting
+		self.next_run.replace(microsecond=1)
+
+	def set_schedule(self, minutes = None, hours = None, day_of_week = None, day_of_month = None):
+		with self._lock:
+			self.schedule = {
+				'minutes' : int(minutes) if minutes else None,
+				'hours' : int(hours) if hours else None,
+				'day_of_week' : int(day_of_week) if day_of_week else None,
+				'day_of_month' : int(day_of_month) if day_of_month else None
+			}
+			
+			now = datetime.datetime.utcnow().replace(microsecond=1)
+		
+			# First figure out the delta to the start time 
+			# For hours and minutes, use a relative value (i.e. current time + hours + minutes), whereas for
+			# day of week and day of month, use absolute values for hour and minute.
+		
+			n_seconds = 0	
+			n_minutes = self.schedule['minutes'] or 0
+			n_hours = self.schedule['hours'] or 0
+			n_days = 0
+			
+			if day_of_week or day_of_month:
+				n_seconds = (60 - now.second)
+				n_minutes = (59 - now.minute) + self.schedule['minutes']
+				n_hours = (23 - now.hour) + self.schedule['hours']	
+			if day_of_week:
+				n_days = (6 - now.weekday()) + self.schedule['day_of_week']
+			if day_of_month:
+				n_days = (datetime.date(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, self.schedule['day_of_month']) - now.date()).days - 1
+		
+			self.start_time = now + datetime.timedelta(seconds = n_seconds, minutes = n_minutes, hours = n_hours, days = n_days)
+			self.next_run = self.start_time
 	
 	def should_run(self):
 		return (self.enabled and  
@@ -359,7 +383,7 @@ class hxtool_scheduler_task:
 			'profile_id' : self.profile_id,
 			'task_id' : self.task_id,
 			'name' : self.name,
-			'interval' : self.interval.seconds if type(self.interval) is datetime.timedelta else None,
+			'schedule' : self.schedule,
 			'start_time' : str(self.start_time),
 			'end_time' : str(self.end_time) if self.end_time else None,
 			'last_run' : str(self.last_run) if self.last_run else None,
@@ -393,7 +417,6 @@ class hxtool_scheduler_task:
 									task_id = d['task_id'],
 									parent_id = d.get('parent_id', None),
 									wait_for_parent = d.get('wait_for_parent', True),
-									interval = datetime.timedelta(seconds = d['interval']) if d['interval'] else None,
 									start_time = HXAPI.dt_from_str(d['start_time']),
 									end_time = HXAPI.dt_from_str(d['end_time']) if d['end_time'] else None,
 									next_run = HXAPI.dt_from_str(d['next_run']) if d['next_run'] else None,
@@ -405,6 +428,9 @@ class hxtool_scheduler_task:
 		task.parent_complete = d.get('parent_complete', False)
 		task.last_run_state = d.get('last_run_state', None)							
 		task.state = d.get('state')
+		schedule = d.get('schedule', None)
+		if schedule:
+			task.set_schedule(**schedule)
 		for s in d['steps']:
 			# I hate this
 			step_module = eval(s['module'])
