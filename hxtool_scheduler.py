@@ -238,8 +238,8 @@ class hxtool_scheduler_task:
 			
 			if day_of_week or day_of_month:
 				n_seconds = (60 - now.second)
-				n_minutes = (59 - now.minute) + self.schedule['minutes']
-				n_hours = (23 - now.hour) + self.schedule['hours']	
+				n_minutes = (59 - now.minute) + n_minutes
+				n_hours = (23 - now.hour) + n_hours	
 			if day_of_week:
 				n_days = (6 - now.weekday()) + self.schedule['day_of_week']
 			if day_of_month:
