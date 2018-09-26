@@ -2180,8 +2180,9 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, sc
 									'bulk_download_eid' : bulk_download_eid
 								})
 	
-	hxtool_global.hxtool_scheduler.add(bulk_acquisition_task)	
-	hxtool_global.hxtool_scheduler.add_list(task_list)	
+	# Add the child tasks first, otherwise we end up with a nasty race condition
+	hxtool_global.hxtool_scheduler.add_list(task_list)
+	hxtool_global.hxtool_scheduler.add(bulk_acquisition_task)		
 	
 	return bulk_download_eid
 		
