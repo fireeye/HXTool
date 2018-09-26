@@ -214,7 +214,8 @@ class hxtool_scheduler_task:
 					self.next_run = self.last_run + datetime.timedelta(minutes = self.schedule['minutes'])
 			
 		# Reset microseconds to keep things from drifting
-		self.next_run.replace(microsecond=1)
+		if self.next_run:
+			self.next_run.replace(microsecond=1)
 
 	def set_schedule(self, minutes = None, hours = None, day_of_week = None, day_of_month = None):
 		with self._lock:
@@ -225,6 +226,7 @@ class hxtool_scheduler_task:
 				'day_of_month' : int(day_of_month) if day_of_month else None
 			}
 			
+			# Reset microseconds to keep things from drifting
 			now = datetime.datetime.utcnow().replace(microsecond=1)
 		
 			# First figure out the delta to the start time 
