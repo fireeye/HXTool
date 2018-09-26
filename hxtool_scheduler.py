@@ -137,7 +137,7 @@ class hxtool_scheduler:
 			tasks = hxtool_global.hxtool_db.taskList()
 			for task_entry in tasks:
 				p_id = task_entry.get('parent_id')
-				if task_entry['parent_id'] and not hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['parent_id']):
+				if (task_entry['parent_id'] and not task_entry['parent_complete']) and not hxtool_global.hxtool_db.taskGet(task_entry['profile_id'], task_entry['parent_id']):
 					self.logger.warn("Deleting orphan task {}, {}".format(task_entry['name'], task_entry['task_id']))
 					hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['task_id'])
 				else:
