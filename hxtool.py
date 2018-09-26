@@ -2120,9 +2120,8 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, sc
 			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 
 															'Bulk Acquisition Download: {}'.format(host['hostname']), 
 															parent_id = bulk_acquisition_task.task_id, 
-															start_time = start_time)
-			# Copy over the schedule
-			download_and_process_task.set_schedule(**bulk_acquisition_task.schedule)
+															start_time = bulk_acquisition_task.start_time)
+															
 				
 			download_and_process_task.add_step(bulk_download_task_module, kwargs = {
 														'bulk_download_eid' : bulk_download_eid,
