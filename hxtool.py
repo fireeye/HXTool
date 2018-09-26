@@ -2094,7 +2094,7 @@ def datatable_bulk(hx_api_object):
 ####################
 def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, schedule = None, comment = None, download = True, task_profile = None, skip_base64 = False):
 	bulk_download_eid = None
-	task_list = None
+	task_list = []
 	
 	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending', start_time = start_time)
 	if schedule:
@@ -2114,42 +2114,44 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, sc
 		
 		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset_id)
 		bulk_acquisition_hosts = {}
-		task_list = []
+		_task_profile = None
 		for host in response_data['data']['entries']:
 			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host ['hostname']}
-			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['hostname']), parent_id = bulk_acquisition_task.task_id, start_time = start_time)
-			if schedule:
-				download_and_process_task.set_schedule(
-					minutes = schedule.get('minutes', None),
-					hours = schedule.get('hours', None),
-					day_of_week = schedule.get('day_of_week', None),
-					day_of_month = schedule.get('day_of_month', None)
-				)
+			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 
+															'Bulk Acquisition Download: {}'.format(host['hostname']), 
+															parent_id = bulk_acquisition_task.task_id, 
+															start_time = start_time)
+			# Copy over the schedule
+			download_and_process_task.schedule = bulk_acquisition_task.schedule
+				
 			download_and_process_task.add_step(bulk_download_task_module, kwargs = {
 														'bulk_download_eid' : bulk_download_eid,
 														'agent_id' : host['_id'],
 														'host_name' : host['hostname']
 													})
 
-			# TODO: This is awful, needs to be rewritten where the individual function(stacking, multifile, etc) adds the necessary step
-			# TODO: and each module defines the necessary parameters required.
+			# TODO: remove static parameter mappings for task modules
 			# The bulk_acquisition_task_module passes the host_id and host_name values to these modules
 			if task_profile:
 				if task_profile == 'stacking':
+					app.logger.debug("Using stacking task module.")
 					download_and_process_task.add_step(stacking_task_module, kwargs = {
 																'delete_bulk_download' : True
 															})
 					comment = "HXTool Stacking Acquisition"										
 				elif task_profile == 'file_listing':
+					app.logger.debug("Using file listing task module.")
 					download_and_process_task.add_step(file_listing_task_module, kwargs = {
 																'delete_bulk_download' : False
 															})
 					comment = "HXTool Multifile File Listing Acquisition"										
-				elif task_profile:
-					task_profile = app.hxtool_db.taskProfileGet(task_profile)
-					if task_profile:
+				else:
+					if not _task_profile:
+						_task_profile = app.hxtool_db.taskProfileGet(task_profile)
+						
+					if _task_profile and 'params' in _task_profile:
 						#TODO: once task profile page params are dynamic, remove static mappings
-						for task_module_params in task_profile['params']:						
+						for task_module_params in _task_profile['params']:						
 							if task_module_params['module'] == 'ip':
 								app.logger.debug("Using taskmodule 'ip' with parameters: protocol {}, ip {}, port {}".format(task_module_params['protocol'], task_module_params['targetip'], task_module_params['targetport']))
 								download_and_process_task.add_step(streaming_task_module, kwargs = {
@@ -2160,6 +2162,7 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, sc
 																	'delete_bulk_download' : False
 																})
 							elif task_module_params['module'] == 'file':
+								app.logger.debug("Using taskmodule 'file' with parameters: filepath {}".format(task_module_params['filepath']))
 								download_and_process_task.add_step(file_write_task_module, kwargs = {
 																	'file_name' : task_module_params['filepath'],
 																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
@@ -2179,9 +2182,7 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, sc
 								})
 	
 	hxtool_global.hxtool_scheduler.add(bulk_acquisition_task)	
-	
-	if task_list:
-		hxtool_global.hxtool_scheduler.add_list(task_list)	
+	hxtool_global.hxtool_scheduler.add_list(task_list)	
 	
 	return bulk_download_eid
 		
