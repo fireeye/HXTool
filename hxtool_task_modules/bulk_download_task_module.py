@@ -85,7 +85,7 @@ class bulk_download_task_module(task_module):
 						hxtool_global.hxtool_db.bulkDownloadDeleteHost(bulk_download_eid, agent_id)
 						ret = False
 					else:
-						self.logger.info("Deferring bulk download task for: {}".format(host_name))
+						self.logger.debug("Deferring bulk download task for: {}".format(host_name))
 						self.parent_task.defer()
 				else:
 					self.logger.warn("No task API session for profile: {}".format(self.parent_task.profile_id))
