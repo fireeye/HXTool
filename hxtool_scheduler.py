@@ -71,7 +71,7 @@ class hxtool_scheduler:
 				self.logger.debug("Got SIGINT_TASK_ID, exiting.")
 				self.run_queue.task_done()
 				break
-			self.logger.info("Executing task with id: %s, name: %s.", task_id, task_name)
+			self.logger.debug("Executing task with id: %s, name: %s.", task_id, task_name)
 			ret = task_run()
 			self.run_queue.task_done()
 	
@@ -247,7 +247,8 @@ class hxtool_scheduler_task:
 			self.start_time = self.next_run
 	
 	def should_run(self):
-		return (self.enabled and  
+		return (self.next_run and
+				self.enabled and  
 				self.state == TASK_STATE_SCHEDULED and
 				(self.parent_complete if self.parent_id and self.wait_for_parent else True) and	
 				datetime.datetime.utcnow() >= self.next_run)
