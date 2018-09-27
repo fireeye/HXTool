@@ -4,7 +4,7 @@
 from functools import wraps
 import os
 import uuid
-
+import threading
 
 try:
 	from flask import current_app, request, session, redirect, url_for
@@ -133,3 +133,32 @@ def format_activity_log(**kwargs):
 	for key, value in kwargs.items():
 		mystring += " " + key + "='" + HXAPI.compat_str(value) + "'"
 	return(mystring)
+	
+	
+class TemporaryFileLock(object):
+	def __init__(self, file_path, file_name = 'lock_file'):
+		self.file_name = os.path.join(file_path, file_name)
+		self._stop_event = threading.Event()
+		self.file_handle = None
+	
+	def acquire(self):
+		while not self._stop_event.is_set():
+			if not os.path.isfile(self.file_name):
+				break
+			self._stop_event.wait(1)
+		self.file_handle = open(self.file_name, 'w')
+		
+	def release(self):
+		self._stop_event.set()
+		if self.file_handle:
+			self.file_handle.close()
+			os.remove(self.file_name)
+	
+	def __enter__(self):
+		self.acquire()
+		return self
+		
+	def __exit__(self, exc_type, exc_value, traceback):
+		self.release()	
+	
+		
