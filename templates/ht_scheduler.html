@@ -23,7 +23,7 @@
 			"searching": false,
 			"columns": [
 				{ title: "profile", "data": "profile" },
-				{ title: "parent_id", "data": "parent_id" },
+				{ title: "child states", "data": "child_states" },
 				{ title: "name", "data": "name" },
 				{ title: "enabled", "data": "enabled" },
 				{ title: "last_run", "data": "last_run" },
@@ -45,6 +45,21 @@
 					return data;
 					}
 				},
+				{
+				"targets": [ 1 ], 
+				render: function ( data, type, row, meta ) {
+					mychildren = "";
+
+					var obj = JSON.parse(data);
+
+					$.each(obj, function(key, value) {
+						mychildren += "<b>" + key + ":</b> " + value + "<br>"
+					});
+
+					return mychildren;
+					}
+				},
+
 
 			]
 		});

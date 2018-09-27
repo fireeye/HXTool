@@ -1969,17 +1969,27 @@ def scheduler_tasks(hx_api_object):
 	mytasks = {}
 	mytasks['data'] = []
 	for task in hxtool_global.hxtool_scheduler.tasks():
-		mytasks['data'].append({
-			"DT_RowId": task['task_id'],
-			"profile": task['profile_id'],
-			"parent_id": task['parent_id'],
-			"name": task['name'],
-			"enabled": task['enabled'],
-			"last_run": str(task['last_run']),
-			"next_run": str(task['next_run']),
-			"immutable": task['immutable'],
-			"state": task_state_description.get(task['state'], "Unknown")
-			})
+		if not task['parent_id']:
+
+			taskstates = {}
+			for subtask in hxtool_global.hxtool_scheduler.tasks():
+				if subtask['parent_id'] == task['task_id']:
+					if not task_state_description.get(subtask['state'], "Unknown") in taskstates.keys():
+						taskstates[task_state_description.get(subtask['state'], "Unknown")] = 1
+					else:
+						taskstates[task_state_description.get(subtask['state'], "Unknown")] += 1
+
+			mytasks['data'].append({
+				"DT_RowId": task['task_id'],
+				"profile": task['profile_id'],
+				"child_states": json.dumps(taskstates),
+				"name": task['name'],
+				"enabled": task['enabled'],
+				"last_run": str(task['last_run']),
+				"next_run": str(task['next_run']),
+				"immutable": task['immutable'],
+				"state": task_state_description.get(task['state'], "Unknown")
+				})
 	return(app.response_class(response=json.dumps(mytasks), status=200, mimetype='application/json'))
 
 
