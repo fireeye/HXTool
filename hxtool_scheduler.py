@@ -137,7 +137,7 @@ class hxtool_scheduler:
 			tasks = hxtool_global.hxtool_db.taskList()
 			for task_entry in tasks:
 				p_id = task_entry.get('parent_id')
-				if task_entry['parent_id'] and not hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['parent_id']):
+				if (task_entry['parent_id'] and not task_entry['parent_complete']) and not hxtool_global.hxtool_db.taskGet(task_entry['profile_id'], task_entry['parent_id']):
 					self.logger.warn("Deleting orphan task {}, {}".format(task_entry['name'], task_entry['task_id']))
 					hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['task_id'])
 				else:
@@ -157,9 +157,7 @@ class hxtool_scheduler_task:
 		self.logger = hxtool_global.hxtool_scheduler.logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
-		self.task_id = task_id
-		if not self.task_id:
-			self.task_id = str(secure_uuid4())
+		self.task_id = task_id or str(secure_uuid4())
 		self.parent_id = parent_id
 		self.wait_for_parent = wait_for_parent
 		self.parent_complete = False
@@ -169,16 +167,13 @@ class hxtool_scheduler_task:
 		self.state = None
 		self.last_run_state = None
 		self.schedule = {}
-		self.start_time = datetime.datetime.utcnow()
-		if start_time:
-			self.start_time = start_time
+		self.start_time = start_time or datetime.datetime.utcnow().replace(microsecond=1)
 		self.end_time = end_time
 		self.last_run = None
-		self.next_run = next_run
-		if not self.next_run:
-			self.next_run = self.start_time
 		if parent_id and wait_for_parent:
 			self.next_run = None
+		else:
+			self.next_run = next_run or self.start_time			
 		self.stop_on_fail = stop_on_fail
 		self.steps = []
 		self.stored_result = {}
@@ -195,7 +190,11 @@ class hxtool_scheduler_task:
 		if self._defer_signal:
 			# Add some random seconds to the interval to keep the task threads from deadlocking
 			self.next_run = (self.last_run + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
-		else:
+		# We've never run before because we we're waiting on the parent task to complete
+		elif not self.last_run and self.parent_complete:
+			# Add some random seconds to the interval to keep the task threads from deadlocking
+			self.next_run = (datetime.datetime.utcnow() + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
+		elif (not self.end_time) or (self.end_time and (self.end_time < datetime.datetime.utcnow())):
 			if self.schedule.get('day_of_month', None):
 				n_month = self.last_run.month
 				n_year = self.last_run.year
@@ -211,11 +210,7 @@ class hxtool_scheduler_task:
 				elif self.schedule.get('hours', None):
 					self.next_run = self.last_run + datetime.timedelta(hours = self.schedule['hours'])
 				elif self.schedule.get('minutes', None): 
-					self.next_run = self.last_run + datetime.timedelta(minutes = self.schedule['minutes'])
-			
-		# Reset microseconds to keep things from drifting
-		if self.next_run:
-			self.next_run.replace(microsecond=1)
+					self.next_run = self.last_run + datetime.timedelta(minutes = self.schedule['minutes'])			
 
 	def set_schedule(self, minutes = None, hours = None, day_of_week = None, day_of_month = None):
 		with self._lock:
@@ -247,8 +242,9 @@ class hxtool_scheduler_task:
 			if day_of_month:
 				n_days = (datetime.date(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, self.schedule['day_of_month']) - now.date()).days - 1
 		
-			self.start_time = now + datetime.timedelta(seconds = n_seconds, minutes = n_minutes, hours = n_hours, days = n_days)
-			self.next_run = self.start_time
+			self.next_run = now + datetime.timedelta(seconds = n_seconds, minutes = n_minutes, hours = n_hours, days = n_days)
+			# TODO: we shouldn't clobber this in a case of where we change an existing tasks schedule
+			self.start_time = self.next_run
 	
 	def should_run(self):
 		return (self.enabled and  
@@ -349,21 +345,26 @@ class hxtool_scheduler_task:
 		return ret
 
 	def parent_state_callback(self, parent_task_id, parent_state, parent_stored_result):
-		if self.parent_id:
+		if self.parent_id and self.parent_id == parent_task_id:
 			self.logger.debug("parent_state_callback(): task_id = {}, parent_id = {}, parent_state = {}".format(self.task_id, parent_task_id, parent_state))
-			if self.parent_id == parent_task_id:
-				if parent_state == TASK_STATE_COMPLETE:
-					self.logger.debug("Received signal that parent task is complete.")
-					with self._lock:
-						self.stored_result = parent_stored_result
-						self.parent_complete = True
-						# Now that the parent is complete set the next run
-						self.next_run = (datetime.datetime.utcnow() + datetime.timedelta(seconds = random.randint(15, 90)))
-				elif parent_state == TASK_STATE_STOPPED:
-					self.stop()
-				elif parent_state == TASK_STATE_FAILED:
-					self.set_state(TASK_STATE_FAILED)
-		
+			if parent_state == TASK_STATE_COMPLETE:
+				self.logger.debug("Received signal that parent task is complete.")
+				with self._lock:
+					self.stored_result = parent_stored_result
+					self.parent_complete = True
+					# Now that the parent is complete set the next run
+					self._calculate_next_run()
+			elif parent_state == TASK_STATE_STOPPED:
+				self.stop()
+			elif parent_state == TASK_STATE_FAILED:
+				self.set_state(TASK_STATE_FAILED)
+			
+			# Make sure we store the updated state
+			self.store()
+			
+			self.logger.debug("name = {}, next_run = {}".format(self.name, self.next_run))
+
+				
 	def stop(self):
 		self._stop_signal = True
 	

@@ -78,14 +78,14 @@ class bulk_download_task_module(task_module):
 							result['bulk_download_path'] = full_path
 							result['agent_id'] = agent_id
 							result['host_name'] = host_name
-					elif ret and response_data and (response_data['data']['state'] in {'FAILED', 'CANCELLED', 'ABORTED'} or 
-													(response_code == 404 and response_data['details'][0]['code'] == 1005)):
+					elif (ret and response_data and (response_data['data']['state'] in {'FAILED', 'CANCELLED', 'ABORTED'}) or 
+													(response_code == 404 and response_data['details'][0]['code'] == 1005)) or not ret:
 						self.logger.error("Controller returned code: {}, data: {}".format(response_code, response_data))
 						self.parent_task.stop()
 						hxtool_global.hxtool_db.bulkDownloadDeleteHost(bulk_download_eid, agent_id)
 						ret = False
-					else:
-						self.logger.info("Deferring bulk download task for: {}".format(host_name))
+					elif ret:
+						self.logger.debug("Deferring bulk download task for: {}".format(host_name))
 						self.parent_task.defer()
 				else:
 					self.logger.warn("No task API session for profile: {}".format(self.parent_task.profile_id))
