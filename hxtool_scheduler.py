@@ -71,7 +71,7 @@ class hxtool_scheduler:
 				self.logger.debug("Got SIGINT_TASK_ID, exiting.")
 				self.run_queue.task_done()
 				break
-			self.logger.info("Executing task with id: %s, name: %s.", task_id, task_name)
+			self.logger.debug("Executing task with id: %s, name: %s.", task_id, task_name)
 			ret = task_run()
 			self.run_queue.task_done()
 	
