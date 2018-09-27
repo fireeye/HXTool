@@ -2120,7 +2120,8 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, sc
 			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 
 															'Bulk Acquisition Download: {}'.format(host['hostname']), 
 															parent_id = bulk_acquisition_task.task_id, 
-															start_time = bulk_acquisition_task.start_time)
+															start_time = bulk_acquisition_task.start_time,
+															defer_interval = hxtool_global.hxtool_config['background_processor']['poll_interval'])
 															
 				
 			download_and_process_task.add_step(bulk_download_task_module, kwargs = {
