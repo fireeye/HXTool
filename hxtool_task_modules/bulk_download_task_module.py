@@ -67,7 +67,7 @@ class bulk_download_task_module(task_module):
 				hx_api_object = self.get_task_api_object()	
 				if hx_api_object and hx_api_object.restIsSessionValid():
 					(ret, response_code, response_data) = hx_api_object.restGetBulkHost(bulk_download_job['bulk_acquisition_id'], agent_id)
-					if ret and response_data and (response_data['data']['state'] == "COMPLETE" and response_data['data']['result']):
+					if ret and isinstance(response_data, dict) and (response_data['data']['state'] == "COMPLETE" and response_data['data']['result']):
 						self.logger.debug("Processing bulk download for host: {0}".format(host_name))
 						download_directory = make_download_directory(hx_api_object.hx_host, bulk_download_job['bulk_acquisition_id'])
 						full_path = os.path.join(download_directory, get_download_filename(host_name, agent_id))
@@ -78,9 +78,9 @@ class bulk_download_task_module(task_module):
 							result['bulk_download_path'] = full_path
 							result['agent_id'] = agent_id
 							result['host_name'] = host_name
-					elif (ret and response_data and (response_data['data']['state'] in {'FAILED', 'CANCELLED', 'ABORTED'}) or 
-													(response_code == 404 and response_data['details'][0]['code'] == 1005)) or not ret:
-						self.logger.error("Controller returned code: {}, data: {}".format(response_code, response_data))
+					elif (ret and isinstance(response_data, dict) and (response_data['data']['state'] in {'FAILED', 'CANCELLED', 'ABORTED'} or 
+													(response_code == 404 and response_data['details'][0]['code'] == 1005))) or not ret:
+						self.logger.debug("Error! Controller returned code: {}, data: {}".format(response_code, response_data))
 						self.parent_task.stop()
 						hxtool_global.hxtool_db.bulkDownloadDeleteHost(bulk_download_eid, agent_id)
 						ret = False
