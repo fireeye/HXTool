@@ -124,10 +124,9 @@ class hxtool_scheduler:
 					t = None
 	
 	def get(self, task_id):
-		if task_id:
-			with self._lock:
-				return self.task_queue.get(task_id)
-	
+		with self._lock:
+			return self.task_queue.get(task_id, None)
+
 	def move_to_history(self, task_id):
 		with self._lock:
 			self.history_queue[task_id] = self.task_queue.pop(task_id).metadata()
