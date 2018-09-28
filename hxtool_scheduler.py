@@ -115,11 +115,17 @@ class hxtool_scheduler:
 	def remove(self, task_id):
 		if task_id:
 			with self._lock:
-				del self.task_queue[task_id]
+				t = self.task_queue.get(task_id, None)
+				if t:
+					t.stop()
+					del self.task_queue[t.task_id]
+					self.logger.debug("Deleting task_id = {} from DB".format(t.task_id))
+					hxtool_global.hxtool_db.taskDelete(t.profile_id, t.task_id)
+					t = None
 	
 	def get(self, task_id):
 		if task_id:
-			with self.lock:
+			with self._lock:
 				return self.task_queue.get(task_id)
 	
 	def move_to_history(self, task_id):
