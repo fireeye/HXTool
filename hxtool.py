@@ -92,7 +92,18 @@ def alert(hx_api_object):
 @app.route('/scheduler', methods=['GET'])
 @valid_session_required
 def scheduler_view(hx_api_object):
-	return render_template('ht_scheduler.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+	if 'action' in request.args.keys():
+		key_to_delete = request.args.get('action')
+
+		for task in hxtool_global.hxtool_scheduler.tasks():
+			if task['parent_id'] == key_to_delete:
+				hxtool_global.hxtool_scheduler.remove(task['task_id'])
+
+		hxtool_global.hxtool_scheduler.remove(key_to_delete)
+
+		return redirect("/scheduler", code=302)
+	else:
+		return render_template('ht_scheduler.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### Script builder page
 @app.route('/scriptbuilder', methods=['GET', 'POST'])
@@ -1988,7 +1999,8 @@ def scheduler_tasks(hx_api_object):
 				"last_run": str(task['last_run']),
 				"next_run": str(task['next_run']),
 				"immutable": task['immutable'],
-				"state": task_state_description.get(task['state'], "Unknown")
+				"state": task_state_description.get(task['state'], "Unknown"),
+				"action": task['task_id']
 				})
 	return(app.response_class(response=json.dumps(mytasks), status=200, mimetype='application/json'))
 

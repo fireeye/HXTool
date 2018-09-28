@@ -114,7 +114,7 @@ class hxtool_scheduler:
 		
 	def remove(self, task_id):
 		if task_id:
-			with self.lock:
+			with self._lock:
 				del self.task_queue[task_id]
 	
 	def get(self, task_id):

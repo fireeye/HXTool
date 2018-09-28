@@ -29,7 +29,8 @@
 				{ title: "last_run", "data": "last_run" },
 				{ title: "next_run", "data": "next_run" },
 				{ title: "immutable", "data": "immutable" },
-				{ title: "state", "data": "state" }
+				{ title: "state", "data": "state" },
+				{ title: "action", "data": "action" }
 			],
 			"columnDefs": [	
 				{ "className": "dt-center", "targets": [0, 1, 2, 3, 4, 5, 6, 7] },
@@ -59,8 +60,13 @@
 					return mychildren;
 					}
 				},
-
-
+				{
+				"targets": [ 8 ], 
+				render: function ( data, type, row, meta ) {
+					myhtml = "<a class='tableActionButton' href='/scheduler?action=delete&id=" + data + "'>delete</a>";
+					return myhtml;
+					}
+				},
 			]
 		});
 
