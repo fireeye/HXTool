@@ -124,10 +124,9 @@ class hxtool_scheduler:
 					t = None
 	
 	def get(self, task_id):
-		if task_id:
-			with self._lock:
-				return self.task_queue.get(task_id)
-	
+		with self._lock:
+			return self.task_queue.get(task_id, None)
+
 	def move_to_history(self, task_id):
 		with self._lock:
 			self.history_queue[task_id] = self.task_queue.pop(task_id).metadata()
@@ -135,7 +134,8 @@ class hxtool_scheduler:
 			self.history_queue.popitem()
 	
 	def tasks(self):
-		return [_.metadata() for _ in self.task_queue.values()] + list(self.history_queue.values())
+		q = list(self.task_queue.values())[:]
+		return [_.metadata() for _ in q] + list(self.history_queue.values())
 	
 	# Load queued tasks from the database
 	def load_from_database(self):
