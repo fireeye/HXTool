@@ -7,6 +7,7 @@ import json
 import hxtool_global
 from .task_module import *
 from hx_audit import *
+from hxtool_util import *
 
 class file_write_task_module(task_module):
 	def __init__(self, parent_task):
@@ -70,11 +71,12 @@ class file_write_task_module(task_module):
 			if bulk_download_path:
 				# TODO: this module is not thread-safe, and will result in file locking issues. Ultimately, this should be converted to
 				# utilizing the Python rotating log handler.  
-				with open(file_name, 'a') as f:
-					for audit_object in self.yield_audit_results(bulk_download_path, batch_mode, host_name, agent_id):
-						json.dump(audit_object, f, sort_keys = False)
-						f.write('\n')
-					f.close()			
+				with TemporaryFileLock(os.path.dirname(file_name)):
+					with open(file_name, 'a') as f:
+						for audit_object in self.yield_audit_results(bulk_download_path, batch_mode, host_name, agent_id):
+							json.dump(audit_object, f, sort_keys = False)
+							f.write('\n')
+						f.close()			
 				ret = True								
 				if ret and delete_bulk_download:
 					os.remove(os.path.realpath(bulk_download_path))
