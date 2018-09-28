@@ -93,7 +93,7 @@ def alert(hx_api_object):
 @valid_session_required
 def scheduler_view(hx_api_object):
 	if 'action' in request.args.keys():
-		key_to_delete = request.args.get('action')
+		key_to_delete = request.args.get('id')
 
 		for task in hxtool_global.hxtool_scheduler.tasks():
 			if task['parent_id'] == key_to_delete:
