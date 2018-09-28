@@ -116,7 +116,7 @@ class hxtool_scheduler:
 		if task_id:
 			with self._lock:
 				t = self.task_queue.get(task_id, None)
-				if t:
+				if t and not t.immutable:
 					t.stop()
 					del self.task_queue[t.task_id]
 					self.logger.debug("Deleting task_id = {} from DB".format(t.task_id))
