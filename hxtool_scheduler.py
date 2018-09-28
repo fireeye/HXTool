@@ -116,7 +116,7 @@ class hxtool_scheduler:
 		if task_id:
 			with self._lock:
 				t = self.task_queue.get(task_id, None)
-				if t:
+				if t and not t.immutable:
 					t.stop()
 					del self.task_queue[t.task_id]
 					self.logger.debug("Deleting task_id = {} from DB".format(t.task_id))
@@ -134,7 +134,11 @@ class hxtool_scheduler:
 			self.history_queue.popitem()
 	
 	def tasks(self):
-		q = list(self.task_queue.values())[:]
+		# Shallow copy to avoid locking
+		if type(self.task_queue.values()) is list:
+			q = self.task_queue.values()[:]
+		else:
+			q = list(self.task_queue.values())
 		return [_.metadata() for _ in q] + list(self.history_queue.values())
 	
 	# Load queued tasks from the database
