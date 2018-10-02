@@ -63,7 +63,10 @@
 				{
 				"targets": [ 8 ], 
 				render: function ( data, type, row, meta ) {
-					myhtml = "<a class='tableActionButton' href='/scheduler?action=delete&id=" + data + "'>delete</a>";
+					myhtml = "";
+					if (row.immutable == false) {
+						myhtml = "<a class='tableActionButton' href='/scheduler?action=delete&id=" + data + "'>delete</a>";
+					}
 					return myhtml;
 					}
 				},
