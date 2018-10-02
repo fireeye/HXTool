@@ -19,6 +19,57 @@
 			$("#checkboxStore").prop('checked', false);
 	}
 
+	function renderInterval(intervalType) {
+
+		out = "";
+
+		if (intervalType == "month") {
+			out += " on the ";
+			out += "<select name='intervalDay'>";
+			for (var i=1; i < 32; i += 1){
+				out += "<option value='" + i + "'>" + i;
+			}
+			out += "</select>";
+			out += " ";
+		}
+
+		if (intervalType == "week") {
+			out += " on ";
+			out += "<select name='intervalWeek'>";
+			out += "<option value='0'>Monday";
+			out += "<option value='1'>Tuesday";
+			out += "<option value='2'>Wednesday";
+			out += "<option value='3'>Thursday";
+			out += "<option value='4'>Friday";
+			out += "<option value='5'>Saturday";
+			out += "<option value='6'>Sunday";
+			out += "</select>";
+			out += " ";
+		}
+
+		if (intervalType == "day" || intervalType == "week" || intervalType == "month") {
+			out += " at the ";
+			out += "<select name='intervalHour'>";
+			for (var i=0; i < 24; i += 1){
+				out += "<option value='" + i + "'>" + i;
+			}
+			out += "</select>";
+			out += " hour ";
+		}
+
+		if (intervalType == "hour" || intervalType == "day" || intervalType == "week" || intervalType == "month") {
+			out += " on the ";
+			out += "<select name='intervalMin'>";
+			for (var i=0; i < 60; i += 1){
+				out += "<option value='" + i + "'>" + i;
+			}
+			out += "</select>";
+			out += " minute ";
+		}
+
+		$("#intervalSettings").html(out);
+	}
+
 	$(document).ready(function() {
 
 		if (checkVersion("4.5.0")) {
@@ -147,6 +198,24 @@
 			]
 		});
 
+		$('body').on('change','select',function(){
+
+			if ($(this).attr('id') == "intervalMetric") {
+				renderInterval($(this).val());
+			}
+		});
+
+		jQuery('#scheduled_timestamp').daterangepicker({
+			singleDatePicker: true,
+			autoApply: true,
+			timePicker: true,
+			timePicker24Hour: true,
+			buttonClasses: "tableActionButton",
+			locale: {
+     		 format: 'YYYY-MM-DD hh:mm:ss'
+		    }
+		});
+
 		$('#esTable').on( 'click', 'tr', function () {
 			window.document.location = "/searchresult?id=" + $(this).attr("id");
 		});
@@ -192,6 +261,28 @@
 		<select name='sweephostset' id='sweephostset'>
 			{% if hostsets %} {{ hostsets|safe }} {% endif %}
 		</select>
+
+		<br>
+		<div style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 10px;'>&nbsp;</div>
+
+		<input type='radio' name='schedule' value='run_now' checked><b> Run now</b><br>
+		<input type='radio' name='schedule' value='run_at'><b> Run at specific date/time</b>
+		<input type='text' id='scheduled_timestamp' name='scheduled_timestamp' style='margin-left: 5px;'>
+		<br>
+		<input type='radio' name='schedule' value='run_interval'><b> Run on an interval</b><br><br>
+		<span style='margin-left: 15px;'>
+			Every 
+			<select name='intervalMetric' id='intervalMetric'>
+				<option value='min'>Minute
+				<option value='hour'>Hour
+				<option value='day'>Day
+				<option value='week'>Week
+				<option value='month'>Month
+			</select>
+		</span>
+		<span id='intervalSettings'></span>
+		<br>
+		<div style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 10px;'>&nbsp;</div>
 
 		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>Please note that the OpenIOC indicator must be in OpenIOC 1.1 format and use UTF-8 encoding without BOM.</div>
 		<input class='tableActionButton' type='submit' value='Start Enterprise Search'>
