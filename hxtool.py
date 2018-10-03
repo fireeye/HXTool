@@ -400,7 +400,25 @@ def search(hx_api_object):
 		if 'esskipterms' in request.form.keys():
 			ignore_unsupported_items = (request.form['esskipterms'] == 'true')
 
-		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task")
+		start_time = None
+		schedule = None
+		if 'schedule' in request.form.keys():
+			if request.form['schedule'] == 'run_at':
+				start_time = HXAPI.dt_from_str(request.form['scheduled_timestamp'])
+			
+			if request.form['schedule'] == 'run_interval':
+				schedule = {
+					'minutes' : request.form.get('intervalMin', None),
+					'hours'  : request.form.get('intervalHour', None),
+					'day_of_week' : request.form.get('intervalWeek', None),
+					'day_of_month' : request.form.get('intervalDay', None)
+				}	
+			
+		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task", start_time = start_time)
+		
+		if schedule:
+			enterprise_search_task.set_schedule(**schedule)
+			
 		enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
 											'script' : ioc_script,
 											'hostset_id' : request.form['sweephostset'],
