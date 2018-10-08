@@ -134,6 +134,11 @@ def format_activity_log(**kwargs):
 		mystring += " " + key + "='" + HXAPI.compat_str(value) + "'"
 	return(mystring)
 	
+# Workaround https://bugs.python.org/issue19377 on older Python versions		
+def set_svg_mimetype():
+	import mimetypes
+	if not '.svg' in mimetypes.types_map:
+		mimetypes.add_type('image/svg+xml', '.svg')
 	
 class TemporaryFileLock(object):
 	def __init__(self, file_path, file_name = 'lock_file'):
