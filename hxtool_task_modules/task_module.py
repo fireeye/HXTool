@@ -15,10 +15,20 @@ class task_module(object):
 			return hxtool_global.task_hx_api_sessions[self.parent_task.profile_id]
 		return None
 	
-	def yield_audit_results(self, bulk_download_path, batch_mode, host_name, agent_id):
+	def yield_audit_results(self, bulk_download_path, batch_mode, host_name, agent_id, bulk_acquisition_id = None):
+		hx_host = None
+		api_object = self.get_task_api_object()
+		if api_object:
+			hx_host = api_object.hx_host
+		api_object = None
+		
 		with AuditPackage(bulk_download_path) as audit_package:
 			for audit in audit_package.audits:
 				for audit_object in audit_package.audit_to_dict(audit, host_name, agent_id = agent_id, batch_mode = batch_mode):
+					audit_object.update({
+						'hx_host' : hx_host,
+						'bulk_acquisition_id' : bulk_acquisition_id
+					})
 					yield audit_object
 			
 	# Input and output args are a list of dictionary objects containing the following five keys: name, type, required user_supplied, and description 

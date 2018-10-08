@@ -38,6 +38,12 @@ class file_write_task_module(task_module):
 				'description' : "The fully qualified path to the bulk acquisition package."
 			},
 			{
+				'name' : 'bulk_acquisition_id',
+				'type' : int,
+				'required' : True,
+				'description' : "The bulk acquisition ID assigned to the bulk acquisition job by the controller."
+			},
+			{
 				'name' : 'batch_mode',
 				'type' : bool,
 				'required' : False,
@@ -64,7 +70,7 @@ class file_write_task_module(task_module):
 	def output_args():
 		return []
 	
-	def run(self, host_name = None, agent_id = None, bulk_download_path = None, batch_mode = False, delete_bulk_download = False, file_name = None):
+	def run(self, host_name = None, agent_id = None, bulk_download_path = None, bulk_acquisition_id = None, batch_mode = False, delete_bulk_download = False, file_name = None):
 		ret = False
 		result = {}
 		try:
@@ -73,7 +79,7 @@ class file_write_task_module(task_module):
 				# utilizing the Python rotating log handler.  
 				with TemporaryFileLock(os.path.dirname(file_name)):
 					with open(file_name, 'a') as f:
-						for audit_object in self.yield_audit_results(bulk_download_path, batch_mode, host_name, agent_id):
+						for audit_object in self.yield_audit_results(bulk_download_path, batch_mode, host_name, agent_id, bulk_acquisition_id = bulk_acquisition_id):
 							json.dump(audit_object, f, sort_keys = False)
 							f.write('\n')
 						f.close()			
