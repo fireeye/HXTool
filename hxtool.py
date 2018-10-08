@@ -2323,6 +2323,8 @@ def app_init(debug = False):
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
 	app.session_interface = hxtool_session_interface(app, logger = app.logger, expiration_delta=app.hxtool_config['network']['session_timeout'])
 
+	set_svg_mimetype()
+	
 debug_mode = False
 if __name__ == "__main__":
 	signal.signal(signal.SIGINT, sigint_handler)

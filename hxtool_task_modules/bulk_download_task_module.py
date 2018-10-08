@@ -38,6 +38,12 @@ class bulk_download_task_module(task_module):
 	@staticmethod
 	def output_args():
 		return [
+			{
+				'name' : 'bulk_acquisition_id',
+				'type' : int,
+				'required' : True,
+				'description' : "The bulk acquisition ID assigned to the bulk acquisition job by the controller."
+			},
 			{ 
 				'name' : 'bulk_download_path',
 				'type' : str,
@@ -75,6 +81,7 @@ class bulk_download_task_module(task_module):
 						if ret:
 							hxtool_global.hxtool_db.bulkDownloadUpdateHost(bulk_download_eid, agent_id)
 							self.logger.debug("Bulk download for host {} successfully downloaded to {}".format(host_name, full_path))
+							result['bulk_acquisition_id'] = bulk_download_job['bulk_acquisition_id']
 							result['bulk_download_path'] = full_path
 							result['agent_id'] = agent_id
 							result['host_name'] = host_name

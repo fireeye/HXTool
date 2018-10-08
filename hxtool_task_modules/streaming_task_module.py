@@ -38,6 +38,12 @@ class streaming_task_module(task_module):
 				'description' : "The fully qualified path to the bulk acquisition package."
 			},
 			{
+				'name' : 'bulk_acquisition_id',
+				'type' : int,
+				'required' : True,
+				'description' : "The bulk acquisition ID assigned to the bulk acquisition job by the controller."
+			},
+			{
 				'name' : 'batch_mode',
 				'type' : bool,
 				'required' : False,
@@ -79,7 +85,7 @@ class streaming_task_module(task_module):
 	def output_args():
 		return []
 	
-	def run(self, host_name = None, agent_id = None, bulk_download_path = None, batch_mode = False, delete_bulk_download = False, stream_host = None, stream_port = None, stream_protocol = 'tcp'):
+	def run(self, host_name = None, agent_id = None, bulk_download_path = None, bulk_acquisition_id = None, batch_mode = False, delete_bulk_download = False, stream_host = None, stream_port = None, stream_protocol = 'tcp'):
 		try:
 			ret = False
 			if bulk_download_path:
@@ -95,7 +101,7 @@ class streaming_task_module(task_module):
 
 					stream_socket.connect(sockaddr)
 					
-					for audit_object in self.yield_audit_results(bulk_download_path, batch_mode, host_name, agent_id):
+					for audit_object in self.yield_audit_results(bulk_download_path, batch_mode, host_name, agent_id, bulk_acquisition_id = bulk_acquisition_id):
 						stream_socket.sendall(json.dumps(audit_object, sort_keys = False).encode('utf-8') + '\n'.encode('utf-8'))
 					
 					stream_socket.close()
