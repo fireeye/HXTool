@@ -146,8 +146,8 @@ class hxtool_scheduler:
 		if self.status():
 			tasks = hxtool_global.hxtool_db.taskList()
 			for task_entry in tasks:
-				p_id = task_entry.get('parent_id')
-				if (task_entry['parent_id'] and not task_entry['parent_complete']) and not hxtool_global.hxtool_db.taskGet(task_entry['profile_id'], task_entry['parent_id']):
+				p_id = task_entry.get('parent_id', None)
+				if p_id and (not task_entry['parent_complete'] and not hxtool_global.hxtool_db.taskGet(task_entry['profile_id'], p_id)):
 					self.logger.warn("Deleting orphan task {}, {}".format(task_entry['name'], task_entry['task_id']))
 					hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['task_id'])
 				else:
@@ -201,10 +201,10 @@ class hxtool_scheduler_task:
 			# Add some random seconds to the interval to keep the task threads from deadlocking
 			self.next_run = (self.last_run + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
 		# We've never run before because we we're waiting on the parent task to complete
-		elif not self.last_run and self.parent_complete:
+		elif not self.last_run and self.parent_id and self.parent_complete:
 			# Add some random seconds to the interval to keep the task threads from deadlocking
 			self.next_run = (datetime.datetime.utcnow() + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
-		elif (not self.end_time) or (self.end_time and (self.end_time < datetime.datetime.utcnow())):
+		elif self.schedule and ((not self.end_time) or (self.end_time and (self.end_time < datetime.datetime.utcnow()))):
 			if self.schedule.get('day_of_month', None):
 				n_month = self.last_run.month
 				n_year = self.last_run.year
@@ -445,6 +445,8 @@ class hxtool_scheduler_task:
 		schedule = d.get('schedule', None)
 		if schedule:
 			task.set_schedule(**schedule)
+		else:
+			task._calculate_next_run()
 		for s in d['steps']:
 			# I hate this
 			step_module = eval(s['module'])
