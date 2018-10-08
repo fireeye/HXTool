@@ -204,7 +204,7 @@ class hxtool_scheduler_task:
 		elif not self.last_run and self.parent_id and self.parent_complete:
 			# Add some random seconds to the interval to keep the task threads from deadlocking
 			self.next_run = (datetime.datetime.utcnow() + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
-		elif (not self.end_time) or (self.end_time and (self.end_time < datetime.datetime.utcnow())):
+		elif self.schedule and ((not self.end_time) or (self.end_time and (self.end_time < datetime.datetime.utcnow()))):
 			if self.schedule.get('day_of_month', None):
 				n_month = self.last_run.month
 				n_year = self.last_run.year
@@ -445,11 +445,12 @@ class hxtool_scheduler_task:
 		schedule = d.get('schedule', None)
 		if schedule:
 			task.set_schedule(**schedule)
+		else:
+			task._calculate_next_run()
 		for s in d['steps']:
 			# I hate this
 			step_module = eval(s['module'])
 			task.add_step(step_module, s['function'], s['args'], s['kwargs'])
-		task._calculate_next_run()
 		return task
 									
 									
