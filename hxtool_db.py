@@ -12,6 +12,8 @@ from hx_lib import *
 try:
 	import tinydb
 	import tinydb.operations
+	from tinydb.storages import JSONStorage
+	from tinydb.middlewares import CachingMiddleware
 except ImportError:
 	print("hxtool_db requires the 'tinydb' module, please install it.")
 	exit(1)
@@ -23,7 +25,7 @@ class hxtool_db:
 		self.logger = logger
 		# If we can't open the DB file, rename the existing one
 		try:
-			self._db = tinydb.TinyDB(db_file)
+			self._db = tinydb.TinyDB(db_file, storage=CachingMiddleware(JSONStorage))
 		except ValueError:
 			self.logger.error("%s is not a TinyDB formatted database. Please move or rename this file before starting HXTool.", db_file)
 			exit(1)
