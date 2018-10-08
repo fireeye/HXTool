@@ -102,7 +102,8 @@
 				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
 			}
 			$(newdiv).append($('<div>', {class: 'auditParameterUsage', text: objData['usage']}));
-			$(newdiv).append($('<input>', {class: 'auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+			if (repeat) {myrepeat = "true";} else {myrepeat = "false";}
+			$(newdiv).append($('<input>', {class: 'auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name'] + "_" + myrepeat}));
 			if (repeat) {
 				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
 			}
@@ -165,8 +166,35 @@
 					$(item).children().each(function(mx, mitem) {
 						if ($(mitem).attr('id')) {
 							myParamArr = $(mitem).attr('id').split("_");
-							myParamName = myParamArr[2]
-							myParams.push({"name": myParamName, "value": $(mitem).val()})
+							myParamName = myParamArr[2];
+							myRepeat = myParamArr[3];
+
+							// Workaround for repeated fields and store them as lists
+							if (myRepeat == "true") {
+
+								matched = false;
+								matched_index = 0;
+								// Loop through parameters and find the key if it exists
+								$.each(myParams, function( index, value ) {
+									if (myParamName == value['name']) {
+										matched = true;
+										matched_index = index;
+									}
+								});
+
+								// If matched then add the value to the array
+								if (matched) {
+									myParams[matched_index]['value'].push($(mitem).val());
+								}
+								else {
+									// First occurance of repeated field
+									myParams.push({"name": myParamName, "value": [$(mitem).val()]});
+								}
+
+							}
+							else {
+								myParams.push({"name": myParamName, "value": $(mitem).val()});
+							}
 						}
 					});
 				}
