@@ -706,16 +706,19 @@ class HXAPI:
 		if not skip_base64:
 			indicator = HXAPI.b64(indicator)
 		
-		if displayname:
-			data = json.dumps({'displayname' : displayname, 'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
-		else:
-			data = json.dumps({'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
+		data = {
+			'indicator' : indicator, 
+			'host_set' : {'_id' : int(host_set)}
+		}
 		
+		if displayname:
+			data['displayname'] = displayname
+			
 		params = None
 		if self.hx_version >= [4,5,0]:
 			params = {'ignore_unsupported_items' : str(ignore_unsupported_items).lower()}
 		
-		request = self.build_request(self.build_api_route('searches'), method = 'POST', params = params, data = data)
+		request = self.build_request(self.build_api_route('searches'), method = 'POST', params = params, data = json.dumps(data))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
