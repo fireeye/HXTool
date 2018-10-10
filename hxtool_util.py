@@ -143,7 +143,7 @@ def set_svg_mimetype():
 		mimetypes.add_type('image/svg+xml', '.svg')
 
 def set_time_macros(s):
-	return re.sub('\#\{(now|\-(\d{1,5})(m|h))\}', _time_replace, s, re.I) 
+	return re.sub('--\#\{(now|\-(\d{1,5})(m|h))\}--', _time_replace, s, re.I) 
 
 def _time_replace(m):
 	if m:
