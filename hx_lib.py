@@ -1126,3 +1126,9 @@ class HXAPI:
 		if precision == 'ms':
 			format_string = '%Y-%m-%d %H:%M:%S.%f'
 		return datetime.datetime.strftime(s, format_string)
+	
+	# Returns a formatted date/time string for time range use with HX acquistion scripts
+	@staticmethod
+	def hx_strftime(d):
+		return d.strftime("%Y-%m-%dT%H:%M:%SZ")
+		

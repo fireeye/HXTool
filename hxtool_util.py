@@ -5,6 +5,8 @@ from functools import wraps
 import os
 import uuid
 import threading
+import datetime
+import re
 
 try:
 	from flask import current_app, request, session, redirect, url_for
@@ -139,6 +141,23 @@ def set_svg_mimetype():
 	import mimetypes
 	if not '.svg' in mimetypes.types_map:
 		mimetypes.add_type('image/svg+xml', '.svg')
+
+def set_time_macros(s):
+	return re.sub('\#\{(now|\-(\d{1,5})(m|h))\}', _time_replace, s, re.I) 
+
+def _time_replace(m):
+	if m:
+		now_time = datetime.datetime.utcnow()
+		r = None
+		
+		if m.group(1).lower() == 'now':
+			r = now_time
+		elif m.group(3).lower() == 'm':
+			r = now_time - datetime.timedelta(minutes = int(m.group(2)))
+		elif m.group(3).lower() == 'h':
+			r = now_time - datetime.timedelta(hours = int(m.group(2)))
+		return HXAPI.hx_strftime(r)
+	return None
 	
 class TemporaryFileLock(object):
 	def __init__(self, file_path, file_name = 'lock_file'):
