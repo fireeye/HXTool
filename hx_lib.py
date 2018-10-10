@@ -91,7 +91,8 @@ class HXAPI:
 		if 'logger' in d.keys():
 			d['logger'] = logging.getLogger(d['logger'])
 		self.__dict__.update(d)
-		self.suppress_requests_insecure_warning()	
+		if not self._session.verify:
+			self.suppress_requests_insecure_warning()	
 
 	def suppress_requests_insecure_warning(self):
 		requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
