@@ -50,7 +50,7 @@ class HXAPI:
 		if disable_certificate_verification:
 			self.logger.info('SSL/TLS certificate verification disabled.')
 			self._session.verify = False
-			requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+			self.suppress_requests_insecure_warning()
 		
 		if proxies:
 			self._session.proxies = proxies
@@ -90,8 +90,12 @@ class HXAPI:
 	def __setstate__(self, d):
 		if 'logger' in d.keys():
 			d['logger'] = logging.getLogger(d['logger'])
-		self.__dict__.update(d)	
+		self.__dict__.update(d)
+		self.suppress_requests_insecure_warning()	
 
+	def suppress_requests_insecure_warning(self):
+		requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+		
 	def build_request(self, url, method = 'GET', params = None, data = None, content_type = 'application/json', accept = 'application/json', auth = None):
 	
 		full_url = "https://{0}:{1}{2}".format(self.hx_host, self.hx_port, url)
