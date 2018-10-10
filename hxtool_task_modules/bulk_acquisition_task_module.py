@@ -81,8 +81,10 @@ class bulk_acquisition_task_module(task_module):
 			hx_api_object = self.get_task_api_object()	
 			if hx_api_object and hx_api_object.restIsSessionValid():
 				bulk_acquisition_id = None
+				if skip_base64:
+					script = HXAPI.b64(script, decode = True, decode_string = True)
 				script = set_time_macros(script)
-				(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script, hostset_id = hostset_id, comment = comment, skip_base64 = skip_base64)
+				(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script, hostset_id = hostset_id, comment = comment, skip_base64 = False)
 				if ret and '_id' in response_data['data']:
 					result['bulk_acquisition_id'] = response_data['data']['_id']
 					self.parent_task.name = "Bulk Acquisition ID: {}".format(response_data['data']['_id'])
