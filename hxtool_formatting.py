@@ -448,7 +448,7 @@ def formatHostInfo(response_data, hx_api_object):
 	x += "</tr>"
 	x += "</thead>"
 
-	(aret, aresponse_code, aresponse_data) = hx_api_object.restGetAlertsHost(response_data['data']['_id'])
+	(aret, aresponse_code, aresponse_data) = hx_api_object.restGetAlertsHost(response_data['data']['_id'], limit=50)
 	if aret:
 		for alert in aresponse_data[0:15]:
 			x += "<tr class='clickable-row' id='alert_" + HXAPI.compat_str(alert['_id']) + "'>"
