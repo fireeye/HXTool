@@ -1571,6 +1571,11 @@ def datatable_alerts_full(hx_api_object):
 		if 'resolution' in request.args:
 			myfilters['resolution'] = request.args.get("resolution")
 
+		if 'limit' in request.args:
+			mylimit = request.args.get("limit")
+		else:
+			mylimit = None
+
 		if 'hostname' in request.args:
 			(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = request.args.get('hostname'))
 			if ret:
@@ -1580,9 +1585,9 @@ def datatable_alerts_full(hx_api_object):
 				myfilters['agent._id'] = myhostlist
 
 		if len(myfilters) > 0:
-			(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'), filters=myfilters)
+			(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'), filters=myfilters, limit=mylimit)
 		else:
-			(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
+			(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'), limit=mylimit)
 		if ret:
 
 			# Check if we need to match alertname
@@ -1895,11 +1900,9 @@ def getHealth(hx_api_object):
 	if ret:
 		myHealth['status'] = "OK"
 		myHealth['version'] = response_data['data']
-		print(myHealth)
 		return(app.response_class(response=json.dumps(myHealth), status=200, mimetype='application/json'))
 	else:
 		myHealth['status'] = "FAIL"
-		print(myHealth)
 		return(app.response_class(response=json.dumps(myHealth), status=200, mimetype='application/json'))
 
 @app.route('/api/v{0}/datatable_es'.format(HXTOOL_API_VERSION), methods=['GET'])

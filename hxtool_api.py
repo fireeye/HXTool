@@ -24,9 +24,10 @@ def datatable_openioc():
 		return(app.response_class(response=json.dumps(myiocs), status=200, mimetype='application/json'))
 
 		
-####################
-# Profile Management
-####################
+######################
+# Profile Management #
+######################
+
 @ht_api.route('/api/v{0}/profile'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT'])
 def profile():
 	if request.method == 'GET':
@@ -62,9 +63,11 @@ def profile_by_id(profile_id):
 		else:
 			return make_response_by_code(404)
 
-#####################
-# Stacking Results
-#####################
+
+####################
+# Stacking Results #
+####################
+
 @ht_api.route('/api/v{0}/stacking/<int:stack_job_eid>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def stack_job_results(hx_api_object, stack_job_eid):
@@ -78,4 +81,4 @@ def stack_job_results(hx_api_object, stack_job_eid):
 		
 	ht_data_model = hxtool_data_models(stack_job['stack_type'])
 	return ht_data_model.stack_data(stack_job['results'])	
-			
+
