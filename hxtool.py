@@ -1572,7 +1572,7 @@ def datatable_alerts_full(hx_api_object):
 			myfilters['resolution'] = request.args.get("resolution")
 
 		if 'limit' in request.args:
-			mylimit = request.args.get("limit")
+			mylimit = int(request.args.get("limit"))
 		else:
 			mylimit = None
 
