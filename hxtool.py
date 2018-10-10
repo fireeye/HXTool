@@ -400,6 +400,11 @@ def search(hx_api_object):
 		if 'esskipterms' in request.form.keys():
 			ignore_unsupported_items = (request.form['esskipterms'] == 'true')
 
+		if 'displayname' in request.form.keys():
+			mydisplayname = request.form['displayname']
+		else:
+			mydisplayname = False
+
 		start_time = None
 		schedule = None
 		if 'schedule' in request.form.keys():
@@ -423,7 +428,8 @@ def search(hx_api_object):
 											'script' : ioc_script,
 											'hostset_id' : request.form['sweephostset'],
 											'ignore_unsupported_items' : ignore_unsupported_items,
-											'skip_base64': True
+											'skip_base64': True,
+											'displayname': mydisplayname
 										})
 		hxtool_global.hxtool_scheduler.add(enterprise_search_task)
 		app.logger.info(format_activity_log(msg="new enterprise search", hostset=request.form['sweephostset'], ignore_unsupported_items=ignore_unsupported_items, user=session['ht_user'], controller=session['hx_ip']))
@@ -1903,9 +1909,17 @@ def datatable_es(hx_api_object):
 	if ret:
 		mysearches = {"data": []}
 		for search in response_data['data']['entries']:
+
+			# Check for the existance of displayname, HX 4.5.0 and older doesn't have it
+			if search['settings']['displayname']:
+				displayname = search['settings']['displayname']
+			else:
+				displayname = "N/A"
+
 			mysearches['data'].append({
 				"DT_RowId": search['_id'],
 				"state": search['state'],
+				"displayname": displayname,
 				"update_time": search['update_time'],
 				"create_time": search['create_time'],
 				"update_actor": search['update_actor']['username'],

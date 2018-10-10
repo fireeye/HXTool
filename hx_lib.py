@@ -701,12 +701,15 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 
-	def restSubmitSweep(self, indicator, host_set, ignore_unsupported_items = False, skip_base64 = False):
+	def restSubmitSweep(self, indicator, host_set, ignore_unsupported_items = False, skip_base64 = False, displayname = False):
 		
 		if not skip_base64:
 			indicator = HXAPI.b64(indicator)
 		
-		data = json.dumps({'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
+		if displayname:
+			data = json.dumps({'displayname' : displayname, 'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
+		else:
+			data = json.dumps({'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
 		
 		params = None
 		if self.hx_version >= [4,5,0]:

@@ -171,7 +171,7 @@
 	vertical-align: bottom;
 }
 
-.genericTableES thead th:nth-child(n+11):nth-last-child(n+3) {
+.genericTableES thead th:nth-child(n+12):nth-last-child(n+3) {
 	padding: 0;
 	height: 100px;
 	min-width: 40px;
@@ -187,7 +187,7 @@
 	vertical-align: bottom;
 }
 
-.genericTableBulk thead th:nth-child(n+8):nth-child(-n+19) {
+.genericTableBulk thead th:nth-child(n+9):nth-child(-n+19) {
 	padding: 0;
 	height: 100px;
 	min-width: 40px;

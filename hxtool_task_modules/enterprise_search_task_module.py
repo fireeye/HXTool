@@ -39,6 +39,13 @@ class enterprise_search_task_module(task_module):
 				'required' : False,
 				'user_supplied' : True,
 				'description' : "Specifies whether the contents of the script argument are already base64 encoded. Defaults to False"
+			},
+			{
+				'name' : 'displayname',
+				'type' : str,
+				'required' : False,
+				'user_supplied' : True,
+				'description' : "Specifies the display name of the search. Defaults to False"
 			}
 		]
 		
@@ -53,13 +60,13 @@ class enterprise_search_task_module(task_module):
 			}
 		]
 	
-	def run(self, script = None, hostset_id = None, ignore_unsupported_items = False, skip_base64 = False):
+	def run(self, script = None, hostset_id = None, ignore_unsupported_items = False, skip_base64 = False, displayname = False):
 		ret = False
 		result = {}
 		if script:
 			hx_api_object = self.get_task_api_object()	
 			if hx_api_object and hx_api_object.restIsSessionValid():
-				(ret, response_code, response_data) = hx_api_object.restSubmitSweep(script, hostset_id, ignore_unsupported_items = ignore_unsupported_items, skip_base64 = skip_base64)
+				(ret, response_code, response_data) = hx_api_object.restSubmitSweep(script, hostset_id, ignore_unsupported_items = ignore_unsupported_items, skip_base64 = skip_base64, displayname = displayname)
 				if ret:
 					result['enterprise_search_id'] = response_data['data']['_id']
 					self.logger.info("Enterprise Search ID: {} successfully submitted.".format(result['enterprise_search_id']))

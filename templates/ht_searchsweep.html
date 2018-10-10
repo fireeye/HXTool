@@ -78,6 +78,13 @@
 		else {
 			$('#skipterms').remove();			
 		}
+
+		if (checkVersion("4.5.1")) {
+			$('#displayname').show();
+		}
+		else {
+			$('#displayname').remove();			
+		}
 		
 		$("#checkboxStore").click(function() {
 			enableStore();
@@ -106,6 +113,7 @@
 			"columns": [
 				{ "title": "id", "data": "DT_RowId" },
 				{ "title": "state", "data": "state" },
+				{ "title": "name", "data": "displayname" },
 				{ "title": "mode", "data": "mode" },
 				{ "title": "created", "data": "create_time" },
 				{ "title": "updated", "data": "update_time" },
@@ -129,16 +137,16 @@
 
 			],
 			"headerCallback": function( thead, data, start, end, display ) {
-				$(thead).find('th').eq(10).html('<div class="genericTableDivES">new</div>');
-				$(thead).find('th').eq(11).html('<div class="genericTableDivES">queued</div>');
-				$(thead).find('th').eq(12).html('<div class="genericTableDivES">failed</div>');
-				$(thead).find('th').eq(13).html('<div class="genericTableDivES">complete</div>');
-				$(thead).find('th').eq(14).html('<div class="genericTableDivES">aborted</div>');
-				$(thead).find('th').eq(15).html('<div class="genericTableDivES">cancelled</div>');
-				$(thead).find('th').eq(16).html('<div class="genericTableDivES">pending</div>');
-				$(thead).find('th').eq(17).html('<div class="genericTableDivES">matched</div>');
-				$(thead).find('th').eq(18).html('<div class="genericTableDivES">not matched</div>');
-				$(thead).find('th').eq(19).html('<div class="genericTableDivES">error</div>');
+				$(thead).find('th').eq(11).html('<div class="genericTableDivES">new</div>');
+				$(thead).find('th').eq(12).html('<div class="genericTableDivES">queued</div>');
+				$(thead).find('th').eq(13).html('<div class="genericTableDivES">failed</div>');
+				$(thead).find('th').eq(14).html('<div class="genericTableDivES">complete</div>');
+				$(thead).find('th').eq(15).html('<div class="genericTableDivES">aborted</div>');
+				$(thead).find('th').eq(16).html('<div class="genericTableDivES">cancelled</div>');
+				$(thead).find('th').eq(17).html('<div class="genericTableDivES">pending</div>');
+				$(thead).find('th').eq(18).html('<div class="genericTableDivES">matched</div>');
+				$(thead).find('th').eq(19).html('<div class="genericTableDivES">not matched</div>');
+				$(thead).find('th').eq(20).html('<div class="genericTableDivES">error</div>');
 			},
 			"fnDrawCallback": function (oSettings) {
 				$("div[id^='crate_']").each(function() {
@@ -146,30 +154,30 @@
 				});
 			},
 			"createdRow": function( row, data, index ) {
-				$('td', row).eq(10).css( 'background-color', '#eeeeee' );
 				$('td', row).eq(11).css( 'background-color', '#eeeeee' );
 				$('td', row).eq(12).css( 'background-color', '#eeeeee' );
 				$('td', row).eq(13).css( 'background-color', '#eeeeee' );
 				$('td', row).eq(14).css( 'background-color', '#eeeeee' );
 				$('td', row).eq(15).css( 'background-color', '#eeeeee' );
-				$('td', row).eq(16).css( 'background-color', '#dddddd' );
+				$('td', row).eq(16).css( 'background-color', '#eeeeee' );
 				$('td', row).eq(17).css( 'background-color', '#dddddd' );
 				$('td', row).eq(18).css( 'background-color', '#dddddd' );
 				$('td', row).eq(19).css( 'background-color', '#dddddd' );
+				$('td', row).eq(20).css( 'background-color', '#dddddd' );
 			},
 			"columnDefs": [	
 				{
-				 "targets": [ 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ],
+				 "targets": [ 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ],
 				 "width": "47px"
 				},
 				{
-				 "targets": [ 3, 4 ],
+				 "targets": [ 4, 5 ],
 				 render: function ( data, type, row, meta ) {
 				 	return (datatables_Timestamp(data));
 				 }
 				},
 				{
-				 "targets": 20,
+				 "targets": 21,
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
 				 		if (data > 0) {
@@ -184,7 +192,7 @@
 				 }
 				},
 				{
-				 "targets": 21,
+				 "targets": 22,
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
 				 		myid = data;
@@ -255,6 +263,11 @@
 				<option value='true'>True
 				<option value='false'>False
 			</select>
+		</div>
+
+		<div id='displayname' style='display: none; margin-bottom: 10px;'>
+			<b>Display name</b><br>
+			<input type='text' id='displayname' name='displayname' style='width: 250px;'>
 		</div>
 
 		<b>Hostset</b><br>
