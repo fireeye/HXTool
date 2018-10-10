@@ -50,7 +50,7 @@ class HXAPI:
 		if disable_certificate_verification:
 			self.logger.info('SSL/TLS certificate verification disabled.')
 			self._session.verify = False
-			requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+			self.suppress_requests_insecure_warning()
 		
 		if proxies:
 			self._session.proxies = proxies
@@ -90,8 +90,13 @@ class HXAPI:
 	def __setstate__(self, d):
 		if 'logger' in d.keys():
 			d['logger'] = logging.getLogger(d['logger'])
-		self.__dict__.update(d)	
+		self.__dict__.update(d)
+		if not self._session.verify:
+			self.suppress_requests_insecure_warning()	
 
+	def suppress_requests_insecure_warning(self):
+		requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+		
 	def build_request(self, url, method = 'GET', params = None, data = None, content_type = 'application/json', accept = 'application/json', auth = None):
 	
 		full_url = "https://{0}:{1}{2}".format(self.hx_host, self.hx_port, url)
@@ -706,16 +711,19 @@ class HXAPI:
 		if not skip_base64:
 			indicator = HXAPI.b64(indicator)
 		
-		if displayname:
-			data = json.dumps({'displayname' : displayname, 'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
-		else:
-			data = json.dumps({'indicator' : indicator, 'host_set' : {'_id' : int(host_set)}})
+		data = {
+			'indicator' : indicator, 
+			'host_set' : {'_id' : int(host_set)}
+		}
 		
+		if displayname:
+			data['displayname'] = displayname
+			
 		params = None
 		if self.hx_version >= [4,5,0]:
 			params = {'ignore_unsupported_items' : str(ignore_unsupported_items).lower()}
 		
-		request = self.build_request(self.build_api_route('searches'), method = 'POST', params = params, data = data)
+		request = self.build_request(self.build_api_route('searches'), method = 'POST', params = params, data = json.dumps(data))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
@@ -1123,3 +1131,9 @@ class HXAPI:
 		if precision == 'ms':
 			format_string = '%Y-%m-%d %H:%M:%S.%f'
 		return datetime.datetime.strftime(s, format_string)
+	
+	# Returns a formatted date/time string for time range use with HX acquistion scripts
+	@staticmethod
+	def hx_strftime(d):
+		return d.strftime("%Y-%m-%dT%H:%M:%SZ")
+		
