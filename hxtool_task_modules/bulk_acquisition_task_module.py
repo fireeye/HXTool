@@ -4,6 +4,7 @@
 import hxtool_global
 from .task_module import *
 from hx_lib import *
+from hxtool_util import set_time_macros
 
 class bulk_acquisition_task_module(task_module):
 	def __init__(self, parent_task):
