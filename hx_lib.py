@@ -130,7 +130,7 @@ class HXAPI:
 			min_api_version = self.api_version
 		return '/hx/api/v{0}/{1}'.format(min_api_version, api_endpoint)
 		
-	def handle_response(self, request, multiline_json = False, stream = False):
+	def handle_response(self, request, multiline_json = False, multiline_json_limit = DEFAULT_LIMIT, stream = False):
 		
 		response = None
 		response_data = None
@@ -153,7 +153,14 @@ class HXAPI:
 			if content_type:
 				if 'json' in content_type:
 					if multiline_json:
-						response_data = [json.loads(_) for _ in response.iter_lines(decode_unicode = True) if _.startswith('{')]
+						line_count = 0
+						response_data = []
+						for l in response.iter_lines(decode_unicode = True):
+							if l.startswith('{'):
+								response_data.append(json.loads(l))
+								line_count += 1
+							if line_count >= multiline_json_limit:
+								break
 					else:
 						response_data = response.json()
 				elif 'text' in content_type:
@@ -805,7 +812,7 @@ class HXAPI:
 			return(ret, response_code, response_data)
 		
 	# NOTE: this function does not return data in the usual way, the response is a list of alerts
-	def restGetAlertsTime(self, start_date, end_date, filters=False):
+	def restGetAlertsTime(self, start_date, end_date, limit = DEFAULT_LIMIT, filters=False):
 
 		myquery = {'event_at' : 
 							{'min' : '{0}T00:00:00.000Z'.format(start_date), 
@@ -818,9 +825,9 @@ class HXAPI:
 
 		data = json.dumps(myquery)
 							
-		request = self.build_request(self.build_api_route('alerts/filter?limit=10'), method = 'POST', data = data)
+		request = self.build_request(self.build_api_route('alerts/filter'), method = 'POST', data = data)
 		
-		(ret, response_code, response_data, response_headers) = self.handle_response(request, multiline_json = True)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request, multiline_json = True, multiline_json_limit = limit, stream = True)
 		
 		if ret:
 			from operator import itemgetter
