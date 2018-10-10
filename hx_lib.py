@@ -153,13 +153,13 @@ class HXAPI:
 			if content_type:
 				if 'json' in content_type:
 					if multiline_json:
-						limit = 0
+						line_count = 0
 						response_data = []
 						for l in response.iter_lines(decode_unicode = True):
 							if l.startswith('{'):
-								response_data.append(l)
-								limit += 1
-							if limit >= multiline_json_limit:
+								response_data.append(json.loads(l))
+								line_count += 1
+							if line_count >= multiline_json_limit:
 								break
 					else:
 						response_data = response.json()
