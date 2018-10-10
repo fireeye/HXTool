@@ -45,7 +45,7 @@
 			if (e.which == 13) {
 				$('#shader').show();
 				urltail = parseFilters()
-				alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
+				alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?limit=1000&startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
 					$('#shader').hide();
 				});
 			}
@@ -55,7 +55,7 @@
 			if (e.which == 13) {
 				$('#shader').show();
 				urltail = parseFilters()
-				alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
+				alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?limit=1000&startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
 					$('#shader').hide();
 				});
 			}
@@ -65,7 +65,7 @@
 			if (e.which == 13) {
 				$('#shader').show();
 				urltail = parseFilters()
-				alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
+				alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?limit=1000&startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
 					$('#shader').hide();
 				});
 			}
@@ -74,7 +74,7 @@
 		$("#refresh").click(function() {
 			$('#shader').show();
 			urltail = parseFilters()
-			alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
+			alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?limit=1000&startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
 				$('#shader').hide();
 			});
 		});
@@ -141,7 +141,7 @@
 
 		$.fn.dataTable.ext.errMode = 'none';
 		var alert_datatable = $('#alertTable').DataTable( {
-			"ajax": "/api/v1/datatable_alerts_full?startDate=" + pastDate + "&endDate=" + currentDate,
+			"ajax": "/api/v1/datatable_alerts_full?limit=1000&startDate=" + pastDate + "&endDate=" + currentDate,
 			"paging":   false,
 			"ordering": false,
 			"info":     false,
@@ -349,7 +349,7 @@
 
 <div class='tableTitle' style='clear: both; margin-top: 15px;'>
 	<i class="fas fa-list-ul fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-	Alerts
+	Alerts (showing a maximum of 1000 alerts)
 </div>
 <table id="alertTable" class='genericTable' style='width: 100%;'></table>
 
