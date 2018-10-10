@@ -796,12 +796,12 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# NOTE: this function does not return data in the usual way, the response is a list of alerts
-	def restGetAlertsHost(self, agent_id):
+	def restGetAlertsHost(self, agent_id, limit = DEFAULT_LIMIT):
 	
 		data = json.dumps({'agent._id' : [agent_id]})
 	
 		request = self.build_request(self.build_api_route('alerts/filter'), method = 'POST', data = data)
-		(ret, response_code, response_data, response_headers) = self.handle_response(request, multiline_json = True)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request, multiline_json = True, multiline_json_limit = limit, stream = True)
 		
 		if ret:
 			from operator import itemgetter
