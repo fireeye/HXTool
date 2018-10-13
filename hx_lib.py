@@ -481,7 +481,7 @@ class HXAPI:
 		if not skip_base64:
 			script = HXAPI.b64(script)
 
-		data = json.dumps({'name' : scriptname, 'script' : {'b64' : HXAPI.b64(script)}})
+		data = json.dumps({'name' : scriptname, 'script' : {'b64' : script}})
 		
 		request = self.build_request(self.build_api_route('hosts/{0}/live'.format(agent_id)), method = 'POST', data = data)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
