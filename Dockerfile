@@ -2,6 +2,7 @@ FROM python:3.6-alpine
 MAINTAINER Elazar Broad "elazar.broad@fireeye.com"
 COPY . /opt/hxtool
 WORKDIR /opt/hxtool
+VOLUME /opt/hxtool/bulkdownload /opt/hxtool/log
 # TODO: should be converted to a script
 RUN apk add --no-cache libstdc++ \ 
 && apk add --no-cache --virtual .build-dependencies build-base gcc abuild binutils binutils-doc gcc-doc \
