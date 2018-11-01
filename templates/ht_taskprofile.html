@@ -65,6 +65,16 @@
 					$("#db_" + myguid).append("<hr class='taskProfileBar'>");
 					$("#db_" + myguid).append("<b>Table name</b><br><input style='width: 400px' name='" + myguid + "_db_tablename' type='text'><br>");
 				}
+				if(mymodule == 4) {
+					$("#params").append("<div class='taskProfileItem' id='helix_" + myguid + "'></div>");
+					$("#helix_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>Upload to External API</div>");
+					$("#helix_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
+					$("#helix_" + myguid).append("<div style='clear: both;'></div>");
+					$("#helix_" + myguid).append("<hr class='taskProfileBar'>");
+					$("#helix_" + myguid).append("<b>API URL</b><br><input style='width: 400px' name='" + myguid + "_helix_url' type='text'><br>");
+					$("#helix_" + myguid).append("<br>");
+					$("#helix_" + myguid).append("<b>API KEY</b><br><input style='width: 400px' name='" + myguid + "_helix_apikey' type='text'><br>");
+				}
 
 				// reset the drop-down
 				$(this).prop("selectedIndex", 0);
@@ -150,6 +160,7 @@
 			<option value='1'>File writer
 			<option value='2'>IP sender
 			<!-- <option value='3'>Store in HXTool -->
+			<option value='4'>Helix
 		</select>
 
 		<div style='margin-top: 10px;' id='params'></div>

@@ -162,6 +162,9 @@ def taskprofile(hx_api_object):
 			elif 'filepath' in myval.keys():
 				myval.update({"module": "file"})
 				mydata.append(myval)
+			elif 'url' in myval.keys():
+				myval.update({"module": "helix"})
+				mydata.append(myval)
 
 		app.hxtool_db.taskProfileAdd(profilename, session['ht_user'], mydata)
 
@@ -2223,6 +2226,13 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, sc
 								download_and_process_task.add_step(file_write_task_module, kwargs = {
 																	'file_name' : task_module_params['filepath'],
 																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
+																	'delete_bulk_download' : False
+																})
+							elif task_module_params['module'] == 'helix':
+								app.logger.debug("Using taskmodule 'helix' with parameters: url {}".format(task_module_params['url']))
+								download_and_process_task.add_step(helix_task_module, kwargs = {
+																	'url' : task_module_params['url'],
+																	'apikey' : task_module_params['apikey'],
 																	'delete_bulk_download' : False
 																})
 			task_list.append(download_and_process_task)
