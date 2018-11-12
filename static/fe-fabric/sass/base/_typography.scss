@@ -1,0 +1,88 @@
+html, body {
+  font-family: 'Open Sans';
+  -webkit-font-smoothing: antialiased;
+}
+
+.display {
+  font-size: 64px;
+  font-weight: bold;
+  line-height: 100%;
+  letter-spacing: -2px;
+}
+
+h1, .page-title {
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 100%;
+}
+
+h2, .heading {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 100%;
+}
+
+h3, .sub-heading {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 100%;
+}
+
+h4, .label--primary {
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 100%;
+}
+
+h5, .label--secondary {
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 100%;
+}
+
+h6, .label--small {
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 100%;
+  text-transform: uppercase;
+}
+
+.body-type--primary {
+  font-size: 14px;
+}
+
+.body-type--secondary {
+  font-size: 12px;
+}
+
+button, input[type="button"], .fe-btn {
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 100%;
+  text-transform: uppercase;
+}
+
+.stats {
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 100%;
+}
+
+caption, .caption {
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 100%;
+}
+
+.alt-table-text {
+  font-size: 11px;
+  font-weight: normal;
+  line-height: 100%;
+}
+
+code, kbd, pre, samp, xmp, plaintext, listing, .source-code {
+  font-family: 'Source Code Pro';
+  font-size: 12px;
+  font-style: normal;
+  line-height: 100%;
+}

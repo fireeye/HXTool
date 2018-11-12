@@ -1,0 +1,167 @@
+@import "../utils/variables/components/list-item";
+
+.fe-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 196px;
+  &__item {
+    &:last-child {
+      .fe-list__item-link:not(.fe-list__item-link--transparent-border) {
+        border-bottom: 1px solid $fe-list__item-border;
+      }
+    }
+  
+    &-link {
+      padding: 16px;
+      font-size: 12px;
+      line-height: 16px;
+      background-color: $fe-list__item-background;
+      border: none;
+      border-top: 1px solid $fe-list__item-border;
+      border-left: 2px solid $fe-color__transparent;
+      box-sizing: border-box;
+      color: $fe-list__item-text;
+      text-decoration: none;
+      text-transform: none;
+      display: flex;
+      width: 100%;
+      align-items: center;
+      outline: 0;
+      &--small {
+        padding: 8px 16px;
+        font-weight: normal;
+      }
+      &:focus,
+      &:hover {
+        background-color: $fe-list__item-background--hover;
+        border-left: 2px solid $fe-list__item-border-left--hover;
+        color: $fe-list__item-text--hover;
+        outline: 0px;
+        .fe-list__item-text {
+          color: $fe-list__item-text--hover;
+        }
+        .fe-list__item-link-left-section, .fe-list__item-link-right-section {
+          color: $fe-list__item-icon-color--hover;
+        }
+      }
+      &-left-section, &-right-section {
+        text-align: center;
+        color: $fe-list__item-icon-color;
+      }
+      &-left-section {
+        margin-right: 8px;
+      }
+      &-right-section {
+        margin-left: auto;
+      }
+      &-text {
+        font-weight: bold;
+        margin-right: 8px;
+        word-break: break-all;
+      }
+      &--transparent {
+        background-color: $fe-color__transparent;
+      }
+      &--transparent-border {
+        border-color: $fe-color__transparent;
+      }
+      &--active {
+        &,
+        &:focus,
+        &:hover {
+          background-color: $fe-list__item-background--active;
+          border-left: 2px solid $fe-list__item-border-left--active;
+          color: $fe-list__item-text--active;
+          .fe-list__item-text, .fe-list__item-link-left-section {
+            color: $fe-list__item-text--active;
+          }
+          .fe-list__item-link-right-section {
+            color: $fe-list__item-icon-color;
+          }
+        }
+      }
+      &--expanded {
+        +.fe-component-wrapper .fe-sub-list,
+        +.fe-sub-list {
+          display: block;
+        }
+      }
+      &--disabled {
+        &,
+        &:hover {
+          background-color: $fe-list__item-background--disabled;
+          border-left: 2px solid $fe-color__transparent;
+          color: $fe-list__item-text--disabled;
+          cursor: not-allowed;
+          .fe-list__item-text, .fe-list__item-link-left-section {
+            color: $fe-list__item-text--disabled;
+          }
+          .fe-list__item-link-right-section {
+            color: $fe-list__item-icon-color--right-disabled;
+          }
+        }
+      }
+    }
+  }
+  &.fe-sub-list {
+    .fe-list__item-link {
+      padding-left: 40px;
+      background-color: $fe-sub-list__item-background;
+      border-left: 2px solid $fe-sub-list__item-border-left;
+      &:focus,
+      &:hover {
+        background-color: $fe-color__background1--beta;
+      }
+    }
+    .fe-list__item {
+      &:last-child {
+        .fe-list__item-link {
+          border-bottom: 0;
+        }
+      }
+    }
+
+    .fe-list__item-link--active {
+      border-left-width: 4px;
+      padding-left: 38px;
+      &,
+      &:focus,
+      &:hover {
+        background-color: $fe-sub-list__item-background--active;
+      }
+    }
+    .fe-list__item-link--disabled {
+      &,
+      &:hover {
+        background-color: $fe-sub-list__item-background--disabled;
+        color: $fe-list__item-text--disabled;
+      }
+    }
+  }
+  &.fe-list--collapsed {
+    width: 48px;
+    .fe-sub-list {
+      display: none;
+    }
+    .fe-list__item-link {
+      position: relative;
+      padding-right: 0;
+      .fe-badge {
+        position: absolute;
+        top: 50%;
+        transform: translate(0%, -50%);
+      }
+      .fe-list__item-link-right-section {
+        margin-left: 0;
+      }
+      .fe-list__item-link-text {
+        display: none;
+      }
+    }
+  }
+}
+
+.fe-sub-list {
+  display: none;
+}

@@ -7,6 +7,7 @@ import uuid
 import threading
 import datetime
 import re
+import colorsys
 
 try:
 	from flask import current_app, request, session, redirect, url_for
@@ -26,6 +27,13 @@ except ImportError:
 import hxtool_global	
 from hx_lib import *
 
+def get_N_HexCol(N=5):
+	HSV_tuples = [(x * 1.0 / N, 0.7, 0.7) for x in range(N)]
+	hex_out = []
+	for rgb in HSV_tuples:
+		rgb = map(lambda x: int(x * 255), colorsys.hsv_to_rgb(*rgb))
+		hex_out.append('#%02x%02x%02x' % tuple(rgb))
+	return hex_out
 
 def valid_session_required(f):
 	@wraps(f)
@@ -184,5 +192,5 @@ class TemporaryFileLock(object):
 		
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.release()	
-	
+
 		

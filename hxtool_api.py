@@ -18,12 +18,506 @@ ht_api = Blueprint('ht_api', __name__, template_folder='templates')
 
 @ht_api.route('/api/v{0}/testcall'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
-def datatable_openioc():
+def datatable_openioc(hx_api_object):
 	if request.method == 'GET':
-		myiocs = app.hxtool_db.oiocList()
+		myiocs = hxtool_global.hxtool_db.oiocList()
 		return(app.response_class(response=json.dumps(myiocs), status=200, mimetype='application/json'))
 
+
+@ht_api.route('/api/v{0}/testcall2'.format(HXTOOL_API_VERSION), methods=['GET', 'POST'])
+@valid_session_required
+def testcall2(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restListHostsets()
+	return(app.response_class(response=json.dumps(response_data), status=200, mimetype='application/json'))
+
+
+###################################
+# Common User interface endpoints #
+###################################
+
+@ht_api.route('/api/v{0}/hostsets'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def testcall5(hx_api_object):
+	if request.method == 'GET':
+		(ret, response_code, response_data) = hx_api_object.restListHostsets()
+		if ret:
+			return(app.response_class(response=json.dumps(response_data), status=200, mimetype='application/json'))
+		else:
+			return('',response_code)
+
+
+
+#####################
+# Enterprise Search #
+#####################
+@ht_api.route('/api/v{0}/enterprise_search/stop'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_enterprise_search_stop(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restCancelJob('searches', request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/enterprise_search/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_enterprise_search_remove(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restDeleteJob('searches', request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+###################
+# Manage OpenIOCs #
+###################
+@ht_api.route('/api/v{0}/openioc/view'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_openioc_view(hx_api_object):
+	storedioc = hxtool_global.hxtool_db.oiocGet(request.args.get('id'))
+	(r, rcode) = create_api_response(response_data = json.dumps(storedioc))
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/openioc/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_openioc_remove(hx_api_object):
+	hxtool_global.hxtool_db.oiocDelete(request.args.get('id'))
+	(r, rcode) = create_api_response()
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/openioc/upload'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_openioc_upload(hx_api_object):
+
+	fc = request.files['myioc']
+	rawioc = fc.read()
+	hxtool_global.hxtool_db.oiocCreate(request.form['iocname'], HXAPI.b64(rawioc), session['ht_user'])
+	(r, rcode) = create_api_response(ret=True)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+##########
+# Alerts #
+##########
+@ht_api.route('/api/v{0}/alerts/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_alerts_remove(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restDeleteJob('alerts', request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
+###########
+# ChartJS #
+###########
+
+
+@ht_api.route('/api/v{0}/chartjs_malwarecontent'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def chartjs_malwarecontent(hx_api_object):
+	if request.method == 'GET':
 		
+		myContent = {}
+		myContent['none'] = 0
+		myData = {}
+		myData['labels'] = []
+		myData['datasets'] = []
+
+		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+		if ret:
+			for host in response_data['data']['entries']:
+				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+				if 'malware' in sresponse_data['data'].keys():
+					if 'content' in sresponse_data['data']['malware'].keys():
+						if not sresponse_data['data']['malware']['content']['version'] in myContent.keys():
+							myContent[sresponse_data['data']['malware']['content']['version']] = 1
+						else:
+							myContent[sresponse_data['data']['malware']['content']['version']] += 1
+					else:
+						myContent['none'] += 1
+				else:
+					myContent['none'] += 1
+
+		dataset = []
+		mylist = []
+		for ckey, cval in myContent.items():
+			mylist.append({ "version": ckey, "count": cval })
+
+		newlist = sorted(mylist, key=lambda k: k['count'])
+		results = newlist[-10:]
+
+		for entry in results:
+			myData['labels'].append(entry['version'])
+			dataset.append(entry['count'])
+
+#		myPattern = get_N_HexCol(len(results))
+		myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
+
+		myData['datasets'] = []
+		myData['datasets'].append({
+			"label": "content version",
+			"backgroundColor": myPattern,
+			"borderColor": "#0d1a2b",
+			"borderWidth": 5,
+			"data": dataset
+			})
+
+		return(app.response_class(response=json.dumps(myData), status=200, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/chartjs_malwareengine'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def chartjs_malwareengine(hx_api_object):
+	if request.method == 'GET':
+		
+		myContent = {}
+		myContent['none'] = 0
+		myData = {}
+		myData['labels'] = []
+		myData['datasets'] = []
+
+		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+		if ret:
+			for host in response_data['data']['entries']:
+				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+				if 'malware' in sresponse_data['data'].keys():
+					if 'content' in sresponse_data['data']['malware'].keys():
+						if not sresponse_data['data']['malware']['engine']['version'] in myContent.keys():
+							myContent[sresponse_data['data']['malware']['engine']['version']] = 1
+						else:
+							myContent[sresponse_data['data']['malware']['engine']['version']] += 1
+					else:
+						myContent['none'] += 1
+				else:
+					myContent['none'] += 1
+
+		dataset = []
+		mylist = []
+		for ckey, cval in myContent.items():
+			mylist.append({ "version": ckey, "count": cval })
+
+		newlist = sorted(mylist, key=lambda k: k['count'])
+		results = newlist[-10:]
+
+		for entry in results:
+			myData['labels'].append(entry['version'])
+			dataset.append(entry['count'])
+
+		myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
+
+		myData['datasets'] = []
+		myData['datasets'].append({
+			"label": "engine version",
+			"backgroundColor": myPattern,
+			"borderColor": "#0d1a2b",
+			"borderWidth": 5,
+			"data": dataset
+			})
+
+		return(app.response_class(response=json.dumps(myData), status=200, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/chartjs_malwarestatus'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def chartjs_malwarestatus(hx_api_object):
+	if request.method == 'GET':
+		
+		myContent = {}
+		myContent['none'] = 0
+		myData = {}
+		myData['labels'] = []
+		myData['datasets'] = []
+
+		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+		if ret:
+			for host in response_data['data']['entries']:
+				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+				if 'MalwareProtectionStatus' in sresponse_data['data'].keys():
+					if not sresponse_data['data']['MalwareProtectionStatus'] in myContent.keys():
+						myContent[sresponse_data['data']['MalwareProtectionStatus']] = 1
+					else:
+						myContent[sresponse_data['data']['MalwareProtectionStatus']] += 1
+				else:
+					myContent['none'] += 1
+
+		dataset = []
+		mylist = []
+		for ckey, cval in myContent.items():
+			mylist.append({ "mode": ckey, "count": cval })
+
+		newlist = sorted(mylist, key=lambda k: k['count'])
+		results = newlist[-10:]
+
+		for entry in results:
+			myData['labels'].append(entry['mode'])
+			dataset.append(entry['count'])
+
+		myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
+
+		myData['datasets'] = []
+		myData['datasets'].append({
+			"label": "mode",
+			"backgroundColor": myPattern,
+			"borderColor": "#0d1a2b",
+			"borderWidth": 5,
+			"data": dataset
+			})
+
+		return(app.response_class(response=json.dumps(myData), status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/enterprise_search/chartjs_searches'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_enterprise_search_chartjs_searches(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restListSearches()
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	if ret:
+		mysearches = {}
+		myGraphData = []
+		myr = {}
+		myr['labels'] = []
+		myr['datasets'] = []
+
+		startDate = datetime.datetime.strptime(request.args.get('startDate'), '%Y-%m-%d')
+		endDate = datetime.datetime.strptime(request.args.get('endDate'), '%Y-%m-%d')
+		delta = (endDate - startDate)
+
+		# Generate data for all dates
+		date_list = [endDate - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
+		for date in date_list[::-1]:
+			mysearches[date.strftime("%Y-%m-%d")] = 0
+
+		for search in response_data['data']['entries']:
+
+			if search['create_time'][0:10] in mysearches.keys():
+				mysearches[search['create_time'][0:10]] += 1
+
+		for key, val in mysearches.items():
+			myr['labels'].append(key)
+			myGraphData.append(val)
+
+		myr['datasets'].append({
+			"label": "Search count",
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderWidth": 2,
+			"borderColor": "#8fffc1",
+			"pointStyle": "circle",
+			"pointRadius": 2,
+			"data": myGraphData
+		})
+
+		return(app.response_class(response=json.dumps(myr), status=rcode, mimetype='application/json'))
+	else:
+		return('HX API Call failed',500)
+
+
+@ht_api.route('/api/v{0}/chartjs_hosts_initial_agent_checkin'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def chartjs_hosts_initial_agent_checkin(hx_api_object):
+
+	myhosts = {}
+	myhosts['labels'] = []
+	myhosts['datasets'] = []
+	mycount = {}
+
+	# Get all dates and calculate delta
+	startDate = datetime.datetime.strptime(request.args.get('startDate'), '%Y-%m-%d')
+	endDate = datetime.datetime.strptime(request.args.get('endDate'), '%Y-%m-%d')
+	delta = (endDate - startDate)
+
+	# Generate data for all dates
+	date_list = [endDate - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
+	for date in date_list[::-1]:
+		mycount[date.strftime("%Y-%m-%d")] = 0
+
+	(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+	if ret:
+		for host in response_data['data']['entries']:
+			if host['initial_agent_checkin'][0:10] in mycount.keys():
+				mycount[host['initial_agent_checkin'][0:10]] += 1
+
+		myGraphData = []
+		for key, stats in mycount.items():
+			myhosts['labels'].append(key)
+			myGraphData.append(stats)
+
+		myhosts['datasets'].append({
+			"label": "Provisioned endpoints",
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderWidth": 2,
+			"borderColor": "#8fffc1",
+			"pointStyle": "circle",
+			"pointRadius": 2,
+	        "data": myGraphData
+			})
+	else:
+		return('', 500)
+
+	return(app.response_class(response=json.dumps(myhosts), status=200, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/chartjs_events_timeline'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def chartjs_events_timeline(hx_api_object):
+
+	mydates = {}
+	mydates['labels'] = []
+	mydates['datasets'] = []
+	mycount = {}
+
+	# Get all dates and calculate delta
+	startDate = datetime.datetime.strptime(request.args.get('startDate'), '%Y-%m-%d')
+	endDate = datetime.datetime.strptime(request.args.get('endDate'), '%Y-%m-%d')
+	delta = (endDate - startDate)
+
+	# Generate data for all dates
+	date_list = [endDate - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
+	for date in date_list[::-1]:
+		mycount[date.strftime("%Y-%m-%d")] = {"IOC": 0, "EXD": 0, "MAL": 0}
+
+	# Get alerts
+	(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
+	if ret:
+		for alert in response_data:
+			# Make sure the date exists
+			if not alert['event_at'][0:10] in mycount.keys():
+				mycount[alert['event_at'][0:10]] = {"IOC": 0, "EXD": 0, "MAL": 0}
+
+			# Add stats for date
+			mycount[alert['event_at'][0:10]][alert['source']] += 1
+
+		myDataIOC = []
+		myDataEXD = []
+		myDataMAL = []
+
+		for key, stats in mycount.items():
+			mydates['labels'].append(key)
+			myDataIOC.append(stats['IOC'])
+			myDataEXD.append(stats['EXD'])
+			myDataMAL.append(stats['MAL'])
+
+		mydates['datasets'].append({
+			"label": "IOC",
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderWidth": 2,
+			"borderColor": "#8fffc1",
+			"pointStyle": "circle",
+			"pointRadius": 2,
+			"data": myDataIOC
+		})
+		mydates['datasets'].append({
+			"label": "EXD",
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderWidth": 2,
+			"borderColor": "#b20032",
+			"pointStyle": "circle",
+			"pointRadius": 2,
+			"data": myDataEXD
+		})
+		mydates['datasets'].append({
+			"label": "MAL",
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderWidth": 2,
+			"borderColor": "#ffe352",
+			"pointStyle": "circle",
+			"pointRadius": 2,
+			"data": myDataMAL
+		})
+
+		return(app.response_class(response=json.dumps(mydates), status=200, mimetype='application/json'))
+	else:
+		return('',500)
+
+@ht_api.route('/api/v{0}/chartjs_events_distribution'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def chartjs_events_distribution(hx_api_object):
+
+	mydata = {}
+	mydata['labels'] = []
+	mydata['datasets'] = []
+	mycount = {}
+
+	# Get alerts
+	(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
+	if ret:
+		for alert in response_data:
+			# Make sure the key exists
+			if not alert['source'] in mycount.keys():
+				mycount[alert['source']] = 0
+
+			# Add stats
+			mycount[alert['source']] += 1
+
+		mydata['labels'].append("IOC")
+		mydata['labels'].append("EXD")
+		mydata['labels'].append("MAL")
+
+		if 'IOC' in mycount.keys():
+			myDataIOC = mycount["IOC"]
+		else:
+			myDataIOC = 0
+		if 'EXD' in mycount.keys():
+			myDataEXD = mycount["EXD"]
+		else:
+			myDataEXD = 0
+		if 'MAL' in mycount.keys():
+			myDataMAL = mycount["MAL"]
+		else:
+			myDataMAL = 0
+
+		mydata['datasets'].append({
+			"label": "Alert count",
+			"backgroundColor": "rgba(0, 203, 190, 0.6)",
+			"borderColor": "rgba(0, 203, 190, 0.5)",
+			"borderWidth": 3,
+			"data": [myDataIOC, myDataEXD, myDataMAL]
+		})
+
+
+		return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+	else:
+		return('',500)
+
+
+@ht_api.route('/api/v{0}/chartjs_inactive_hosts_per_hostset'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def chartjs_inactive_hosts_per_hostset(hx_api_object):
+
+	myhosts = []
+	
+	(ret, response_code, response_data) = hx_api_object.restListHostsets()
+	if ret:
+		for hostset in response_data['data']['entries']:
+			(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(query_terms = {'host_sets._id' : hostset['_id']})
+			if ret:
+				now = datetime.datetime.utcnow()
+				hcount = 0
+				for host in hresponse_data['data']['entries']:
+					x = (HXAPI.gt(host['last_poll_timestamp']))
+					if (int((now - x).total_seconds())) > int(request.args.get('seconds')):
+						hcount += 1
+				myhosts.append({"hostset": hostset['name'], "count": hcount})
+
+		# Return the Vega Data
+		newlist = sorted(myhosts, key=lambda k: k['count'])
+		results = newlist[-10:]
+
+		mydata = {}
+		mydata['labels'] = []
+		mydata['datasets'] = []
+
+		tempData = []
+		for setname in results[::-1]:
+			mydata['labels'].append(setname['hostset'])
+			tempData.append(setname['count'])
+
+		mydata['datasets'].append({
+			"label": "Missing hosts",
+			"backgroundColor": "rgba(0, 203, 190, 0.6)",
+			"borderColor": "rgba(0, 203, 190, 0.5)",
+			"borderWidth": 3,
+			"data": tempData
+		})	
+
+		return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+	else:
+		return('',500)
+
+
 ######################
 # Profile Management #
 ######################
@@ -81,4 +575,23 @@ def stack_job_results(hx_api_object, stack_job_eid):
 		
 	ht_data_model = hxtool_data_models(stack_job['stack_type'])
 	return ht_data_model.stack_data(stack_job['results'])	
+
+
+def create_api_response(ret = True, response_code = 200, response_data = False):
+
+	api_response = {}
+	api_response['api_success'] = ret
+	api_response['api_response_code'] = response_code
+
+	if response_data:
+		api_response['api_response'] = HXAPI.compat_str(response_data)
+
+	rcode = 200
+	if not ret and response_code:
+		if response_code in [401, 404]:
+			rcode = response_code
+		else:
+			rcode = 400
+
+	return(api_response, rcode)
 

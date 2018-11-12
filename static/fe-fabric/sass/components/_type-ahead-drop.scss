@@ -1,0 +1,10 @@
+.fe-type-ahead-drop {
+  position: absolute;
+  top: 100%;
+  box-shadow: 2px 2px 4px $fe-color__box-shadow;
+  z-index: 2;
+  width: 100%;
+  .fe-list {
+    width: 100%;
+  }
+}

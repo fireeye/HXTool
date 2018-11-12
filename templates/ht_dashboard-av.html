@@ -4,43 +4,10 @@
 
 <script>
 
-		function getHistoricDate(days) {
-			var historicDate = new Date();
-			historicDate.setDate(historicDate.getDate() - days);
-			return(historicDate.toISOString().substr(0, 10))
-		}
-
-		function vega_malwarecontent(embedOpt, myWidthThree) {
-	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-version.json', function(spec) {
-	        	spec.width = myWidthThree;
-	        	spec.height = 300;
-	        	spec.data.url = "/api/v1/vegalite_malwarecontent";
-				vegaEmbed("#row1_cell1", spec, embedOpt);
-			});			
-		}
-
-		function vega_malwareengine(embedOpt, myWidthThree) {
-	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-version.json', function(spec) {
-	        	spec.width = myWidthThree;
-	        	spec.height = 300;
-	        	spec.data.url = "/api/v1/vegalite_malwareengine";
-				vegaEmbed("#row1_cell2", spec, embedOpt);
-			});			
-		}
-
-		function vega_malwarestatus(embedOpt, myWidthThree) {
-	        $.getJSON('/static/vegaspecs/lite-barchart-vertical-mode.json', function(spec) {
-	        	spec.width = myWidthThree;
-	        	spec.height = 300;
-	        	spec.data.url = "/api/v1/vegalite_malwarestatus";
-				vegaEmbed("#row1_cell3", spec, embedOpt);
-			});			
-		}
-
 		function datatable_last_alerts() {
 			$.fn.dataTable.ext.errMode = 'none';
 			var row2_cell1_datatable = $('#row2_cell1_table').DataTable( {
-				"ajax": "/api/v1/datatable_alerts?limit=15&source=MAL",
+				"ajax": "/api/v1/datatable_alerts?limit=20&source=MAL",
 				"paging":   false,
 				"ordering": false,
 				"info":     false,
@@ -85,6 +52,9 @@
 
         $(document).ready(function() {
 
+			Chart.defaults.global.defaultFontColor = 'rgba(255, 255, 255, 0.8)';
+			Chart.defaults.global.defaultFontFamily = 'Open Sans';
+
         	myInterval = 60000;
 
         	myWidthThree = ($( window ).width() / 3) - 90;
@@ -95,76 +65,168 @@
 
 			var pastDate = getHistoricDate(1);
 
-			var embedOpt = {
-				"actions": false
-			}
-
 			// Click events
-
-			// Malware content version auto-refresh
-			$("#row1_cell1_auto").click(function() {
-				if ($(this).is(":checked")) {
-					row1_cell1_auto_id = setInterval(function () {
-						vega_malwarecontent(embedOpt, myWidthThree);
-					}, myInterval);
-				}
-				else {
-					clearInterval(row1_cell1_auto_id);
-				}
-			});
-
-			// Malware engine version auto-refresh
-			$("#row1_cell2_auto").click(function() {
-				if ($(this).is(":checked")) {
-					row1_cell2_auto_id = setInterval(function () {
-						vega_malwareengine(embedOpt, myWidthThree);
-					}, myInterval);
-				}
-				else {
-					clearInterval(row1_cell2_auto_id);
-				}
-			});
-
-			// Malware status auto-refresh
-			$("#row1_cell3_auto").click(function() {
-				if ($(this).is(":checked")) {
-					row1_cell3_auto_id = setInterval(function () {
-						vega_malwarestatus(embedOpt, myWidthThree);
-					}, myInterval);
-				}
-				else {
-					clearInterval(row1_cell3_auto_id);
-				}
-			});
-
-			// last 10 alerts auto-refresh
-			$("#row2_cell1_auto").click(function() {
-				if ($(this).is(":checked")) {
-					row2_cell1_auto_id = setInterval(function () {
-						row2_cell1_datatable.ajax.reload();
-					}, myInterval);
-				}
-				else {
-					clearInterval(row2_cell1_auto_id);
-				}
-			});
-
-			// Start loading all graphs
-			// Vega: Malware content version
-			vega_malwarecontent(embedOpt, myWidthThree);
-
-			// Vega: Malware engine version
-			vega_malwareengine(embedOpt, myWidthThree);
-
-			// Vega: Malware engine status
-			vega_malwarestatus(embedOpt, myWidthThree);
 
 			// Datatable: Last 20 MAL alerts
 			row2_cell1_datatable = datatable_last_alerts();
 
 
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_malwarecontent",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_avcontent').getContext('2d');
+				window.chartjs_av_content = new Chart(ctx, config);
+			});
+
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_malwareengine",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_avengine').getContext('2d');
+				window.chartjs_av_engine = new Chart(ctx, config);
+			});
+
+
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_malwarestatus",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_avstatus').getContext('2d');
+				window.chartjs_av_status = new Chart(ctx, config);
+			});
+
+
+
         });
 </script>
+
+<div class="avdash-grid-container">
+  <div class="avtable">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-bar"></i>Last anti-virus alerts</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<table id="row2_cell1_table" class='hxtool_table' style='width: 100%;'></table>
+		</div>
+	</div>
+
+
+  </div>
+  <div class="avcell1">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-pie"></i>Endpoints with anti-virus content version</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_avcontent" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+
+  </div>
+  <div class="avcell2">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-pie"></i>Endpoints with anti-virus engine version</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_avengine" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+
+  </div>
+  <div class="avcell3">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-pie"></i>Status of anti-virus on endpoints</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_avstatus" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+  </div>
+</div>
+
+
+<!--
 
 <table id='dashboard' class='dashTable' style='width: 100%;'>
 	<tr>
@@ -224,5 +286,7 @@
 		</td>
 	</tr>
 </table>
+
+-->
 
 {% endblock %}

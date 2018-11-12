@@ -1,0 +1,82 @@
+.fe-container {
+  position: relative;
+  display: flex;
+}
+
+.fe-main-content {
+  padding: 15px;
+}
+
+.hide {
+  display: none;
+}
+
+.show {
+  display: block;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.text-ellipses {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.clearfix {
+  &:before,
+  &:after {
+    content: " ";
+    display: table;
+  }
+  &:after {
+    clear: both;
+  }
+}
+
+.pull-right {
+  float: right;
+}
+
+.pull-left {
+  float: left;
+}
+
+//Text Colors
+$text-colors: (
+  "primary": $fe-color__action-primary--alpha,
+  "secondary": $fe-color__action-secondary--alpha,
+  "danger": $fe-color__theme-danger--alpha,
+  "success": $fe-color__theme-success--alpha,
+  "info": $fe-color__theme-information--alpha,
+  "caution": $fe-color__theme-caution--alpha,
+  "warning": $fe-color__theme-warn--alpha
+);
+
+$text-hover-colors: (
+  "primary": $fe-color__action-primary--beta,
+  "secondary": $fe-color__action-secondary--beta,
+  "danger": $fe-color__theme-danger--beta,
+  "success": $fe-color__theme-success--beta,
+  "info": $fe-color__theme-information--beta,
+  "caution": $fe-color__theme-caution--beta,
+  "warning": $fe-color__theme-warn--beta
+);
+
+@each $color, $value in $text-colors {
+  @include text-variant(".text-#{$color}", $value);
+}
+
+@each $color, $value in $text-hover-colors {
+  @include text-hover-variant(".text-#{$color}", $value);
+}

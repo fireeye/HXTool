@@ -1,0 +1,128 @@
+.fe-search {
+  position: relative;
+  padding: 4px 8px;
+
+  .fe-search__icon--section {
+    font-size: 12px;
+    position: absolute;
+    top: 50%;
+    transform: translate(0%, -50%);
+    width: 16px;
+    line-height: 16px;
+    text-align: center;
+    color: $fe-color__action-secondary--alpha;
+  }
+
+  .fe-search__section--left {
+    left: 12px;
+  }
+
+  .fe-search__section--right {
+    right: 12px;
+    display: none;
+  }
+
+  input {
+    background-color: $fe-search__background;
+    outline: 0;
+    font-size: 12px;
+    height: 24px;
+    line-height: 16px;
+    border: 1px solid $fe-search__border;
+    border-radius: 12px;
+    padding: 0 28px;
+    width: 100%;
+    box-sizing: border-box;
+    color: $fe-color__text-primary--beta;
+    &::placeholder {
+      font-style: italic;
+      color: $fe-color__text-primary--gamma;
+    }
+
+    &:valid {
+      border: 1px solid $fe-search__border--filled;
+      background-color: $fe-search__background--filled;
+      color: $fe-color__text-primary--beta;
+
+      + .fe-search__section--left {
+        color: $fe-search__icon--filled;
+      }
+
+      ~ .fe-search__section--right {
+        display: inline;
+        color: $fe-search__close--filled;
+      }
+    }
+
+    &:focus {
+      border: 1px solid $fe-search__border--focus;
+      background-color: $fe-search__background--focus;
+      color: $fe-color__text-primary--beta;
+
+      + .fe-search__section--left {
+        color: $fe-search__icon--focus;
+      }
+
+      ~ .fe-search__section--right {
+        display: inline;
+        color: $fe-search__close--focus;
+      }
+    }
+
+    &.disabled,
+    &[disabled] {
+      border: 1px solid $fe-search__border--disabled;
+      background-color: $fe-search__background--disabled;
+      color: $fe-search__color--disabled;
+
+      + .fe-search__section--left {
+        color: $fe-search__icon--disabled;
+      }
+    }
+  }
+
+  &.fe-search__background--dark {
+    background-color: $fe-search__background--dark;
+  }
+
+  &.fe-search__background--light {
+    background-color: $fe-search__background--light;
+    input {
+      background-color: $fe-search__input-background--light;
+      border-color: $fe-search__input-border--light;
+      color: $fe-search__input-color--light;
+      &::placeholder {
+        font-style: italic;
+        color: $fe-search__input-placeholder-color--light;
+      }
+      
+      &:valid {
+        + .fe-search__section--left {
+          color: $fe-search__input-color--light;
+        }
+
+        ~ .fe-search__section--right {
+          display: inline;
+          color: $fe-search__input-color--light;
+        }
+      }
+      &:focus {
+        border-color: $fe-search__input-color--light;
+        + .fe-search__section--left {
+          color: $fe-search__input-color--light;
+        }
+
+        ~ .fe-search__section--right {
+          display: inline;
+          color: $fe-search__close--focus;
+        }
+      }
+    }
+  }
+
+  &.fe-search__background--transparent {
+    background-color: transparent;
+    border-top: 1px solid $fe-color__border--alpha;
+    border-bottom: 1px solid $fe-color__border--alpha;
+  }
+}

@@ -1,0 +1,101 @@
+/* Generic datatables table */
+
+.hxtool_table {
+	border-collapse: collapse;
+	font-weight: 600;
+}
+
+.hxtool_table td, .hxtool_table tr, .hxtool_table th {
+	
+}
+
+.hxtool_table thead td, .hxtool_table thead th {
+	padding: 4px;
+    font-size: 12px;
+    border-right: 1px solid rgba(15, 184, 220, 0.4);;
+    border-bottom: 1px solid rgba(15, 184, 220, 0.4);;
+    vertical-align: bottom;
+}
+
+.hxtool_table thead td:last-child, .hxtool_table thead th:last-child {
+    border-right: none;
+}
+
+
+.hxtool_table tbody td {
+	padding: 4px;
+	border-right: 1px solid rgba(15, 184, 220, 0.4);
+	font-size: 12px;
+	vertical-align: middle;
+}
+
+.hxtool_table tbody td:last-child {
+	border-right: none;
+}
+
+.hxtool_table tbody tr {
+	border-bottom: 1px solid rgba(15, 184, 220, 0.1);
+}
+
+.hxtool_table tbody tr:nth-child(odd) {
+	background: rgba(0,0,0,0.2);
+}
+
+.hxtool_table tbody tr:last-child {
+	border-bottom: none;
+}
+
+.hxtool_table a:link, a:visited {
+  font-size: 12px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hxtool_table a:hover {
+  color: #0fb8dc;
+}
+
+/* Generic datatables Exceptions */
+
+.hxtool_table_cell_center {
+	text-align: center;
+}
+
+.hxtool_table_cell_vertical {
+	transform: rotate(-65deg);
+	transform-origin: top left;
+	text-align: left;
+	padding: 0;
+	position: absolute;
+	margin-left: 2px;
+	margin-top: -10px;
+}
+
+.hxtool_table_header_es thead th:nth-child(n+12):nth-last-child(n+3) {
+	padding: 0;
+	height: 80px;
+	min-width: 40px;
+	max-width: 40px;
+}
+
+.hxtool_table_header_es thead th:nth-child(3) {
+	text-align: left;
+	padding-left: 5px;
+}
+
+.hxtool_alerts_filter th, td {
+	padding-left: 6px;
+	padding-right: 6px;
+	text-align: left;
+}
+
+/* Dashboard grid table */
+
+.hxtool_table_dashboard {
+	width: 100%;
+}
+
+.hxtool_table_dashboard td {
+	padding: 5px;
+	vertical-align: top;
+}

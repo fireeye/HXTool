@@ -1,0 +1,696 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Dashboard{% endblock %}
+{% block content %}
+
+<script>
+
+	function refreshEverything(currentDate, row1_cell3_datatable, row2_cell1_datatable) {
+		updateChartJS(chartjs_ap, "/api/v1/chartjs_hosts_initial_agent_checkin?startDate=" + getHistoricDate($("#row1_cell2_select").data("id")) + "&endDate=" + currentDate);
+		updateChartJS(chartjs_ih, "/api/v1/chartjs_inactive_hosts_per_hostset?seconds=" + $("#row1_cell1_select").data("id"));
+		updateChartJS(chartjs_ad, "/api/v1/chartjs_events_distribution?startDate=" + getHistoricDate($("#row2_cell2_select").data("id")) + "&endDate=" + currentDate);
+		updateChartJS(chartjs_et, "/api/v1/chartjs_events_timeline?startDate=" + $("#row3_cell1_from").val() + "&endDate=" + $("#row3_cell1_to").val());
+		row1_cell3_datatable.ajax.reload();
+		row2_cell1_datatable.ajax.reload();
+	}
+
+	$(document).ready(function() {
+
+		Chart.defaults.global.defaultFontColor = 'rgba(255, 255, 255, 0.8)';
+		Chart.defaults.global.defaultFontFamily = 'Open Sans';
+
+		var fullDate = new Date()
+		var currentDate = fullDate.toISOString().substr(0, 10);
+		var pastDate = getHistoricDate(7);
+
+		// Autorefresh
+		$("#autorefresh").click(function() {
+			if ($(this).is(":checked")) {
+				autorefresh = setInterval(function () {
+					refreshEverything(currentDate, row1_cell3_datatable, row2_cell1_datatable);
+				}, $("#autorefresh_interval").val() * 1000);
+			}
+			else {
+				clearInterval(autorefresh);
+			}
+		});
+
+		// Set event timeline dates
+		$("#row3_cell1_from").val(pastDate);
+		$("#row3_cell1_to").val(currentDate);
+
+		// When the user changes graph settings
+		$(".row1_cell2-item").click(function() {
+			updateChartJS(chartjs_ap, "/api/v1/chartjs_hosts_initial_agent_checkin?startDate=" + getHistoricDate($(this).find("span").next().data("id")) + "&endDate=" + currentDate);
+		});
+
+		$(".row1_cell1-item").click(function() {
+			updateChartJS(chartjs_ih, "/api/v1/chartjs_inactive_hosts_per_hostset?seconds=" + $(this).find("span").next().data("id"));
+		});
+
+		$(".row2_cell2-item").click(function() {
+			updateChartJS(chartjs_ad, "/api/v1/chartjs_events_distribution?startDate=" + getHistoricDate($(this).find("span").next().data("id")) + "&endDate=" + currentDate);
+		});
+
+		$("button[id^='row3_cell1_nav_']").click(function() {
+			var dArr = $(this).attr('id').split("_");
+			var navDate = getHistoricDate(dArr[3]);
+			$("#row3_cell1_from").val(navDate);
+			$("#row3_cell1_to").val(currentDate);
+			$("#row3_cell1_refresh").click();
+		});
+
+		$("#row3_cell1_refresh").click(function() {
+			updateChartJS(chartjs_et, "/api/v1/chartjs_events_timeline?startDate=" + $("#row3_cell1_from").val() + "&endDate=" + $("#row3_cell1_to").val());
+		});
+
+		// START: Charts
+		// ChartJS: Agent provisioning status
+		var jsonData = $.ajax({
+			url: "/api/v1/chartjs_hosts_initial_agent_checkin?startDate=" + getHistoricDate($("#row1_cell2_select").data("id")) + "&endDate=" + currentDate,
+			dataType: 'json',
+		}).done(function (myChartData) {
+
+			var config = {
+				type: 'line',
+				data: myChartData,
+			
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					title: {
+						display: false
+					},
+					legend: {
+						display: false
+					},						
+					tooltips: {
+						mode: 'index',
+						intersect: false,
+						borderColor: "rgba(15, 184, 220, 0.4)"
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
+					},
+					scales: {
+						xAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							gridLines: {
+								display: false
+							}
+						}],
+						yAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							ticks: {
+								beginAtZero: true,
+								maxTicksLimit: 5,
+								precision: 0
+							},
+							gridLines: {
+								display: true ,
+								color: "rgba(15, 184, 220, 0.4)"
+							}
+						}]
+					}
+				}
+			}
+
+			var ctx = document.getElementById('chartjs_host_provision').getContext('2d');
+			window.chartjs_ap = new Chart(ctx, config);
+		});
+
+
+		// ChartJS: Alerts timeline
+		var jsonData = $.ajax({
+			url: "/api/v1/chartjs_events_timeline?startDate=" + $("#row3_cell1_from").val() + "&endDate=" + $("#row3_cell1_to").val(),
+			dataType: 'json',
+		}).done(function (myChartData) {
+
+			var config = {
+				type: 'line',
+				data: myChartData,
+			
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					title: {
+						display: false
+					},
+					legend: {
+						display: false
+					},						
+					tooltips: {
+						mode: 'index',
+						intersect: false,
+						borderColor: "rgba(15, 184, 220, 0.4)"
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
+					},
+					scales: {
+						xAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							gridLines: {
+								display: false
+							}
+						}],
+						yAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							ticks: {
+								beginAtZero: true,
+								maxTicksLimit: 5
+							},
+							gridLines: {
+								display: true ,
+								color: "rgba(15, 184, 220, 0.4)"
+							}
+						}]
+					}
+				}
+			}
+
+			var ctx = document.getElementById('chartjs_event_timeline').getContext('2d');
+			window.chartjs_et = new Chart(ctx, config);
+		});
+
+
+		// ChartJS: alert distribution
+		var jsonData = $.ajax({
+			url: "/api/v1/chartjs_events_distribution?startDate=" + getHistoricDate($("#row2_cell2_select").data("id")) + "&endDate=" + currentDate,
+			dataType: 'json',
+		}).done(function (myChartData) {
+
+			var config = {
+				type: 'bar',
+				data: myChartData,
+			
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					title: {
+						display: false
+					},
+					legend: {
+						display: false
+					},						
+					tooltips: {
+						mode: 'index',
+						intersect: false,
+						borderColor: "rgba(15, 184, 220, 0.4)"
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
+					},
+					scales: {
+						xAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							gridLines: {
+								display: false
+							}
+						}],
+						yAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							ticks: {
+								beginAtZero: true,
+								maxTicksLimit: 5
+							},
+							gridLines: {
+								display: true ,
+								color: "rgba(15, 184, 220, 0.4)"
+							}
+						}]
+					}
+				}
+			}
+
+			var ctx = document.getElementById('chartjs_event_distribution').getContext('2d');
+			window.chartjs_ad = new Chart(ctx, config);
+		});
+
+		// ChartJS: inactive hosts
+		var jsonData = $.ajax({
+			url: "/api/v1/chartjs_inactive_hosts_per_hostset?seconds=" + $("#row1_cell1_select").data("id"),
+			dataType: 'json',
+		}).done(function (myChartData) {
+
+			var config = {
+				type: 'horizontalBar',
+				data: myChartData,
+			
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					title: {
+						display: false
+					},
+					legend: {
+						display: false
+					},						
+					tooltips: {
+						mode: 'index',
+						intersect: false,
+						borderColor: "rgba(15, 184, 220, 0.4)"
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
+					},
+					scales: {
+						xAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							gridLines: {
+								display: true ,
+								color: "rgba(15, 184, 220, 0.4)"
+							}
+						}],
+						yAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							ticks: {
+								beginAtZero: true,
+								maxTicksLimit: 5
+							},
+							gridLines: {
+								display: false
+							}
+						}]
+					}
+				}
+			}
+
+			var ctx = document.getElementById('chartjs_inactive_hosts').getContext('2d');
+			window.chartjs_ih = new Chart(ctx, config);
+		});
+
+
+
+		// Host with the most alerts
+		$.fn.dataTable.ext.errMode = 'none';
+		var row1_cell3_datatable = $('#row1_cell3_table').DataTable( {
+			"ajax": "/api/v1/datatable_hosts_with_alerts",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": false,
+			columns: [
+				{ title: "Hostname" },
+				{ title: "Count" }
+			],
+			"columnDefs": [	
+				{
+				 targets: 0,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		myArr = data.split("___");
+				 		data = '<a class="hostLink" href="/hosts?host=' + encodeURIComponent(myArr[1]) + '">' + myArr[0] + '</a>';
+				 	}
+				 	return data;
+				 }
+				},
+				{"className": "hxtool_table_cell_center", "targets": "_all"}
+			]
+
+		});
+
+		// Last 10 alerts
+		$.fn.dataTable.ext.errMode = 'none';
+		var row2_cell1_datatable = $('#row2_cell1_table').DataTable( {
+			"ajax": "/api/v1/datatable_alerts?limit=10",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": false,
+			"columns": [
+				{ title: "Hostname" },
+				{ title: "Domain" },
+				{ title: "Reported at" },
+				{ title: "Source" },
+				{ title: "Threat" },
+				{ title: "Action" }
+			],
+
+			"columnDefs": [	
+				{
+				 targets: 0,
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display'){
+				 		myArr = data.split("___");
+				 		data = '<a class="hostLink" href="/hosts?host=' + encodeURIComponent(myArr[1]) + '&alertid=' + encodeURIComponent(myArr[2]) + '">' + myArr[0] + '</a>';
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 targets: 3,
+				 render: function ( data, type, row, meta ) {
+				 	return(datatables_parseSource(data));
+				 }
+				},
+				{
+				 targets: 5,
+				 render: function ( data, type, row, meta ) {
+				 	return(datatables_parseResolution(data));
+				 }
+				},
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3]}
+			]
+		});
+	});
+
+</script>
+
+<div style='position: absolute; right: 0; margin-right: 24px; z-index: 10;'>
+	<input type='checkbox' id='autorefresh'>
+	<span style='font-weight: bold; font-size: 12px;'>auto-refresh (seconds)</span>
+	<input style='display: inline-block; width: 45px; padding-bottom: 2px;' type='text' class="hxtool_input_small fe-input" id='autorefresh_interval' value='60'>
+</div>
+
+<div class="dash-grid-container">
+  <div class="top">
+  	<!-- CELL 1 -->
+    <div class="area-overlap-cell1">
+		<div class="hxtool_panel_dashboard fe-panel">
+			<div class="fe-panel-header fe-panel-header--no-background">
+				<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-bar"></i>Inactive endpoints</div>
+			</div>
+			<div class='hxtool_panel_top_right'>
+
+				<div class="fe-dropdown">
+					<button style="width: 120px;" class="fe-btn fe-btn--sm fe-btn--primary active" id='row1_cell1_select' data-id="86400"> 1 day <i class="fe-icon--right fal fa-chevron-up"></i></button>
+					<div class="fe-dropdown__list-container">
+						<ul class="fe-dropdown__list fe-list">
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell1-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="900">15 minutes</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell1-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="1800">30 minutes</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell1-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="3600">1 hour</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell1-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="86400">1 day</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell1-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="172800">2 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell1-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="604800">7 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell1-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="7776000">90 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell1-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="31557600">1 year</span>
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+			</div>
+			<div class="hxtool_panel_dashboard_child fe-panel__body">
+				<canvas id="chartjs_inactive_hosts" class='hxtool_chartjs_canvas'></canvas>
+			</div>
+		</div>
+	</div>
+  	<!-- CELL 2 -->
+	<div class="cell2">
+		<div class="hxtool_panel_dashboard fe-panel">
+			<div class="fe-panel-header fe-panel-header--no-background">
+				<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-area"></i>Host provisioning status</div>
+			</div>
+			<div class='hxtool_panel_top_right'>
+
+				<div class="fe-dropdown">
+					<button style="width: 120px;" class="fe-btn fe-btn--sm fe-btn--primary active" id='row1_cell2_select' data-id="30"> 30 days <i class="fe-icon--right fal fa-chevron-up"></i></button>
+					<div class="fe-dropdown__list-container">
+						<ul class="fe-dropdown__list fe-list">
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="1">1 day</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="7">7 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="30">30 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="90">90 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="180">180 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="365">1 year</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row1_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="730">2 years</span>
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+			</div>
+			<div class="hxtool_panel_dashboard_child fe-panel__body">
+				<canvas id="chartjs_host_provision" class='hxtool_chartjs_canvas'></canvas>
+			</div>
+		</div>
+	</div>
+  	<!-- CELL 3 -->
+	<div class="cell3">
+		<div class="hxtool_panel_dashboard fe-panel">
+			<div class="fe-panel-header fe-panel-header--no-background">
+				<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-table"></i>Hosts with the most alerts</div>
+			</div>
+			<div class="hxtool_panel_dashboard_child fe-panel__body">
+				<table class='hxtool_table' style='width: 100%;' id='row1_cell3_table'></table>
+			</div>
+		</div>
+	</div>
+  </div>
+  <div class="middle">
+   	<!-- CELL 4 -->
+	<div class="area-overlap-cell4">
+		<div class="hxtool_panel_dashboard fe-panel">
+			<div class="fe-panel-header fe-panel-header--no-background">
+				<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-table"></i>Last alerts</div>
+			</div>
+			<div class="hxtool_panel_dashboard_child fe-panel__body">
+				<table class='hxtool_table' style='width: 100%;' id='row2_cell1_table'></table>
+			</div>
+		</div>
+	</div>
+  	<!-- CELL 5 -->
+	<div class="cell5">
+		<div class="hxtool_panel_dashboard fe-panel">
+			<div class="fe-panel-header fe-panel-header--no-background">
+				<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-bar"></i>Alert distribution</div>
+			</div>
+
+			<div class='hxtool_panel_top_right'>
+
+				<div class="fe-dropdown">
+					<button style="width: 120px;" class="fe-btn fe-btn--sm fe-btn--primary active" id='row2_cell2_select' data-id="1"> 1 day <i class="fe-icon--right fal fa-chevron-up"></i></button>
+					<div class="fe-dropdown__list-container">
+						<ul class="fe-dropdown__list fe-list">
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row2_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="1">1 day</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row2_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="7">7 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row2_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="30">30 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row2_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="90">90 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row2_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="180">180 days</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row2_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="365">1 year</span>
+								</a>
+							</li>
+							<li class="fe-dropdown__item">
+								<a class="fe-dropdown__item-link row2_cell2-item">
+									<span class="fe-dropdown__item-link-left-section">
+										<i style='margin-top: 2px;' class="fas fa-clock fa-lg"></i>
+									</span>
+									<span class="fe-dropdown__item-link-text" data-id="730">2 years</span>
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+			</div>
+
+			<div class="hxtool_panel_dashboard_child fe-panel__body">
+				<canvas id="chartjs_event_distribution" class='hxtool_chartjs_canvas'></canvas>
+			</div>
+		</div>
+	</div>
+  </div>
+  <!-- CELL 6 -->
+  <div class="cell6">
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-area"></i>Alerts over time</div>
+		</div>
+		<div class='hxtool_panel_top_right' style='margin-top: 2px;'>
+
+
+			<button class='fe-btn fe-btn--sm fe-btn--primary active' id='row3_cell1_nav_1'>today</button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary active' id='row3_cell1_nav_7'>week</button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary active' id='row3_cell1_nav_30'>month</button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary active' id='row3_cell1_nav_90'>quarter</button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary active' id='row3_cell1_nav_180'>half-year</button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary active' id='row3_cell1_nav_365'>year</button>
+
+			<span style='font-weight: bold; font-size: 12px; margin-left: 12px;'>from</span>
+			<input style='display: inline-block; width: 75px; padding-bottom: 2px;' type='text' class="hxtool_input_small fe-input" id='row3_cell1_from'/>
+
+			<span style='font-weight: bold; font-size: 12px;'>to</span>
+			<input style='display: inline-block; width: 75px; padding-bottom: 2px; margin-right: 12px;' type='text' class="hxtool_input_small fe-input" id='row3_cell1_to'/>
+
+			<button class='fe-btn fe-btn--sm fe-btn--primary active' id='row3_cell1_refresh'>refresh</button>
+		</div>
+
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_event_timeline" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+  </div>
+</div>
+
+{% endblock %}

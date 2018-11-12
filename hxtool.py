@@ -74,7 +74,7 @@ def nl2br(eval_ctx, value):
 @app.route('/', methods=['GET'])
 @valid_session_required
 def dashboard(hx_api_object):
-	return render_template('ht_dashboard.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+	return render_template('ht_main-dashboard.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### AV Dashboard
 @app.route('/dashboard-av', methods=['GET'])
@@ -436,10 +436,10 @@ def search(hx_api_object):
 		return redirect("/search", code=302)
 	else:
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
-		hostsets = formatHostsets(response_data)
+		hostsets = formatHostsetsFabric(response_data)
 
 		myiocs = app.hxtool_db.oiocList()
-		openiocs = formatOpenIocs(myiocs)
+		openiocs = formatOpenIocsFabric(myiocs)
 		
 		return render_template('ht_searchsweep.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, openiocs=openiocs)
 
@@ -1361,133 +1361,6 @@ def logout():
 #	
 ####################################
 
-@app.route('/api/v{0}/vegalite_inactive_hosts_per_hostset'.format(HXTOOL_API_VERSION), methods=['GET'])
-@valid_session_required
-def vegalite_inactive_hosts_per_hostset(hx_api_object):
-	if request.method == 'GET':
-		myhosts = []
-		
-		(ret, response_code, response_data) = hx_api_object.restListHostsets()
-		if ret:
-			for hostset in response_data['data']['entries']:
-				(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(query_terms = {'host_sets._id' : hostset['_id']})
-				if ret:
-					now = datetime.datetime.utcnow()
-					hcount = 0
-					for host in hresponse_data['data']['entries']:
-						x = (HXAPI.gt(host['last_poll_timestamp']))
-						if (int((now - x).total_seconds())) > int(request.args.get('seconds')):
-							hcount += 1
-					myhosts.append({"hostset": hostset['name'], "count": hcount})
-
-			# Return the Vega Data
-			newlist = sorted(myhosts, key=lambda k: k['count'])
-			results = newlist[-10:]
-			return(app.response_class(response=json.dumps(results), status=200, mimetype='application/json'))
-		else:
-			return('',500)
-
-@app.route('/api/v{0}/vegalite_events_timeline'.format(HXTOOL_API_VERSION), methods=['GET'])
-@valid_session_required
-def vegalite_events_timeline(hx_api_object):
-	if request.method == 'GET':
-		mydates = []
-		mycount = {}
-
-		# Get all dates and calculate delta
-		startDate = datetime.datetime.strptime(request.args.get('startDate'), '%Y-%m-%d')
-		endDate = datetime.datetime.strptime(request.args.get('endDate'), '%Y-%m-%d')
-		delta = (endDate - startDate)
-
-		# Generate data for all dates
-		date_list = [endDate - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
-		for date in date_list:
-			mycount[date.strftime("%Y-%m-%d")] = {"IOC": 0, "EXD": 0, "MAL": 0}
-
-		# Get alerts
-		(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
-		if ret:
-			for alert in response_data:
-				# Make sure the date exists
-				if not alert['event_at'][0:10] in mycount.keys():
-					mycount[alert['event_at'][0:10]] = {"IOC": 0, "EXD": 0, "MAL": 0}
-
-				# Add stats for date
-				mycount[alert['event_at'][0:10]][alert['source']] += 1
-
-			# Append data to our list
-			for key, stats in mycount.items():
-				mydates.append({"date": key + "T00:00:00.000Z", "count": stats['IOC'], "type": "Indicator"})
-				mydates.append({"date": key + "T00:00:00.000Z", "count": stats['EXD'], "type": "Exploit Guard"})
-				mydates.append({"date": key + "T00:00:00.000Z", "count": stats['MAL'], "type": "Malware"})
-
-		else:
-			return('',500)
-
-		return(app.response_class(response=json.dumps(mydates), status=200, mimetype='application/json'))
-
-
-@app.route('/api/v{0}/vegalite_events_distribution'.format(HXTOOL_API_VERSION), methods=['GET'])
-@valid_session_required
-def vegalite_events_distribution(hx_api_object):
-	if request.method == 'GET':
-
-		mydata = []
-		mycount = {}
-
-		# Get alerts
-		(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
-		if ret:
-			for alert in response_data:
-				# Make sure the key exists
-				if not alert['source'] in mycount.keys():
-					mycount[alert['source']] = 0
-
-				# Add stats
-				mycount[alert['source']] += 1
-
-			for key, data in mycount.items():
-				mydata.append({"source": key, "count": data})
-
-		else:
-			return('',500)
-
-		return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
-
-
-@app.route('/api/v{0}/vegalite_hosts_initial_agent_checkin'.format(HXTOOL_API_VERSION), methods=['GET'])
-@valid_session_required
-def vegalite_hosts_initial_agent_checkin(hx_api_object):
-	if request.method == 'GET':
-
-		myhosts = []
-		mycount = {}
-
-		# Get all dates and calculate delta
-		startDate = datetime.datetime.strptime(request.args.get('startDate'), '%Y-%m-%d')
-		endDate = datetime.datetime.strptime(request.args.get('endDate'), '%Y-%m-%d')
-		delta = (endDate - startDate)
-
-		# Generate data for all dates
-		date_list = [endDate - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
-		for date in date_list:
-			mycount[date.strftime("%Y-%m-%d")] = 0
-
-		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
-		if ret:
-			for host in response_data['data']['entries']:
-				if host['initial_agent_checkin'][0:10] in mycount.keys():
-					mycount[host['initial_agent_checkin'][0:10]] += 1
-
-			# Append data to our list
-			for key, stats in mycount.items():
-				myhosts.append({"initial_checkin": key, "count": stats})
-		else:
-			return('', 500)
-
-		return(app.response_class(response=json.dumps(myhosts), status=200, mimetype='application/json'))
-
-
 @app.route('/api/v{0}/datatable_hosts_with_alerts'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def datatable_hosts_with_alerts(hx_api_object):
@@ -1502,7 +1375,7 @@ def datatable_hosts_with_alerts(hx_api_object):
 		else:
 			return('', 500)
 
-		mydata = {"data": myhosts[:5]}
+		mydata = {"data": myhosts[:10]}
 
 		return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 

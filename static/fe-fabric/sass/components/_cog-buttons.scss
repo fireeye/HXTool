@@ -1,0 +1,33 @@
+.fe-cog {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid $fe-cog-button__border;
+  background-color: $fe-cog-button__background;
+  border-radius: 12px;
+  color: $fe-color__action-primary--alpha;
+  padding: 4px 16px;
+  box-sizing: border-box;
+  font-size: 12px;
+  line-height: 14px;
+  &:hover {
+    border-color: $fe-cog-button__border--hover;
+    color: $fe-color__action-primary--beta;
+  }
+  &:active, &.active {
+    background-color: $fe-cog-button__background--active;
+    border-color: $fe-cog-button__border--active;
+    color: $fe-color__active--alpha;
+    outline: 0;
+  }
+  &:focus {
+    outline: 0;
+  }
+  &:disabled, &.disabled {
+    pointer-events: none;
+    background-color: $fe-color__background1--beta;
+    border-color: $fe-cog-button__border--disabled;
+    color: $fe-cog-button__color--disabled;
+    cursor: not-allowed;
+  }
+}

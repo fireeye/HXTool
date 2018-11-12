@@ -1,0 +1,64 @@
+@import "../utils/variables/components/form-element";
+
+.fe-form {
+  &__fieldset {
+    position: relative;
+    border: none;
+    color: $fe-form__fieldset-text--main;
+
+    &-legend {
+      font-weight: bold;
+      text-transform: capitalize;
+    }
+  }
+
+  &__input-wrapper {
+    margin-bottom: 24px;
+    &--inline {
+      display: inline-block;
+      margin-right: 16px;
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+
+    &--has-icon {
+      position: relative;
+      .fe-input {
+        padding-right: 24px;
+      }
+    }
+
+    &--has-error {
+      .fe-input {
+        &,
+        &:focus {
+          border-color: $fe-color__theme-danger--alpha;
+        }
+      }
+
+      .fe-input-hint-text, .fe-input-icon {
+        color: $fe-color__theme-danger--alpha;
+      }
+    }
+
+    &--has-warning {
+      .fe-input-hint-text, .fe-input-icon {
+        color: $fe-color__theme-warn--alpha;
+      }
+    }
+
+    &--has-success {
+      .fe-input-hint-text, .fe-input-icon {
+        color: $fe-color__theme-success--alpha;
+      }
+    }
+
+    .disabled,
+    [disabled] {
+      &~ [class*="__label"] {
+        color: $fe-form__fieldset-text--disabled;
+      }
+    }
+  }
+}

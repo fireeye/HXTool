@@ -72,14 +72,15 @@
 		});	
 
 		$("#refresh").click(function() {
-			$('#shader').show();
+			// $('#hxtool_shader').show();
 			urltail = parseFilters()
 			alert_datatable.ajax.url( '/api/v1/datatable_alerts_full?limit=1000&startDate=' + $("#from").val() + '&endDate=' + $("#to").val() + urltail ).load(function ( json ) {
-				$('#shader').hide();
+				kaka = "kaka";
+				// $('#hxtool_shader').hide();
 			});
 		});
 
-		$("input[id^='nav_']").click(function() {
+		$("button[id^='nav_']").click(function() {
 			var dArr = $(this).attr('id').split("_");
 			var navDate = getHistoricDate(dArr[1]);
 			$("#from").val(navDate);
@@ -115,11 +116,7 @@
 		$(document).on('click', '.addannotation', function() {
 			aArr = $(this).attr("id").split("_");
 			$("#annotationBoxID").val(aArr[1]);
-
-			$('#annotationBox').realcenter();
-
-			$('#shader').popupshow();
-			$("#annotationBox").show();
+			$("#annotationPopup").show();
 		});
 
 		$(document).on('click', '.postannotation', function() {
@@ -134,45 +131,53 @@
 
 		$(document).on('click', '.cancelannotation', function() {
 			$("#annotateText").val("");
-			$("#annotationBox").hide();
-			$('#shader').hide();
+			$("#annotationPopup").hide();
+		});
+
+		$("#alertTable").on("click", ".alertAction", function(){
+			myrow = $(this).closest("tr");
+			hxtool_ajax_get_request("/api/v1/alerts/" + $(this).data("type"), "id=" + $(this).data("id"), function() {
+				myrow.fadeOut(200, function() {
+					alert_datatable.row(myrow).remove().draw();
+				})
+			});
 		});
 
 
 		$.fn.dataTable.ext.errMode = 'none';
-		var alert_datatable = $('#alertTable').DataTable( {
+		alert_datatable = $('#alertTable').DataTable( {
 			"ajax": "/api/v1/datatable_alerts_full?limit=1000&startDate=" + pastDate + "&endDate=" + currentDate,
 			"paging":   false,
-			"ordering": false,
+			"ordering": true,
+			"colReorder": true,
 			"info":     false,
-			"searching": false,
 			"processing": false,
-			"dom": '<"htDTButtons"B>frtip',
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "myDTButton" },
-				{ extend: "csv", className: "myDTButton" },
-				{ extend: "excel", className: "myDTButton" }
+				{ extend: "copy", className: "fe-btn" },
+				{ extend: "csv", className: "fe-btn" },
+				{ extend: "excel", className: "fe-btn" }
 			],
 			"columns": [
 				{ "title": "", "data": "platform" },
 				{ "title": "Hostname", "data": "hostname" },
 				{ "title": "Domain", "data": "domain" },
+				{ "title": "Threat", "data": "threat" },
 				{ "title": "Containment", "data": "containment_state" },
 				{ "title": "Event at", "data": "event_at" },
 				{ "title": "Age", "data": "age" },
 				{ "title": "Source", "data": "source" },
 				{ "title": "Resolution", "data": "resolution" },
-				{ "title": "Threat", "data": "threat" },
 				{ "title": "State", "data": "annotation_max_state" },
 				{ "title": "Annotations", "data": "annotation_count" },
 				{ "title": "Action", "data": "action" }
 			],
 			"createdRow": function( row, data, index ) {
 				if (data.annotation_max_state == 1) {
-					$('td', row).eq(9).css( 'background-color', '#fffce0' );
+					$('td', row).eq(9).css( 'color', '#ffe352' );
 				}
 				else if (data.annotation_max_state == 2) {
-					$('td', row).eq(9).css( 'background-color', '#e0ffe3' );
+					$('td', row).eq(9).css( 'color', '#11a962' );
 				}
 			},
 			"columnDefs": [	
@@ -185,38 +190,43 @@
 				},
 				{
 				 "targets": 1,
+				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 					return(datatables_parseHostlink(data));
 				 }
 				},
 				{
-				 "targets": 3,
+				 "targets": 2,
+				 "width": "150px",
+				},
+				{
+				 "targets": 4,
 				 "width": "100px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_parseContainmentState(data));
 				  }
 				},
 				{
-				 "targets": 4,
+				 "targets": 5,
 				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_alertTimestamps(data, row.matched_at, row.reported_at));
 				  }
 				},
 				{
-				 "targets": 5,
-				 "width": "100px"
+				 "targets": 6,
+				 "width": "140px"
 				},
 				{
-				 "targets": 6,
-				 "width": "60px",
+				 "targets": 7,
+				 "width": "160px",
 				 render: function ( data, type, row, meta ) {
 					return(datatables_parseSource(data));
 				 }
 				},
 				{
-				 "targets": 7,
-				 "width": "110px",
+				 "targets": 8,
+				 "width": "160px",
 				 render: function ( data, type, row, meta ) {
 					return(datatables_parseResolution(data));
 				 }				 
@@ -227,10 +237,10 @@
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		if (data == 1) {
-				 			data = "Investigating";
+				 			data = "<b>Investigating</b>";
 				 		}
 				 		else if (data == 2) {
-				 			data = "Completed";
+				 			data = "<b>Completed</b>";
 				 		}
 				 		else {
 				 			data = "New"
@@ -241,131 +251,178 @@
 				},
 				{
 				 "targets": 10,
-				 "width": "80px",
+				 "width": "90px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<button class='tableActionButton showannotation' id='showannotation_" + row.DT_RowId + "'>show (" + data + ")</button>";
+				 		data = "<button class='fe-btn fe-btn--sm fe-btn--primary active' id='showannotation_" + row.DT_RowId + "'>show (" + data + ")</button>";
 				 	}
 				 	return data;
 				 }
 				},
 				{
 				 "targets": 11,
-				 "width": "80px",
+				 "width": "180px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<button class='tableActionButton addannotation' id='annotate_" + row.DT_RowId + "'>annotate</button>";
+				 		data = "<button class='addannotation fe-btn fe-btn--sm fe-btn--primary active' style='margin-right: 6px;' id='annotate_" + row.DT_RowId + "'>annotate</button>";
+				 		data += "<button class='alertAction fe-btn fe-btn--sm fe-btn--primary active' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
 				 	}
 				 	return data;
 				 }
 				},
-				{"className": "dt-center", "targets": [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]}
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11]}
 			]
-		});		
+		});
+		$('div.dataTables_filter input').addClass("fe-input");
 
 	});
 
 </script>
 
-<div class='tableTitle'>
-	<i class="fas fa-clock fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-	Show alerts for time period
-</div>
-<div style='float: left; margin-left: 10px; margin-top: 10px; margin-bottom: 25px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 12px;'>
-	<input class='tableActionButton' type='button' id='nav_1' value='today'>
-	<input class='tableActionButton' type='button' id='nav_7' value='week'>
-	<input class='tableActionButton' type='button' id='nav_30' value='month'>
-	<input class='tableActionButton' type='button' id='nav_90' value='quarter'>
-	<input class='tableActionButton' type='button' id='nav_180' value='half-year'>
-	<input class='tableActionButton' type='button' id='nav_365' value='year'>
-	&nbsp;
-	from:
-	<input type='text' id='from' style='width: 80px;'>
-	to:
-	<input type='text' id='to' style='width: 80px;'>
-	<input class='tableActionButton' type='button' id='refresh' value='refresh'>
-</div>
-<div style='float: right; margin-bottom: 15px; font-family: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 12px;'>
-	<input type='checkbox' id='alertAutoRefresh'>
-	auto-refresh every 
-	<input type='text' id='alertAutoRefreshInterval' value='60' style='width: 40px;'>
-	 seconds
+<!-- ALERT FILTERS -->
+<div class="fe-panel" style='margin-top: 12px; display: inline-block;'>
+	<div class="fe-panel-header fe-panel-header--no-background">
+		<div class="fe-label fe-label--background">Alert filters</div>
+	</div>
+	<div class="fe-panel__body">
+
+		<div>
+			<label for="" class="fe-input-label caption">
+			<i class="fas fa-filter fa-sm" style='margin-right: 2px;' aria-hidden="true"></i>
+			Time selection
+			</label>
+		</div>
+
+		<div style='margin-left: 12px;'>
+			<div style='margin-bottom: 12px;'>
+				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_1'>today</button>
+				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_7'>week</button>
+				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_30'>month</button>
+				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_90'>quarter</button>
+				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_180'>half-year</button>
+				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_365'>year</button><br>
+			</div>
+
+			<div class='hxtool_panel_wrapper' style='width: 75px; display: inline-block;'>
+				<label for="" class="fe-input-label caption">From</label>
+				<input type="text" id="from" value="" class="hxtool_input_small fe-input" />
+			</div>
+			<div class='hxtool_panel_wrapper' style='width: 75px; display: inline-block;'>
+				<label for="" class="fe-input-label caption">To</label>
+				<input type="text" id="to" value="" class="hxtool_input_small fe-input" />
+			</div>
+
+		</div>
+		<!--
+		<div style='float: right; margin-bottom: 15px;'>
+			<input type='checkbox' id='alertAutoRefresh'>
+			auto-refresh every 
+			<input type='text' id='alertAutoRefreshInterval' value='60' style='width: 40px;'>
+			 seconds
+		</div>
+	-->
+
+		<div>
+			<label for="" class="fe-input-label caption">
+			<i class="fas fa-filter fa-sm" style='margin-right: 2px;' aria-hidden="true"></i>
+			Filters
+			</label>
+		</div>
+		<table class='hxtool_alerts_filter'>
+			<tr>
+				<th>
+					<label for="" class="fe-input-label caption">Endpoint IP/Hostname</label>
+				</th>
+				<th>
+					<label for="" class="fe-input-label caption">Threat name</label>
+				</th>
+				<th>
+					<label for="" class="fe-input-label caption">MD5 Hash</label>
+				</th>
+				<th>
+					<label for="" class="fe-input-label caption">Alert type</label>
+				</th>
+				<th>
+					<label for="" class="fe-input-label caption">Resolution</label>
+				</th>
+			</tr>
+			<tr>
+				<td>
+
+					<input class='hxtool_input_small fe-input' id='filtertable_hostname' type='text' style='width: 250px'>
+				</td>
+				<td>
+					<input class='hxtool_input_small fe-input' id='filtertable_alertname' type='text' style='width: 250px'>
+				</td>
+				<td>
+					<input class='hxtool_input_small fe-input' id='filtertable_hash' type='text' style='width: 250px'>
+				</td>
+				<td>
+					<select class='hxtool_input_select fe-input' id='filtertable_source'>
+						<option value='all' SELECTED>All
+						<option value='ioc'>IOC - Indicator
+						<option value='exd'>EXD - Exploit Guard
+						<option value='mal'>MAL - Anti-virus
+					</select>
+				</td>
+				<td>
+					<select class='hxtool_input_select fe-input' id='filtertable_resolution'>
+						<option value='all' SELECTED>All
+						<option value='ALERT'>Alert
+						<option value='BLOCK'>Block
+						<option value='PARTIAL_BLOCK'>Partial block
+						<option value='ACTIVE_THREAT'>Active threat
+						<option value='QUARANTINED'>Quarantined
+						<option value='CLEANED'>Cleaned
+					</select>
+				</td>
+			</tr>
+		</table>
+		<button class='fe-btn fe-btn--sm fe-btn--primary active' style='margin-top: 12px;' id='refresh'>show alerts <i style='color: #11a962;' class="fe-icon--right fas fa-check"></i></button>
+	</div>
 </div>
 
-<div class='tableTitle' style='clear: both;'>
-	<i class="fas fa-filter fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-	Filters
+<!-- ALERTS TABLE -->
+<div class="fe-panel" style='margin-top: 12px;'>
+	<div class="fe-panel-header fe-panel-header--no-background">
+		<div class="fe-label fe-label--background">Alerts</div>
+	</div>
+	<div id="hxtool_search_panel" class="fe-panel__body">
+		<table id="alertTable" class='hxtool_table' style='width: 100%;'></table>
+	</div>
 </div>
-<table class='filterTable'>
-	<tr>
-		<th>
-			Endpoint IP/Hostname
-		</th>
-		<th>
-			Threat name
-		</th>
-		<th>
-			MD5 Hash
-		</th>
-		<th>
-			Alert type
-		</th>
-		<th>
-			Resolution
-		</th>
-	</tr>
-	<tr>
-		<td>
-			<input id='filtertable_hostname' type='text' style='width: 250px'>
-		</td>
-		<td>
-			<input id='filtertable_alertname' type='text' style='width: 250px'>
-		</td>
-		<td>
-			<input id='filtertable_hash' type='text' style='width: 250px'>
-		</td>
-		<td>
-			<select id='filtertable_source'>
-				<option value='all' SELECTED>All
-				<option value='ioc'>IOC - Indicator
-				<option value='exd'>EXD - Exploit Guard
-				<option value='mal'>MAL - Anti-virus
-			</select>
-		</td>
-		<td>
-			<select id='filtertable_resolution'>
-				<option value='all' SELECTED>All
-				<option value='ALERT'>Alert
-				<option value='BLOCK'>Block
-				<option value='PARTIAL_BLOCK'>Partial block
-				<option value='ACTIVE_THREAT'>Active threat
-				<option value='QUARANTINED'>Quarantined
-				<option value='CLEANED'>Cleaned
-			</select>
-		</td>
-	</tr>
-</table>
+&nbsp;
+
+<!-- ANNOTATION POPUP -->
+<div id="annotationPopup" class="fe-modal" role="dialog" aria-modal="true">
+	<div class="fe-modal__dialog fe-modal__dialog--medium">
+		<div class="fe-modal__content">
+			<div>
+				<div class="fe-modal__header">
+					<h4 class="fe-modal__title">New Enterprise Search</h4>
+					<button class="fe-modal-close" name="button" type="button">
+						<i class="fe-icon--center fal fa-times"></i>
+					</button>
+				</div>
+			</div>
+			<div class="fe-modal__body">
+
+				<input type='hidden' name='annotationBoxID' id='annotationBoxID' value='null'>
+				<textarea name='annotateText' id='annotateText' style='margin-bottom: 10px; width: 490px; height: 130px;'></textarea><br>
+				<select class='hxtool_input_select fe-input' name='annotateState' id='annotateState' style='margin-bottom: 20px; width: 150px;'>
+					<option value='1'>Investigating
+					<option value='2'>Completed
+				</select>
+
+			</div>
+			<div class="fe-modal__footer clearfix">
+				<button class="cancelannotation fe-btn fe-btn--md fe-btn--secondary" id="annotationCancel" aria-label="Cancel"><span> Cancel </span></button>
+				<button class="fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Add </span></button>
+			</div>
+		</div>
+	</div>
+</div>
 
 
-<div class='tableTitle' style='clear: both; margin-top: 15px;'>
-	<i class="fas fa-list-ul fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-	Alerts (showing a maximum of 1000 alerts)
-</div>
-<table id="alertTable" class='genericTable' style='width: 100%;'></table>
-
-<div id='annotationBox' class='ht_popup_annotate_div'>
-	<form id='annotationForm'>
-	<input type='hidden' name='annotationBoxID' id='annotationBoxID' value='null'>
-	<div class='tableTitle'>Add event annotation</div>
-	<textarea name='annotateText' id='annotateText' style='margin-bottom: 10px; width: 490px; height: 130px;'></textarea><br>
-	<select name='annotateState' id='annotateState' style='margin-bottom: 20px;'>
-		<option value='1'>Investigating
-		<option value='2'>Completed
-	</select>
-	<br>
-	<input class='tableActionButton postannotation' type='button' value='Add Annotation'>
-	<input class='tableActionButton cancelannotation' type='button' value='Cancel' id='annotateCancel'>
-	</form>
-</div>
 
 {% endblock %}

@@ -53,10 +53,27 @@
 
 <form style='margin: 0;' method='post'>
 
+<button class="fe-btn fe-btn--md fe-btn--primary active"> Export selected <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+<button class="fe-btn fe-btn--md fe-btn--primary active"> Import <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+<button class="fe-btn fe-btn--md fe-btn--primary active"> Create new indicator <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+
+<!--
 <input class='tableActionButton' type='submit' value='Export Selected'>
 <input class='tableActionButton' type='button' value='Import indicators' name='importIndicator' id='importIndicator'>
 <a href='/rtioc' class='tableActionButton'>Create new indicator</a>
-<br><br>
+<br>
+-->
+
+
+<!-- ACTIONS -->
+<div id="esNew" class="fe-panel" style='margin-top: 12px;'>
+	<div class="fe-panel-header fe-panel-header--no-background">
+		<div class="fe-label fe-label--background">Action</div>
+	</div>
+	<div class="fe-panel__body">
+		{% if indicators %} {{indicators|safe}} {% endif %}
+	</div>
+</div>
 
 <!--
 <table style='margin: 0; width: 100%;'>
@@ -66,7 +83,6 @@
 
 	<td style='vertical-align: top;'>
 -->
-	{% if indicators %} {{ indicators|safe }} {% endif %}
 <!--
 	</td>
 	<td style='width: 30%; vertical-align: top;'>

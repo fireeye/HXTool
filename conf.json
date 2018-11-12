@@ -16,7 +16,7 @@
 	},
    "network":{  
       "ssl":"enabled",
-      "port":8080,
+      "port":8081,
       "listen_address":"0.0.0.0",
 	  "session_timeout":30
    },
@@ -26,10 +26,11 @@
    },
    "background_processor":{  
       "poll_interval":30,
-	  "poll_threads":4
+	  "poll_threads":1
    },
    "headers":{
    },
    "cookies":{
+      "XFIRE_HMAC_SESSION": "9Ikq0Bc6TmYxMeoiVOoqsbEzo6nBdAUlikwBh1GpnnG1grtcZfHaFUm0JXvbPMH5"
    }
 }

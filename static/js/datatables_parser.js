@@ -45,22 +45,27 @@ function datatables_parseAcquisitionType(data) {
 function datatables_parseAcquisitionState(data) {
 	if (data == "QUEUED") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-clock fa-lg fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>Queued</b>";
+		data += "<i class='fas fa-clock fa-lg fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>QUEUED</b>";
 		data += "</span>";
 	}
 	else if (data == "RUNNING") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-hdd fa-lg fa-fw' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>Running</b>";
+		data += "<i class='fal fa-circle-notch fa-lg fa-spin' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
 		data += "</span>";
 	}
 	else if (data == "COMPLETE") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-check-square fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Complete</b>";
+		data += "<i class='fas fa-check-square fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>COMPLETE</b>";
 		data += "</span>";
 	}
 	else if (data == "NEW") {
 		data = "<span class='htLayoutIconWrapper'>";
 		data += "<i class='fas fa-plus-square fa-lg fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>NEW</b>";
+		data += "</span>";
+	}
+	else if (data == "STOPPED") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-stop-circle fa-lg fa-fw' style='margin-right: 2px; color: #ea475b;' aria-hidden='true'></i><b>STOPPED</b>";
 		data += "</span>";
 	}
 	else {
@@ -153,7 +158,7 @@ function datatables_parseResolution(data) {
 function datatables_alertTimestamps(data, matched_at, reported_at) {
 
 	element = "<span class='hostLink alerttimestamp'>" + data.replace("T", " ").substring(0,19) + "</span>";
-	element += "<div style='margin-left: 10px; margin-top: 5px; padding: 10px; display: none; position: absolute; background: #eeeeee; border: 1px solid #cccccc; border-radius: 5px;'>";
+	element += "<div class='fe-panel__body' style='margin-left: 10px; margin-top: 5px; padding: 10px; display: none; position: absolute; border: 1px solid rgba(15, 184, 220, 0.4)'>";
 	element += "Matched at: " + matched_at.replace("T", " ").substring(0,19) + "<br>"
 	element += "Reported at: " + reported_at.replace("T", " ").substring(0,19)
 	element += "</div>"

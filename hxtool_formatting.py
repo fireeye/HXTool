@@ -39,7 +39,7 @@ def formatBulkHostsTable(hoststable):
 
 def formatIOCResults(iocs, mycategories):
 
-	x = "<table id='iocTable' class='genericTable' style='width: 100%;'>"
+	x = "<table id='iocTable' class='hxtool_table' style='width: 100%;'>"
 	x += "<thead>"
 	x += "<tr>"
 	x += "<td style='width: 20px;'>&nbsp;</td>"
@@ -195,6 +195,32 @@ def formatHostsets(hs):
 		x += "<option value='" + HXAPI.compat_str(entry['_id']) + "'>" + entry['name']
 	
 	return(x)
+
+def formatHostsetsFabric(hs):
+
+	x = '<li class="fe-dropdown__item">'
+	x += '<a class="fe-dropdown__item-link">'
+	x += '<span class="fe-dropdown__item-link-left-section">'
+	x += '<i style="margin-top: 2px;" class="fas fa-object-group fa-lg"></i>'
+	x += '</span>'
+	x += '<span class="fe-dropdown__item-link-text" data-id="9">All hosts</span>'
+	x += '<span class="fe-dropdown__item-link-right-section">'
+	x += '<span style="color: black;" class="fe-badge count-only">9</span>'
+	x += '</span></a></li>'
+
+	for entry in hs['data']['entries']:
+		x += '<li class="fe-dropdown__item">'
+		x += '<a class="fe-dropdown__item-link">'
+		x += '<span class="fe-dropdown__item-link-left-section">'
+		x += '<i style="margin-top: 2px;" class="fas fa-object-group fa-lg"></i>'
+		x += '</span>'
+		x += '<span class="fe-dropdown__item-link-text" data-id="' + HXAPI.compat_str(entry['_id']) + '">' + entry['name'] + '</span>'
+		x += '<span class="fe-dropdown__item-link-right-section">'
+		x += '<span style="color: black;" class="fe-badge count-only">' + HXAPI.compat_str(entry['_id']) + '</span>'
+		x += '</span></a></li>'
+
+	return(x)
+
 
 def formatAnnotationTable(an):
 
@@ -814,6 +840,21 @@ def formatOpenIocs(iocs):
 	for entry in iocs:
 			x += "<option value='" + entry['ioc_id'] + "'>" + entry['iocname']
 	x += "</select>"
+	return(x)
+
+def formatOpenIocsFabric(iocs):
+
+	x = '';
+
+	for entry in iocs:
+		x += '<li class="fe-dropdown__item">'
+		x += '<a class="fe-dropdown__item-link">'
+		x += '<span class="fe-dropdown__item-link-left-section">'
+		x += '<i style="margin-top: 2px;" class="fas fa-object-group fa-lg"></i>'
+		x += '</span>'
+		x += '<span class="fe-dropdown__item-link-text" data-id="' + HXAPI.compat_str(entry['ioc_id']) + '">' + entry['iocname'] + '</span>'
+		x += '</a></li>'
+
 	return(x)
 
 

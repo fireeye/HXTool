@@ -1,0 +1,41 @@
+.hxtool_datatables_buttons {
+	position: absolute;
+	right: 0;
+	margin-top: -45px;
+	margin-right: 12px;
+}
+
+.dt-button {
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 100%;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  border-color: #0000 !important;
+  border-radius: 0 !important;
+  padding: 5px !important;
+}
+
+.dataTables_filter {
+  position: absolute;
+  right: 0;
+  margin-top: -47px;
+  margin-right: 176px;
+  font-family: 'Open Sans'
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.dataTables_filter input {
+  padding: 4px;
+  font-weight: bold;
+  display: inline-block;
+  width: 120px;
+  margin-left: 6px;
+}
+
+.dataTables_filter label {
+  font-size: 12px;
+}
+
