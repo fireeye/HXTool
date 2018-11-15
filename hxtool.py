@@ -2277,18 +2277,20 @@ def app_init(debug = False):
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
 	
-	# Init DB
-	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger)
-	hxtool_global.hxtool_db = app.hxtool_db
-	
+	db_write_cache_size = 10
 	# If we're debugging use a static key
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
 		app.logger.setLevel(logging.DEBUG)
 		app.logger.debug("Running in debugging mode.")
+		db_write_cache_size = 1
 	else:
 		app.secret_key = crypt_generate_random(32)
 		app.logger.setLevel(logging.INFO)
+	
+	# Init DB
+	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger, write_cache_size = db_write_cache_size)
+	hxtool_global.hxtool_db = app.hxtool_db
 	
 	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
 	hxtool_global.hxtool_config = app.hxtool_config
