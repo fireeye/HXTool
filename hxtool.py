@@ -2263,12 +2263,12 @@ def sigint_handler(signum, frame):
 		hxtool_global.hxtool_scheduler.stop()
 	if hxtool_global.hxtool_db:
 		hxtool_global.hxtool_db.close()
-	if app.hxtool_db:
-		app.hxtool_db.close()	
 	exit(0)	
 
 
 def app_init(debug = False):
+	hxtool_global.initialize()
+	
 	hxtool_global.app_instance_path = app.root_path
 	
 	
