@@ -75,8 +75,7 @@ class file_write_task_module(task_module):
 		result = {}
 		try:
 			if bulk_download_path:
-				# TODO: this module is not thread-safe, and will result in file locking issues. Ultimately, this should be converted to
-				# utilizing the Python rotating log handler.  
+				# TODO: Ultimately, this should be converted to utilizing the Python rotating log handler.  
 				with TemporaryFileLock(os.path.dirname(file_name)):
 					with open(file_name, 'a') as f:
 						for audit_object in self.yield_audit_results(bulk_download_path, batch_mode, host_name, agent_id, bulk_acquisition_id = bulk_acquisition_id):
