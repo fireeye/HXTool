@@ -54,13 +54,13 @@ class AuditPackage:
 			self.hostname = self.metadata['agent']['sysinfo']['hostname']
 			self.agent_id = self.metadata['agent']['_id']
 		else:
-			sysinfo_audit = self.get_audit(generator = 'sysinfo')
+			sysinfo_audit = self.get_generator_result('sysinfo')
 			if sysinfo_audit:
-				#TODO: handle JSON sysinfo
-				try:
-					self.hostname = ET.fromstring(sysinfo_audit).find('.//hostname').text
-				except:
-					self.hostname = None
+				sysinfo_result = self.get_audit(payload_name = sysinfo_audit['payload'])
+				if sysinfo_audit['type'] == 'application/xml':
+					self.hostname = ET.fromstring(sysinfo_result).find('.//hostname').text
+				elif sysinfo_audit['type'] == 'application/json':
+					self.hostname = json.loads(sysinfo_result)['SystemInfoItem'][0]['hostname']
 					
 	def __enter__(self):
 		return self
@@ -68,79 +68,90 @@ class AuditPackage:
 	# Ensure that we close the zip file so we don't leak file handles
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.package.close()
-		
-	def get_generators(self):
-		return [_['generator'] for _ in self.audits if 'generator' in _]
-
-	def get_audit_id(self, generator):
-		mime_type = get_mime_type(generator)
+	
+	def parsable_mime_type(self, mime_type):
+		return mime_type in ['application/xml', 'application/json']
+	
+	def get_generator_result(self, generator):
 		for audit in self.audits:
 			if audit['generator'] == generator and 'results' in audit:
-				for results in audit['results']:
-					if results['type'] == mime_type:
-						return results['payload']
+				for result in audit['results']:
+					if self.parsable_mime_type(result['type']):
+						return result
 		return None
 
-	# TODO: this function needs to be refactored
+	def get_audit(self, payload_name=None, generator=None, destination_path=None):
+		if not payload_name and not generator:
+			raise ValueError("You must specify payload_name or generator.")
+		if payload_name and payload_name not in self.package.namelist():
+			return None
+		elif generator:
+			payload_name = self.get_generator_result(generator)['payload']
+			if not payload_name:
+				return None
+			
+		if destination_path:
+			self.package.extract(payload_name, destination_path)
+			return None
+		
+		return self.package.read(payload_name).decode('utf-8')	
+		
 	def audit_to_dict(self, audit, hostname, agent_id = None, batch_mode = True):
+		d = {
+				'hostname' : self.hostname or hostname,
+				'agent_id' : self.agent_id or agent_id,
+				'generator' : audit['generator'],
+				'generatorVersion' : audit['generatorVersion']
+			}
+		
 		for result in audit['results']:
-			# We can only convert XML
-			if result['type'] == 'application/xml':							
-				audit_xml = self.get_audit(result['payload'])
-				if audit_xml:
-					xml_et = ET.fromstring(audit_xml)
-					if xml_et.tag == 'itemList':
-						if batch_mode:
-							yield {
-								'hostname' : self.hostname or hostname,
-								'agent_id' : self.agent_id or agent_id,
-								'generator' : audit['generator'],
-								'generatorVersion' : audit['generatorVersion'],
-								'timestamps' : result['timestamps'],
-								'results' : self.xml_to_dict(xml_et)['itemList']
-							}
-						else:
-							for itm in xml_et:
-								d = self.xml_to_dict(itm)
-								d.update({
-									'hostname' : self.hostname or hostname,
-									'agent_id' : self.agent_id or agent_id,
-									'generator' : audit['generator'],
-									'generatorVersion' : audit['generatorVersion'],
-									'timestamps' : result['timestamps']
-								})
-								yield d
-			elif result['type'] == 'application/json':
-				audit_json = json.loads(self.get_audit(result['payload']))
+			if self.parsable_mime_type(result['type']):
+				d['timestamps'] = result['timestamps']
 				
-				audit_item = None
-				for e in audit_json:
-					if not e.startswith("@"):
-						audit_item = e
-						break
+				payload = self.get_audit(payload_name = result['payload'])
+				
+				if payload:
+					if result['type'] == 'application/xml':							
+						xml_et = ET.fromstring(payload)
+						payload = None
 						
-				if batch_mode:
-					yield {
-						'hostname' : self.hostname or hostname,
-						'agent_id' : self.agent_id or agent_id,
-						'generator' : audit['generator'],
-						'generatorVersion' : audit['generatorVersion'],
-						'timestamps' : result['timestamps'],
-						'results' : [{audit_item : _} for _ in audit_json[audit_item]]
-					}
-				else:
-					for itm in audit_json[audit_item]:
-						d = {
-							'hostname' : self.hostname or hostname,
-							'agent_id' : self.agent_id or agent_id,
-							'generator' : audit['generator'],
-							'generatorVersion' : audit['generatorVersion'],
-							'timestamps' : result['timestamps']
-						}
-						d[audit_item] = itm
-						yield d
-		return
-
+						if xml_et.tag == 'itemList':
+							if batch_mode:
+								result_dict = {
+									'results' : self.xml_to_dict(xml_et)['itemList']
+								}
+								result_dict.update(d)
+								yield result_dict
+							else:
+								for itm in xml_et:
+									result_dict = self.xml_to_dict(itm)
+									result_dict.update(d)
+									yield result_dict
+					elif result['type'] == 'application/json':
+						audit_json = json.loads(payload)
+						payload = None
+						
+						audit_item = None
+						for e in audit_json:
+							if not e.startswith("@"):
+								audit_item = e
+								break
+								
+						if batch_mode:
+							result_dict = {
+								'results' : [{audit_item : _} for _ in audit_json[audit_item]]
+							}
+							result_dict.update(d)
+							yield result_dict
+						else:
+							for itm in audit_json[audit_item]:
+								result_dict = {
+									audit_item : itm
+								}
+								result_dict.update(d)
+								yield result_dict
+			return
+	
 	def xml_to_dict(self, element):
 		d = OrderedDict()
 
@@ -160,20 +171,3 @@ class AuditPackage:
 			return {element.tag : d}
 		else:
 			return {element.tag : element.text}
-
-		
-	def get_audit(self, payload_name=None, generator=None, destination_path=None):
-		if not payload_name and not generator:
-			raise ValueError("You must specify payload_name or generator.")
-		if payload_name and payload_name not in self.package.namelist():
-			return None
-		elif generator:
-			payload_name = self.get_audit_id(generator)
-			if not payload_name:
-				return None
-			
-		if destination_path:
-			self.package.extract(payload_name, destination_path)
-			return None
-		
-		return self.package.read(payload_name)
