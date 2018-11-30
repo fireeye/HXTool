@@ -21,12 +21,12 @@ except ImportError:
 from hx_lib import *
 
 class hxtool_db:
-	def __init__(self, db_file, logger = logging.getLogger(__name__)):
+	def __init__(self, db_file, logger = logging.getLogger(__name__), write_cache_size = 10):
 		self.logger = logger
 		# If we can't open the DB file, rename the existing one
 		try:
 			# Drop the cache size so we write session data properly
-			CachingMiddleware.WRITE_CACHE_SIZE = 10
+			CachingMiddleware.WRITE_CACHE_SIZE = write_cache_size
 			self._db = tinydb.TinyDB(db_file, storage=CachingMiddleware(JSONStorage))
 		except ValueError:
 			self.logger.error("%s is not a TinyDB formatted database. Please move or rename this file before starting HXTool.", db_file)

@@ -1,6 +1,7 @@
 FROM python:3.6-alpine
 MAINTAINER Elazar Broad "elazar.broad@fireeye.com"
 WORKDIR /opt/hxtool
+VOLUME /opt/hxtool/bulkdownload /opt/hxtool/log
 # TODO: should be converted to a script
 COPY requirements.txt ./
 RUN apk add --no-cache libstdc++ \ 

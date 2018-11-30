@@ -880,14 +880,14 @@ def bulkaction(hx_api_object):
 				bulk_acquisition_hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' :  host['host']['hostname']}
 				bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
 				bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
-															'bulk_acquisition_eid' : bulk_acquisition_eid,
+															'bulk_download_eid' : bulk_download_eid,
 															'agent_id' : host['host']['_id'],
 															'host_name' : host['host']['hostname']
 														})
 				# This works around a nasty race condition where the task would start before the download job was added to the database				
 				task_list.append(bulk_acquisition_download_task)
 			
-			app.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts)
+			app.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts, bulk_acquisition_id = int(request.args.get('id')))
 		
 			hxtool_global.hxtool_scheduler.add_list(task_list)
 			
@@ -1672,7 +1672,7 @@ def vegalite_malwareengine(hx_api_object):
 		if ret:
 			for host in response_data['data']['entries']:
 				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
-				if 'malware' in sresponse_data['data'].keys():
+				if sret and 'data' in sresponse_data and 'malware' in sresponse_data['data'].keys():
 					if 'engine' in sresponse_data['data']['malware'].keys():
 						if not sresponse_data['data']['malware']['engine']['version'] in myContent.keys():
 							myContent[sresponse_data['data']['malware']['engine']['version']] = 1
@@ -1704,7 +1704,7 @@ def vegalite_malwarestatus(hx_api_object):
 		if ret:
 			for host in response_data['data']['entries']:
 				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
-				if 'MalwareProtectionStatus' in sresponse_data['data'].keys():
+				if sret and 'data' in sresponse_data and 'MalwareProtectionStatus' in sresponse_data['data'].keys():
 					if not sresponse_data['data']['MalwareProtectionStatus'] in myContent.keys():
 						myContent[sresponse_data['data']['MalwareProtectionStatus']] = 1
 					else:
@@ -2146,12 +2146,12 @@ def sigint_handler(signum, frame):
 		hxtool_global.hxtool_scheduler.stop()
 	if hxtool_global.hxtool_db:
 		hxtool_global.hxtool_db.close()
-	if app.hxtool_db:
-		app.hxtool_db.close()	
 	exit(0)	
 
 
 def app_init(debug = False):
+	hxtool_global.initialize()
+	
 	hxtool_global.app_instance_path = app.root_path
 	
 	
@@ -2160,18 +2160,20 @@ def app_init(debug = False):
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
 	
-	# Init DB
-	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger)
-	hxtool_global.hxtool_db = app.hxtool_db
-	
+	db_write_cache_size = 10
 	# If we're debugging use a static key
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
 		app.logger.setLevel(logging.DEBUG)
 		app.logger.debug("Running in debugging mode.")
+		db_write_cache_size = 1
 	else:
 		app.secret_key = crypt_generate_random(32)
 		app.logger.setLevel(logging.INFO)
+	
+	# Init DB
+	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger, write_cache_size = db_write_cache_size)
+	hxtool_global.hxtool_db = app.hxtool_db
 	
 	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
 	hxtool_global.hxtool_config = app.hxtool_config

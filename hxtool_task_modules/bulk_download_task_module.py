@@ -69,7 +69,7 @@ class bulk_download_task_module(task_module):
 		result = {}
 		try:
 			bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = bulk_download_eid)
-			if bulk_download_job['stopped'] == False:			
+			if bulk_download_job and bulk_download_job['stopped'] == False:			
 				hx_api_object = self.get_task_api_object()	
 				if hx_api_object and hx_api_object.restIsSessionValid():
 					(ret, response_code, response_data) = hx_api_object.restGetBulkHost(bulk_download_job['bulk_acquisition_id'], agent_id)
