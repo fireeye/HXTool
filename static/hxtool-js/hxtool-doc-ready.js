@@ -80,6 +80,11 @@ function hxtool_doc_ready() {
 		e.stopPropagation();
 	});
 
+	/* MODAL */
+	$(".fe-modal-close").click(function(){
+		$(this).closest("div").parent().parent().parent().parent().hide();
+	});
+
 
 	/////// LEGACY REMOVE
 

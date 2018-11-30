@@ -50,7 +50,7 @@ function datatables_parseAcquisitionState(data) {
 	}
 	else if (data == "RUNNING") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fal fa-circle-notch fa-lg fa-spin' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
+		data += "<i class='fal fa-cog fa-lg fa-spin' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
 		data += "</span>";
 	}
 	else if (data == "COMPLETE") {

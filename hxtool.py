@@ -225,10 +225,10 @@ def bulkacq_view(hx_api_object):
 		return redirect("/bulkacq", code=302)
 	else:
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
-		hostsets = formatHostsets(response_data)
+		hostsets = formatHostsetsFabric(response_data)
 
 		myscripts = app.hxtool_db.scriptList()
-		scripts = formatScripts(myscripts)
+		scripts = formatScriptsFabric(myscripts)
 
 		mytaskprofiles = app.hxtool_db.taskProfileList()
 		taskprofiles = formatTaskprofiles(mytaskprofiles)

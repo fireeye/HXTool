@@ -313,185 +313,108 @@
 </script>
 
 	<!-- ACTIONS -->
-	<div id="esNew" class="fe-panel" style='margin-top: 12px; display: inline-block;'>
-		<div class="fe-panel-header fe-panel-header--no-background">
-			<div class="fe-label fe-label--background">Action</div>
-		</div>
-		<div class="fe-panel__body">
-			<button class="fe-btn fe-btn--md fe-btn--primary active"> new search <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-		</div>
-	</div>
-	<br>
+	{{ htPanel.widgetHeader("Action", panelId="esNew", panelDisplay="inline-block") }}
+		<button class="fe-btn fe-btn--md fe-btn--primary active"> new search <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+	{{ htPanel.widgetFooter() }}
 
 	<!-- ES GRAPH -->
-	<div id="esGraph" class="fe-panel" style='margin-top: 12px;'>
-		<div class="fe-panel-header fe-panel-header--no-background">
-			<div class="fe-label fe-label--background">Searches over time</div>
-		</div>
-		<div class="fe-panel__body">
-			<canvas id="chartjs_searches" class='hxtool_chartjs_canvas'></canvas>
-		</div>
-	</div>
-
+	{{ htPanel.widgetHeader("Searches over time", panelId="esGraph") }}
+		<canvas id="chartjs_searches" class='hxtool_chartjs_canvas'></canvas>
+	{{ htPanel.widgetFooter() }}
 
 	<!-- INPUT FIELD -->
-		<div id="esNewPopup" class="fe-modal" role="dialog" aria-modal="true">
-			<div class="fe-modal__dialog fe-modal__dialog--medium">
-				<div class="fe-modal__content">
-					<div>
-						<div class="fe-modal__header">
-							<h4 class="fe-modal__title">New Enterprise Search</h4>
-							<button class="fe-modal-close" name="button" type="button">
-								<i class="fe-icon--center fal fa-times"></i>
-							</button>
-						</div>
-					</div>
-					<div class="fe-modal__body">
+	{{ htModal.widgetHeader("New Enterprise Search", modalId="esNewPopup") }}
 
-						<!-- Displayname -->
-						<h3 class='hxtool_typography_h3'>Name</h3>
-						<div class='hxtool_panel_wrapper' style='width: 550px; margin-left: 0; margin-top: 6px;'>
-						    <input type="text" name="displayname" id="displayname" value="" class="fe-input" placeholder="my new search" />
-						    <span class="fe-input-hint-text">Enter a name for your search so others knows what it is</span>
-						</div>
+		<!-- Displayname -->
+		<h3 class='hxtool_typography_h3'>Name</h3>
+		<div class='hxtool_panel_wrapper' style='width: 550px; margin-left: 0; margin-top: 6px;'>
+		    <input type="text" name="displayname" id="displayname" value="" class="fe-input" placeholder="my new search" />
+		    <span class="fe-input-hint-text">Enter a name for your search so others knows what it is</span>
+		</div>
 
-						<!-- IOC SOURCE -->
-						<h3 class='hxtool_typography_h3'>Indicator source</h3>
-						<div class='hxtool_panel_wrapper'>
-							<div class="fe-radio" style='margin-top: 6px;'>
-								<input class="fe-radio__input" type='radio' id='iocsource-a' name='iocsource' value='hxtool' checked>
-								<span class="fe-radio__overlay"></span>
-								<span class="fe-radio__radio"></span>
-								<label for="iocsource-a" class="fe-radio__label">From HXTool</label>
-							</div>
-							<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
-								<div class="fe-dropdown">
-									<button class="fe-btn fe-btn--sm fe-btn--primary active"> Select an indicator <i class="fe-icon--right fal fa-chevron-up"></i></button>
-									<div class="fe-dropdown__list-container">
-										<ul class="fe-dropdown__list fe-list">
-											{% if openiocs %} {{ openiocs|safe }} {% endif %}
-										</ul>
-									</div>
-								</div>
-							</div>
+		<!-- IOC SOURCE -->
+		<h3 class='hxtool_typography_h3'>Indicator source</h3>
+		<div class='hxtool_panel_wrapper'>
 
-							<div class="fe-radio" style='margin-top: 6px;'>
-								<input class="fe-radio__input" type='radio' id='iocsource-a' name='iocsource' value='file'>
-								<span class="fe-radio__overlay"></span>
-								<span class="fe-radio__radio"></span>
-								<label for="iocsource-a" class="fe-radio__label">From file</label>
-							</div>
-							<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
-								<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='newioc' name='newioc'>
-							</div>
-						</div>
-
-						<!-- Host Set selection -->
-						<h3 class='hxtool_typography_h3'>Hostset</h3>
-						<div class='hxtool_panel_wrapper'>
-							<div class="fe-dropdown">
-								<button class="fe-btn fe-btn--sm fe-btn--primary active"> select a hostset <i class="fe-icon--right fal fa-chevron-up"></i></button>
-								<div class="fe-dropdown__list-container">
-									<ul class="fe-dropdown__list fe-list">
-										{% if hostsets %} {{hostsets|safe}} {% endif %}
-									</ul>
-								</div>
-							</div>
-							<br>
-							<span class="fe-input-hint-text">Select the target host set</span><br>
-						</div>			
-
-						<!-- SKIP UNSUPPORTED TERMS -->
-						<div id='skipterms' style='display: none;'>
-							<h3 class='hxtool_typography_h3'>Skip unsupported terms</h3>
-							<div class='hxtool_panel_wrapper'>
-								<div class="fe-dropdown">
-									<button class="fe-btn fe-btn--sm fe-btn--primary active"> selection <i class="fe-icon--right fal fa-chevron-up"></i></button>
-									<div class="fe-dropdown__list-container">
-										<ul class="fe-dropdown__list fe-list">
-											<li class="fe-dropdown__item">
-												<a class="fe-dropdown__item-link">
-													<span class="fe-dropdown__item-link-left-section">
-														<i style='margin-top: 2px;' class="fas fa-check fa-lg"></i>
-													</span>
-													<span class="fe-dropdown__item-link-text" data-id="true">True</span>
-												</a>
-											</li>
-											<li class="fe-dropdown__item">
-												<a class="fe-dropdown__item-link">
-													<span class="fe-dropdown__item-link-left-section">
-														<i style='margin-top: 2px;' class="fas fa-times fa-lg"></i>
-													</span>
-													<span class="fe-dropdown__item-link-text" data-id="false">False</span>
-												</a>
-											</li>
-										</ul>
-									</div>
-								</div>
-								<br>
-								<span class="fe-input-hint-text">If this is set to true, all unsupported OpenIOC terms will be filtered out</span><br>	
-							</div>
-						</div>
-
-						<!-- SCHEDULER -->
-						<h3 class='hxtool_typography_h3'>Scheduler</h3>
-						<div class='hxtool_panel_wrapper'>
-							<div class="fe-radio" style='margin-top: 6px;'>
-								<input class="fe-radio__input" type='radio' id='schedule-a' name='schedule' value='run_now' checked>
-								<span class="fe-radio__overlay"></span>
-								<span class="fe-radio__radio"></span>
-								<label for="schedule-a" class="fe-radio__label">Run now</label>
-							</div>
-							
-							<div class="fe-radio" style='margin-top: 6px;'>
-								<input class="fe-radio__input" type='radio' id='schedule-b' name='schedule' value='run_at'>
-								<span class="fe-radio__overlay"></span>
-								<span class="fe-radio__radio"></span>
-								<label for="schedule-b" class="fe-radio__label">Run at specific date/time</label>
-							</div>
-							<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px; width: 150px;'>
-								<input type='text' class="fe-input" id='scheduled_timestamp' name='scheduled_timestamp'>
-							</div>
-
-							<div class="fe-radio" style='margin-top: 6px;'>
-								<input class="fe-radio__input" type='radio' id='schedule-c' name='schedule' value='run_interval'>
-								<span class="fe-radio__overlay"></span>
-								<span class="fe-radio__radio"></span>
-								<label for="schedule-c" class="fe-radio__label">Run on an interval</label>
-							</div>
-							<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>				
-								<span>
-									Every 
-									<select class="hxtool_input_select fe-input" name='intervalMetric' id='intervalMetric' style='width: 150px; display: inline-block;'>
-										<option value='min'>Minute
-										<option value='hour'>Hour
-										<option value='day'>Day
-										<option value='week'>Week
-										<option value='month'>Month
-									</select>
-								</span>
-								<br><br>
-								<span id='intervalSettings'></span>
-							</div>
-						</div>
-
-					</div>
-					<div class="fe-modal__footer clearfix">
-						<button class="fe-btn fe-btn--md fe-btn--secondary" id="esCancel" aria-label="Cancel"><span> Cancel </span></button>
-						<button class="fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Submit </span></button>
+			{{ htRadio.widgetHeader("From HXTool", "hxtool", "iocsource-a", "iocsource", elementChecked="true") }}
+			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
+				<div class="fe-dropdown">
+					<button class="fe-btn fe-btn--sm fe-btn--primary active"> Select an indicator <i class="fe-icon--right fal fa-chevron-up"></i></button>
+					<div class="fe-dropdown__list-container">
+						<ul class="fe-dropdown__list fe-list">
+							{% if openiocs %} {{ openiocs|safe }} {% endif %}
+						</ul>
 					</div>
 				</div>
 			</div>
+
+			{{ htRadio.widgetHeader("From file", "file", "iocsource-a", "iocsource", elementChecked="false") }}
+			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
+				<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='newioc' name='newioc'>
+			</div>
 		</div>
 
-	<div class="fe-panel" style='margin-top: 12px;'>
-		<div class="fe-panel-header fe-panel-header--no-background">
-			<div class="fe-label fe-label--background">Enterprise searches</div>
+		<!-- Host Set selection -->
+		<h3 class='hxtool_typography_h3'>Hostset</h3>
+		<div class='hxtool_panel_wrapper'>
+			<div class="fe-dropdown">
+				<button class="fe-btn fe-btn--sm fe-btn--primary active"> select a hostset <i class="fe-icon--right fal fa-chevron-up"></i></button>
+				<div class="fe-dropdown__list-container">
+					<ul class="fe-dropdown__list fe-list">
+						{% if hostsets %} {{hostsets|safe}} {% endif %}
+					</ul>
+				</div>
+			</div>
+			<br>
+			<span class="fe-input-hint-text">Select the target host set</span><br>
+		</div>			
+
+		<!-- SKIP UNSUPPORTED TERMS -->
+		<div id='skipterms' style='display: none;'>
+			<h3 class='hxtool_typography_h3'>Skip unsupported terms</h3>
+			<div class='hxtool_panel_wrapper'>
+				{{ htDropdown.widgetHeader("selection", "skip_terms", "true") }}
+				{{ htDropdown.widgetItem("True", "true", elementIcon="fa-check") }}
+				{{ htDropdown.widgetItem("False", "false", elementIcon="fa-check") }}
+				{{ htDropdown.widgetFooter(elementLabel="If this is set to true, all unsupported OpenIOC terms will be filtered out") }}
+			</div>
 		</div>
-		<div class="fe-panel__body">
-			<table class='hxtool_table hxtool_table_header_es' id='esTable' style='width: 100%;'></table>
+
+		<!-- SCHEDULER -->
+		<h3 class='hxtool_typography_h3'>Scheduler</h3>
+		<div class='hxtool_panel_wrapper'>
+			{{ htRadio.widgetHeader("Run now", "run_now", "schedule-a", "schedule", elementChecked="true") }}
+			{{ htRadio.widgetHeader("Run at a specific date/time", "run_at", "schedule-b", "schedule", elementChecked="false") }}
+			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px; width: 150px;'>
+				<input type='text' class="fe-input" id='scheduled_timestamp' name='scheduled_timestamp'>
+			</div>
+
+			{{ htRadio.widgetHeader("Run on an interval", "run_interval", "schedule-c", "schedule", elementChecked="false") }}
+			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>				
+				<span>
+					Every 
+					<select class="hxtool_input_select fe-input" name='intervalMetric' id='intervalMetric' style='width: 150px; display: inline-block;'>
+						<option value='min'>Minute
+						<option value='hour'>Hour
+						<option value='day'>Day
+						<option value='week'>Week
+						<option value='month'>Month
+					</select>
+				</span>
+				<br><br>
+				<span id='intervalSettings'></span>
+			</div>
 		</div>
-	</div>
+
+	{{ htModal.widgetMiddle() }}
+		<button class="fe-btn fe-btn--md fe-btn--secondary" id="esCancel" aria-label="Cancel"><span> Cancel </span></button>
+		<button class="fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Submit </span></button>
+	{{ htModal.widgetFooter() }}
+
+	<!-- TABLE -->
+	{{ htPanel.widgetHeader("Enterprise searches") }}
+		<table class='hxtool_table hxtool_table_header_es' id='esTable' style='width: 100%;'></table>
+	{{ htPanel.widgetFooter() }}
 
 
 {% endblock %}

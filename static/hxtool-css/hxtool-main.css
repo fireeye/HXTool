@@ -5,6 +5,7 @@
 @import url("/static/hxtool-css/hxtool-datatables.css");
 @import url("/static/hxtool-css/hxtool-typography.css");
 @import url("/static/hxtool-css/hxtool-chartjs.css");
+@import url("/static/hxtool-css/hxtool-scriptbuilder.css");
 
 body {
 	/* background-image: url("/static/3px-tile.png"), linear-gradient(180deg, #444444 12%, #777777 49%); */
@@ -32,5 +33,10 @@ body {
 	-webkit-border-radius: 0px;
 }
 
-.htLayoutIconWrapper {
+.hxtool_progress {
+	background: rgba(17, 169, 98, 0.2);
+	border-radius: 3px;
+	padding-left: 6px;
+	padding-right: 6px;
+	margin-top: 2px;
 }

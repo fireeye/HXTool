@@ -1,0 +1,33 @@
+.auditParameterPlaceholder {
+	margin-top: 12px;
+}
+
+.auditParameterTitleOptional {
+	font-family: "Open Sans";
+	font-size: 14px;
+	font-weight: 600;
+	-webkit-font-smoothing: antialiased;
+}
+
+.auditParameterTitle {
+	font-family: "Open Sans";
+	font-size: 14px;
+	font-weight: 600;
+	-webkit-font-smoothing: antialiased;
+}
+
+.auditName {
+	font-family: "Open Sans";
+	font-size: 16px;
+	font-weight: 600;
+	-webkit-font-smoothing: antialiased;
+}
+
+.auditNameUUID {
+	font-family: "Open Sans";
+	font-size: 12px;
+	font-weight: 600;
+	-webkit-font-smoothing: antialiased;
+	margin-bottom: 12px;
+}
+

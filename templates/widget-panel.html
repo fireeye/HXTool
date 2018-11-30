@@ -1,0 +1,12 @@
+{% macro widgetHeader(panelTitle, panelId="", panelDisplay="block") -%}
+	<div id="{{panelId}}" class="fe-panel" style='display: {{panelDisplay}}; margin-top: 12px;'>
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background">{{panelTitle}}</div>
+		</div>
+		<div class="fe-panel__body">
+{% endmacro %}
+
+{% macro widgetFooter() -%}
+		</div>
+	</div>
+{% endmacro %}

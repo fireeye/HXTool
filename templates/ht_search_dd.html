@@ -6,6 +6,10 @@
 <script>
 	$(document).ready(function() {
 
+		$("#goBack").click(function(){
+			location.href = "/search";
+		});
+
 		myid = getQueryParam('id');
 
 		$.getJSON('/api/v1/datatable_es_result_types?id=' + myid, function(mytypes) {
@@ -16,9 +20,14 @@
 					mycols.push({ "title": mytypes[currtype][i].replace(/_/g," "), "data": mytypes[currtype][i] });
 				}
 
-				$("#tableContainer").append("<div style='margin-bottom: 10px;' id='ph_" + currtype.replace(/ /g,"_") + "'></div>");
-				$("#ph_" + currtype.replace(/ /g,"_")).append("<div class='tableTitle'>" + currtype + "</div>");
-				$("#ph_" + currtype.replace(/ /g,"_")).append("<table class='genericTable genericTableESResults' id='esTableResults_" + currtype.replace(/ /g,"_") + "' style='width: 100%;'></table>");
+				$("#tableContainer").append("<div style='margin-top: 12px;' id='ph_" + currtype.replace(/ /g,"_") + "'></div>");
+
+				$("#ph_" + currtype.replace(/ /g,"_")).append("<div class='fe-panel'>");
+				$("#ph_" + currtype.replace(/ /g,"_")).find(".fe-panel").append("<div class='fe-panel-header fe-panel-header--no-background'></div>");
+				$("#ph_" + currtype.replace(/ /g,"_")).find(".fe-panel-header").append("<div class='fe-label fe-label--background'><i style='color: #11a962;' class='fe-icon--left fas fa-chart-bar'></i>" + currtype + "</div>");
+				$("#ph_" + currtype.replace(/ /g,"_")).append("<div class='fe-panel__body'></div>");
+
+				$("#ph_" + currtype.replace(/ /g,"_")).find(".fe-panel__body").append("<table class='hxtool_table' id='esTableResults_" + currtype.replace(/ /g,"_") + "' style='width: 100%;'></table>");
 
 				$.fn.dataTable.ext.errMode = 'none';
 				$('#esTableResults_' + currtype.replace(/ /g,"_")).DataTable( {
@@ -32,16 +41,13 @@
 					"pageLength": 25,
 					"lengthChange": false,
 					"processing": false,
-					"dom": '<"htDTButtons"B>frtip',
-					"colReorder": true,
+					"dom": '<"hxtool_datatables_buttons"B>frtip',
 					"buttons": [
-						{ extend: "copy", className: "myDTButton" },
-						{ extend: "csv", className: "myDTButton" },
-						{ extend: "excel", className: "myDTButton" }
+						{ extend: "copy", className: "fe-btn" },
+						{ extend: "csv", className: "fe-btn" },
+						{ extend: "excel", className: "fe-btn" }
 					],
-					"drawCallback": function( settings ) {
-						$('.dataTables_filter').addClass('pull-left');
-					},
+					"colReorder": true,
 					"columnDefs": [
 						{
 						 "targets": 0,
@@ -51,6 +57,7 @@
 						}					
 					]
 				});
+				$('div.dataTables_filter input').addClass("fe-input");
 
 
 				/*
@@ -68,8 +75,12 @@
 
 </script>
 
-<br>
+{{ htPanel.widgetHeader("Action", panelId="goBack", panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--primary active"> back <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanel.widgetFooter() }}
+
 
 <div id='tableContainer'></div>
+
 
 {% endblock %}

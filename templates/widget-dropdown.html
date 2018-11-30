@@ -1,0 +1,28 @@
+{% macro widgetHeader(elementValue, elementId, elementDefault, elementAdditionalClass="") -%}
+	<div class='fe-dropdown {% if elementAdditionalClass != "" %}{{elementAdditionalClass}}{% endif %}'>
+		<button id="{{elementId}}" data-id="{{elementDefault}}" class="fe-btn fe-btn--sm fe-btn--primary active"> {{elementValue}} <i class="fe-icon--right fal fa-chevron-up"></i></button>
+		<div class="fe-dropdown__list-container">
+			<ul class="fe-dropdown__list fe-list">
+
+{% endmacro %}
+
+{% macro widgetItem(elementText, elementId, elementIcon="fa-check") -%}
+				<li class="fe-dropdown__item">
+					<a class="fe-dropdown__item-link">
+						<span class="fe-dropdown__item-link-left-section">
+							<i style='margin-top: 2px;' class="fas {{elementIcon}} fa-lg"></i>
+						</span>
+						<span class="fe-dropdown__item-link-text" data-id="{{elementId}}">{{elementText}}</span>
+					</a>
+				</li>
+{% endmacro %}
+
+{% macro widgetFooter(elementLabel="") -%}
+			</ul>
+		</div>
+	</div>
+	<br>
+	{% if elementLabel != "" %}
+		<span class="fe-input-hint-text">{{elementLabel}}</span><br>
+	{% endif %}
+{% endmacro %}

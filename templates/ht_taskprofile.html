@@ -20,6 +20,14 @@
 			});
 		});
 
+		$("#tpNew").click(function(){
+			$("#tpNewPopup").show();
+		});
+
+		$("#tpCancel").click(function(){
+			$("#tpNewPopup").hide();
+		});
+
 		$('body').on('change','select',function() {
 
 			if ($(this).attr('id') == "module") {
@@ -88,6 +96,7 @@
 			},
 			"paging":   false,
 			"info":     false,
+			"searching": false,
 			"columns": [
 				{ "data": "name", title: "Profile name" },
 				{ "data": "actor", title: "Created by" },
@@ -101,7 +110,7 @@
 				 targets: 5,
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<a href='/taskprofile?action=delete&id=" + data + "' class='tableActionButton'>delete</a>"
+				 		data = "<button data-type='remove' data-id='" + data + "' class='tpAction fe-btn fe-btn--sm fe-btn--primary active'> delete <i class='fe-icon--right fas fa-ban'></i></button>"
 				 	}
 				 	return data;
 				 }
@@ -144,39 +153,38 @@
 
 </script>
 
-<form method='POST' action='/taskprofile' style='margin-bottom: 20px;'>
-		<div class='tableTitle'>
-			<i class="fas fa-database fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-			Create new task profile
-		</div>
-	<div class='inputArea' style='width: 600px;'>
-		<b>Profile name</b><br>
-		<input type='text' name='taskprofile_name' style='width: 400px;'><br>
-		<br>
 
-		<b>Core task profile module</b><br>
-		<select name='module' id='module'>
-			<option value='0'>-- select a module --
-			<option value='1'>File writer
-			<option value='2'>IP sender
-			<!-- <option value='3'>Store in HXTool -->
-			<option value='4'>Helix
-		</select>
+<!-- ACTIONS -->
+{{ htPanel.widgetHeader("Action", panelId="tpNew", panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--primary active"> new profile <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanel.widgetFooter() }}
 
-		<div style='margin-top: 10px;' id='params'></div>
+<!-- INPUT FIELD -->
+{{ htModal.widgetHeader("New task profile", modalId="tpNewPopup") }}
 
-		<br>
+	<h3 class='hxtool_typography_h3'>Name</h3>
+	<input type="text" name="taskprofile_name" id="taskprofile_name" value="" class="fe-input" placeholder="my new search" />
+	<span class="fe-input-hint-text">The name of the profile</span>
+	<br>
 
-        <input class='tableActionButton' type='submit' value='Create new profile'>
-	</div>
-</form>
+	<h3 class='hxtool_typography_h3'>Select a task profile module</h3>
+	<select name='module' id='module'>
+		<option value='0'>-- select a module --
+		<option value='1'>File writer
+		<option value='2'>IP sender
+		<!-- <option value='3'>Store in HXTool -->
+		<option value='4'>Helix
+	</select>
 
-<div class='tableTitle'>
-	<i class="fas fa-database fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-	My task profiles
-</div>
+	<div style='margin-top: 10px;' id='params'></div>
 
-<table id='taskprofileTable' class='genericTable' style='width: 100%;'>
-</table>
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="tpCancel" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
+
+{{ htPanel.widgetHeader("Task profiles") }}
+	<table id='taskprofileTable' class='hxtool_table' style='width: 100%;'></table>
+{{ htPanel.widgetFooter() }}
 
 {% endblock %}

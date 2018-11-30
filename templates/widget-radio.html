@@ -1,0 +1,8 @@
+{% macro widgetHeader(elementTitle, elementValue, elementId, elementName, elementChecked="false") -%}
+	<div class="fe-radio" style='margin-top: 6px;'>
+		<input class="fe-radio__input" type='radio' id='{{elementId}}' name='{{elementName}}' value='{{elementValue}}' {% if elementChecked == "true" %}checked{% endif %}>
+		<span class="fe-radio__overlay"></span>
+		<span class="fe-radio__radio"></span>
+		<label for="{{elementId}}" class="fe-radio__label">{{elementTitle}}</label>
+	</div>
+{% endmacro %}

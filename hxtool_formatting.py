@@ -866,6 +866,23 @@ def formatScripts(scripts):
 	x += "</select>"
 	return(x)
 
+
+def formatScriptsFabric(scripts):
+
+	x = ""
+	for entry in scripts:
+		x += '<li class="fe-dropdown__item">'
+		x += '<a class="fe-dropdown__item-link">'
+		x += '<span class="fe-dropdown__item-link-left-section">'
+		x += '<i style="margin-top: 2px;" class="fas fa-code fa-lg"></i>'
+		x += '</span>'
+		x += '<span class="fe-dropdown__item-link-text" data-id="' + entry['script_id'] + '">' + entry['scriptname'] + '</span>'
+		x += '<span class="fe-dropdown__item-link-right-section">'
+		x += '</span></a></li>'
+	return(x)
+
+
+
 def formatTaskprofiles(mytaskprofiles):
 
 	x = "<select name='taskprofile_id' id='taskprofile_id'>"

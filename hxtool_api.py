@@ -11,24 +11,12 @@ except ImportError:
 from hx_lib import *
 from hxtool_util import *
 from hxtool_data_models import *
+from hxtool_scheduler import *
+from hxtool_task_modules import *
 
 HXTOOL_API_VERSION = 1
 
 ht_api = Blueprint('ht_api', __name__, template_folder='templates')
-
-@ht_api.route('/api/v{0}/testcall'.format(HXTOOL_API_VERSION), methods=['GET'])
-@valid_session_required
-def datatable_openioc(hx_api_object):
-	if request.method == 'GET':
-		myiocs = hxtool_global.hxtool_db.oiocList()
-		return(app.response_class(response=json.dumps(myiocs), status=200, mimetype='application/json'))
-
-
-@ht_api.route('/api/v{0}/testcall2'.format(HXTOOL_API_VERSION), methods=['GET', 'POST'])
-@valid_session_required
-def testcall2(hx_api_object):
-	(ret, response_code, response_data) = hx_api_object.restListHostsets()
-	return(app.response_class(response=json.dumps(response_data), status=200, mimetype='application/json'))
 
 
 ###################################
@@ -44,7 +32,6 @@ def testcall5(hx_api_object):
 			return(app.response_class(response=json.dumps(response_data), status=200, mimetype='application/json'))
 		else:
 			return('',response_code)
-
 
 
 #####################
@@ -99,6 +86,66 @@ def hxtool_api_openioc_upload(hx_api_object):
 def hxtool_api_alerts_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteJob('alerts', request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
+####################
+# Bulk Acquisition #
+####################
+
+# Remove
+@ht_api.route('/api/v{0}/acquisition/bulk/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_bulk_remove(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+# Stop
+@ht_api.route('/api/v{0}/acquisition/bulk/stop'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_bulk_stop(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+# Download
+@ht_api.route('/api/v{0}/acquisition/bulk/download'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_bulk_download(hx_api_object):
+	hostset_id = -1
+	(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
+	if ret:
+		if 'host_set' in response_data['data']:
+			hostset_id = int(response_data['data']['host_set']['_id'])
+	
+	(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
+	
+	if ret and response_data and len(response_data['data']['entries']) > 0:
+		bulk_download_eid = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], hostset_id = hostset_id, task_profile = None)
+		
+		bulk_acquisition_hosts = {}
+		task_list = []
+		for host in response_data['data']['entries']:
+			bulk_acquisition_hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' :  host['host']['hostname']}
+			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
+			bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
+														'bulk_acquisition_eid' : bulk_acquisition_eid,
+														'agent_id' : host['host']['_id'],
+														'host_name' : host['host']['hostname']
+													})
+			# This works around a nasty race condition where the task would start before the download job was added to the database				
+			task_list.append(bulk_acquisition_download_task)
+		
+		app.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts)
+	
+		hxtool_global.hxtool_scheduler.add_list(task_list)
+		
+		#app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		app.logger.info(format_activity_log(msg="bulk acquisition action", action="download", id=request.args.get('id'), hostset=hostset_id, user=session['ht_user'], controller=session['hx_ip']))
+	else:
+		app.logger.warn("No host entries were returned for bulk acquisition: {}. Did you just start the job? If so, wait for the hosts to be queued up.".format(request.args.get('id')))
+
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 

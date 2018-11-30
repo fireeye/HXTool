@@ -9,20 +9,6 @@
 		return +(Math.round(num + "e+2")  + "e-2");
 	}
 
-	function enableStore() {
-			$("#checkboxStore").prop('checked', true);
-			$("#divStore").css("background", "rgb(225,225,225)");
-			$("#divFile").css("background", "rgb(242,242,242)");
-			$("#checkboxFile").prop('checked', false);
-	}
-
-	function enableFile() {
-			$("#checkboxFile").prop('checked', true);
-			$("#divFile").css("background", "rgb(225,225,225)");
-			$("#divStore").css("background", "rgb(242,242,242)");		
-			$("#checkboxStore").prop('checked', false);
-	}
-
 	function renderInterval(intervalType) {
 
 		out = "";
@@ -109,18 +95,18 @@
 
 			],
 			"headerCallback": function( thead, data, start, end, display ) {
-				$(thead).find('th').eq(7).html('<div class="genericTableDivES">runtime avg</div>');
-				$(thead).find('th').eq(8).html('<div class="genericTableDivES">runtime min</div>');
-				$(thead).find('th').eq(9).html('<div class="genericTableDivES">runtime max</div>');
-				$(thead).find('th').eq(10).html('<div class="genericTableDivES">tasksize avg</div>');
-				$(thead).find('th').eq(11).html('<div class="genericTableDivES">tasksize min</div>');
-				$(thead).find('th').eq(12).html('<div class="genericTableDivES">tasksize max</div>');
-				$(thead).find('th').eq(13).html('<div class="genericTableDivES">new</div>');
-				$(thead).find('th').eq(14).html('<div class="genericTableDivES">queued</div>');
-				$(thead).find('th').eq(15).html('<div class="genericTableDivES">failed</div>');
-				$(thead).find('th').eq(16).html('<div class="genericTableDivES">complete</div>');
-				$(thead).find('th').eq(17).html('<div class="genericTableDivES">aborted</div>');
-				$(thead).find('th').eq(18).html('<div class="genericTableDivES">cancelled</div>');
+				$(thead).find('th').eq(7).html('<div class="hxtool_table_cell_vertical">runtime avg</div>');
+				$(thead).find('th').eq(8).html('<div class="hxtool_table_cell_vertical">runtime min</div>');
+				$(thead).find('th').eq(9).html('<div class="hxtool_table_cell_vertical">runtime max</div>');
+				$(thead).find('th').eq(10).html('<div class="hxtool_table_cell_vertical">tasksize avg</div>');
+				$(thead).find('th').eq(11).html('<div class="hxtool_table_cell_vertical">tasksize min</div>');
+				$(thead).find('th').eq(12).html('<div class="hxtool_table_cell_vertical">tasksize max</div>');
+				$(thead).find('th').eq(13).html('<div class="hxtool_table_cell_vertical">new</div>');
+				$(thead).find('th').eq(14).html('<div class="hxtool_table_cell_vertical">queued</div>');
+				$(thead).find('th').eq(15).html('<div class="hxtool_table_cell_vertical">failed</div>');
+				$(thead).find('th').eq(16).html('<div class="hxtool_table_cell_vertical">complete</div>');
+				$(thead).find('th').eq(17).html('<div class="hxtool_table_cell_vertical">aborted</div>');
+				$(thead).find('th').eq(18).html('<div class="hxtool_table_cell_vertical">cancelled</div>');
 			},
 			"fnDrawCallback": function (oSettings) {
 				$("div[id^='crate_']").each(function() {
@@ -130,24 +116,25 @@
 					$(this).progress()
 				});
 			},
-			"createdRow": function( row, data, index ) {
-				$('td', row).eq(7).css( 'background-color', '#eeeeee' );
-				$('td', row).eq(8).css( 'background-color', '#eeeeee' );
-				$('td', row).eq(9).css( 'background-color', '#eeeeee' );
-				$('td', row).eq(10).css( 'background-color', '#dddddd' );
-				$('td', row).eq(11).css( 'background-color', '#dddddd' );
-				$('td', row).eq(12).css( 'background-color', '#dddddd' );
-				$('td', row).eq(13).css( 'background-color', '#cccccc' );
-				$('td', row).eq(14).css( 'background-color', '#cccccc' );
-				$('td', row).eq(15).css( 'background-color', '#cccccc' );
-				$('td', row).eq(16).css( 'background-color', '#cccccc' );
-				$('td', row).eq(17).css( 'background-color', '#cccccc' );
-				$('td', row).eq(18).css( 'background-color', '#cccccc' );
-			},
 			"columnDefs": [	
 				{
+				 "targets": [ 0, 2 ],
+				 render: function ( data, type, row, meta ) {
+				 	if(type === 'display') {
+				 		data = '<a style="margin: 0;" class="fe-radio__label" href="/bulkdetails?id=' + row.DT_RowId + '">' + data + '</a>';
+				 	}
+				 	return data;
+				 }
+				},
+				{
+				 "targets": 1,
+				 render: function ( data, type, row, meta ) {
+				 	return (datatables_parseAcquisitionState(data));
+				 }
+				},				
+				{
 				 "targets": [ 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ],
-				 "width": "47px"
+				 "width": "60px"
 				},
 				{
 				 "targets": [ 3, 4 ],
@@ -176,6 +163,7 @@
 				},
 				{
 				 "targets": 19,
+				 "width": "180px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
 				 		data = "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + row.DT_RowId + "' data-percent='" + Math.round(data) + "'></div></div>";
@@ -185,6 +173,7 @@
 				},
 				{
 				 "targets": 20,
+				 "width": "180px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
 				 		if (data === parseInt(data, 10)) {
@@ -199,13 +188,14 @@
 				},
 				{
 				 "targets": 21,
+				 "width": "230px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
 				 		if (data === parseInt(data, 10)) {
 					 		myid = data;
-					 		data = "<a class='tableActionButton' href='/bulkaction?action=stop&id=" + myid + "'>stop</a>";
-					 		data += "<a class='tableActionButton' href='/bulkaction?action=remove&id=" + myid + "'>remove</a>";
-					 		data += "<a class='tableActionButton' href='/bulkaction?action=download&id=" + myid + "'>download</a>";
+					 		data = "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary active' data-type='stop' data-id='" + myid + "'>stop</button>";
+					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary active' data-type='remove' data-id='" + myid + "'>remove</button>";
+					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary active' data-type='download' data-id='" + myid + "'>download</button>";
 					 	}
 					 	else {
 					 		data = "Task Profile: " + data;
@@ -214,33 +204,13 @@
 				 	return data;
 				 }
 				},
-				{"className": "dt-center", "targets": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]}
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]}
 			]
-		});
-
-		$('#bulktable').on( 'click', 'tr', function () {
-			window.document.location = "/bulkdetails?id=" + $(this).attr("id");
 		});
 
 		setInterval( function () {
 			bulk_datatable.ajax.reload();
 		}, 60000 );
-
-		$("#checkboxStore").click(function() {
-			enableStore();
-		});
-
-		$("#checkboxFile").click(function() {
-			enableFile();
-		});
-
-		$("#divStore").click(function() {
-			enableStore();
-		});
-
-		$("#divFile").click(function() {
-			enableFile();
-		});
 
 		$('body').on('change','select',function(){
 
@@ -260,78 +230,125 @@
 		    }
 		});
 
+
+		$("#bulkNew").click(function(){
+			$("#bulkNewPopup").show();
+		});
+
+		$("#bulkCancel").click(function(){
+			$("#bulkNewPopup").hide();
+		});
+
+		$("#bulktable").on("click", ".bulkAction", function(){
+			mytype = $(this).data("type");
+			myrow = $(this).closest("tr");
+			hxtool_ajax_get_request("/api/v1/acquisition/bulk/" + $(this).data("type"), "id=" + $(this).data("id"), function() {
+				if (mytype == "remove") {
+					myrow.fadeOut(200, function() {
+						es_datatable.row(myrow).remove().draw();
+						//updateChartJS(chartjs_searches, "/api/v1/enterprise_search/chartjs_searches?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);
+					})
+				}
+				else {
+					bulk_datatable.ajax.reload();	
+				}
+			});
+		});
+
+
 	});
 </script>
 
-<form method='POST' action='/bulkacq' enctype="multipart/form-data">
-		<div class='tableTitle'>
-        	<i class="fas fa-plus-square fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-			New bulk acquisition
-		</div>
-	<div class='inputArea' style='width: 1200px;'>
+{{ htPanel.widgetHeader("Action", panelId="bulkNew", panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--primary active"> new bulk acquisition <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanel.widgetFooter() }}
 
-		<div id='divStore' style='width: 250px; float: left; padding: 10px; margin-right: 15px; vertical-align: top; border: 1px solid rgb(215,215,215); border-radius: 5px; background: rgb(225,225,225);'>
-			<input type='checkbox' name='store' id='checkboxStore' checked>
-			<b>From HXTool</b><br><br>
-			{% if scripts %} {{ scripts|safe }} {% endif %}
-		</div>
-		<div id='divFile' style='width: 250px; float: left; padding: 10px; vertical-align: top; border: 1px solid rgb(215,215,215); border-radius: 5px;'>			<input type='checkbox' name='file' id='checkboxFile'>
-			<b>From file</b><br><br>
-			<input type='file' id='bulkscript' name='bulkscript'>
-		</div>
-		<div style='clear: both;'></div>
+{{ htModal.widgetHeader("New Bulk Acquisition", modalId="bulkNewPopup") }}
 
-		<br>
-
-		<b>Comment</b><br>
-		<input type='text' id='bulkcomment' name='bulkcomment' style='width: 250px;'>
-		<br>
-		<br>
-		<b>Hostset</b><br>
-		<select name='bulkhostset' id='bulkhostset'>
-			{% if hostsets %} {{ hostsets|safe }} {% endif %}
-		</select>
-		<br>
-		
-		<div style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 10px;'>&nbsp;</div>
-
-		<input type='radio' name='schedule' value='run_now' checked><b> Run now</b><br>
-		<input type='radio' name='schedule' value='run_at'><b> Run at specific date/time</b>
-		<input type='text' id='scheduled_timestamp' name='scheduled_timestamp' style='margin-left: 5px;'>
-		<br>
-		<input type='radio' name='schedule' value='run_interval'><b> Run on an interval</b><br><br>
-		<span style='margin-left: 15px;'>
-			Every 
-			<select name='intervalMetric' id='intervalMetric'>
-				<option value='min'>Minute
-				<option value='hour'>Hour
-				<option value='day'>Day
-				<option value='week'>Week
-				<option value='month'>Month
-			</select>
-		</span>
-		<span id='intervalSettings'></span>
-
-		<br>
-		<div style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 10px;'>&nbsp;</div>
-
-		<input type='checkbox' name='taskprocessor' id='checkboxStore'>
-		<b>Use task-processor profile</b><br><br>
-		{% if taskprofiles %} {{ taskprofiles|safe }} {% endif %}
-		<br>
-		<br>
-
-        <input class='tableActionButton' type='submit' value='Commit'>
+	<!-- Bulk comment -->
+	<h3 class='hxtool_typography_h3'>Name</h3>
+	<div class='hxtool_panel_wrapper' style='width: 550px; margin-left: 0; margin-top: 6px;'>
+	    <input type="text" name="bulkcomment" id="bulkcomment" value="" class="fe-input" placeholder="my new acquisition" />
+	    <span class="fe-input-hint-text">Enter a name for your acquisition so others knows what it is</span>
 	</div>
-</form>
 
-<br>
 
-<div class='tableTitle'>
-	<i class="fas fa-th-list fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-	Bulk acquisitions on the controller
-</div>
+	<!-- Script source -->
+	<h3 class='hxtool_typography_h3'>Script source</h3>
+	<div class='hxtool_panel_wrapper'>
 
-<table id='bulktable' style='width: 100%' class='genericTable genericTableBulk'></table>
+		{{ htRadio.widgetHeader("From HXTool", "hxtool", "bulksource-a", "bulksource", elementChecked="true") }}
+		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
+			<div class="fe-dropdown">
+				<button class="fe-btn fe-btn--sm fe-btn--primary active"> Select an acquisition script <i class="fe-icon--right fal fa-chevron-up"></i></button>
+				<div class="fe-dropdown__list-container">
+					<ul class="fe-dropdown__list fe-list">
+						{% if scripts %} {{scripts|safe}} {% endif %}
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		{{ htRadio.widgetHeader("From file", "file", "bulksource-a", "bulksource", elementChecked="false") }}
+		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
+			<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='bulkscript' name='bulkscript'>
+		</div>
+	</div>
+
+	<!-- Host Set selection -->
+	<h3 class='hxtool_typography_h3'>Hostset</h3>
+	<div class='hxtool_panel_wrapper'>
+		<div class="fe-dropdown">
+			<button class="fe-btn fe-btn--sm fe-btn--primary active"> select a hostset <i class="fe-icon--right fal fa-chevron-up"></i></button>
+			<div class="fe-dropdown__list-container">
+				<ul class="fe-dropdown__list fe-list">
+					{% if hostsets %} {{hostsets|safe}} {% endif %}
+				</ul>
+			</div>
+		</div>
+		<br>
+		<span class="fe-input-hint-text">Select the target host set</span><br>
+	</div>
+
+	<!-- SCHEDULER -->
+	<h3 class='hxtool_typography_h3'>Scheduler</h3>
+	<div class='hxtool_panel_wrapper'>
+		{{ htRadio.widgetHeader("Run now", "run_now", "schedule-a", "schedule", elementChecked="true") }}
+		{{ htRadio.widgetHeader("Run at a specific date/time", "run_at", "schedule-b", "schedule", elementChecked="false") }}
+		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px; width: 150px;'>
+			<input type='text' class="fe-input" id='scheduled_timestamp' name='scheduled_timestamp'>
+		</div>
+
+		{{ htRadio.widgetHeader("Run on an interval", "run_interval", "schedule-c", "schedule", elementChecked="false") }}
+		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>				
+			<span>
+				Every 
+				<select class="hxtool_input_select fe-input" name='intervalMetric' id='intervalMetric' style='width: 150px; display: inline-block;'>
+					<option value='min'>Minute
+					<option value='hour'>Hour
+					<option value='day'>Day
+					<option value='week'>Week
+					<option value='month'>Month
+				</select>
+			</span>
+			<br><br>
+			<span id='intervalSettings'></span>
+		</div>
+	</div>
+
+	<!-- Task profile -->
+	<input type='checkbox' name='taskprocessor' id='checkboxStore'>
+	<b>Use task-processor profile</b><br><br>
+	{% if taskprofiles %} {{ taskprofiles|safe }} {% endif %}
+	<br>
+
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="bulkCancel" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
+
+{{ htPanel.widgetHeader("Bulk acquisitions") }}
+	<table id='bulktable' style='width: 100%' class='hxtool_table hxtool_table_header_es'></table>
+{{ htPanel.widgetFooter() }}
 
 {% endblock %}
