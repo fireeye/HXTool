@@ -40,3 +40,15 @@ body {
 	padding-right: 6px;
 	margin-top: 2px;
 }
+
+.fe-btn--hxtool-main {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.fe-btn--hxtool-main:hover, .fe-btn--hxtool-main:focus, .fe-btn--hxtool-main.focus {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 1.0);
+  border-color: rgba(255, 255, 255, 0.1);
+}

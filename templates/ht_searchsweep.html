@@ -11,7 +11,7 @@
 
 		if (intervalType == "month") {
 			out += " on the ";
-			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' name='intervalDay'>";
+			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' id='intervalDay'>";
 			for (var i=1; i < 32; i += 1){
 				out += "<option value='" + i + "'>" + i;
 			}
@@ -21,7 +21,7 @@
 
 		if (intervalType == "week") {
 			out += " on ";
-			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' name='intervalWeek'>";
+			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' id='intervalWeek'>";
 			out += "<option value='0'>Monday";
 			out += "<option value='1'>Tuesday";
 			out += "<option value='2'>Wednesday";
@@ -35,7 +35,7 @@
 
 		if (intervalType == "day" || intervalType == "week" || intervalType == "month") {
 			out += " at the ";
-			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' name='intervalHour'>";
+			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' id='intervalHour'>";
 			for (var i=0; i < 24; i += 1){
 				out += "<option value='" + i + "'>" + i;
 			}
@@ -45,7 +45,7 @@
 
 		if (intervalType == "hour" || intervalType == "day" || intervalType == "week" || intervalType == "month") {
 			out += " on the ";
-			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' name='intervalMin'>";
+			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' id='intervalMin'>";
 			for (var i=0; i < 60; i += 1){
 				out += "<option value='" + i + "'>" + i;
 			}
@@ -56,28 +56,10 @@
 		$("#intervalSettings").html(out);
 	}
 
-	function esActionSuccess() {
-		es_datatable.ajax.reload();
-	}
-
 	$(document).ready(function() {
 
 		var fullDate = new Date()
 		var currentDate = fullDate.toISOString().substr(0, 10);
-
-		if (checkVersion("4.5.0")) {
-			$('#skipterms').show();
-		}
-		else {
-			$('#skipterms').remove();			
-		}
-
-		if (checkVersion("4.5.1")) {
-			$('#displayname_box').show();
-		}
-		else {
-			$('#displayname').remove();			
-		}
 
 		$.fn.dataTable.ext.errMode = 'none';
 		var es_datatable = $('#esTable').DataTable( {
@@ -184,8 +166,8 @@
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
 				 		myid = data;
-				 		data = '<button style="margin-right: 6px;" class="esAction fe-btn fe-btn--sm fe-btn--primary active" data-type="stop" data-id="' + myid + '"> stop <i class="fe-icon--right fas fa-ban"></i></button>'
-				 		data += '<button class="esAction fe-btn fe-btn--sm fe-btn--primary active" data-type="remove" data-id="' + myid + '"> remove <i class="fe-icon--right fas fa-trash"></i></button>'
+				 		data = '<button style="margin-right: 6px;" class="esAction fe-btn fe-btn--sm fe-btn--hxtool-main" data-type="stop" data-id="' + myid + '"> stop <i class="fe-icon--right fas fa-ban"></i></button>'
+				 		data += '<button class="esAction fe-btn fe-btn--sm fe-btn--hxtool-main" data-type="remove" data-id="' + myid + '"> remove <i class="fe-icon--right fas fa-trash"></i></button>'
 				 	}
 				 	return data;
 				 }
@@ -206,10 +188,13 @@
 			autoApply: true,
 			timePicker: true,
 			timePicker24Hour: true,
-			buttonClasses: "tableActionButton",
+			buttonClasses: "fe-btn fe-btn--md",
+			applyButtonClasses: "fe-btn--primary",
+			cancelButtonClasses: "fe-btn--secondary",
 			locale: {
-     		 format: 'YYYY-MM-DD hh:mm:ss'
-		    }
+				format: 'YYYY-MM-DD hh:mm:ss',
+				firstDay: 1
+			}
 		});
 
 		setInterval( function () {
@@ -217,13 +202,11 @@
 		}, 60000 );
 
 		$("#esNew").click(function(){
-			//$("#hxtool_shader").show();
-			$("#esNewPopup").show(200);
+			$("#esNewPopup").show();
 		});
 
 		$("#esCancel").click(function(){
-			//$("#hxtool_shader").hide();
-			$("#esNewPopup").hide(200);
+			$("#esNewPopup").hide();
 		});
 
 		// REMOVE and STOP
@@ -243,12 +226,143 @@
 			});
 		});
 
+		// New search
+		$("#esSubmit").click(function () {
+
+			mymode = $("input[name='iocsource']:checked").val();
+			myhostsetid = $("#esHostset").data("id");
+			myskipterms = $("#esSkipterms").data("id");
+			myschedule = $("input[name='schedule']:checked").val();
+			mydisplayname = $("#displayname").val();
+
+			// Set the endpoint and IOC Data
+			if (mymode == "hxtool") {
+				myApiEndpoint = "/api/v1/enterprise_search/new/db";
+				myioc = $("#esIocDb").data("id");
+			}
+			else if (mymode == "file") {
+				myApiEndpoint = "/api/v1/enterprise_search/new/file";
+				var data = new FormData();
+				$.each($('#esIocFile').prop('files'), function(key, value) {
+					data.append("ioc", value);
+				});
+			}
+
+			// Grab settings and contstruct URL / Form
+			if (myschedule == "run_now" && mymode == "hxtool") {
+				myUrl = "sweephostset=" + myhostsetid + "&esskipterms=" + myskipterms + "&ioc=" + myioc + "&displayname=" + mydisplayname;
+			}
+			else if (myschedule == "run_now" && mymode == "file") {
+				data.append("sweephostset", myhostsetid);
+				data.append("esskipterms", myskipterms);
+				data.append("displayname", mydisplayname);
+			}
+			else if (myschedule == "run_at" && mymode == "hxtool") {
+				scheduled_timestamp = $("#scheduled_timestamp").val();
+				myUrl = "sweephostset=" + myhostsetid + "&esskipterms=" + myskipterms + "&ioc=" + myioc + "&displayname=" + mydisplayname + "&schedule=" + myschedule + "&scheduled_timestamp=" + scheduled_timestamp;
+			}
+			else if (myschedule == "run_at" && mymode == "file") {
+				scheduled_timestamp = $("#scheduled_timestamp").val();
+				data.append("sweephostset", myhostsetid);
+				data.append("esskipterms", myskipterms);
+				data.append("displayname", mydisplayname);
+				data.append("schedule", myschedule);
+				data.append("scheduled_timestamp", scheduled_timestamp);
+			}
+			else if (myschedule == "run_interval" && mymode == "hxtool") {
+				baseUrl = "sweephostset=" + myhostsetid + "&esskipterms=" + myskipterms + "&ioc=" + myioc + "&displayname=" + mydisplayname + "&schedule=" + myschedule;
+
+				intervalMin = $("#intervalMin").val()
+				intervalHour = $("#intervalHour").val()
+				intervalDay = $("#intervalDay").val()
+				intervalWeek = $("#intervalWeek").val()
+				intervalMetric = $("#intervalMetric").val()
+
+				if (intervalMetric == "min") {
+					myUrl = baseUrl;
+				}
+				else if (intervalMetric == "hour") {
+					myUrl = baseUrl + "&intervalMin=" + intervalMin;
+				}
+				else if (intervalMetric == "day") {
+					myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour;
+				}
+				else if (intervalMetric == "week") {
+					myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour + "&intervalWeek=" + intervalWeek;
+				}
+				else if (intervalMetric == "month") {
+					myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour + "&intervalDay=" + intervalDay;
+				}
+			}
+			else if (myschedule == "run_interval" && mymode == "file") {
+				data.append("sweephostset", myhostsetid);
+				data.append("esskipterms", myskipterms);
+				data.append("displayname", mydisplayname);
+				data.append("schedule", myschedule);
+
+				intervalMin = $("#intervalMin").val()
+				intervalHour = $("#intervalHour").val()
+				intervalDay = $("#intervalDay").val()
+				intervalWeek = $("#intervalWeek").val()
+				intervalMetric = $("#intervalMetric").val()
+
+				if (intervalMetric == "hour") {
+					data.append("intervalMin", intervalMin);
+				}
+				else if (intervalMetric == "day") {
+					data.append("intervalMin", intervalMin);
+					data.append("intervalHour", intervalHour);
+				}
+				else if (intervalMetric == "week") {
+					data.append("intervalMin", intervalMin);
+					data.append("intervalHour", intervalHour);
+					data.append("intervalWeek", intervalWeek);
+				}
+				else if (intervalMetric == "month") {
+					data.append("intervalMin", intervalMin);
+					data.append("intervalHour", intervalHour);
+					data.append("intervalDay", intervalDay);
+				}
+			}
+
+			// Send the request
+			if (mymode == "hxtool") {
+				hxtool_ajax_get_request(myApiEndpoint, myUrl, function() {
+					if (myschedule == "run_now") {
+						$("#esNewPopup").hide();
+						setTimeout( function () {
+							es_datatable.ajax.reload();
+							updateChartJS(chartjs_searches, "/api/v1/enterprise_search/chartjs_searches?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);
+						}, 1000 );
+					}
+					else {
+						location.href = "/scheduler";
+					}
+				});
+			}
+			else if (mymode == "file") {
+				hxtool_ajax_post_request(myApiEndpoint, data, function() {
+					if (myschedule == "run_now") {
+						$("#esNewPopup").hide();
+						setTimeout( function () {
+							es_datatable.ajax.reload();
+							updateChartJS(chartjs_searches, "/api/v1/enterprise_search/chartjs_searches?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);
+						}, 1000 );
+					}
+					else {
+						location.href = "/scheduler";
+					}
+				});
+			}
+
+		});
+
 
 		// START: Charts
 		Chart.defaults.global.defaultFontColor = 'rgba(255, 255, 255, 0.8)';
 		Chart.defaults.global.defaultFontFamily = 'Open Sans';
 
-		// ChartJS: Agent provisioning status
+		// ChartJS: Historical searches
 		var jsonData = $.ajax({
 			url: "/api/v1/enterprise_search/chartjs_searches?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate,
 			dataType: 'json',
@@ -314,7 +428,9 @@
 
 	<!-- ACTIONS -->
 	{{ htPanel.widgetHeader("Action", panelId="esNew", panelDisplay="inline-block") }}
-		<button class="fe-btn fe-btn--md fe-btn--primary active"> new search <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+		<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> new search <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+		<br>
+		<span class="fe-input-hint-text">Schedule a new enterprise search</span>
 	{{ htPanel.widgetFooter() }}
 
 	<!-- ES GRAPH -->
@@ -336,10 +452,10 @@
 		<h3 class='hxtool_typography_h3'>Indicator source</h3>
 		<div class='hxtool_panel_wrapper'>
 
-			{{ htRadio.widgetHeader("From HXTool", "hxtool", "iocsource-a", "iocsource", elementChecked="true") }}
+			{{ htRadio.widgetHeader("From HXTool", "hxtool", "iocsource", "iocsource", elementChecked="true") }}
 			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
 				<div class="fe-dropdown">
-					<button class="fe-btn fe-btn--sm fe-btn--primary active"> Select an indicator <i class="fe-icon--right fal fa-chevron-up"></i></button>
+					<button id='esIocDb' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main"> Select an indicator <i class="fe-icon--right fal fa-chevron-up"></i></button>
 					<div class="fe-dropdown__list-container">
 						<ul class="fe-dropdown__list fe-list">
 							{% if openiocs %} {{ openiocs|safe }} {% endif %}
@@ -348,9 +464,9 @@
 				</div>
 			</div>
 
-			{{ htRadio.widgetHeader("From file", "file", "iocsource-a", "iocsource", elementChecked="false") }}
+			{{ htRadio.widgetHeader("From file", "file", "iocsource", "iocsource", elementChecked="false") }}
 			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
-				<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='newioc' name='newioc'>
+				<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='esIocFile' name='esIocFile'>
 			</div>
 		</div>
 
@@ -358,7 +474,7 @@
 		<h3 class='hxtool_typography_h3'>Hostset</h3>
 		<div class='hxtool_panel_wrapper'>
 			<div class="fe-dropdown">
-				<button class="fe-btn fe-btn--sm fe-btn--primary active"> select a hostset <i class="fe-icon--right fal fa-chevron-up"></i></button>
+				<button id='esHostset' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main"> select a hostset <i class="fe-icon--right fal fa-chevron-up"></i></button>
 				<div class="fe-dropdown__list-container">
 					<ul class="fe-dropdown__list fe-list">
 						{% if hostsets %} {{hostsets|safe}} {% endif %}
@@ -373,7 +489,7 @@
 		<div id='skipterms' style='display: none;'>
 			<h3 class='hxtool_typography_h3'>Skip unsupported terms</h3>
 			<div class='hxtool_panel_wrapper'>
-				{{ htDropdown.widgetHeader("selection", "skip_terms", "true") }}
+				{{ htDropdown.widgetHeader("selection", "esSkipterms", "__hxtool_not_set") }}
 				{{ htDropdown.widgetItem("True", "true", elementIcon="fa-check") }}
 				{{ htDropdown.widgetItem("False", "false", elementIcon="fa-check") }}
 				{{ htDropdown.widgetFooter(elementLabel="If this is set to true, all unsupported OpenIOC terms will be filtered out") }}
@@ -408,7 +524,7 @@
 
 	{{ htModal.widgetMiddle() }}
 		<button class="fe-btn fe-btn--md fe-btn--secondary" id="esCancel" aria-label="Cancel"><span> Cancel </span></button>
-		<button class="fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Submit </span></button>
+		<button class="fe-btn fe-btn--md fe-btn--primary" id="esSubmit" aria-label="Click"><span> Submit </span></button>
 	{{ htModal.widgetFooter() }}
 
 	<!-- TABLE -->

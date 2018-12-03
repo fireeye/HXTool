@@ -37,6 +37,7 @@ def testcall5(hx_api_object):
 #####################
 # Enterprise Search #
 #####################
+# Stop
 @ht_api.route('/api/v{0}/enterprise_search/stop'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_enterprise_search_stop(hx_api_object):
@@ -44,12 +45,111 @@ def hxtool_api_enterprise_search_stop(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+# Remove
 @ht_api.route('/api/v{0}/enterprise_search/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_enterprise_search_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteJob('searches', request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+# New search from openioc store
+@ht_api.route('/api/v{0}/enterprise_search/new/db'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_enterprise_search_new_db(hx_api_object):
+
+	ioc_script = app.hxtool_db.oiocGet(request.args.get('ioc'))
+
+	ignore_unsupported_items = True
+	if 'esskipterms' in request.args.keys():
+		if request.args.get('esskipterms') == "false":
+			ignore_unsupported_items = False
+		else:
+			ignore_unsupported_items = True
+
+	mydisplayname = "N/A"
+	if 'displayname' in request.args.keys():
+		mydisplayname = request.args.get("displayname")
+
+	start_time = None
+	schedule = None
+	if 'schedule' in request.args.keys():
+		if request.args.get('schedule') == 'run_at':
+			start_time = HXAPI.dt_from_str(request.args.get('scheduled_timestamp'))
+		
+		if request.args.get('schedule') == 'run_interval':
+			schedule = {
+				'minutes' : request.args.get('intervalMin', None),
+				'hours'  : request.args.get('intervalHour', None),
+				'day_of_week' : request.args.get('intervalWeek', None),
+				'day_of_month' : request.args.get('intervalDay', None)
+			}	
+
+	enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task", start_time = start_time)
+	
+	if schedule:
+		enterprise_search_task.set_schedule(**schedule)
+		
+	enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
+										'script' : ioc_script['ioc'],
+										'hostset_id' : request.args.get('sweephostset'),
+										'ignore_unsupported_items' : ignore_unsupported_items,
+										'skip_base64': True,
+										'displayname': mydisplayname
+									})
+	hxtool_global.hxtool_scheduler.add(enterprise_search_task)
+
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+# New search from file
+@ht_api.route('/api/v{0}/enterprise_search/new/file'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_enterprise_search_new_file(hx_api_object):
+
+	fc = request.files['ioc']
+	ioc_script = fc.read()
+
+	ignore_unsupported_items = True
+	if 'esskipterms' in request.form.keys():
+		if request.form.get('esskipterms') == "false":
+			ignore_unsupported_items = False
+		else:
+			ignore_unsupported_items = True
+
+	mydisplayname = "N/A"
+	if 'displayname' in request.form.keys():
+		mydisplayname = request.form.get("displayname")
+
+	start_time = None
+	schedule = None
+	if 'schedule' in request.form.keys():
+		if request.form.get('schedule') == 'run_at':
+			start_time = HXAPI.dt_from_str(request.form.get('scheduled_timestamp'))
+		
+		if request.form.get('schedule') == 'run_interval':
+			schedule = {
+				'minutes' : request.form.get('intervalMin', None),
+				'hours'  : request.form.get('intervalHour', None),
+				'day_of_week' : request.form.get('intervalWeek', None),
+				'day_of_month' : request.form.get('intervalDay', None)
+			}	
+
+	enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task", start_time = start_time)
+	
+	if schedule:
+		enterprise_search_task.set_schedule(**schedule)
+		
+	enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
+										'script' : HXAPI.b64(ioc_script),
+										'hostset_id' : request.form.get('sweephostset'),
+										'ignore_unsupported_items' : ignore_unsupported_items,
+										'skip_base64': True,
+										'displayname': mydisplayname
+									})
+	hxtool_global.hxtool_scheduler.add(enterprise_search_task)
+
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
 
 ###################
 # Manage OpenIOCs #
@@ -130,24 +230,36 @@ def hxtool_api_acquisition_bulk_download(hx_api_object):
 			bulk_acquisition_hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' :  host['host']['hostname']}
 			bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
 			bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
-														'bulk_acquisition_eid' : bulk_acquisition_eid,
+														'bulk_download_eid' : bulk_download_eid,
 														'agent_id' : host['host']['_id'],
 														'host_name' : host['host']['hostname']
 													})
 			# This works around a nasty race condition where the task would start before the download job was added to the database				
 			task_list.append(bulk_acquisition_download_task)
 		
-		app.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts)
+		app.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts, bulk_acquisition_id = int(request.args.get('id')))
 	
 		hxtool_global.hxtool_scheduler.add_list(task_list)
 		
 		#app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		app.logger.info(format_activity_log(msg="bulk acquisition action", action="download", id=request.args.get('id'), hostset=hostset_id, user=session['ht_user'], controller=session['hx_ip']))
-	else:
-		app.logger.warn("No host entries were returned for bulk acquisition: {}. Did you just start the job? If so, wait for the hosts to be queued up.".format(request.args.get('id')))
+		#app.logger.info(format_activity_log(msg="bulk acquisition action", action="download", id=request.args.get('id'), hostset=hostset_id, user=session['ht_user'], controller=session['hx_ip']))
+	#else:
+		#app.logger.warn("No host entries were returned for bulk acquisition: {}. Did you just start the job? If so, wait for the hosts to be queued up.".format(request.args.get('id')))
 
-	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
+
+# New bulk acquisiton from scriptstore
+@ht_api.route('/api/v{0}/acquisition/bulk/new/store'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_bulk_new_store(hx_api_object):
+	print("TODO")
+
+# New bulk acquisition from file
+@ht_api.route('/api/v{0}/acquisition/bulk/new/file'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_acquisition_bulk_new_file(hx_api_object):
+	print("TODO")
 
 ###########
 # ChartJS #
@@ -169,7 +281,7 @@ def chartjs_malwarecontent(hx_api_object):
 		if ret:
 			for host in response_data['data']['entries']:
 				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
-				if 'malware' in sresponse_data['data'].keys():
+				if sret and 'malware' in sresponse_data['data'].keys():
 					if 'content' in sresponse_data['data']['malware'].keys():
 						if not sresponse_data['data']['malware']['content']['version'] in myContent.keys():
 							myContent[sresponse_data['data']['malware']['content']['version']] = 1
@@ -222,7 +334,7 @@ def chartjs_malwareengine(hx_api_object):
 		if ret:
 			for host in response_data['data']['entries']:
 				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
-				if 'malware' in sresponse_data['data'].keys():
+				if sret and 'malware' in sresponse_data['data'].keys():
 					if 'content' in sresponse_data['data']['malware'].keys():
 						if not sresponse_data['data']['malware']['engine']['version'] in myContent.keys():
 							myContent[sresponse_data['data']['malware']['engine']['version']] = 1

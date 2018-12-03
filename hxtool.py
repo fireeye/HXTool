@@ -1334,6 +1334,7 @@ def login():
 					session['ht_profileid'] = ht_profile['profile_id']
 					session['ht_api_object'] = hx_api_object.serialize()
 					session['hx_version'] = hx_api_object.hx_version
+					session['hx_int_version'] = int(''.join(str(i) for i in hx_api_object.hx_version))
 					session['hx_ip'] = hx_api_object.hx_host
 					app.logger.info(format_activity_log(msg="user logged in", user=session['ht_user'], controller=session['hx_ip']))
 					redirect_uri = request.args.get('redirect_uri')

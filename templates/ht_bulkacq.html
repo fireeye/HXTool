@@ -224,10 +224,13 @@
 			autoApply: true,
 			timePicker: true,
 			timePicker24Hour: true,
-			buttonClasses: "tableActionButton",
+			buttonClasses: "fe-btn fe-btn--md",
+			applyButtonClasses: "fe-btn--primary",
+			cancelButtonClasses: "fe-btn--secondary",
 			locale: {
-     		 format: 'YYYY-MM-DD hh:mm:ss'
-		    }
+				format: 'YYYY-MM-DD hh:mm:ss',
+				firstDay: 1
+			}
 		});
 
 
@@ -260,7 +263,7 @@
 </script>
 
 {{ htPanel.widgetHeader("Action", panelId="bulkNew", panelDisplay="inline-block") }}
-	<button class="fe-btn fe-btn--md fe-btn--primary active"> new bulk acquisition <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> new bulk acquisition <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
 {{ htPanel.widgetFooter() }}
 
 {{ htModal.widgetHeader("New Bulk Acquisition", modalId="bulkNewPopup") }}
@@ -280,7 +283,7 @@
 		{{ htRadio.widgetHeader("From HXTool", "hxtool", "bulksource-a", "bulksource", elementChecked="true") }}
 		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
 			<div class="fe-dropdown">
-				<button class="fe-btn fe-btn--sm fe-btn--primary active"> Select an acquisition script <i class="fe-icon--right fal fa-chevron-up"></i></button>
+				<button class="fe-btn fe-btn--sm fe-btn--hxtool-main"> Select an acquisition script <i class="fe-icon--right fal fa-chevron-up"></i></button>
 				<div class="fe-dropdown__list-container">
 					<ul class="fe-dropdown__list fe-list">
 						{% if scripts %} {{scripts|safe}} {% endif %}
@@ -299,7 +302,7 @@
 	<h3 class='hxtool_typography_h3'>Hostset</h3>
 	<div class='hxtool_panel_wrapper'>
 		<div class="fe-dropdown">
-			<button class="fe-btn fe-btn--sm fe-btn--primary active"> select a hostset <i class="fe-icon--right fal fa-chevron-up"></i></button>
+			<button class="fe-btn fe-btn--sm fe-btn--hxtool-main"> select a hostset <i class="fe-icon--right fal fa-chevron-up"></i></button>
 			<div class="fe-dropdown__list-container">
 				<ul class="fe-dropdown__list fe-list">
 					{% if hostsets %} {{hostsets|safe}} {% endif %}
