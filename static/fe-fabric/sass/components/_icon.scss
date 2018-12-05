@@ -1,0 +1,12 @@
+@import "../utils/variables/components/icon";
+
+i.fe-icon {
+  @include box-modal($fe-icon--margin, $fe-icon--padding, $fe-icon--font-size, $fe-icon--height, $fe-icon--width);
+
+  &--left {
+    margin: $fe-icon--left-margin;
+  }
+  &--right {
+    margin: $fe-icon--right-margin;
+  }
+}

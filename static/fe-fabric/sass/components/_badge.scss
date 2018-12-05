@@ -1,0 +1,22 @@
+@import "../utils/variables/components/badge";
+
+.fe-badge {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  font-weight: bold;
+  border-radius: $fe-badge--border-radius;
+
+  @include box-modal($fe-badge--margin, $fe-badge--padding, $fe-badge--font-size, $fe-badge--height, $fe-badge--width);
+
+  @include background-state($fe-badge--default, $fe-badge--default, $fe-badge--default-text);
+
+  &.alert {
+    @include background-state($fe-badge--alert, $fe-badge--alert, $fe-badge--alert-text);
+  }
+
+  &.count-only {
+    @include background-state($fe-badge--count-only, $fe-badge--count-only, $fe-badge--count-only-text);
+  }
+
+}

@@ -8,10 +8,10 @@
 
 		$.getJSON('/api/v1/scheduler_health', function(myhealth) {
 			if (myhealth == true) {
-				$("#schedulerHealth").html("<i class='fas fa-check-circle fa-1x fa-fw' style='color: green; margin-right: 2px;' aria-hidden='true'></i> Running");
+				$("#schedulerHealth").html("<i class='fas fa-check-circle fa-1x fa-fw' style='color: green; margin-right: 2px;' aria-hidden='true'></i> The scheduler is running");
 			}
 			else {
-				$("#schedulerHealth").html("<i class='fas fa-times-circle fa-1x fa-fw' style='color: red; margin-right: 2px;' aria-hidden='true'></i> Not running");
+				$("#schedulerHealth").html("<i class='fas fa-times-circle fa-1x fa-fw' style='color: red; margin-right: 2px;' aria-hidden='true'></i> The scheduler is not running");
 			}
 		});
 
@@ -33,7 +33,7 @@
 				{ title: "action", "data": "action" }
 			],
 			"columnDefs": [	
-				{ "className": "dt-center", "targets": [0, 1, 2, 3, 4, 5, 6, 7] },
+				{ "className": "hxtool-center", "targets": [0, 1, 2, 3, 4, 5, 6, 7] },
 				{
 				"targets": [ 3, 6 ], 
 				render: function ( data, type, row, meta ) {
@@ -65,7 +65,7 @@
 				render: function ( data, type, row, meta ) {
 					myhtml = "";
 					if (row.immutable == false) {
-						myhtml = "<a class='tableActionButton' href='/scheduler?action=delete&id=" + data + "'>delete</a>";
+						myhtml = "<button class='fe-btn fe-btn--sm fe-btn--hxtool-main' href='/scheduler?action=delete&id=" + data + "'>delete</button>";
 					}
 					return myhtml;
 					}
@@ -81,12 +81,12 @@
 
 </script>
 
-<br>
+{{ htPanel.widgetHeader("Scheduler status", panelDisplay="inline-block") }}
+	<h3 class='hxtool_typography_h3' id='schedulerHealth'></h3>
+{{ htPanel.widgetFooter() }}
 
-<div style='float: left; margin-right: 10px;'>Scheduler status:</div>
-<div style='float: left;' id='schedulerHealth'></div>
-<div style='clear: both; margin-bottom: 15px;'></div>
-
-<table id='tableContainer' class='genericTable'></table>
+{{ htPanel.widgetHeader("Scheduler tasks") }}
+	<table id='tableContainer' class='hxtool_table' style='width: 100%;'></table>
+{{ htPanel.widgetFooter() }}
 
 {% endblock %}

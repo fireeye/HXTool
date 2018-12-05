@@ -1,0 +1,14 @@
+/* HXTool Top Navigation bar */
+
+.hxtool_topnav_dropdown {
+	background: rgba(0, 0, 0, 0.6);
+	position: absolute;
+	box-shadow: 0 0.5px 5px 0 rgba(0, 0, 0, 0.25);
+	display: none;
+	z-index: 50 !important;
+}
+
+.hxtool_topnav_dropdown_child {
+	width: 100%;
+	text-align: left;
+}

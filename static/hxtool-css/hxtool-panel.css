@@ -1,0 +1,40 @@
+.hxtool_panel_wrapper {
+	margin-bottom: 24px;
+	margin-top: 12px;
+	margin-left: 12px;
+}
+
+.hxtool-panel-toggle {
+	outline: 0;
+}
+
+.hxtool_panel_float {
+	position: fixed;
+	display: none;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 5;
+}
+
+.hxtool_panel_body_popup {
+	padding: 24px;
+}
+
+.hxtool_panel_dashboard {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+}
+
+.hxtool_panel_dashboard_child {
+	flex: 1;
+}
+
+.hxtool_panel_top_right {
+	position: absolute;
+	right: 0;
+	padding-left: 6px;
+	margin-top: 4px;
+}

@@ -1,3 +1,9 @@
+{% import 'widget-panel.html' as htPanel %}
+{% import 'widget-modal.html' as htModal %}
+{% import 'widget-radio.html' as htRadio %}
+{% import 'widget-dropdown.html' as htDropdown %}
+{% import 'widget-input.html' as htInput %}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,24 +18,19 @@
 	<script type="text/javascript" src="{{ url_for('static', filename='js/buttons.html5.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/buttons.print.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/jszip.min.js') }}"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/pdfmake.min.js') }}"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/vfs_fonts.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/datatables_parser.js') }}"></script>
-	<script defer src="{{ url_for('static', filename='fontawesome/on-server/js/fontawesome-all.min.js') }}"></script>
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" />
+	<script type="text/javascript" src="{{ url_for('static', filename='ChartJS/Chart.min.js') }}"></script>
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}" />
 	<script type="text/javascript" src="/static/progress.js"></script>
 	<script type="text/javascript" src="/static/jquery.multi-select.js"></script>
 	<script type="text/javascript" src="/static/datetimepicker/moment.min.js"></script>
 	<script type="text/javascript" src="/static/datetimepicker/daterangepicker.js"></script>
-	<script src="/static/vega/vega.min.js"></script>
-	<script src="/static/vega/vega-lite.min.js"></script>
-	<script src="/static/vega/vega-embed.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="static/ht.css">
+	<script type="text/javascript" src="/static/hxtool-js/hxtool-doc-ready.js"></script>
+	<script type="text/javascript" src="/static/hxtool-js/hxtool-generic.js"></script>
+	<link href="/static/fe-fabric/dist/assets/css/fabric-dark.css" rel="stylesheet" />
+	<link rel="stylesheet" type="text/css" href="static/hxtool-css/hxtool-main.css">
     <link rel="stylesheet" type="text/css" href="static/datetimepicker/daterangepicker.css">
-    <link rel="stylesheet" type="text/css" href="static/ht_layout.css">
 	<link rel="stylesheet" type="text/css" href="static/multi-select.css">
-	<link rel="stylesheet" href="static/fontawesome/on-server/css/fontawesome.min.css">
 	<link href="/static/favicon.ico" rel="icon" type="image/x-icon" />
 </head>
 <body>
@@ -147,159 +148,119 @@
 		});
 		
 		$(document).ready(function() {
-
-			/*
-			alive = setInterval(function () {
-				$.getJSON('/api/v1/getHealth', function(health) {
-					if (health.status == "OK") {
-						$("#ht_info").css("color", "#0f9b3b");
-					}
-					else {
-						$("#ht_info").css("color", "#ba190b");
-					}
-				});
-			}, 5000);
-			*/
-
-			$('[id^=navbutton]').click(function() {
-				url = this.id.split("_");
-				window.location.replace("/" + url[1]);
-			});
-
-			$('#ht_info').click(function(e) {
-				$('#ht_info_content').show(150);
-				e.stopPropagation();
-			});
-			
-			$(document).click(function() {
-				$("#dropdown-content-indicators").hide();
-				$("#dropdown-content-admin").hide();
-				$("#dropdown-content-acquisition").hide();
-				$("#dropdown-content-es").hide();
-				$('#ht_info_content').hide();
-				$("#dropdown-content-dashboard").hide();
-				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
-					$(this).css({"border": "1px solid transparent"});
-				});
-			});
-			
-			$('[id^=dropdown-content]').click(function(e) {
-				 e.stopPropagation();
-			});
-
-			$("#navcategory_acquisition").click(function(e) {
-
-				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
-					$(this).css({"border": "1px solid transparent"});
-				});
-
-				$("#dropdown-content-admin").hide();
-				$("#dropdown-content-indicators").hide();
-				$("#dropdown-content-es").hide();
-				$("#dropdown-content-dashboard").hide();
-				$('#ht_info_content').hide();
-
-				$(this).css({"border-top": "1px solid #151515"});
-				$(this).css({"border-left": "1px solid #151515"});
-				$(this).css({"border-right": "1px solid #151515"});
-				$(this).css({"border-bottom": "1px solid #eee"});
-
-				$("#dropdown-content-acquisition").show(0);
-
-				e.stopPropagation();
-			});
-			
-			$("#navcategory_indicator").click(function(e) {
-
-				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
-					$(this).css({"border": "1px solid transparent"});
-				});
-
-				$("#dropdown-content-admin").hide();
-				$("#dropdown-content-acquisition").hide();
-				$("#dropdown-content-es").hide();
-				$("#dropdown-content-dashboard").hide();
-				$('#ht_info_content').hide();
-
-				$(this).css({"border-top": "1px solid #151515"});
-				$(this).css({"border-left": "1px solid #151515"});
-				$(this).css({"border-right": "1px solid #151515"});
-				$(this).css({"border-bottom": "1px solid #eee"});
-
-				$("#dropdown-content-indicators").show(0);
-				e.stopPropagation();
-			});
-
-			$("#navcategory_admin").click(function(e) {
-
-				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
-					$(this).css({"border": "1px solid transparent"});
-				});
-
-				$("#dropdown-content-indicators").hide();
-				$("#dropdown-content-acquisition").hide();
-				$("#dropdown-content-es").hide();
-				$("#dropdown-content-dashboard").hide();
-				$('#ht_info_content').hide();
-
-				$(this).css({"border-top": "1px solid #151515"});
-				$(this).css({"border-left": "1px solid #151515"});
-				$(this).css({"border-right": "1px solid #151515"});
-				$(this).css({"border-bottom": "1px solid #eee"});
-
-				$("#dropdown-content-admin").show(0);
-				e.stopPropagation();
-			});
-
-			$("#navcategory_es").click(function(e) {
-
-				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
-					$(this).css({"border": "1px solid transparent"});
-				});
-
-				$("#dropdown-content-admin").hide();
-				$("#dropdown-content-indicators").hide();
-				$("#dropdown-content-acquisition").hide();
-				$("#dropdown-content-dashboard").hide();
-				$('#ht_info_content').hide();
-
-				$(this).css({"border-top": "1px solid #151515"});
-				$(this).css({"border-left": "1px solid #151515"});
-				$(this).css({"border-right": "1px solid #151515"});
-				$(this).css({"border-bottom": "1px solid #eee"});
-
-				$("#dropdown-content-es").show(0);
-				e.stopPropagation();
-			});
-
-			$("#navcategory_dashboard").click(function(e) {
-
-				$('#htLayoutTopBarMenuContainer').children('div').each(function () {
-					$(this).css({"border": "1px solid transparent"});
-				});
-
-				$("#dropdown-content-admin").hide();
-				$("#dropdown-content-indicators").hide();
-				$("#dropdown-content-acquisition").hide();
-				$("#dropdown-content-es").hide();
-				$('#ht_info_content').hide();
-
-				$(this).css({"border-top": "1px solid #151515"});
-				$(this).css({"border-left": "1px solid #151515"});
-				$(this).css({"border-right": "1px solid #151515"});
-				$(this).css({"border-bottom": "1px solid #eee"});
-
-				$("#dropdown-content-dashboard").show(0);
-				e.stopPropagation();
-			});
-			
+			hxtool_doc_ready();		
 		});
 	</script>
+	</body>
 
+	<!-- LEGACY REMOVE -->
 	<div class='ht_statusbar_div' id='ht_statusbar_div'></div>
 	<div class='ht_popup_div' id='ht_popup_div'></div>
-	<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
+	<div class='hxtool_shader' id='hxtool_shader' style='display: none;'>&nbsp;</div>
 
+
+	<!-- TOP NAV BAR -->
+	<header class="fe-top-nav fe-top-nav__topnav">
+		<div class="fe-top-nav__title fe-top-nav__bookend--left fe-top-nav__bookend">
+			<a class="fe-top-nav__home" routerlink="/">
+				<div class="fe-top-nav__title-brand">FireEye<sup>®</sup></div>
+				<div class="fe-top-nav__title-name">HXTool</div>
+			</a>
+		</div>
+		<nav class="fe-top-nav__bar">
+			<ul class="fe-top-nav__bar-nav">
+				<li class="fe-top-nav__bar-nav-items">
+					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 1">
+						<i class='fas fa-tachometer-alt' aria-hidden='true'></i>
+						<span>dashboard</span>
+						<i class="fas fa-chevron-down"></i>
+					</button>
+					<div class='hxtool_topnav_dropdown'>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/'>Main Dashboard</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/dashboard-av'>Antivirus Dashboard</button><br>
+					</div>
+				</li>
+				<li class="fe-top-nav__bar-nav-items">
+					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" data-link='/alert' aria-label="item 2">
+						<i class='fas fa-exclamation-triangle' aria-hidden='true'></i>
+						<span>alerts</span>
+					</button>
+				</li>
+				<li class="fe-top-nav__bar-nav-items">
+					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 3">
+						<i class='fas fa-search' aria-hidden='true'></i>
+						<span>enterprise search</span>
+						<i class="fas fa-chevron-down"></i>
+					</button>
+					<div class='hxtool_topnav_dropdown'>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/search'>OpenIOC search</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/openioc'>Manage OpenIOC indicators</button><br>
+					</div>
+				</li>
+				<li class="fe-top-nav__bar-nav-items">
+					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 4">
+						<i class='fas fa-download' aria-hidden='true'></i>
+						<span>acquisition</span>
+						<i class="fas fa-chevron-down"></i>
+					</button>
+					<div class='hxtool_topnav_dropdown'>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scriptbuilder'>script builder</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scripts'>manage scripts</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/acqs'>acquisitions</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/bulkacq'>bulk acquisitions</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/multifile'>multi-file acquisitions</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/stacking'>data stacking</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/taskprofile'>task profiles</button><br>
+					</div>
+				</li>
+				<li class="fe-top-nav__bar-nav-items">
+					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 5">
+						<i class='fas fa-headphones' aria-hidden='true'></i>
+						<span>rules</span>
+						<i class="fas fa-chevron-down"></i>
+					</button>
+					<div class='hxtool_topnav_dropdown'>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/rtioc'>build rule</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/indicators'>manage rules</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/categories'>manage rule categories</button><br>
+					</div>
+				</li>
+				<li class="fe-top-nav__bar-nav-items">
+					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" data-link='/scheduler' aria-label="item 6">
+						<i class='fas fa-calendar-alt' aria-hidden='true'></i>
+						<span>scheduler</span>
+					</button>
+				</li>
+				<li class="fe-top-nav__bar-nav-items">
+					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 7">
+						<i class='fas fa-toolbox' aria-hidden='true'></i>
+						<span>admin</span>
+						<i class="fas fa-chevron-down"></i>
+					</button>
+					<div class='hxtool_topnav_dropdown'>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/channels'>custom configuration channels</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/settings'>hxtool settings</button><br>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div class="fe-top-nav__action-container fe-top-nav__bookend--right fe-top-nav__bookend">
+			<a aria-label="search in topnav" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
+				<i class="fe-icon--center fas fa-search fa-2x"></i>
+			</a>
+			<a aria-label="info in topnav" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
+				<i class="fe-icon--center fas fa-info-circle fa-2x"></i>
+			</a>
+			<a id="hxtoolLogout" aria-label="logout" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
+				<i class="fe-icon--center fas fa-power-off fa-2x"></i>
+			</a>
+		</div>
+	</header>
+
+
+
+
+	<!--
 	<div class='htLayoutTopBarMenuContainer' id='htLayoutTopBarMenuContainer'>
 
 		<div id='navcategory_dashboard' style='float: left; position: relative;' class='htLayoutMenuItem'>Dashboard <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
@@ -315,7 +276,6 @@
 			</div>				
 		</div>
 
-		<!-- <div id='navbutton_' style='float: left;' class='htLayoutMenuItem'>Dashboard</div> -->
 		<div id='navbutton_alert' style='float: left;' class='htLayoutMenuItem'>Alerts</div>
 
 		<div id='navcategory_es' style='float: left; position: relative;' class='htLayoutMenuItem'>Enterprise Search <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
@@ -408,7 +368,6 @@
 			<div class='htLayoutTopBarLogoText'>HXTool</div>
 			<i class="htLayoutTopBarLogoIcon fas fa-search fa-2x fa-fw" aria-hidden="true"></i>
 		</div>
-		<!-- <div class='htLayoutTriangle-topleft'>▼</div> -->
 		<div class='htLayoutTriangle-topleft' style='float: left;'></div>
 		<div class='htLayoutTopBarBox' style='float: right; border-left: none; right: 0;'>
 			<div style='float: right; margin-top: 12px;'>
@@ -419,13 +378,36 @@
 					<b>HXTool version</b> 4.0.1<br>
 					<b>Controller version:</b> {{ session['hx_version'] }}
 				</div>
-				<!-- <a href='#' id='ht_search'><i class="fas fa-search fa-2x htLayoutPadIcon" aria-hidden="true"></i></a> -->
 				<a class='htLayoutLinkIcon' href='/settings'><i class="fas fa-cog fa-2x htLayoutPadIcon" aria-hidden="true"></i></a>
 				<a class='htLayoutLinkIcon' href='/logout'><i class="fas fa-power-off fa-2x htLayoutPadIcon" aria-hidden="true"></i></a>
 			</div>
 		</div>
 		<div class='htLayoutTriangle-topright' style='float: right;'></div>
 	</div>
-	<div style='margin-top: 80px; width: 100%; max-width: inherit;'>{% block content %}{% endblock %}</div>
-</body>
+	-->
+
+	<div id="hxtoolMessage" style='z-index: 100;' class="fe-modal" role="dialog" aria-modal="true">
+		<div class="fe-modal__dialog fe-modal__dialog--medium">
+			<div class="fe-modal__content">
+				<div>
+					<div class="fe-modal__header">
+						<h4 class="fe-modal__title">Message</h4>
+						<button class="fe-modal-close" name="button" type="button">
+							<i class="fe-icon--center fal fa-times"></i>
+						</button>
+					</div>
+				</div>
+				<div class="fe-modal__body">
+					<div id="hxtoolMessageBody">
+					</div>
+				</div>
+				<div class="fe-modal__footer clearfix">
+					<button class="fe-btn fe-btn--md fe-btn--secondary" id="hxtoolMessageCancel" aria-label="Cancel"><span> Dismiss </span></button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div style='margin: 12px 12px; height: 100vh;'>{% block content %}{% endblock %}</div>
 </html>

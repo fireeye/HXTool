@@ -1,0 +1,32 @@
+@import "../utils/variables/components/panel";
+
+.fe-panel {
+  &__body {
+    background: $fe-panel--background;
+    padding: $fe-panel--padding;
+    box-shadow: 2px 2px 4px $fe-color__box-shadow;
+    &--border {
+      border: 3px solid $fe-panel--collapsible--border-color;
+    }
+  }
+
+  &--collapsible {
+    .fe-label__icon {
+      color: $fe-color__action-primary--alpha;
+    }
+
+    .fe-panel__body {
+      display: none;
+    }
+
+    &.open {
+      .fe-label__icon {
+        color: $fe-color__active--alpha;
+      }
+
+      .fe-panel__body {
+        display: block;
+      }
+    }
+  }
+}

@@ -1,9 +1,9 @@
 .daterangepicker {
   position: absolute;
   color: inherit;
-  background-color: #fff;
+  background-color: rgb(76, 76, 76);
   border-radius: 4px;
-  border: 1px solid #ddd;
+  border: 1px solid rgb(129, 129, 129);
   width: 278px;
   max-width: none;
   padding: 0;
@@ -153,7 +153,7 @@
   height: 24px;
   line-height: 24px;
   font-size: 12px;
-  border-radius: 4px;
+  border-radius: 0;
   border: 1px solid transparent;
   white-space: nowrap;
   cursor: pointer;
@@ -162,7 +162,7 @@
 .daterangepicker .calendar-table {
   border: 1px solid #fff;
   border-radius: 4px;
-  background-color: #fff;
+  background-color: rgb(76, 76, 76);
 }
 
 .daterangepicker .calendar-table table {
@@ -173,7 +173,7 @@
 }
 
 .daterangepicker td.available:hover, .daterangepicker th.available:hover {
-  background-color: #eee;
+  background-color: rgb(96, 96, 96);
   border-color: transparent;
   color: inherit;
 }
@@ -184,9 +184,8 @@
 }
 
 .daterangepicker td.off, .daterangepicker td.off.in-range, .daterangepicker td.off.start-date, .daterangepicker td.off.end-date {
-  background-color: #fff;
+  background-color: rgb(96, 96, 96);
   border-color: transparent;
-  color: #999;
 }
 
 .daterangepicker td.in-range {
@@ -205,7 +204,7 @@
 }
 
 .daterangepicker td.start-date.end-date {
-  border-radius: 4px;
+  border-radius: 0px;
 }
 
 .daterangepicker td.active, .daterangepicker td.active:hover {
@@ -244,8 +243,8 @@
 .daterangepicker select.hourselect, .daterangepicker select.minuteselect, .daterangepicker select.secondselect, .daterangepicker select.ampmselect {
   width: 50px;
   margin: 0 auto;
-  background: #eee;
-  border: 1px solid #eee;
+  background: rgb(76, 76, 76);
+  border: 1px solid rgb(129, 129, 129);
   padding: 2px;
   outline: 0;
   font-size: 12px;

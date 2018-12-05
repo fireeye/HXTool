@@ -172,7 +172,15 @@ class HXAPI:
 		except (requests.HTTPError, requests.ConnectionError) as e:
 			if hasattr(e, 'response') and e.response is not None:
 				# TODO: Maybe return based on Content-Type
-				return(False, e.response.status_code, e.response.text, e.response.headers)
+
+				# Check if error message is content type JSON
+				content_type = response.headers.get('Content-Type')
+				if content_type and 'json' in content_type:
+					e_response_data = json.loads(e.response.text)
+				else:
+					e_response_data = e.response.text
+
+				return(False, e.response.status_code, e_response_data, e.response.headers)
 			return(False, None, e, None)
 		
 		

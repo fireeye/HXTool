@@ -13,17 +13,30 @@
     	return _p8() + _p8(true) + _p8(true) + _p8();
 	}
 
+	function addFeDropdownItem(myElement, myId, myText, myIcon) {
+				$("#" + myElement).next("div").find("ul").append("<li class='fe-dropdown__item'><a class='fe-dropdown__item-link'><span class='fe-dropdown__item-link-left-section'><i style='margin-top: 2px;' class='fas " + myIcon + " fa-lg'></i></span><span class='fe-dropdown__item-link-text' data-id='" + myId + "'>" + myText + "</span></a></li>");
+//				$("#" + myElement).next("div").find("ul").find("li").append('<a class="fe-dropdown__item-link"></a>');
+//				$("#" + myElement).next("div").find("ul").find("li").find("a").append('<span class="fe-dropdown__item-link-left-section"><i style="margin-top: 2px;"" class="fas ' + myIcon + ' fa-lg"></i></span>');
+//				$("#" + myElement).next("div").find("ul").find("li").find("a").append('<span class="fe-dropdown__item-link-text" data-id="' + myId + '">' + myText + '</span>');
+	}
+
+	function removeFeDropdownItems(myElement) {
+		$("#" + myElement).next("div").find("ul").html("");
+	}
+
 	// Renders the audit dropdown menu
 	function renderAuditSelector(auditspace, targetOS) {
 
-		// First remove all options in case we are chaning platform
-		$('#add_audit').children().remove();
-		$('#add_audit').append($('<option>', {value: "none", text: "-- Select an audit module to add --"}));
+		// First remove all options in case we are changing platform
+		//$('#add_audit').children().remove();
+		removeFeDropdownItems("add_audit");
+		//$('#add_audit').append($('<option>', {value: "none", text: "-- Select an audit module to add --"}));
 
 		// Then add all supported audit modules
 		$.each( auditspace, function( ikey, ivalue ) {
 			if(jQuery.inArray(targetOS, auditspace[ikey]['platforms']) != -1) {
-				$('#add_audit').append($('<option>', {value:ikey, text:ikey}));
+				//$('#add_audit').append($('<option>', {value:ikey, text:ikey}));
+				addFeDropdownItem("add_audit", ikey, ikey, "fa-list");
 			}
 		});
 	}
@@ -50,7 +63,7 @@
 		$(myObj).append($('<div>', {class: 'auditParameterTitle', text: "Description"}));
 		$(myObj).append($('<div>', {class: 'auditDescription', text: thisAuditspace['description']}));
 
-		$(myObj).append('<br><br>');
+		$(myObj).append('<br>');
 
 		// Check if this audit has parameters
 		if (thisAuditspace['parameters'] == false) {
@@ -73,17 +86,17 @@
 				}
 
 				if (thisAuditspace['parameters'][parameter]['type'] == "dropdown") {
-					if(jQuery.inArray($("#platform :selected").val(), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
+					if(jQuery.inArray($("#platform").data("id"), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
 						renderAuditDropdown(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname, req_state, repeat);
 					}
 				}
 				else if (thisAuditspace['parameters'][parameter]['type'] == "text") {
-					if(jQuery.inArray($("#platform :selected").val(), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
+					if(jQuery.inArray($("#platform").data("id"), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
 						renderAuditText(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname, req_state, repeat);
 					}
 				}
 				else if (thisAuditspace['parameters'][parameter]['type'] == "textarea") {
-					if(jQuery.inArray($("#platform :selected").val(), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
+					if(jQuery.inArray($("#platform").data("id"), thisAuditspace['parameters'][parameter]['platforms']) != -1) {
 						renderAuditTextArea(thisAuditspace['parameters'][parameter], myObj, my_uuid, auditname, req_state, repeat);
 					}
 				}
@@ -101,12 +114,12 @@
 			else {
 				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
 			}
-			$(newdiv).append($('<div>', {class: 'auditParameterUsage', text: objData['usage']}));
 			if (repeat) {myrepeat = "true";} else {myrepeat = "false";}
-			$(newdiv).append($('<input>', {class: 'auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name'] + "_" + myrepeat}));
+			$(newdiv).append($('<input>', {class: 'fe-input', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name'] + "_" + myrepeat}));
 			if (repeat) {
 				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
 			}
+			$(newdiv).append($('<div>', {class: 'fe-input-hint-text', text: objData['usage']}));
 		}
 	}
 
@@ -120,11 +133,11 @@
 			else {
 				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
 			}
-			$(newdiv).append($('<div>', {class: 'auditParameterUsage', text: objData['usage']}));
 			$(newdiv).append($('<textarea>', {class: 'auditTextAreaInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
 			if (repeat) {
 				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
 			}
+			$(newdiv).append($('<div>', {class: 'fe-input-hint-text', text: objData['usage']}));
 		}
 	}
 
@@ -138,7 +151,6 @@
 			else {
 				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
 			}
-			$(newdiv).append($('<div>', {class: 'auditParameterUsage', text: objData['usage']}));
 			$(newdiv).append($('<select>', {class: 'auditSelectInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
 			for (option in objData['values']) {
 				thiselement = document.getElementById(auditname + "_" + my_uuid + "_" + objData['name']);
@@ -147,6 +159,7 @@
 			if (repeat) {
 				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
 			}
+			$(newdiv).append($('<div>', {class: 'fe-input-hint-text', text: objData['usage']}));
 		}
 	}
 
@@ -213,13 +226,13 @@
 		// Import audit data
 		{% if auditspace %}
 			var auditspace = JSON.parse({{auditspace|tojson|safe}});
-			targetOS = $('#platform :selected').val();
+			targetOS = $('#platform').data("id");
 			renderAuditSelector(auditspace, targetOS);
 		{% endif %}
 
 		// The user changed platform
-		$('#platform').change(function() {
-			targetOS = $('#platform :selected').val();
+		$('.hxtool_platform_link').click(function() {
+			targetOS = $(this).find(".fe-dropdown__item-link-text").data("id");
 			renderAuditSelector(auditspace, targetOS);
 
 			$('#tabMenu li').each(function(i, li) {
@@ -232,16 +245,17 @@
 		});
 
 		// When the user requests another audit to be added
-		$('#add_audit').change(function() {
-			var myauditname = $('#add_audit :selected').val();
+		$(".hxtool_dynamic-dropdown").on( "click", "a", function(e) {
+			var myauditname = $(this).find("span").next().data("id");
 
 			if (myauditname != "none") {
 				addAudit(myauditname, auditspace);
 			}
 
-			// Select the first entry again
-			$("#add_audit option:selected").prop("selected", false);
-			$("#add_audit option:first").prop("selected", "selected");
+			$(this).closest("div").fadeTo( "fast", 0, function() {
+				$(".fe-dropdown__list-container").hide();
+			});
+
 
 		});
 
@@ -320,30 +334,28 @@
 
 </script>
 
-<form method='POST' action='/openioc' style='margin-bottom: 20px;'>
-		<div class='tableTitle'>
-			<i class="fas fa-code-branch fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-			Script builder
-		</div>
+<!-- <form method='POST' action='/openioc' style='margin-bottom: 20px;'> -->
+	{{ htPanel.widgetHeader("Script Builder", panelDisplay="inline-block") }}
 	<div class='inputArea' style=''>
 
-		<b>Script name</b><br>
-		<input type='text' id='scriptName' style='width: 400px;'>
+		{{ htInput.widget("script name", elementTitle="Script name", elementHint="Enter a name", elementId="scriptName", elementWidth="400") }}
 
-		<br><br>
+		<h3 class='hxtool_typography_h3'>Platform</h3>
+		{{ htDropdown.widgetHeader("Microsoft Windows", "platform", "win") }}
+		{{ htDropdown.widgetItem("Microsoft Windows", "win", elementIcon="fab fa-windows") }}
+		{{ htDropdown.widgetItem("Apple MacOS", "osx", elementIcon="fab fa-apple") }}
+		{{ htDropdown.widgetItem("Linux", "linux", elementIcon="fab fa-linux") }}
+		{{ htDropdown.widgetFooter(elementLabel="Select the target platform") }}
 
-		<b>Platform</b><br>
-		<select name='platform' id='platform'>
-			<option value='win'>Microsoft Windows
-			<option value='osx'>Apple MacOS
-			<option value='linux'>Linux
-		</select>
+		<h3 class='hxtool_typography_h3'>Audit modules</h3>
+		{{ htDropdown.widgetHeader("Select audit module", "add_audit", "false", elementAdditionalClass="hxtool_dynamic-dropdown") }}
+		{{ htDropdown.widgetFooter(elementLabel="Select an audit module to add it to the script") }}
 
-		<br><br>
-
+		<!--
 		<b>Audit modules</b><br>
 		<select name='add_audit' id=add_audit>
 		</select>
+	-->
 
 		<div id='scriptArea' style='margin-top: 15px; margin-bottom: 15px;'>
 			<ul id='tabMenu' style='float: left; width: 140px; list-style-type: none; margin: 0; padding: 0; text-align: right;'>
@@ -354,7 +366,9 @@
 		</div>
 		
         <input class='tableActionButton' id='generateScript' type='button' value='create script'>
+        <button class="fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Create script </span></button>
 	</div>
-</form>
+	{{ htPanel.widgetFooter() }}
+<!-- </form> -->
 
 {% endblock %}

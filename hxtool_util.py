@@ -7,6 +7,7 @@ import uuid
 import threading
 import datetime
 import re
+import colorsys
 
 try:
 	from flask import current_app, request, session, redirect, url_for
@@ -25,6 +26,14 @@ except ImportError:
 
 import hxtool_global	
 from hx_lib import *
+
+def get_N_HexCol(N=5):
+	HSV_tuples = [(x * 1.0 / N, 0.7, 0.7) for x in range(N)]
+	hex_out = []
+	for rgb in HSV_tuples:
+		rgb = map(lambda x: int(x * 255), colorsys.hsv_to_rgb(*rgb))
+		hex_out.append('#%02x%02x%02x' % tuple(rgb))
+	return hex_out
 
 def valid_session_required(f):
 	@wraps(f)
@@ -183,9 +192,8 @@ class TemporaryFileLock(object):
 		
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.release()	
-	
-			
-	
+
+		
 from hxtool_scheduler import *
 from hxtool_task_modules import *
 	
@@ -282,5 +290,6 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, sc
 	hxtool_global.hxtool_scheduler.add_list(task_list)
 	hxtool_global.hxtool_scheduler.add(bulk_acquisition_task)		
 	
-	return bulk_download_eid		
+	return bulk_download_eid
 	
+

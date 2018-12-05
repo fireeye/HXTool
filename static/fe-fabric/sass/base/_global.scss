@@ -1,0 +1,41 @@
+body {
+  color: $fe-color__text-primary--alpha;
+}
+
+.fe-page-background {
+  background: $fe-color__background-gradient--gamma;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
+//Docs only styles
+.panel-section {
+  background: $fe-color__background-gradient--gamma;
+  padding:15px;
+  border: 1px solid $fe-color__action-primary--beta;
+  border-left: 5px solid $fe-color__action-primary--beta;
+  border-radius: 5px;
+}
+
+.content {
+  padding: 15px;
+}
+
+.table-docs {
+  width: 100%;
+  margin-bottom: 50px;
+  th, td {
+    padding: 5px;
+    text-align: left;
+  }
+  caption, tr {
+    border-bottom: 1px solid #d7d7d7;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+.fe-btn-type {
+  background: transparent;
+}
+//End of docs only styles

@@ -1,0 +1,327 @@
+$fe-color__transparent: unquote('#0000');
+//Actions Primary  {main, bright, dark}
+$fe-color__action-primary--alpha: #0fb8dc;
+$fe-color__action-primary--beta: #66ebff;
+$fe-color__action-primary--gamma: #006b8c;
+
+//Actions Secondary  {main, bright, dark}
+$fe-color__action-secondary--alpha: #bebebe;
+$fe-color__action-secondary--beta: #f1f1f1;
+$fe-color__action-secondary--gamma: rgba(190, 190, 190, 0.5); // #bebebe at 50%
+
+//Backgrounds 1 {main, bright, dark}
+$fe-color__background1--alpha: #0d1a2b;
+$fe-color__background1--beta: #222222;
+$fe-color__background1--gamma: rgba(0, 0, 0, 0.4);
+
+//Backgrounds 2 {main, bright, dark}
+$fe-color__background2--alpha: rgba(255, 255, 255, 0.2); // #ffffff at 20%
+$fe-color__background2--beta: #f9f9f9;
+$fe-color__background2--gamma: rgba(255, 255, 255, 0.05); // #ffffff at 5%
+
+// Active
+$fe-color__active--alpha: #fb715e;
+$fe-color__active--beta: #f5f5f5;
+$fe-color__active--gamma: #000000;
+
+//Background gradient
+$fe-color__background-gradient--alpha: linear-gradient(180deg, rgba(17, 17, 17, 0) 0%, #111111 100%);
+$fe-color__background-gradient--beta: linear-gradient(180deg, #4A71A0 0%, #262636 100%);
+$fe-color__background-gradient--gamma: radial-gradient(circle at 50% top, #355881 0%, #222222 100%);
+
+//Box box-shadow
+$fe-color__box-shadow: rgba(0, 0, 0, 0.25);
+
+//Borders/Lines  {main, bright, dark}
+$fe-color__border--alpha: #777777;
+$fe-color__border--beta: #e1e1e1;
+$fe-color__border--gamma: #151515;
+
+//Themes {main, bright, dark}
+$fe-color__theme-success--alpha: #59dc90;
+$fe-color__theme-success--beta: #8fffc1;
+$fe-color__theme-success--gamma: #11a962;
+
+$fe-color__theme-information--alpha: #99ddff;
+$fe-color__theme-information--beta: #cdffff;
+$fe-color__theme-information--gamma: #66abcc;
+
+$fe-color__theme-caution--alpha: #ffe352;
+$fe-color__theme-caution--beta: #ffeb85;
+$fe-color__theme-caution--gamma: #e0b400;
+
+$fe-color__theme-warn--alpha: #f0950e;
+$fe-color__theme-warn--beta: #f09f54;
+$fe-color__theme-warn--gamma: #c97300;
+
+$fe-color__theme-danger--alpha: #ea475b;
+$fe-color__theme-danger--beta: #ff7b88;
+$fe-color__theme-danger--gamma: #b20032;
+
+$fe-color__theme-intermediate--alpha: #00fff0;
+$fe-color__theme-intermediate--beta: #70ffff;
+$fe-color__theme-intermediate--gamma: #00cbbe;
+
+$fe-color__theme-benign--alpha: #d7d7d7;
+$fe-color__theme-benign--beta: #f2f2f2;
+$fe-color__theme-benign--gamma: #aaaaaa;
+
+//Texts {main 80%, bright 100%, dark 40%}
+$fe-color__text-primary--alpha: rgba(255, 255, 255, 0.8);
+$fe-color__text-primary--beta: #ffffff;
+$fe-color__text-primary--gamma: rgba(255, 255, 255, 0.4);
+
+$fe-color__text-secondary--alpha: rgba(0, 0, 0, 0.7);
+$fe-color__text-secondary--beta: rgba(0, 0, 0, 0.9);
+$fe-color__text-secondary--gamma: rgba(0, 0, 0, 0.3);
+
+//button
+$fe-btn--primary--main: $fe-color__action-primary--alpha;
+$fe-btn--primary-border--main: $fe-color__action-primary--alpha;
+$fe-btn--primary-text--main: $fe-color__text-primary--beta;
+$fe-btn--primary--hover: $fe-color__action-primary--beta;
+$fe-btn--primary-border--hover: $fe-color__action-primary--beta;
+$fe-btn--primary-text--hover: $fe-color__text-primary--beta;
+
+$fe-btn--primary-link--main: $fe-color__transparent;
+$fe-btn--primary-link-border--main: $fe-color__transparent;
+$fe-btn--primary-link-text--main: $fe-color__action-primary--alpha;
+$fe-btn--primary-link--hover: $fe-color__background1--gamma;
+$fe-btn--primary-link-border--hover: $fe-color__background1--gamma;
+$fe-btn--primary-link-text--hover: $fe-color__action-primary--beta;
+
+$fe-btn--secondary--main: $fe-color__transparent;
+$fe-btn--secondary-border--main: $fe-color__action-primary--alpha;
+$fe-btn--secondary-text--main: $fe-color__text-primary--beta;
+$fe-btn--secondary--hover: $fe-color__transparent;
+$fe-btn--secondary-border--hover: $fe-color__action-primary--beta;
+$fe-btn--secondary-text--hover: $fe-color__text-primary--beta;
+
+$fe-btn--secondary-link--main: $fe-color__transparent;
+$fe-btn--secondary-link-border--main: $fe-color__transparent;
+$fe-btn--secondary-link-text--main: $fe-color__text-primary--alpha;
+$fe-btn--secondary-link--hover: $fe-color__background1--gamma;
+$fe-btn--secondary-link-border--hover: $fe-color__background1--gamma;
+$fe-btn--secondary-link-text--hover: $fe-color__text-primary--beta;
+
+$fe-btn--danger--main: $fe-color__theme-danger--alpha;
+$fe-btn--danger-border--main: $fe-color__theme-danger--alpha;
+$fe-btn--danger-text--main: $fe-color__text-primary--beta;
+$fe-btn--danger--hover: $fe-color__theme-danger--beta;
+$fe-btn--danger-border--hover: $fe-color__theme-danger--beta;
+$fe-btn--danger-text--hover: $fe-color__text-primary--beta;
+
+$fe-btn--danger-link--main: $fe-color__transparent;
+$fe-btn--danger-link-border--main: $fe-color__transparent;
+$fe-btn--danger-link-text--main: $fe-color__theme-danger--alpha;
+$fe-btn--danger-link--hover: $fe-color__background1--gamma;
+$fe-btn--danger-link-border--hover: $fe-color__background1--gamma;
+$fe-btn--danger-link-text--hover: $fe-color__theme-danger--beta;
+
+$fe-btn--active--main: $fe-color__background2--alpha;
+$fe-btn--active-border--main: $fe-color__transparent;
+$fe-btn--active-text--main: $fe-color__text-primary--beta;
+
+$fe-btn--link-active--main: $fe-color__transparent;
+$fe-btn--link-active-border--main: $fe-color__transparent;
+$fe-btn--link-active-text--main: $fe-color__active--alpha;
+
+$fe-btn--disabled--main: $fe-color__background2--gamma;
+$fe-btn--disabled-border--main: $fe-color__action-secondary--gamma;
+$fe-btn--disabled-text--main: $fe-color__action-secondary--gamma;
+
+$fe-btn--link-disabled--main: $fe-color__transparent;
+$fe-btn--link-disabled-border--main: $fe-color__transparent;
+$fe-btn--link-disabled-text--main: $fe-color__action-secondary--gamma;
+
+//badge
+$fe-badge--default: $fe-color__action-secondary--alpha;
+$fe-badge--default-text: $fe-color__text-secondary--alpha;
+$fe-badge--alert: $fe-color__theme-danger--alpha;
+$fe-badge--alert-text: $fe-color__text-primary--beta;
+$fe-badge--count-only: $fe-color__transparent;
+$fe-badge--count-only-text: $fe-color__text-primary--alpha;
+
+//pill-box
+$fe-pill-box__action-close--background: $fe-color__background1--gamma;
+$fe-pill-box__action-close--border: $fe-color__action-primary--alpha;
+$fe-pill-box__action-close--text: $fe-color__text-primary--alpha;
+$fe-pill-box__action-close--icon: $fe-color__action-secondary--alpha;
+
+$fe-pill-box__action-close--background-hover: $fe-color__background1--gamma;
+$fe-pill-box__action-close--border-hover: $fe-color__action-primary--beta;
+$fe-pill-box__action-close--text-hover: $fe-color__text-primary--beta;
+$fe-pill-box__action-close--icon-hover: $fe-color__theme-danger--alpha;
+
+$fe-pill-box__action-close--background-active: $fe-color__background1--gamma;
+$fe-pill-box__action-close--border-active: $fe-color__active--alpha;
+$fe-pill-box__action-close--text-active: $fe-color__text-primary--beta;
+$fe-pill-box__action-close--icon-active: $fe-color__active--alpha;
+
+$fe-pill-box__action-add--background: $fe-color__background1--gamma;
+$fe-pill-box__action-add--border: $fe-color__action-secondary--alpha;
+$fe-pill-box__action-add--text: $fe-color__text-primary--alpha;
+$fe-pill-box__action-add--icon: $fe-color__action-primary--alpha;
+
+$fe-pill-box__action-add--background-hover: $fe-color__background1--gamma;
+$fe-pill-box__action-add--border-hover: $fe-color__action-secondary--alpha;
+$fe-pill-box__action-add--text-hover: $fe-color__text-primary--beta;
+$fe-pill-box__action-add--icon-hover: $fe-color__action-primary--beta;
+
+$fe-pill-box--disabled: $fe-color__action-secondary--gamma;
+$fe-pill-box--text--disabled: $fe-color__action-secondary--alpha;
+$fe-pill-box--icon--disabled: $fe-color__action-secondary--alpha;
+
+//List Items
+$fe-list__item-border: $fe-color__border--gamma;
+
+$fe-list__item-border-left: $fe-color__transparent;
+$fe-list__item-background: $fe-color__background1--gamma;
+$fe-list__item-text: $fe-color__text-primary--alpha;
+$fe-list__item-icon-color: $fe-color__action-secondary--alpha;
+
+$fe-list__item-border-left--hover: $fe-color__active--alpha;
+$fe-list__item-background--hover: $fe-color__background1--gamma;
+$fe-list__item-text--hover: $fe-color__text-primary--beta;
+$fe-list__item-icon-color--hover: $fe-color__action-secondary--beta;
+
+$fe-list__item-border-left--active: $fe-color__active--alpha;
+$fe-list__item-background--active: $fe-color__active--gamma;
+$fe-list__item-text--active: $fe-color__active--alpha;
+
+$fe-list__item-border-left--disabled: $fe-color__transparent;
+$fe-list__item-background--disabled: $fe-color__background1--gamma;
+$fe-list__item-text--disabled: $fe-color__text-primary--gamma;
+$fe-list__item-icon-color--right-disabled: $fe-color__action-secondary--gamma;
+
+$fe-sub-list__item-background: $fe-color__background1--beta;
+$fe-sub-list__item-background--active: $fe-color__active--gamma;
+$fe-sub-list__item-background--disabled: $fe-color__background1--alpha;
+$fe-sub-list__item-border-left: $fe-color__active--alpha;
+
+//Form Group
+$fe-form__fieldset-text--main: $fe-color__text-primary--beta;
+$fe-form__fieldset-text--disabled: $fe-color__text-primary--gamma;
+
+//Radio Button
+$fe-radio-button__border--main: $fe-color__border--beta;
+$fe-radio-button__background--main: $fe-color__background1--gamma;
+
+$fe-radio-button__border--hover: $fe-color__border--beta;
+$fe-radio-button__background--hover: $fe-color__transparent;
+$fe-radio-button__label--hover: $fe-color__text-primary--beta;
+
+$fe-radio-button__fill: $fe-color__action-primary--alpha;
+
+$fe-radio-button__border--selected: $fe-color__active--alpha;
+$fe-radio-button__background--selected: $fe-color__background1--gamma;
+
+$fe-radio-button__background--disabled: $fe-color__background1--beta;
+$fe-radio-button__border--disabled: $fe-color__action-secondary--gamma;
+
+//Side Nav
+$fe-side-nav-border: $fe-color__border--gamma;
+$fe-side-nav-background: $fe-color__background1--gamma;
+
+//Top Nav
+$fe-top-nav-border: $fe-color__border--gamma;
+
+//Avatars
+$fe-avatar__no-image-background: $fe-color__background1--beta;
+$fe-avatar__no-image-text: $fe-color__text-primary--alpha;
+
+$fe-avatar__label-name-text: $fe-color__text-primary--alpha;
+$fe-avatar__label-description-text: $fe-color__text-primary--gamma;
+
+$fe-avatar__status-border: $fe-color__background1--gamma;
+$fe-avatar__status-online: $fe-color__theme-success--alpha;
+$fe-avatar__status-offline: $fe-color__action-secondary--alpha;
+$fe-avatar__status-away: $fe-color__theme-caution--alpha;
+$fe-avatar__status-dnd: $fe-color__theme-danger--alpha;
+
+//Dropdown
+$fe-dropdown-background: $fe-color__background2--beta;
+$fe-dropdown-border: $fe-color__border--beta;
+$fe-dropdown-divider: $fe-color__border--beta;
+$fe-dropdown-btn: $fe-color__active--alpha;
+$fe-dropdown-background--active: $fe-color__background2--beta;
+
+$fe-dropdown-link-color: $fe-color__text-secondary--alpha;
+$fe-dropdown-link-color--hover: $fe-color__text-secondary--beta;
+$fe-dropdown-link-right-section-color--hover: $fe-color__background2--beta;
+$fe-dropdown-link-color-background--hover: $fe-color__action-secondary--beta;
+$fe-dropdown-link-color--active: $fe-color__text-secondary--beta;
+$fe-dropdown-link-color--disabled: $fe-color__text-secondary--gamma;
+$fe-dropdown-link--icon-color--disabled: $fe-color__action-secondary--gamma;
+
+//search field
+$fe-search__background: $fe-color__background2--alpha;
+$fe-search__border: $fe-color__action-secondary--gamma;
+
+$fe-search__background--filled: $fe-color__background2--alpha;
+$fe-search__border--filled: $fe-color__action-secondary--gamma;
+$fe-search__icon--filled: $fe-color__action-secondary--alpha;
+$fe-search__close--filled: $fe-color__action-secondary--beta;
+
+$fe-search__background--focus: $fe-color__background2--alpha;
+$fe-search__border--focus: $fe-color__active--beta;
+$fe-search__icon--focus: $fe-color__active--beta;
+$fe-search__close--focus: $fe-color__theme-danger--alpha;
+
+$fe-search__background--disabled: $fe-color__background2--gamma;
+$fe-search__border--disabled: $fe-color__transparent;
+$fe-search__icon--disabled: $fe-color__action-secondary--gamma;
+$fe-search__color--disabled: $fe-color__text-primary--gamma;
+
+$fe-search__background--dark: $fe-color__background1--alpha;
+$fe-search__background--light: $fe-color__background2--beta;
+
+$fe-search__input-background--light: $fe-color__background2--alpha;
+$fe-search__input-border--light: $fe-color__action-secondary--gamma;
+$fe-search__input-color--light: $fe-color__text-secondary--beta;
+$fe-search__input-placeholder-color--light: $fe-color__text-secondary--gamma;
+
+//Top Navigation
+$fe-top-nav-bar-color: $fe-color__background1--gamma;
+$fe-top-nav-active-color: $fe-color__active--alpha;
+$fe-top-nav-link-color: $fe-color__action-primary--alpha;
+
+//modal
+$fe-modal__overlay-background: $fe-color__background2--alpha;
+$fe-modal__header-background: $fe-color__active--gamma;
+$fe-modal-close-color: $fe-color__active--beta;
+$fe-modal-body--overflow-background: linear-gradient(180deg, rgba(73, 73, 73, 0), #494949);
+
+//filters
+$fe-filters-background: $fe-color__background2--alpha;
+$fe-filters-border: $fe-color__action-secondary--gamma;
+
+//Cog Buttons
+$fe-cog-button__background: $fe-color__background1--alpha;
+$fe-cog-button__border: $fe-color__action-secondary--alpha;
+
+$fe-cog-button__border--hover: $fe-color__action-secondary--beta;
+
+$fe-cog-button__border--active: $fe-color__action-secondary--gamma;
+$fe-cog-button__background--active: $fe-color__active--gamma;
+
+$fe-cog-button__border--disabled: $fe-color__action-secondary--gamma;
+$fe-cog-button__color--disabled: $fe-color__action-secondary--gamma;
+
+//Input Fields
+$fe-input-background: $fe-color__background2--alpha;
+$fe-input-border: $fe-color__action-secondary--gamma;
+
+$fe-input-border--focus: $fe-color__active--beta;
+
+$fe-input-background--disabled: $fe-color__background2--gamma;
+$fe-input-color--disabled: $fe-color__text-primary--gamma;
+$fe-input-label-color--disabled: $fe-color__text-primary--gamma;
+$fe-input-icon-color--disabled: $fe-color__action-secondary--gamma;
+
+//Label
+$fe-label--background: $fe-color__background2--alpha;
+
+//Panel
+$fe-panel--background: $fe-color__background1--alpha;
+$fe-panel--collapsible--border-color: $fe-color__background2--alpha;

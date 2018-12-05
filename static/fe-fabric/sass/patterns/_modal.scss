@@ -1,0 +1,140 @@
+@import "../utils/variables/components/modal";
+
+//This class needs to be applied to body in order to view the modal
+.fe-modal-open {
+  overflow: hidden;
+  > :not(.fe-modal, .fe-modal-wrapper) {
+    filter: blur(5px);
+  }
+  .fe-modal {
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: block;
+  }
+}
+
+.fe-blur-bg {
+  filter: blur(5px);
+}
+
+// Container that the modal scrolls within
+.fe-modal {
+  display: none;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1024;
+  outline: 0;
+  width: 100%;
+  background-color: $fe-modal__overlay-background;
+  &__dialog {
+    position: relative;
+    top: 25%;
+    width: auto;
+    margin: 10px auto;
+    &--small {
+      width: 400px;
+      .fe-modal__content {
+        min-height: 4*$fe-modal__line-height--small;
+        overflow: hidden;
+      }
+    }
+    &--medium, &--large {
+      top: 0;
+      .fe-modal__content {
+        max-height: 90vh;
+        overflow: hidden;
+        .fe-modal__body {
+          overflow: auto;
+        }
+      }
+    }
+    &--medium {
+      width: 600px;
+      .fe-modal__content {
+        .fe-modal__body {
+          overflow: hidden;
+          min-height: 290px;
+        }
+      }
+    }
+    &--large {
+      width: 800px;
+    }
+  }
+  &__content {
+    position: relative;
+    background-color: $fe-color__background1--beta;
+    box-shadow: 16px 16px 40px $fe-color__box-shadow;
+    outline: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  &__header {
+    padding: 8px 16px;
+    background-color: $fe-modal__header-background;
+    color: $fe-color__text-primary--alpha;
+    display: flex;
+    align-items: baseline;
+    &--with-icon {
+      font-size: 24px;
+      line-height: 28px;
+    }
+    .fe-modal-close {
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      line-height: 16px;
+      margin-left: auto;
+      padding: 0;
+      color: $fe-modal-close-color;
+    }
+  }
+  &__title {
+    margin: 0 8px;
+    line-height: 32px;
+    font-size: 24px;
+    font-weight: normal;
+  }
+  &__body {
+    position: relative;
+    margin: 16px;
+    font-size: 12px;
+    &--overflow {
+      &:after {
+        content: '';
+        display: block;
+        position: relative; // for older browsers
+        position: sticky; // for new-latest browsers
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 36px;
+        background-image: $fe-modal-body--overflow-background;
+      }
+    }
+  }
+  &__footer {
+    padding: 16px;
+    text-align: right;
+    .fe-btn {
+      margin-right: 16px;
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+    .fe-component-wrapper {
+      .fe-btn {
+        margin-right: 16px;
+      }
+    }
+    .fe-component-wrapper:last-child {
+      .fe-btn {
+        margin-right: 0
+      }
+    }
+  }
+}
