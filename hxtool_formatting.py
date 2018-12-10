@@ -889,4 +889,27 @@ def formatTaskprofiles(mytaskprofiles):
 	for entry in mytaskprofiles:
 			x += "<option value='" + entry['taskprofile_id'] + "'>" + entry['name']
 	x += "</select>"
-	return(x)	
+	return(x)
+
+
+def formatTaskprofilesFabric(mytaskprofiles):
+
+	x = ""
+	x += '<li class="fe-dropdown__item">'
+	x += '<a class="fe-dropdown__item-link">'
+	x += '<span class="fe-dropdown__item-link-left-section">'
+	x += '<i style="margin-top: 2px;" class="fas fa-object-group fa-lg"></i>'
+	x += '</span>'
+	x += '<span class="fe-dropdown__item-link-text" data-id="false">No profile</span>'
+	x += '</a></li>'
+
+	for entry in mytaskprofiles:
+		x += '<li class="fe-dropdown__item">'
+		x += '<a class="fe-dropdown__item-link">'
+		x += '<span class="fe-dropdown__item-link-left-section">'
+		x += '<i style="margin-top: 2px;" class="fas fa-object-group fa-lg"></i>'
+		x += '</span>'
+		x += '<span class="fe-dropdown__item-link-text" data-id="' + entry['taskprofile_id'] + '">' + entry['name'] + '</span>'
+		x += '</a></li>'
+	return(x)
+

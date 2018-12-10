@@ -231,7 +231,7 @@ def bulkacq_view(hx_api_object):
 		scripts = formatScriptsFabric(myscripts)
 
 		mytaskprofiles = app.hxtool_db.taskProfileList()
-		taskprofiles = formatTaskprofiles(mytaskprofiles)
+		taskprofiles = formatTaskprofilesFabric(mytaskprofiles)
 
 	return render_template('ht_bulkacq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, scripts=scripts, taskprofiles=taskprofiles)
 
