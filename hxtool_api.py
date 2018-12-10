@@ -207,6 +207,22 @@ def hxtool_api_alerts_remove(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+#############
+# Scheduler #
+#############
+
+@ht_api.route('/api/v{0}/scheduler/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_scheduler_remove(hx_api_object):
+	key_to_delete = request.args.get('id')
+
+	for task in hxtool_global.hxtool_scheduler.tasks():
+		if task['parent_id'] == key_to_delete:
+			hxtool_global.hxtool_scheduler.remove(task['task_id'])
+
+	hxtool_global.hxtool_scheduler.remove(key_to_delete)
+
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 ####################
 # Bulk Acquisition #
@@ -470,6 +486,51 @@ def hxtool_api_enterprise_search_chartjs_searches(hx_api_object):
 
 		myr['datasets'].append({
 			"label": "Search count",
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderWidth": 2,
+			"borderColor": "#8fffc1",
+			"pointStyle": "circle",
+			"pointRadius": 2,
+			"data": myGraphData
+		})
+
+		return(app.response_class(response=json.dumps(myr), status=rcode, mimetype='application/json'))
+	else:
+		return('HX API Call failed',500)
+
+
+@ht_api.route('/api/v{0}/acquisition/bulk/chartjs_acquisitions'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_bulk_chartjs_acquisitions(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	if ret:
+		mysearches = {}
+		myGraphData = []
+		myr = {}
+		myr['labels'] = []
+		myr['datasets'] = []
+
+		startDate = datetime.datetime.strptime(request.args.get('startDate'), '%Y-%m-%d')
+		endDate = datetime.datetime.strptime(request.args.get('endDate'), '%Y-%m-%d')
+		delta = (endDate - startDate)
+
+		# Generate data for all dates
+		date_list = [endDate - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
+		for date in date_list[::-1]:
+			mysearches[date.strftime("%Y-%m-%d")] = 0
+
+		for search in response_data['data']['entries']:
+
+			if search['create_time'][0:10] in mysearches.keys():
+				mysearches[search['create_time'][0:10]] += 1
+
+		for key, val in mysearches.items():
+			myr['labels'].append(key)
+			myGraphData.append(val)
+
+		myr['datasets'].append({
+			"label": "Bulk count",
 			"backgroundColor": "rgba(17, 169, 98, 0.2)",
 			"borderWidth": 2,
 			"borderColor": "#8fffc1",

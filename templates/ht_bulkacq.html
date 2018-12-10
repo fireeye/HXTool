@@ -61,6 +61,10 @@
 	}
 
 	$(document).ready(function() {
+
+		var fullDate = new Date()
+		var currentDate = fullDate.toISOString().substr(0, 10);
+
 		$.fn.dataTable.ext.errMode = 'none';
 		var bulk_datatable = $('#bulktable').DataTable( {
 			"ajax": "/api/v1/datatable_bulk",
@@ -258,6 +262,70 @@
 			});
 		});
 
+		// START: Charts
+		Chart.defaults.global.defaultFontColor = 'rgba(255, 255, 255, 0.8)';
+		Chart.defaults.global.defaultFontFamily = 'Open Sans';
+
+		// ChartJS: Historical searches
+		var jsonData = $.ajax({
+			url: "/api/v1/acquisition/bulk/chartjs_acquisitions?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate,
+			dataType: 'json',
+		}).done(function (myChartData) {
+
+			var config = {
+				type: 'line',
+				data: myChartData,
+			
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					title: {
+						display: false
+					},
+					legend: {
+						display: false
+					},						
+					tooltips: {
+						mode: 'index',
+						intersect: false,
+						borderColor: "rgba(15, 184, 220, 0.4)"
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
+					},
+					scales: {
+						xAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							gridLines: {
+								display: false
+							}
+						}],
+						yAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							ticks: {
+								beginAtZero: true,
+								maxTicksLimit: 5,
+								precision: 0
+							},
+							gridLines: {
+								display: true ,
+								color: "rgba(15, 184, 220, 0.4)"
+							}
+						}]
+					}
+				}
+			}
+
+			var ctx = document.getElementById('chartjs_bulk').getContext('2d');
+			window.chartjs_searches = new Chart(ctx, config);
+		});
 
 	});
 </script>
@@ -265,6 +333,12 @@
 {{ htPanel.widgetHeader("Action", panelId="bulkNew", panelDisplay="inline-block") }}
 	<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> new bulk acquisition <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
 {{ htPanel.widgetFooter() }}
+
+<!-- BULK GRAPH -->
+{{ htPanel.widgetHeader("Bulk acquisitions over time", panelId="esGraph") }}
+	<canvas id="chartjs_bulk" class='hxtool_chartjs_canvas'></canvas>
+{{ htPanel.widgetFooter() }}
+
 
 {{ htModal.widgetHeader("New Bulk Acquisition", modalId="bulkNewPopup") }}
 

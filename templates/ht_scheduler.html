@@ -65,7 +65,7 @@
 				render: function ( data, type, row, meta ) {
 					myhtml = "";
 					if (row.immutable == false) {
-						myhtml = "<button class='fe-btn fe-btn--sm fe-btn--hxtool-main' href='/scheduler?action=delete&id=" + data + "'>delete</button>";
+						myhtml = "<button class='schedulerAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-id='" + data + "' data-type='remove'>delete</button>";
 					}
 					return myhtml;
 					}
@@ -76,6 +76,22 @@
 		setInterval( function () {
 			scheduler_tasks.ajax.reload();
 		}, 5000 );
+
+		$("#tableContainer").on("click", ".schedulerAction", function(){
+			mytype = $(this).data("type");
+			myrow = $(this).closest("tr");
+			hxtool_ajax_get_request("/api/v1/scheduler/" + $(this).data("type"), "id=" + $(this).data("id"), function() {
+				if (mytype == "remove") {
+					myrow.fadeOut(200, function() {
+						scheduler_tasks.row(myrow).remove().draw();
+					})
+				}
+				else {
+					scheduler_tasks.ajax.reload();	
+				}
+			});
+
+		});
 
 	});
 
