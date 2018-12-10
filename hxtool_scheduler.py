@@ -105,7 +105,7 @@ class hxtool_scheduler:
 			# with the run lock taking precedence.
 			if should_store:	
 				task.store()
-		
+		return task.task_id	
 		
 	def add_list(self, tasks):
 		if isinstance(tasks, list):
