@@ -14,6 +14,12 @@
 			"info":     false,
 			"searching": true,
 			"processing": false,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn" },
+				{ extend: "csv", className: "fe-btn" },
+				{ extend: "excel", className: "fe-btn" }
+			],
 			"columns": [
 				{ "title": "", "data": "platform" },
 				{ "title": "Hostname", "data": "hostname" },
@@ -42,35 +48,35 @@
 				},
 				{
 				 "targets": 4,
-				 "width": "120px",
+				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_Timestamp(data));
 				 }
 				},
 				{
 				 "targets": 5,
-				 "width": "100px",
+				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_parseContainmentState(data));
 				 }
 				},
 				{
 				 "targets": 6,
-				 "width": "120px",
+				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_Timestamp(data));
 				 }
 				},
 				{
 				 "targets": 7,
-				 "width": "100px",
+				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_parseAcquisitionType(data));
 				 }
 				},
 				{
 				 "targets": 8,
-				 "width": "100px",
+				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_parseAcquisitionState(data));
 				 }
@@ -81,13 +87,13 @@
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		if (row.type == "triage" && row.state == "COMPLETE") {
-				 			data = "<a href='/download?id=/hx/api/v3/acqs/triages/" + row.DT_RowId + ".mans' class='tableActionButton'>download</a>";
+				 			data = "<button data-id='/api/v1/acquisition/download?id=/hx/api/v3/acqs/triages/" + row.DT_RowId + ".mans' class='acqAction fe-btn fe-btn--sm fe-btn--hxtool-main'>download</button>";
 				 		}
 				 		else if (row.type == "live" && row.state == "COMPLETE") {
-				 			data = "<a href='/download?id=/hx/api/v3/acqs/live/" + row.DT_RowId + ".mans&content=json' class='tableActionButton'>download</a>";
+				 			data = "<button data-id='/api/v1/acquisition/download?id=/hx/api/v3/acqs/live/" + row.DT_RowId + ".mans&content=json' class='acqAction fe-btn fe-btn--sm fe-btn--hxtool-main'>download</button>";
 				 		}
 				 		else if (row.type == "file" && row.state == "COMPLETE") {
-				 			data = "<a href='/download?id=/hx/api/v3/acqs/files/" + row.DT_RowId + ".zip' class='tableActionButton'>download</a>";
+				 			data = "<button data-id='/api/v1/acquisition/download?id=/hx/api/v3/acqs/files/" + row.DT_RowId + ".zip' class='acqAction fe-btn fe-btn--sm fe-btn--hxtool-main'>download</button>";
 				 		}
 				 		else {
 				 			data = "N/A";	
@@ -96,21 +102,21 @@
 				 	return data;
 				 }
 				},
-				{"className": "dt-center", "targets": [0, 1, 2, 3, 4, 5, 6, 8]}
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 8]}
 			]
+		});
+		$('div.dataTables_filter input').addClass("fe-input");
+
+		$("#acqTable").on("click", ".acqAction", function(){
+			location.href = $(this).data("id");
 		});
 
 	});
 
 </script>
 
-
-<div class='tableTitle'>
-	<i class="fas fa-list-ul fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-	Acquisitions (last 500)
-</div>
-
-<table id='acqTable' class='genericTableSmall genericTable' style='width: 100%'>
-</table>
+{{ htPanel.widgetHeader("Task profiles") }}
+	<table id='acqTable' class='hxtool_table' style='width: 100%'></table>
+{{ htPanel.widgetFooter() }}
 
 {% endblock %}

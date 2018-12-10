@@ -8040,7 +8040,7 @@ i.fe-icon--right {
   font-size: 10px;
   line-height: 16px;
   font-weight: bold;
-  margin-left: 4px;
+  margin-left: 0;
   color: rgba(255, 255, 255, 0.4);
 }
 

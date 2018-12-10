@@ -298,14 +298,9 @@
 
 			}
 			else {
-				$('#scriptName').css("background", "rgb(255, 181, 181)");
+				$('#scriptName').fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
 			}
 
-		});
-
-		// When the user starts typing in the name field, change the background to white
-		$('#scriptName').keypress(function() {
-			$('#scriptName').css("background", "rgb(255,255,255)");
 		});
 
 		// User requests the audit module to be removed
@@ -358,15 +353,14 @@
 	-->
 
 		<div id='scriptArea' style='margin-top: 15px; margin-bottom: 15px;'>
-			<ul id='tabMenu' style='float: left; width: 140px; list-style-type: none; margin: 0; padding: 0; text-align: right;'>
+			<ul id='tabMenu' class='tabMenu' style='float: left; width: 140px; list-style-type: none; margin: 0; padding: 0;'>
 			</ul>
 			<div id='scriptItems' style='float: left; width: 900px;'>
 			</div>
 			<div style='clear: both;'></div>
 		</div>
 		
-        <input class='tableActionButton' id='generateScript' type='button' value='create script'>
-        <button class="fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Create script </span></button>
+        <button id='generateScript' class="fe-btn fe-btn--md fe-btn--hxtool-main" aria-label="Click"><span> Create script </span></button>
 	</div>
 	{{ htPanel.widgetFooter() }}
 <!-- </form> -->

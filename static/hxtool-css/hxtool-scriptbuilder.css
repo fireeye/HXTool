@@ -5,22 +5,32 @@
 .auditParameterTitleOptional {
 	font-family: "Open Sans";
 	font-size: 14px;
-	font-weight: 600;
+	font-weight: 700;
 	-webkit-font-smoothing: antialiased;
 }
 
 .auditParameterTitle {
 	font-family: "Open Sans";
 	font-size: 14px;
-	font-weight: 600;
+	font-weight: 700;
+	-webkit-font-smoothing: antialiased;
+}
+
+.auditDescription {
+	font-family: "Open Sans";
+	font-size: 12px;
+	font-weight: 400;
 	-webkit-font-smoothing: antialiased;
 }
 
 .auditName {
 	font-family: "Open Sans";
 	font-size: 16px;
-	font-weight: 600;
+	text-transform: capitalize;
+	font-weight: 700;
 	-webkit-font-smoothing: antialiased;
+	margin-bottom: 12px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .auditNameUUID {
@@ -29,5 +39,61 @@
 	font-weight: 600;
 	-webkit-font-smoothing: antialiased;
 	margin-bottom: 12px;
+	display: none;
+}
+
+.tabMenu li {
+	border: 0.5px solid rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.8);
+	background: rgba(255, 255, 255, 0.2);
+	padding: 3px;
+	margin-bottom: 4px;
+	font-family: "Open Sans";
+	font-size: 12px;
+	font-weight: 700;
+	-webkit-font-smoothing: antialiased;
+	text-transform: uppercase;
+}
+
+.tabMenu li:hover {
+	background: rgba(255, 255, 255, 0.5);
+	cursor: pointer;
+}
+
+.auditContent {
+	padding-left: 8px;
+}
+
+.auditRemove {
+	float: right;
+	margin-top: -40px;
+	border: 0.5px solid rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.8);
+	background: rgba(255, 255, 255, 0.2);
+	padding: 3px;
+	margin-bottom: 4px;
+	font-family: "Open Sans";
+	font-size: 12px;
+	font-weight: 700;
+	-webkit-font-smoothing: antialiased;
+	text-transform: uppercase;
+}
+
+.auditRemove:hover {
+	background: rgba(255, 255, 255, 0.5);
+	cursor: pointer;
+}
+
+.auditParameterRemove {
+	border: 0.5px solid rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.8);
+	background: rgba(255, 255, 255, 0.2);
+	padding-top: 2px;
+	padding-bottom: 1px;
+}
+
+.auditParameterRemove:hover {
+	background: rgba(255, 255, 255, 0.5);
+	cursor: pointer;
 }
 
