@@ -326,10 +326,10 @@
 			}
 
 			// Send the request
+			$("#esNewPopup").hide();
 			if (mymode == "hxtool") {
 				hxtool_ajax_get_request(myApiEndpoint, myUrl, function() {
 					if (myschedule == "run_now") {
-						$("#esNewPopup").hide();
 						setTimeout( function () {
 							es_datatable.ajax.reload();
 							updateChartJS(chartjs_searches, "/api/v1/enterprise_search/chartjs_searches?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);
@@ -343,7 +343,6 @@
 			else if (mymode == "file") {
 				hxtool_ajax_post_request(myApiEndpoint, data, function() {
 					if (myschedule == "run_now") {
-						$("#esNewPopup").hide();
 						setTimeout( function () {
 							es_datatable.ajax.reload();
 							updateChartJS(chartjs_searches, "/api/v1/enterprise_search/chartjs_searches?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);

@@ -289,16 +289,14 @@ def hxtool_api_acquisition_bulk_download(hx_api_object):
 @valid_session_required
 def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 
-	print(request.args.get('bulkhostset'))
-
 	start_time = None
 	interval = None
+	schedule = None
 	
 	if 'schedule' in request.args.keys():
 		if request.args.get('schedule') == 'run_at':
-			start_time = HXAPI.dt_from_str(request.form['scheduled_timestamp'])
+			start_time = HXAPI.dt_from_str(request.args.get('scheduled_timestamp'))
 		
-		schedule = None	
 		if request.args.get('schedule') == 'run_interval':
 			schedule = {
 				'minutes' : request.args.get('intervalMin', None),
@@ -309,14 +307,14 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 
 	should_download = False
 	
-	bulk_acquisition_script = app.hxtool_db.scriptGet(request.args.get('script'))
+	bulk_acquisition_script = app.hxtool_db.scriptGet(request.args.get('bulkscript'))['script']
 	skip_base64 = True
 	
 	task_profile = None
 	if request.form.get('taskprocessor', False):
 		task_profile = request.args.get('taskprofile_id', None)
 		should_download = True
-		
+	
 	submit_bulk_job(hx_api_object, 
 					int(request.args.get('bulkhostset')), 
 					bulk_acquisition_script, 
@@ -325,7 +323,7 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 					task_profile = task_profile, 
 					download = should_download,
 					skip_base64 = skip_base64,
-					comment=request.args.get('bulkcomment'))
+					comment=request.args.get('displayname'))
 	#app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
@@ -334,7 +332,46 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 @ht_api.route('/api/v{0}/acquisition/bulk/new/file'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
 def hxtool_api_acquisition_bulk_new_file(hx_api_object):
-	print("TODO")
+
+	start_time = None
+	interval = None
+	schedule = None
+	
+	if 'schedule' in request.form.keys():
+		if request.form['schedule'] == 'run_at':
+			start_time = HXAPI.dt_from_str(request.form['scheduled_timestamp'])
+		
+		if request.form['schedule'] == 'run_interval':
+			schedule = {
+				'minutes' : request.form.get('intervalMin', None),
+				'hours'  : request.form.get('intervalHour', None),
+				'day_of_week' : request.form.get('intervalWeek', None),
+				'day_of_month' : request.form.get('intervalDay', None)
+			}
+
+	bulk_acquisition_script = None
+	skip_base64 = False
+	should_download = False
+	
+	f = request.files['bulkscript']
+	bulk_acquisition_script = f.read()
+	
+	task_profile = None
+	if request.form.get('taskprocessor', False):
+		task_profile = request.form.get('taskprofile_id', None)
+		should_download = True
+
+	submit_bulk_job(hx_api_object, 
+					int(request.form['bulkhostset']), 
+					HXAPI.compat_str(bulk_acquisition_script), 
+					start_time = start_time, 
+					schedule = schedule, 
+					task_profile = task_profile, 
+					download = should_download,
+					skip_base64 = skip_base64,
+					comment=request.form['displayname'])
+	#app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 ###########

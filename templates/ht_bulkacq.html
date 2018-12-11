@@ -15,7 +15,7 @@
 
 		if (intervalType == "month") {
 			out += " on the ";
-			out += "<select name='intervalDay'>";
+			out += "<select id='intervalDay'>";
 			for (var i=1; i < 32; i += 1){
 				out += "<option value='" + i + "'>" + i;
 			}
@@ -25,7 +25,7 @@
 
 		if (intervalType == "week") {
 			out += " on ";
-			out += "<select name='intervalWeek'>";
+			out += "<select id='intervalWeek'>";
 			out += "<option value='0'>Monday";
 			out += "<option value='1'>Tuesday";
 			out += "<option value='2'>Wednesday";
@@ -39,7 +39,7 @@
 
 		if (intervalType == "day" || intervalType == "week" || intervalType == "month") {
 			out += " at the ";
-			out += "<select name='intervalHour'>";
+			out += "<select id='intervalHour'>";
 			for (var i=0; i < 24; i += 1){
 				out += "<option value='" + i + "'>" + i;
 			}
@@ -49,7 +49,7 @@
 
 		if (intervalType == "hour" || intervalType == "day" || intervalType == "week" || intervalType == "month") {
 			out += " on the ";
-			out += "<select name='intervalMin'>";
+			out += "<select id='intervalMin'>";
 			for (var i=0; i < 60; i += 1){
 				out += "<option value='" + i + "'>" + i;
 			}
@@ -266,126 +266,131 @@
 		// New acquisition
 		$("#bulkSubmit").click(function () {
 
-			mymode = $("input[name='bulksource']:checked").val();
-			myhostsetid = $("#bulkHostset").data("id");
-			myschedule = $("input[name='schedule']:checked").val();
-			mydisplayname = $("#bulkcomment").val();
+			if (($("#bulkHostset").data("id") == "false") || ($("#bulkcomment").val() == "")) {
+				alert("check inputs");
+			}
+			else {
 
-			// Set the endpoint and IOC Data
-			if (mymode == "hxtool") {
-				myApiEndpoint = "/api/v1/acquisition/bulk/new/db";
-				myioc = $("#bulkScriptDb").data("id");
-			}
-			else if (mymode == "file") {
-				myApiEndpoint = "/api/v1/acquisition/bulk/new/file";
-				var data = new FormData();
-				$.each($('#bulkscript').prop('files'), function(key, value) {
-					data.append("bulkscript", value);
-				});
-			}
+				mymode = $("input[name='bulksource']:checked").val();
+				myhostsetid = $("#bulkHostset").data("id");
+				myschedule = $("input[name='schedule']:checked").val();
+				mydisplayname = $("#bulkcomment").val();
 
-			// Grab settings and contstruct URL / Form
-			if (myschedule == "run_now" && mymode == "hxtool") {
-				myUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myioc + "&displayname=" + mydisplayname;
-			}
-			else if (myschedule == "run_now" && mymode == "file") {
-				data.append("bulkhostset", myhostsetid);
-				data.append("displayname", mydisplayname);
-			}
-			else if (myschedule == "run_at" && mymode == "hxtool") {
-				scheduled_timestamp = $("#scheduled_timestamp").val();
-				myUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myioc + "&displayname=" + mydisplayname + "&schedule=" + myschedule + "&scheduled_timestamp=" + scheduled_timestamp;
-			}
-			else if (myschedule == "run_at" && mymode == "file") {
-				scheduled_timestamp = $("#scheduled_timestamp").val();
-				data.append("bulkhostset", myhostsetid);
-				data.append("displayname", mydisplayname);
-				data.append("schedule", myschedule);
-				data.append("scheduled_timestamp", scheduled_timestamp);
-			}
-			else if (myschedule == "run_interval" && mymode == "hxtool") {
-				baseUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myioc + "&displayname=" + mydisplayname + "&schedule=" + myschedule;
+				// Set the endpoint and IOC Data
+				if (mymode == "hxtool") {
+					myApiEndpoint = "/api/v1/acquisition/bulk/new/db";
+					myscript = $("#bulkScriptDb").data("id");
+				}
+				else if (mymode == "file") {
+					myApiEndpoint = "/api/v1/acquisition/bulk/new/file";
+					var data = new FormData();
+					$.each($('#bulkscript').prop('files'), function(key, value) {
+						data.append("bulkscript", value);
+					});
+				}
 
-				intervalMin = $("#intervalMin").val()
-				intervalHour = $("#intervalHour").val()
-				intervalDay = $("#intervalDay").val()
-				intervalWeek = $("#intervalWeek").val()
-				intervalMetric = $("#intervalMetric").val()
+				// Grab settings and contstruct URL / Form
+				if (myschedule == "run_now" && mymode == "hxtool") {
+					myUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myscript + "&displayname=" + mydisplayname;
+				}
+				else if (myschedule == "run_now" && mymode == "file") {
+					data.append("bulkhostset", myhostsetid);
+					data.append("displayname", mydisplayname);
+				}
+				else if (myschedule == "run_at" && mymode == "hxtool") {
+					scheduled_timestamp = $("#scheduled_timestamp").val();
+					myUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myscript + "&displayname=" + mydisplayname + "&schedule=" + myschedule + "&scheduled_timestamp=" + scheduled_timestamp;
+				}
+				else if (myschedule == "run_at" && mymode == "file") {
+					scheduled_timestamp = $("#scheduled_timestamp").val();
+					data.append("bulkhostset", myhostsetid);
+					data.append("displayname", mydisplayname);
+					data.append("schedule", myschedule);
+					data.append("scheduled_timestamp", scheduled_timestamp);
+				}
+				else if (myschedule == "run_interval" && mymode == "hxtool") {
+					baseUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myscript + "&displayname=" + mydisplayname + "&schedule=" + myschedule;
 
-				if (intervalMetric == "min") {
-					myUrl = baseUrl;
-				}
-				else if (intervalMetric == "hour") {
-					myUrl = baseUrl + "&intervalMin=" + intervalMin;
-				}
-				else if (intervalMetric == "day") {
-					myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour;
-				}
-				else if (intervalMetric == "week") {
-					myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour + "&intervalWeek=" + intervalWeek;
-				}
-				else if (intervalMetric == "month") {
-					myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour + "&intervalDay=" + intervalDay;
-				}
-			}
-			else if (myschedule == "run_interval" && mymode == "file") {
-				data.append("bulkhostset", myhostsetid);
-				data.append("displayname", mydisplayname);
-				data.append("schedule", myschedule);
+					intervalMin = $("#intervalMin").val()
+					intervalHour = $("#intervalHour").val()
+					intervalDay = $("#intervalDay").val()
+					intervalWeek = $("#intervalWeek").val()
+					intervalMetric = $("#intervalMetric").val()
 
-				intervalMin = $("#intervalMin").val()
-				intervalHour = $("#intervalHour").val()
-				intervalDay = $("#intervalDay").val()
-				intervalWeek = $("#intervalWeek").val()
-				intervalMetric = $("#intervalMetric").val()
-
-				if (intervalMetric == "hour") {
-					data.append("intervalMin", intervalMin);
-				}
-				else if (intervalMetric == "day") {
-					data.append("intervalMin", intervalMin);
-					data.append("intervalHour", intervalHour);
-				}
-				else if (intervalMetric == "week") {
-					data.append("intervalMin", intervalMin);
-					data.append("intervalHour", intervalHour);
-					data.append("intervalWeek", intervalWeek);
-				}
-				else if (intervalMetric == "month") {
-					data.append("intervalMin", intervalMin);
-					data.append("intervalHour", intervalHour);
-					data.append("intervalDay", intervalDay);
-				}
-			}
-
-			// Send the request
-			if (mymode == "hxtool") {
-				hxtool_ajax_get_request(myApiEndpoint, myUrl, function() {
-					if (myschedule == "run_now") {
-						$("#bulkNewPopup").hide();
-						setTimeout( function () {
-							bulk_datatable.ajax.reload();
-							updateChartJS(chartjs_searches, "/api/v1/acquisition/bulk/chartjs_acquisitions?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);
-						}, 1000 );
+					if (intervalMetric == "min") {
+						myUrl = baseUrl;
 					}
-					else {
-						location.href = "/scheduler";
+					else if (intervalMetric == "hour") {
+						myUrl = baseUrl + "&intervalMin=" + intervalMin;
 					}
-				});
-			}
-			else if (mymode == "file") {
-				hxtool_ajax_post_request(myApiEndpoint, data, function() {
-					if (myschedule == "run_now") {
-						$("#bulkNewPopup").hide();
-						setTimeout( function () {
-							bulk_datatable.ajax.reload();
-							updateChartJS(chartjs_searches, "/api/v1/acquisition/bulk/chartjs_acquisitions?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);
-						}, 1000 );
+					else if (intervalMetric == "day") {
+						myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour;
 					}
-					else {
-						location.href = "/scheduler";
+					else if (intervalMetric == "week") {
+						myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour + "&intervalWeek=" + intervalWeek;
 					}
-				});
+					else if (intervalMetric == "month") {
+						myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour + "&intervalDay=" + intervalDay;
+					}
+				}
+				else if (myschedule == "run_interval" && mymode == "file") {
+					data.append("bulkhostset", myhostsetid);
+					data.append("displayname", mydisplayname);
+					data.append("schedule", myschedule);
+
+					intervalMin = $("#intervalMin").val()
+					intervalHour = $("#intervalHour").val()
+					intervalDay = $("#intervalDay").val()
+					intervalWeek = $("#intervalWeek").val()
+					intervalMetric = $("#intervalMetric").val()
+
+					if (intervalMetric == "hour") {
+						data.append("intervalMin", intervalMin);
+					}
+					else if (intervalMetric == "day") {
+						data.append("intervalMin", intervalMin);
+						data.append("intervalHour", intervalHour);
+					}
+					else if (intervalMetric == "week") {
+						data.append("intervalMin", intervalMin);
+						data.append("intervalHour", intervalHour);
+						data.append("intervalWeek", intervalWeek);
+					}
+					else if (intervalMetric == "month") {
+						data.append("intervalMin", intervalMin);
+						data.append("intervalHour", intervalHour);
+						data.append("intervalDay", intervalDay);
+					}
+				}
+
+				// Send the request
+				$("#bulkNewPopup").hide();
+				if (mymode == "hxtool") {
+					hxtool_ajax_get_request(myApiEndpoint, myUrl, function() {
+						if (myschedule == "run_now") {
+							setTimeout( function () {
+								bulk_datatable.ajax.reload();
+								updateChartJS(chartjs_searches, "/api/v1/acquisition/bulk/chartjs_acquisitions?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);
+							}, 1000 );
+						}
+						else {
+							location.href = "/scheduler";
+						}
+					});
+				}
+				else if (mymode == "file") {
+					hxtool_ajax_post_request(myApiEndpoint, data, function() {
+						if (myschedule == "run_now") {
+							setTimeout( function () {
+								bulk_datatable.ajax.reload();
+								updateChartJS(chartjs_searches, "/api/v1/acquisition/bulk/chartjs_acquisitions?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);
+							}, 1000 );
+						}
+						else {
+							location.href = "/scheduler";
+						}
+					});
+				}
 			}
 
 		});
