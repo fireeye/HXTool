@@ -275,6 +275,7 @@
 				myhostsetid = $("#bulkHostset").data("id");
 				myschedule = $("input[name='schedule']:checked").val();
 				mydisplayname = $("#bulkcomment").val();
+				mytaskprocessor = $("#taskprocessorId").data("id");
 
 				// Set the endpoint and IOC Data
 				if (mymode == "hxtool") {
@@ -291,15 +292,16 @@
 
 				// Grab settings and contstruct URL / Form
 				if (myschedule == "run_now" && mymode == "hxtool") {
-					myUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myscript + "&displayname=" + mydisplayname;
+					myUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myscript + "&displayname=" + mydisplayname + "&taskprocessor=" + mytaskprocessor;
 				}
 				else if (myschedule == "run_now" && mymode == "file") {
 					data.append("bulkhostset", myhostsetid);
 					data.append("displayname", mydisplayname);
+					data.append("taskprocessor", mytaskprocessor);
 				}
 				else if (myschedule == "run_at" && mymode == "hxtool") {
 					scheduled_timestamp = $("#scheduled_timestamp").val();
-					myUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myscript + "&displayname=" + mydisplayname + "&schedule=" + myschedule + "&scheduled_timestamp=" + scheduled_timestamp;
+					myUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myscript + "&displayname=" + mydisplayname + "&schedule=" + myschedule + "&scheduled_timestamp=" + scheduled_timestamp + "&taskprocessor=" + mytaskprocessor;
 				}
 				else if (myschedule == "run_at" && mymode == "file") {
 					scheduled_timestamp = $("#scheduled_timestamp").val();
@@ -307,9 +309,10 @@
 					data.append("displayname", mydisplayname);
 					data.append("schedule", myschedule);
 					data.append("scheduled_timestamp", scheduled_timestamp);
+					data.append("taskprocessor", mytaskprocessor);
 				}
 				else if (myschedule == "run_interval" && mymode == "hxtool") {
-					baseUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myscript + "&displayname=" + mydisplayname + "&schedule=" + myschedule;
+					baseUrl = "bulkhostset=" + myhostsetid + "&bulkscript=" + myscript + "&displayname=" + mydisplayname + "&schedule=" + myschedule + "&taskprocessor=" + mytaskprocessor;
 
 					intervalMin = $("#intervalMin").val()
 					intervalHour = $("#intervalHour").val()
@@ -337,6 +340,7 @@
 					data.append("bulkhostset", myhostsetid);
 					data.append("displayname", mydisplayname);
 					data.append("schedule", myschedule);
+					data.append("taskprocessor", mytaskprocessor);
 
 					intervalMin = $("#intervalMin").val()
 					intervalHour = $("#intervalHour").val()

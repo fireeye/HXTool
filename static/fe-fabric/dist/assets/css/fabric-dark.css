@@ -8362,7 +8362,7 @@ i.fe-icon--right {
 }
 
 .fe-modal__dialog--medium .fe-modal__content .fe-modal__body {
-  overflow: hidden;
+  overflow: visible;
   min-height: 290px;
 }
 

@@ -224,6 +224,19 @@ def hxtool_api_scheduler_remove(hx_api_object):
 
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
+################
+# Task profile #
+################
+
+@ht_api.route('/api/v{0}/taskprofile/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_taskprofile_remove(hx_api_object):
+
+	app.hxtool_db.taskProfileDelete(request.args.get('id'))
+
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+
 ####################
 # Bulk Acquisition #
 ####################
@@ -311,10 +324,10 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 	skip_base64 = True
 	
 	task_profile = None
-	if request.form.get('taskprocessor', False):
-		task_profile = request.args.get('taskprofile_id', None)
+	if request.args.get('taskprocessor') != "false":
+		task_profile = request.args.get('taskprocessor', None)
 		should_download = True
-	
+
 	submit_bulk_job(hx_api_object, 
 					int(request.args.get('bulkhostset')), 
 					bulk_acquisition_script, 
@@ -357,8 +370,8 @@ def hxtool_api_acquisition_bulk_new_file(hx_api_object):
 	bulk_acquisition_script = f.read()
 	
 	task_profile = None
-	if request.form.get('taskprocessor', False):
-		task_profile = request.form.get('taskprofile_id', None)
+	if request.form['taskprocessor'] != "false":
+		task_profile = request.form.get('taskprocessor', None)
 		should_download = True
 
 	submit_bulk_job(hx_api_object, 
