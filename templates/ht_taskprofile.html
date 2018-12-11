@@ -55,11 +55,10 @@
 				if(mymodule == 1) {
 					$("#params").append("<div class='taskProfileItem' id='file_" + myguid + "'></div>");
 					$("#file_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>File Writer</div>");
-					$("#file_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
+					$("#file_" + myguid).append("<div class='taskProfileRemovePH'><button class='taskProfileRemove' type='button' value='remove'></div>");
 					$("#file_" + myguid).append("<div style='clear: both;'></div>");
 					$("#file_" + myguid).append("<hr class='taskProfileBar'>");
-					$("#file_" + myguid).append("<b>Local file</b><br><input style='width: 400px;' name='" + myguid + "_file_filepath' type='text'><br>");
-					$("#file_" + myguid).append("<br>");
+					$("#file_" + myguid).append("<b>Local file</b><br><input class='fe-input' style='width: 400px;' name='" + myguid + "_file_filepath' type='text'><br>");
 					$("#file_" + myguid).append("<b>Event mode</b><br>");
 					$("#file_" + myguid).append("<select name='" + myguid + "_ip_eventmode'><option value='per-event'>per-event<option value='batch'>batch</select><br>");
 					$("#file_" + myguid).append("<br>");
@@ -73,9 +72,8 @@
 					$("#ip_" + myguid).append("<b>Protocol</b><br>");
 					$("#ip_" + myguid).append("<select name='" + myguid + "_ip_protocol'><option value='tcp'>TCP<option value='udp'>UDP</select><br>");
 					$("#ip_" + myguid).append("<br>");
-					$("#ip_" + myguid).append("<b>Target IP</b><br><input style='width: 400px;' name='" + myguid + "_ip_targetip' type='text'><br>");
-					$("#ip_" + myguid).append("<br>");
-					$("#ip_" + myguid).append("<b>Target port</b><br><input style='width: 100px;' name='" + myguid + "_ip_targetport' type='text'><br>");
+					$("#ip_" + myguid).append("<b>Target IP</b><br><input class='fe-input' style='width: 400px;' name='" + myguid + "_ip_targetip' type='text'><br>");
+					$("#ip_" + myguid).append("<b>Target port</b><br><input class='fe-input' style='width: 100px;' name='" + myguid + "_ip_targetport' type='text'><br>");
 					$("#ip_" + myguid).append("<br>");
 					$("#ip_" + myguid).append("<b>Event mode</b><br>");
 					$("#ip_" + myguid).append("<select name='" + myguid + "_ip_eventmode'><option value='per-event'>per-event<option value='batch'>batch</select><br>");
@@ -95,9 +93,9 @@
 					$("#helix_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
 					$("#helix_" + myguid).append("<div style='clear: both;'></div>");
 					$("#helix_" + myguid).append("<hr class='taskProfileBar'>");
-					$("#helix_" + myguid).append("<b>API URL</b><br><input style='width: 400px' name='" + myguid + "_helix_url' type='text'><br>");
+					$("#helix_" + myguid).append("<b>API URL</b><br><input class='fe-input' style='width: 400px' name='" + myguid + "_helix_url' type='text'><br>");
 					$("#helix_" + myguid).append("<br>");
-					$("#helix_" + myguid).append("<b>API KEY</b><br><input style='width: 400px' name='" + myguid + "_helix_apikey' type='text'><br>");
+					$("#helix_" + myguid).append("<b>API KEY</b><br><input class='fe-input' style='width: 400px' name='" + myguid + "_helix_apikey' type='text'><br>");
 				}
 
 				// reset the drop-down
