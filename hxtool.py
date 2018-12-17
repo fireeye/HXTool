@@ -2107,7 +2107,7 @@ def app_init(debug = False):
 			app.logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 	
 	# Initialize the scheduler
-	hxtool_global.hxtool_scheduler = hxtool_scheduler(task_thread_count = app.hxtool_config['background_processor']['poll_threads'], logger = app.logger)
+	hxtool_global.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
 	hxtool_global.hxtool_scheduler.start()
 	hxtool_global.hxtool_scheduler.load_from_database()
 	
