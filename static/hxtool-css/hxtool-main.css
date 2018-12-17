@@ -6,12 +6,16 @@
 @import url("/static/hxtool-css/hxtool-typography.css");
 @import url("/static/hxtool-css/hxtool-chartjs.css");
 @import url("/static/hxtool-css/hxtool-scriptbuilder.css");
+@import url("/static/hxtool-css/hxtool-login.css");
 
 body {
 	/* background-image: url("/static/3px-tile.png"), linear-gradient(180deg, #444444 12%, #777777 49%); */
 	background: radial-gradient(62vw at 50% 0%, #355881 0%, #222 100%);
 }
 
+select {
+	color: black;
+}
 
 .hxtool_shader {
 	background: rgba(0,0,0,0.6);

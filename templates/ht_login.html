@@ -1,165 +1,209 @@
+{% import 'widget-dropdown.html' as htDropdown %}
+{% import 'widget-input.html' as htInput %}
+{% import 'widget-panel.html' as htPanel %}
+{% import 'widget-modal.html' as htModal %}
+
 <html>
 <head>
 	<title>HXTool - Please Authenticate</title>
-	<link rel="stylesheet" type="text/css" href="/static/ht.css">
 	<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+	<script type="text/javascript" src="/static/hxtool-js/hxtool-generic.js"></script>
+	<script type="text/javascript" src="/static/hxtool-js/hxtool-doc-ready.js"></script>
+	<link href="/static/fe-fabric/dist/assets/css/fabric-dark.css" rel="stylesheet" />
+	<link rel="stylesheet" type="text/css" href="static/hxtool-css/hxtool-main.css">
+	<link href="/static/favicon.ico" rel="icon" type="image/x-icon" />
 </head>
 
 <script language="JavaScript">
-	function deleteProfile(e) {
-		profile_id = $(e).attr("profile-id");
-		if (profile_id) {
+
+	function getProfiles() {
+		hxtool_ajax_get_request("/api/v1/profile", "", function(myprofiles) {
+			$.each(myprofiles.data, function() {
+				$("#profile").next("div").find("ul").append("<li class='fe-dropdown__item'><a class='fe-dropdown__item-link'><span class='fe-dropdown__item-link-left-section'><i style='margin-top: 2px;' class='fas fa-check fa-lg'></i></span><span class='fe-dropdown__item-link-text' data-id='" + this.profile_id + "'>" + this.hx_name + "</span></a></li>");
+			});
+			$("#profile").html(" " + myprofiles.data[0]['hx_name'] + " <i class='fe-icon--right fal fa-chevron-up'></i>");
+			$("#profile").data("id", myprofiles.data[0]['profile_id'])
+		});
+	}
+	
+	$(document).ready(function() {
+		getProfiles();
+		hxtool_doc_ready();
+
+		$(".hxtool_dynamic-dropdown").on( "click", "a", function(e) {
+			e.preventDefault();
+			var profileid = $(this).find("span").next().data("id");
+			$("#profile").data("id", profileid);
+
+			$(this).closest("div").fadeTo( "fast", 0, function() {
+				$(".fe-dropdown__list-container").hide();
+			});
+		});
+
+		$("#login_submit").click(function() {
+			$("#controllerProfileDropdown").val($("#profile").data("id"));
+			$("#login_form").submit();
+		})
+
+		$("#profile_delete").click(function() {
+			$("#profileRemove").find(".fe-modal__body").html("");
+			hxtool_ajax_get_request("/api/v1/profile", "", function(myprofiles) {
+				$("#profileRemove").find(".fe-modal__body").append("<table style='width: 100%;' class='hxtool_table'></table>");
+				$("#profileRemove").find(".fe-modal__body").find("table").append("<thead><th>name</th><th>hostname</th><th>port</th><th>action</th></thead>");
+				$("#profileRemove").find(".fe-modal__body").find("table").append("<tbody></tbody>");
+				$.each(myprofiles.data, function() {
+					$("#profileRemove").find(".fe-modal__body").find("table").find("tbody").append("<tr><td>" + this.hx_name  + "</td><td>" + this.hx_host + "</td><td>" + this.hx_port + "</td><td style='text-align: center;'><button type='button' data-id='" + this.profile_id + "' class='profileRemoveClass fe-btn fe-btn--sm fe-btn--primary'> remove <i class='fe-icon--right fas fa-trash'></i></button></td></tr>");
+				});
+				$("#profileRemove").show();
+			});
+		});
+
+		$("body").on("click", ".profileRemoveClass", function(){
+
+			profile_id = $(this).data("id");
+			myrow = $(this).closest("tr");
+
 			$.ajax({
 				type: "DELETE",
 				url: "/api/v1/profile/" + profile_id,
 				contentType: "application/json; charset=utf-8",
 				dataType: "json",
 				success: function(r) {
-					bindData();
+					myrow.remove();
 				},
 				error: function(xhr) {
 					alert("Error: " + xhr.responseJSON);
 				}
 			});
-		}
-	}
-	
-	function bindData() {
-		$.ajax({
-			type: "GET",
-			url: "/api/v1/profile",
-			contentType: "application/json; charset=utf-8",
-			dataType: "json",
-			success: function(r) {
-				$("#controllerProfileDropdown").empty();
-				$("#controllerProfileTable tbody").empty();			
-				$.each(r.data, function() {
-					// TODO: implementing a string format function would be nicer...
-					$("#controllerProfileDropdown").append($("<option></option>").val(this.profile_id).text(this.hx_name + " - " + this.hx_host + ":" + this.hx_port));
-					$("#controllerProfileTable tbody").append("<tr><td>" + this.hx_name + "</td><td>" + this.hx_host + "</td><td>" + this.hx_port + "</td><td><a class='tableActionButton' href='#' style='text-decoration: none;' onclick='JavaScript: deleteProfile(this);' profile-id='" + this.profile_id + "'>Delete</a></td></tr>");
-				});
-				
-			}
+
 		});
-	}
-	
-	
-	$(document).ready(function() {
-		bindData();
-		
-		$("#ht_user").focus();
-		
-		var myheight = ($("#mainLoginWindow").css('height').replace(/[^-\d\.]/g, ''));
-		($("#mainLoginWindow").css('margin-top', "-" + (myheight / 2) + "px" ));
-		
-		$("#controllerProfileManagerButton").click(function() {
-			var cpmpheight = ($("#controllerProfileManagerPanel").css('height').replace(/[^-\d\.]/g, ''));
-			($("#controllerProfileManagerPanel").css('margin-top', "-" + (cpmpheight / 2) + "px" ));
-			$('#shader').show();
-			$("#controllerProfileManagerPanel").show();
+
+
+		$("#profile_create").click(function() {
+			$("#profileNew").show();
 		});
-		
-		$("#controllerProfileSaveButton").click(function() {			
-			var request_json = {};
-			$("*[data-key]").each(function(idx) {
-				request_json[$(this).attr("data-key")] = $(this).val();
+
+		$("#profileNewCancel").click(function() {
+			$("#profileNew").hide();
+		});
+
+		$("#profileRemoveDismiss").click(function() {
+			$("#profileRemove").hide();
+		});
+
+		$("#profileNewSubmit").click(function() {
+
+			myrequest = {}
+			myrequest['hx_name'] = $("#profile_new_name").val();
+			myrequest['hx_host'] = $("#profile_new_host").val();
+			myrequest['hx_port'] = $("#profile_new_port").val();
+
+			request_json = JSON.stringify(myrequest);
+			
+			$.ajax({
+				type: "PUT",
+				url: "/api/v1/profile",
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				data: request_json,
+				success: function(r) {
+					$("#profile").next("div").find("ul").html("");
+					getProfiles();
+					$("#profileNew").hide();
+				},
+				error: function(xhr) {
+					alert("Error: " + xhr.responseJSON);
+				}
 			});
-			if (request_json['hx_host'].startsWith('http')) {
-				alert('Please remove the https:// from in front of the HX controller host name/IP address.');
-			} else {
-				request_json = JSON.stringify(request_json);
-				
-				$.ajax({
-					type: "PUT",
-					url: "/api/v1/profile",
-					contentType: "application/json; charset=utf-8",
-					dataType: "json",
-					data: request_json,
-					success: function(r) {
-						bindData();
-						$("#controllerProfileManagerAddProfilePanel").hide(200);
-					},
-					error: function(xhr) {
-						alert("Error: " + xhr.responseJSON);
-					}
-				});
-			}
+
 		});
+
+		$("#ht_user").focus();
+
 	});
 </script>
 
-<body style='background: #eeeeee; margin: 0;'>
-	<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
-	<div style='background: #79a1be; width: 100%; height: 50%;'>
-		<div id='mainLoginWindow' style='position: absolute; left: 50%; top: 50%; width: 500px; margin-left: -250px; background: #ffffff; box-shadow: 2px 2px 5px rgb(115, 115, 115); border: 1px solid #dddddd; border-radius: 5px; padding: 20px;'>
-						
-			<form method='post'>
-				
-				<div style='text-align: center; margin-bottom: 85px;'><img src='/static/fireeye.svg' style='left: 150px; top: 10px; position: absolute; height: 100px; clip: rect(0px,251px,104px,0px);'></div>
-				
-				<div class='tableTitle' style='font-size: 28px; margin-bottom: 10px; text-align: center;'>HXTool&trade; v4.0.1</div>
-				<div class='tableTitle' style='font-size: 12px; font-weight: bold; margin-bottom: 18px; text-align: center; font-style: italic;'>Extended user interface for FireEye HX</div>
-				{% if fail %}
-					<div class='tableTitle' style='font-size: 10px; text-align: center; color: red; margin-bottom: 10px;'>
-					{{ fail }}
-					</div>
-				{% endif %}
-				<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>USERNAME</div>
-				<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' name='ht_user' id='ht_user'>
-				<br><br>
-				<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>PASSWORD</div>
-				<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='password' name='ht_pass' id='ht_pass'>
-				<br><br>
-				<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>CONTROLLER PROFILE</div>
-				<select style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' name='controllerProfileDropdown' id='controllerProfileDropdown'>
-				</select>		
+<body>
+	{{ htPanel.widgetHeader("HXTool 4.5.0", panelWidth="500px", elementAdditionalClass="hxtool_login_main") }}
+
+		<div style='padding: 24px;'>
+
+			<div style='text-align: center; margin-bottom: 25px;'><img src='/static/fireeye.svg' style='left: 120px; top: 40px; position: absolute; height: 100px; clip: rect(0px,251px,104px,0px);'></div>
+
+			<br><br>
+			<h3 style='text-align: center;'>Extended user interface for FireEye Endpoint Security</h3>
+			<br>
+
+			<form id='login_form' method='post'>
+				{{ htInput.widget("username", elementTitle="Username", elementHint="Enter an apiuser or apiadmin username", elementId="ht_user", elementWidth="100%") }}
+
+				<h4 class='hxtool_typography_h4'>Password</h4>
+				<input type="password" name="ht_pass" id="ht_pass" value="" style="width: 100%" class="fe-input" placeholder="Password" />
+
 				<br>
-				<div style='padding-top: 10px;'>
-					<a id='controllerProfileManagerButton' class='tableActionButton' href='#'>Controller Profile Manager</a>
+
+				<h4 class='hxtool_typography_h4'>Controller profile</h4>
+				{{ htDropdown.widgetHeader("Select profile", "profile", "false", elementAdditionalClass="hxtool_dynamic-dropdown") }}
+				{{ htDropdown.widgetFooter() }}
+				<input type='hidden' name='controllerProfileDropdown' id='controllerProfileDropdown'>
+
+				<div style='margin-top: 12px; margin-bottom: 24px;'>
+					<button type="button" id="profile_create" class="fe-btn fe-btn--md fe-btn--secondary"> new <i class="fe-icon--right fas fa-plus-circle"></i></button>
+					<button type="button" id="profile_delete" class="fe-btn fe-btn--md fe-btn--secondary"> manage <i class="fe-icon--right fas fa-trash"></i></button>
 				</div>
-				<br><br>
-				
-				<input style='width: 100%; height: 50px;' type='submit' class='tableActionButton' value='Login'>
-				<div style='font-size: 12px; text-align: center; margin-top: 20px;'>Use HX API Credentials to login<br><br>Copyright &copy; 2018 by FireEye, Inc. All rights reserved</div>
+
+				<div style='text-align: center; margin-top: 24px; margin-bottom: 24px;'>
+					<button id="login_submit" style='width: 100%;' class="fe-btn fe-btn--lg fe-btn--primary"> login <i class="fe-icon--right fas fa-check"></i></button>
+				</div>
+
+				<h5 class='hxtool_typography_h5' style='text-align: center;'>Copyright &copy; 2019 by FireEye, Inc. All rights reserved</h5>
+
 			</form>
-			
-			<div id='controllerProfileManagerPanel' class='controllerProfileManagerDialog' style='display: none;'>
-				<div class='tableTitle'>My Controllers</div>
-				<table class='genericTable' id='controllerProfileTable' style='width: 100%; text-align: center;'>
-					<thead>
-						<td>Name</th>
-						<td>Hostname/IP</th>
-						<td>Port</th>
-						<td>Action</th>
-					</thead>
-					<tbody></tbody>
-					<tfoot>
-						
-					</tfoot>
-				</table>
-				<br>
-				<input class='tableActionButton' type='button' value='Close' onclick='JavaScript: $("#controllerProfileManagerPanel").hide(200); $("#shader").hide();'  />
-				<input class='tableActionButton' type='button' value='Create' onclick='JavaScript: $("#controllerProfileManagerAddProfilePanel").show();' />
-				<div id='controllerProfileManagerAddProfilePanel' class='controllerProfileAddDialog' style='display: none;'>
-					<div class='tableTitle' style='margin-bottom: 15px;'>Add new controller</div>
-					<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>Name</div>
-					<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfileName' data-key='hx_name'>
-					<br />
-					<br />
-					<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>Hostname/IP</div>
-					<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfileHost' data-key='hx_host'>
-					<br />
-					<br />
-					<div class='ht_input_title' style='font-weight: bold; font-size: 12px;'>Port</div>
-					<input style='width: 100%; border: 1px solid #aaaaaa; border-radius: 3px; font-size: 18px; outline: none;' type='text' id='controllerProfilePort' data-key='hx_port' value = '{{ hx_default_port }}'>
-					<br />
-					<br />
-					<input class='tableActionButton' type='button' value='Cancel' onclick='JavaScript: $("#controllerProfileManagerAddProfilePanel").hide(200);' />
-					<input class='tableActionButton' type='button' value='Save' id='controllerProfileSaveButton' />	
+
+		</div>
+
+	{{ htPanel.widgetFooter() }}
+
+	{% if fail %}
+	<div id="hxtoolMessage" style='z-index: 100; display: block;' class="fe-modal" role="dialog" aria-modal="true">
+		<div class="fe-modal__dialog fe-modal__dialog--medium">
+			<div class="fe-modal__content">
+				<div>
+					<div class="fe-modal__header">
+						<h4 class="fe-modal__title">Message</h4>
+						<button class="fe-modal-close" name="button" type="button">
+							<i class="fe-icon--center fal fa-times"></i>
+						</button>
+					</div>
+				</div>
+				<div class="fe-modal__body">
+					<div id="hxtoolMessageBody">
+						{{ fail }}
+					</div>
+				</div>
+				<div class="fe-modal__footer clearfix">
+					<button class="fe-btn fe-btn--md fe-btn--secondary" id="hxtoolMessageCancel" aria-label="Cancel"><span> Dismiss </span></button>
 				</div>
 			</div>
-			
 		</div>
 	</div>
+	{% endif %}
+
+
+	{{ htModal.widgetHeader("New controller profile", modalId="profileNew") }}
+		{{ htInput.widget("profile name", elementTitle="Profile name", elementHint="Enter a name for the profile", elementId="profile_new_name", elementWidth="100%") }}
+		{{ htInput.widget("hostname/ip", elementTitle="Hostname / IP", elementHint="Enter an ip address or fully qualified domain name of the controller", elementId="profile_new_host", elementWidth="100%") }}
+		{{ htInput.widget("port", elementTitle="TCP port", elementHint="Enter the port of your controller (3000/443)", elementId="profile_new_port", elementWidth="100%") }}
+	{{ htModal.widgetMiddle() }}
+		<button class="fe-btn fe-btn--md fe-btn--secondary" id="profileNewCancel" aria-label="Cancel"><span> Cancel </span></button>
+		<button class="fe-btn fe-btn--md fe-btn--primary" id="profileNewSubmit" aria-label="Click"><span> Submit </span></button>
+	{{ htModal.widgetFooter() }}
+
+	{{ htModal.widgetHeader("Manage profiles", modalId="profileRemove") }}
+	{{ htModal.widgetMiddle() }}
+		<button class="fe-btn fe-btn--md fe-btn--primary" id="profileRemoveDismiss" aria-label="Click"><span> Dismiss </span></button>
+	{{ htModal.widgetFooter() }}
+
+
 </body>
 </html>

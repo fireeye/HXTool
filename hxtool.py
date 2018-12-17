@@ -1319,7 +1319,6 @@ def channelinfo(hx_api_object):
 #### Authentication
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-	
 	if (request.method == 'POST'):
 		if 'ht_user' in request.form:
 			ht_profile = app.hxtool_db.profileGet(request.form['controllerProfileDropdown'])
