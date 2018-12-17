@@ -254,7 +254,7 @@
 				 "width": "90px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<button class='fe-btn fe-btn--sm fe-btn--primary active' id='showannotation_" + row.DT_RowId + "'>show (" + data + ")</button>";
+				 		data = "<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='showannotation_" + row.DT_RowId + "'>show (" + data + ")</button>";
 				 	}
 				 	return data;
 				 }
@@ -264,8 +264,8 @@
 				 "width": "180px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<button class='addannotation fe-btn fe-btn--sm fe-btn--primary active' style='margin-right: 6px;' id='annotate_" + row.DT_RowId + "'>annotate</button>";
-				 		data += "<button class='alertAction fe-btn fe-btn--sm fe-btn--primary active' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
+				 		data = "<button class='addannotation fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' style='margin-right: 6px;' id='annotate_" + row.DT_RowId + "'>annotate</button>";
+				 		data += "<button class='alertAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
 				 	}
 				 	return data;
 				 }
@@ -275,44 +275,99 @@
 		});
 		$('div.dataTables_filter input').addClass("fe-input");
 
+
+		// ChartJS: Alerts timeline
+
+		var pastDate = getHistoricDate(7);
+		var currentDate = fullDate.toISOString().substr(0, 10);
+
+		var jsonData = $.ajax({
+			url: "/api/v1/chartjs_events_timeline?startDate=" + pastDate + "&endDate=" + currentDate,
+			dataType: 'json',
+		}).done(function (myChartData) {
+
+			var config = {
+				type: 'line',
+				data: myChartData,
+			
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					title: {
+						display: false
+					},
+					legend: {
+						display: false
+					},						
+					tooltips: {
+						mode: 'index',
+						intersect: false,
+						borderColor: "rgba(15, 184, 220, 0.4)"
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
+					},
+					scales: {
+						xAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							gridLines: {
+								display: false
+							}
+						}],
+						yAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							ticks: {
+								beginAtZero: true,
+								maxTicksLimit: 5
+							},
+							gridLines: {
+								display: true ,
+								color: "rgba(15, 184, 220, 0.4)"
+							}
+						}]
+					}
+				}
+			}
+
+			var ctx = document.getElementById('chartjs_alerts').getContext('2d');
+			window.chartjs_alerts = new Chart(ctx, config);
+		});
+
+
 	});
 
 </script>
 
 <!-- ALERT FILTERS -->
-<div class="fe-panel" style='margin-top: 12px; display: inline-block;'>
+<div class="fe-panel" style='margin-top: 12px;'>
 	<div class="fe-panel-header fe-panel-header--no-background">
 		<div class="fe-label fe-label--background">Alert filters</div>
 	</div>
+	<div class='hxtool_panel_top_right_alert'>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_1'>today</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_7'>week</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_30'>month</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_90'>quarter</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_180'>half-year</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_365'>year</button>
+
+		<span style='font-weight: bold; font-size: 12px; margin-left: 12px;'>from</span>
+		<input style='display: inline-block; width: 75px; padding-bottom: 2px;' type='text' class="hxtool_input_small fe-input" id='from'/>
+
+		<span style='font-weight: bold; font-size: 12px;'>to</span>
+		<input style='display: inline-block; width: 75px; padding-bottom: 2px; margin-right: 12px;' type='text' class="hxtool_input_small fe-input" id='to'/>
+
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='refresh'>refresh</button>
+	</div>
 	<div class="fe-panel__body">
 
-		<div>
-			<label for="" class="fe-input-label caption">
-			<i class="fas fa-filter fa-sm" style='margin-right: 2px;' aria-hidden="true"></i>
-			Time selection
-			</label>
-		</div>
-
-		<div style='margin-left: 12px;'>
-			<div style='margin-bottom: 12px;'>
-				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_1'>today</button>
-				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_7'>week</button>
-				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_30'>month</button>
-				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_90'>quarter</button>
-				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_180'>half-year</button>
-				<button class='fe-btn fe-btn--sm fe-btn--primary active' id='nav_365'>year</button><br>
-			</div>
-
-			<div class='hxtool_panel_wrapper' style='width: 75px; display: inline-block;'>
-				<label for="" class="fe-input-label caption">From</label>
-				<input type="text" id="from" value="" class="hxtool_input_small fe-input" />
-			</div>
-			<div class='hxtool_panel_wrapper' style='width: 75px; display: inline-block;'>
-				<label for="" class="fe-input-label caption">To</label>
-				<input type="text" id="to" value="" class="hxtool_input_small fe-input" />
-			</div>
-
-		</div>
 		<!--
 		<div style='float: right; margin-bottom: 15px;'>
 			<input type='checkbox' id='alertAutoRefresh'>
@@ -328,7 +383,7 @@
 			Filters
 			</label>
 		</div>
-		<table class='hxtool_alerts_filter'>
+		<table class='hxtool_alerts_filter' style='width: 100%;'>
 			<tr>
 				<th>
 					<label for="" class="fe-input-label caption">Endpoint IP/Hostname</label>
@@ -349,13 +404,13 @@
 			<tr>
 				<td>
 
-					<input class='hxtool_input_small fe-input' id='filtertable_hostname' type='text' style='width: 250px'>
+					<input class='hxtool_input_small fe-input' id='filtertable_hostname' type='text' style='width: 100%;'>
 				</td>
 				<td>
-					<input class='hxtool_input_small fe-input' id='filtertable_alertname' type='text' style='width: 250px'>
+					<input class='hxtool_input_small fe-input' id='filtertable_alertname' type='text' style='width: 100%;'>
 				</td>
 				<td>
-					<input class='hxtool_input_small fe-input' id='filtertable_hash' type='text' style='width: 250px'>
+					<input class='hxtool_input_small fe-input' id='filtertable_hash' type='text' style='width: 100%;'>
 				</td>
 				<td>
 					<select class='hxtool_input_select fe-input' id='filtertable_source'>
@@ -378,9 +433,15 @@
 				</td>
 			</tr>
 		</table>
-		<button class='fe-btn fe-btn--md fe-btn--hxtool-main' style='margin-top: 12px;' id='refresh'>show alerts <i style='color: #11a962;' class="fe-icon--right fas fa-check"></i></button>
 	</div>
 </div>
+
+
+<!-- Alerts GRAPH -->
+{{ htPanel.widgetHeader("Alerts over time", panelId="alertGraph") }}
+	<canvas id="chartjs_alerts" class='hxtool_chartjs_canvas'></canvas>
+{{ htPanel.widgetFooter() }}
+
 
 <!-- ALERTS TABLE -->
 <div class="fe-panel" style='margin-top: 12px;'>
