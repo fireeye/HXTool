@@ -1,8 +1,8 @@
 {% macro widget(elementPlaceholder, elementTitle="", elementHint="", elementId="", elementWidth="") -%}
 		{% if elementHint != "" %}
-			<h3 class='hxtool_typography_h3'>{{elementTitle}}</h3>
+			<h4 class='hxtool_typography_h4'>{{elementTitle}}</h4>
 		{% endif %}
-		<input type="text" id="{{elementId}}" value="" {% if elementWidth != "" %}style="width: {{elementWidth}}px "{% endif %}class="fe-input" placeholder="{{elementPlaceholder}}" />
+		<input type="text" name="{{elementId}}" id="{{elementId}}" value="" {% if elementWidth != "" %}style="width: {{elementWidth}}px "{% endif %}class="fe-input" placeholder="{{elementPlaceholder}}" />
 		{% if elementHint != "" %}
 			<span class="fe-input-hint-text">{{elementHint}}</span>
 		{% endif %}

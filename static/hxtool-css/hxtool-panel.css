@@ -38,3 +38,10 @@
 	padding-left: 6px;
 	margin-top: 4px;
 }
+
+.hxtool_panel_top_right_alert {
+	position: absolute;
+	right: 12px;
+	padding-left: 6px;
+	margin-top: -32px;
+}

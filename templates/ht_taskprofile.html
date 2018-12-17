@@ -44,11 +44,13 @@
 		});
 
 
-		$('body').on('change','select',function() {
+		//$('body').on('change','select',function() {
+		$("body").on( "click", ".fe-dropdown__item-link", function(e) {
+			alert("kaka");
+//			if ($(this).attr('id') == "module") {
 
-			if ($(this).attr('id') == "module") {
-
-				var mymodule = $(this).val();
+				var mymodule = $(this).next("span").next("span").data("id");
+				alert(mymodule);
 
 				myguid = guid();
 
@@ -99,8 +101,8 @@
 				}
 
 				// reset the drop-down
-				$(this).prop("selectedIndex", 0);
-			}
+				//$(this).prop("selectedIndex", 0);
+//			}
 		});
 
 		var taskprofileTable = $('#taskprofileTable').DataTable( {
@@ -182,13 +184,20 @@
 	<br>
 
 	<h3 class='hxtool_typography_h3'>Select a task profile module</h3>
+	{{ htDropdown.widgetHeader("Select module", "mymodule", "false", elementAdditionalClass="hxtool_module-dropdown") }}
+		{{ htDropdown.widgetItem("File writer", "1") }}
+		{{ htDropdown.widgetItem("IP Sender", "2") }}
+		{{ htDropdown.widgetItem("Helix", "4") }}
+	{{ htDropdown.widgetFooter(elementLabel="Select module to add to profile") }}
+
+	<!--
 	<select name='module' id='module'>
 		<option value='0'>-- select a module --
 		<option value='1'>File writer
 		<option value='2'>IP sender
-		<!-- <option value='3'>Store in HXTool -->
 		<option value='4'>Helix
 	</select>
+-->
 
 	<div style='margin-top: 10px;' id='params'></div>
 
