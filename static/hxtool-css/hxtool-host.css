@@ -1,0 +1,48 @@
+.host-grid-container {
+  display: grid;
+  grid-template-columns: 0.5fr 1fr 0.5fr;
+  /*grid-template-rows: 17% 83%; */
+  grid-template-areas: "top top top" "alerts content acquisitions";
+  height: 92vh;
+}
+
+.host-top { 
+	grid-area: top;
+}
+
+.host-alerts { 
+	grid-area: alerts;
+}
+
+.host-content { 
+	grid-area: content;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+
+.host-acquisitions { 
+	grid-area: acquisitions;
+}
+
+.hxtool_host_panel_read_more {
+	display: inline-block;
+	background: #0d1a2b;
+	padding: 6px;
+	padding-left: 24px;
+	padding-right: 24px;
+	font-size: 10px;
+	font-weight: bold;
+}
+
+.hxtool_host_panel_read_more:hover {
+	background: rgba(255, 255, 255, 0.2);
+	cursor: pointer;
+}
+
+.panelAlertsClass {
+	overflow: auto;
+	height: 71vh;
+}
+
+.hxtool_host_alert_table {
+}

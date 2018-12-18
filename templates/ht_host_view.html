@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - OpenIOC{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+
+		var myAgentId = getUrlParameter("host");
+
+		// Alerts table
+		$.fn.dataTable.ext.errMode = 'none';
+		var hostAlert_datatable = $('#hostAlertTable').DataTable( {
+			"ajax": "/api/v1/datatable_alerts_host?host=" + myAgentId,
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": false,
+			"processing": false,
+			"columns": [
+				{ title: "Reported at" },
+				{ title: "Source" },
+				{ title: "Threat" },
+				{ title: "Resolution" }
+			]
+		});
+
+	});
+</script>
+
+<div class="host-grid-container">
+  <div class="host-top">
+	{{ htPanel.widgetHeader("Host", panelId="hostPanel") }}
+		test<br>
+		test<br>
+		test<br>
+		test<br>
+	{{ htPanel.widgetFooter() }}
+<!--
+	<div style='text-align: center;'>
+		<div class='hxtool_host_panel_read_more'>
+			host details
+		</div>
+	</div>
+-->
+  </div>
+  <div class="host-alerts">
+ 	{{ htPanel.widgetHeader("Alerts", panelId="hostAlertPanel", elementAdditionalBodyClass="panelAlertsClass") }}
+		<table style='width: 100%;' id='hostAlertTable' class='hxtool_table hxtool_host_alert_table'></table>
+	{{ htPanel.widgetFooter() }}
+  </div>
+  <div class="host-content">
+ 	{{ htPanel.widgetHeader("Content", panelId="hostContentPanel") }}
+		test
+	{{ htPanel.widgetFooter() }}
+  </div>
+  <div class="host-acquisitions">
+ 	{{ htPanel.widgetHeader("Acquisitions", panelId="hostAcqPanel") }}
+		<table id='hostAcqTable' class='hxtool_table'></table>
+		d
+	{{ htPanel.widgetFooter() }}
+  </div>
+</div>
+
+
+
+
+{% endblock %}

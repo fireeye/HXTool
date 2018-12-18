@@ -460,6 +460,48 @@ def datatable_hosts_with_alerts(hx_api_object):
 
 		return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/datatable_alerts_host'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_alerts_host(hx_api_object):
+	if request.method == 'GET':
+
+		myalerts = {"data": []}
+
+		(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'), filter_term={ "host._id": request.args.get("host") })
+
+		if ret:
+			for alert in response_data['data']['entries']:
+				# Query host object
+				(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
+				if ret:
+					hostname = hresponse_data['data']['hostname']
+					domain = hresponse_data['data']['domain']
+					hid = hresponse_data['data']['_id']
+					aid = alert['_id']
+				else:
+					hostname = "unknown"
+					domain = "unknown"
+
+				if alert['source'] == "IOC":
+					(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+					if cret:
+						tname = cresponse_data['data']['entries'][0]['name']
+					else:
+						tname = "N/A"
+				elif alert['source'] == "EXD":
+					tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
+				elif alert['source'] == "MAL":
+					tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
+				else:
+					tname = "N/A"
+
+
+				myalerts['data'].append([HXAPI.prettyTime(HXAPI.gt(alert['reported_at'])), alert['source'], tname, alert['resolution']])
+		else:
+			return('', 500)
+
+		return(app.response_class(response=json.dumps(myalerts), status=200, mimetype='application/json'))
+
 
 @ht_api.route('/api/v{0}/datatable_alerts'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required

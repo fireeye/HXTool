@@ -76,6 +76,12 @@ def nl2br(eval_ctx, value):
 def dashboard(hx_api_object):
 	return render_template('ht_main-dashboard.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### New host drilldown page
+@app.route('/hostview', methods=['GET'])
+@valid_session_required
+def host_view(hx_api_object):
+	return render_template('ht_host_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
 ### AV Dashboard
 @app.route('/dashboard-av', methods=['GET'])
 @valid_session_required
