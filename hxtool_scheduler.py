@@ -6,6 +6,7 @@ import threading
 import datetime
 import calendar
 import random
+from multiprocessing.pool import ThreadPool
 
 try:
 	import Queue as queue
@@ -41,55 +42,36 @@ MAX_HISTORY_QUEUE_LENGTH = 1000
 		
 # Note: scheduler resolution is a little less than a second
 class hxtool_scheduler:
-	def __init__(self, task_thread_count = 4, logger = logging.getLogger(__name__)):
+	def __init__(self, logger = logging.getLogger(__name__)):
 		self.logger = logger
 		self._lock = threading.Lock()
 		self.task_queue = {}
 		self.history_queue = {}
-		self.run_queue = queue.Queue()
 		self._poll_thread = threading.Thread(target = self._scan_task_queue, name = "PollThread")
 		self._stop_event = threading.Event()
-		self.task_thread_count = task_thread_count
-		self.task_threads = []
+		self.task_threads = ThreadPool()
 		self.logger.info("Task scheduler initialized.")
 
 	def _scan_task_queue(self):
 		while not self._stop_event.is_set():
 			with self._lock:
-				for task_id in self.task_queue:
-					task = self.task_queue[task_id]
-					if task.should_run():
-						self.run_queue.put((task_id, task.name, task.run))
-						task.set_state(TASK_STATE_QUEUED)
+				self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()])
 			self._stop_event.wait(.01)
-		
-	def _await_task(self):
-		while not self._stop_event.is_set():
-			(task_id, task_name, task_run) = self.run_queue.get()
-			# Special task indicator that we need to exit now
-			if task_id == SIGINT_TASK_ID:
-				self.logger.debug("Got SIGINT_TASK_ID, exiting.")
-				self.run_queue.task_done()
-				break
-			self.logger.debug("Executing task with id: %s, name: %s.", task_id, task_name)
-			ret = task_run()
-			self.run_queue.task_done()
 	
+	def _run_task(self, task):
+		task.set_state(TASK_STATE_QUEUED)
+		self.logger.debug("Executing task with id: %s, name: %s.", task.task_id, task.name)
+		task.run()
+			
 	def start(self):
 		self._poll_thread.start()
-		for i in range(0, self.task_thread_count):
-			t = threading.Thread(target = self._await_task, name = "TaskThread - {}".format(i))
-			t.start()
-			self.task_threads.append(t)
 		self.logger.info("Task scheduler started.")
 		
 	def stop(self):
-		self.logger.debug('stop() enter.')		
-		for i in range(0, len(self.task_threads)):
-			self.run_queue.put((SIGINT_TASK_ID, None, None))
-		self.run_queue.join()
+		self.logger.debug('stop() enter.')
 		self._stop_event.set()
-		del self.task_threads[:]
+		self.task_threads.close()
+		self.task_threads.join()	
 		self.logger.debug('stop() exit.')
 	
 	def signal_child_tasks(self, parent_task_id, parent_task_state, parent_stored_result):
@@ -164,7 +146,10 @@ class hxtool_scheduler:
 class hxtool_scheduler_task:
 	def __init__(self, profile_id, name, task_id = None, start_time = None, end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
 		
-		self.logger = hxtool_global.hxtool_scheduler.logger
+		try:
+			self.logger = hxtool_global.hxtool_scheduler.logger
+		except AttributeError:
+			self.logger = logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
 		self.task_id = task_id or str(secure_uuid4())
@@ -341,7 +326,9 @@ class hxtool_scheduler_task:
 				elif self.state < TASK_STATE_STOPPED:
 					self.state = TASK_STATE_COMPLETE
 				
-				hxtool_global.hxtool_scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
+				# Support test harness
+				if hasattr(hxtool_global, 'hxtool_scheduler'):
+					hxtool_global.hxtool_scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
 		else:
 			self.set_state(TASK_STATE_STOPPED)
 		
