@@ -50,7 +50,7 @@ from hxtool_task_modules import *
 # Import HXTool API Flask blueprint
 from hxtool_api import ht_api
 
-app = Flask(hxtool_global.get_submodule_logger_name(__name__), static_url_path='/static')
+app = Flask(hxtool_global.root_logger_name, static_url_path='/static')
 
 # Register HXTool API blueprint
 app.register_blueprint(ht_api)
