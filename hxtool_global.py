@@ -15,8 +15,11 @@ def initialize():
 	global app_instance_path
 	app_instance_path = None
 	
+def get_submodule_logger_name(name):
+	return "{}.{}".format(root_logger_name, name)	
+	
 def get_logger(submodule_name = None):
 	name = root_logger_name
 	if submodule_name:
-		name = "{}.{}".format(root_logger_name, submodule_name)
-	return logging.getLogger(name)	
+		name = get_submodule_logger_name(submodule_name)
+	return logging.getLogger(name)
