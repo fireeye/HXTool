@@ -5,7 +5,7 @@ import threading
 import datetime
 import logging
 
-from hxtool_global import hxtool_schema_version
+import hxtool_global
 from hxtool_util import *
 from hx_lib import *
 
@@ -21,7 +21,7 @@ except ImportError:
 from hx_lib import *
 
 class hxtool_db:
-	def __init__(self, db_file, logger = logging.getLogger(__name__), write_cache_size = 10):
+	def __init__(self, db_file, logger = hxtool_global.get_logger(__name__), write_cache_size = 10):
 		self.logger = logger
 		# If we can't open the DB file, rename the existing one
 		try:
@@ -53,12 +53,12 @@ class hxtool_db:
 			self.logger.warning("The current HXTool database has no schema version set, a DB schema upgrade may be required.")
 			if self.upgrade_schema():
 				self.logger.info("Database schema upgraded successfully.")
-				self._db.table('schema_version').insert({'schema_version' : hxtool_schema_version})
-		elif current_schema_version < hxtool_schema_version:
-			self.logger.warning("The current HXTool database has a schema version: {} that is older than the current version of: {}, a DB schema upgrade may be required.".format(current_schema_version, hxtool_schema_version))
+				self._db.table('schema_version').insert({'schema_version' : hxtool_global.hxtool_schema_version})
+		elif current_schema_version < hxtool_global.hxtool_schema_version:
+			self.logger.warning("The current HXTool database has a schema version: {} that is older than the current version of: {}, a DB schema upgrade may be required.".format(current_schema_version, hxtool_global.hxtool_schema_version))
 			if self.upgrade_schema():
 				self.logger.info("Database schema upgraded successfully.")
-				self._db.table('schema_version').update({'schema_version' : hxtool_schema_version}, eids = [1])
+				self._db.table('schema_version').update({'schema_version' : hxtool_global.hxtool_schema_version}, eids = [1])
 		
 	def upgrade_schema(self):
 		try:

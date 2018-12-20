@@ -42,7 +42,7 @@ MAX_HISTORY_QUEUE_LENGTH = 1000
 		
 # Note: scheduler resolution is a little less than a second
 class hxtool_scheduler:
-	def __init__(self, logger = logging.getLogger(__name__)):
+	def __init__(self, thread_count = None, logger = hxtool_global.get_logger(__name__)):
 		self.logger = logger
 		self._lock = threading.Lock()
 		self.task_queue = {}
@@ -144,12 +144,9 @@ class hxtool_scheduler:
 		return self._poll_thread.is_alive()
 		
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, task_id = None, start_time = None, end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, task_id = None, start_time = None, end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = hxtool_global.get_logger(__name__)):
 		
-		try:
-			self.logger = hxtool_global.hxtool_scheduler.logger
-		except AttributeError:
-			self.logger = logger
+		self.logger = logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
 		self.task_id = task_id or str(secure_uuid4())

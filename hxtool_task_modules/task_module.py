@@ -8,7 +8,7 @@ from hx_audit import *
 class task_module(object):
 	def __init__(self, parent_task):
 		self.parent_task = parent_task
-		self.logger = parent_task.logger
+		self.logger = hxtool_global.get_logger(__name__)
 	
 	def get_task_api_object(self):
 		if self.parent_task.profile_id in hxtool_global.task_hx_api_sessions:

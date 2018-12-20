@@ -50,7 +50,7 @@ from hxtool_task_modules import *
 # Import HXTool API Flask blueprint
 from hxtool_api import ht_api
 
-app = Flask(__name__, static_url_path='/static')
+app = Flask("{}.{}".format(hxtool_global.root_logger_name, __name__), static_url_path='/static')
 
 # Register HXTool API blueprint
 app.register_blueprint(ht_api)
@@ -1330,7 +1330,7 @@ def login():
 			ht_profile = app.hxtool_db.profileGet(request.form['controllerProfileDropdown'])
 			if ht_profile:	
 
-				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = app.hxtool_config['network'].get('proxies'), headers = app.hxtool_config['headers'], cookies = app.hxtool_config['cookies'], logger = app.logger, default_encoding = default_encoding)
+				hx_api_object = HXAPI(ht_profile['hx_host'], hx_port = ht_profile['hx_port'], proxies = app.hxtool_config['network'].get('proxies'), headers = app.hxtool_config['headers'], cookies = app.hxtool_config['cookies'], logger_root = hxtool_global.root_logger_name, default_encoding = default_encoding)
 
 				(ret, response_code, response_data) = hx_api_object.restLogin(request.form['ht_user'], request.form['ht_pass'], auto_renew_token = True)
 				if ret:
@@ -1390,7 +1390,6 @@ def app_init(debug = False):
 	
 	hxtool_global.app_instance_path = app.root_path
 	
-	
 	# Log early init/failures to stdout
 	console_log = logging.StreamHandler(sys.stdout)
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
@@ -1416,9 +1415,6 @@ def app_init(debug = False):
 	
 	app.task_api_key = 'Z\\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
 	
-	# Initialize hxtool_global storage for task scheduler sessions
-	hxtool_global.task_hx_api_sessions = {}
-	
 	# Loop through background credentials and start the API sessions
 	profiles = hxtool_global.hxtool_db.profileList()
 	for profile in profiles:
@@ -1434,7 +1430,7 @@ def app_init(debug = False):
 																					proxies = app.hxtool_config['network'].get('proxies'), 
 																					headers = app.hxtool_config['headers'], 
 																					cookies = app.hxtool_config['cookies'], 
-																					logger = app.logger, 
+																					logger_root = hxtool_global.root_logger_name, 
 																					default_encoding = default_encoding)																
 				(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[profile['profile_id']].restLogin(task_api_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)
 				if ret:
