@@ -66,6 +66,17 @@ def getHealth(hx_api_object):
 		return(app.response_class(response=json.dumps(myHealth), status=200, mimetype='application/json'))
 
 
+################
+# Acquisitions #
+################
+@ht_api.route('/api/v{0}/acquisition/get'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_get(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restGetUrl(request.args.get('url'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
 #####################
 # Enterprise Search #
 #####################
@@ -183,6 +194,24 @@ def hxtool_api_enterprise_search_new_file(hx_api_object):
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
+#########
+# Hosts #
+#########
+@ht_api.route('/api/v{0}/hosts/get'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_hosts_get(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restGetHostSummary(request.args.get('id'))
+	(r, rcode) = create_api_response(response_data = response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/hosts/sysinfo'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_hosts_sysinfo(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restGetHostSysinfo(request.args.get('id'))
+	(r, rcode) = create_api_response(response_data = response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
 ###################
 # Manage OpenIOCs #
 ###################
@@ -217,6 +246,13 @@ def hxtool_api_openioc_upload(hx_api_object):
 @valid_session_required
 def hxtool_api_alerts_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteJob('alerts', request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/alerts/get'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_alerts_get(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restGetAlertID(request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
@@ -467,7 +503,7 @@ def datatable_alerts_host(hx_api_object):
 
 		myalerts = {"data": []}
 
-		(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'), filter_term={ "host._id": request.args.get("host") })
+		(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'), filter_term={ "agent._id": request.args.get("host") })
 
 		if ret:
 			for alert in response_data['data']['entries']:
@@ -495,8 +531,13 @@ def datatable_alerts_host(hx_api_object):
 				else:
 					tname = "N/A"
 
-
-				myalerts['data'].append([HXAPI.prettyTime(HXAPI.gt(alert['reported_at'])), alert['source'], tname, alert['resolution']])
+				myalerts['data'].append({
+					"DT_RowId": alert['_id'],
+					"event_at": HXAPI.dt_to_str(HXAPI.gtNoUs(alert['event_at'])),
+					"source": alert['source'],
+					"threat": tname,
+					"resolution": alert['resolution']
+				})
 		else:
 			return('', 500)
 
@@ -795,6 +836,28 @@ def datatable_acqs(hx_api_object):
 								"product_name": hresponse_data['data']['os']['product_name'],
 								"action": acq['acq']['_id']
 							})
+				return(app.response_class(response=json.dumps(myacqs), status=200, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/datatable_acqs_host'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_acqs_host(hx_api_object):
+	if request.method == 'GET':
+			myacqs = {"data": []}
+			(ret, response_code, response_data) = hx_api_object.restListAllAcquisitions(limit=500, filter_term={ "host._id": request.args.get("host") })
+			if ret:
+				for acq in response_data['data']['entries']:
+					if 'url' in acq['acq'].keys():
+						myacqurl = acq['acq']['url']
+					else:
+						myacqurl = False
+
+					myacqs['data'].append({
+						"DT_RowId": myacqurl,
+						"type": acq['type'],
+						"request_time": HXAPI.dt_to_str(HXAPI.gtNoUs(acq['request_time'])),
+						"state": acq['state']
+					})
 				return(app.response_class(response=json.dumps(myacqs), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/datatable_es'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -1367,6 +1430,64 @@ def chartjs_events_timeline(hx_api_object):
 	else:
 		return('',500)
 
+
+@ht_api.route('/api/v{0}/chartjs_host_alert_timeline'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def chartjs_host_alert_timeline(hx_api_object):
+
+	mydates = {}
+	mydates['datasets'] = []
+
+	myIOC = {
+		"label": "IOC",
+		"backgroundColor": "rgba(17, 169, 98, 0.2)",
+		"borderWidth": 2,
+		"borderColor": "#8fffc1",
+		"pointStyle": "circle",
+		"pointRadius": 2,
+		"data": []
+	}
+	myEXD = {
+		"label": "EXD",
+		"backgroundColor": "rgba(17, 169, 98, 0.2)",
+		"borderWidth": 2,
+		"borderColor": "#b20032",
+		"pointStyle": "circle",
+		"pointRadius": 2,
+		"data": []
+	}
+	myMAL = {
+		"label": "MAL",
+		"backgroundColor": "rgba(17, 169, 98, 0.2)",
+		"borderWidth": 2,
+		"borderColor": "#ffe352",
+		"pointStyle": "circle",
+		"pointRadius": 2,
+		"data": []
+	}
+
+	mydates['datasets'].append(myIOC)
+	mydates['datasets'].append(myEXD)
+	mydates['datasets'].append(myMAL)
+
+	(ret, response_code, response_data) = hx_api_object.restGetAlerts(filter_term={"agent._id": request.args.get("id")})
+	if ret:
+		for alert in response_data['data']['entries']:
+
+			if alert['source'] == "IOC":
+				mydates['datasets'][0]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
+
+			if alert['source'] == "EXD":
+				mydates['datasets'][1]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
+
+			if alert['source'] == "MAL":
+				mydates['datasets'][2]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
+
+		return(app.response_class(response=json.dumps(mydates), status=200, mimetype='application/json'))
+	else:
+		return('',500)
+
+
 @ht_api.route('/api/v{0}/chartjs_events_distribution'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def chartjs_events_distribution(hx_api_object):
@@ -1529,7 +1650,7 @@ def create_api_response(ret = True, response_code = 200, response_data = False):
 	api_response['api_response_code'] = response_code
 
 	if response_data:
-		api_response['api_response'] = HXAPI.compat_str(response_data)
+		api_response['api_response'] = json.dumps(response_data)
 
 	rcode = 200
 	if not ret and response_code:

@@ -1,6 +1,6 @@
 .host-grid-container {
   display: grid;
-  grid-template-columns: 0.5fr 1fr 0.5fr;
+  grid-template-columns: 0.7fr 1fr 0.5fr;
   /*grid-template-rows: 17% 83%; */
   grid-template-areas: "top top top" "alerts content acquisitions";
   height: 92vh;
@@ -25,13 +25,13 @@
 }
 
 .hxtool_host_panel_read_more {
-	display: inline-block;
 	background: #0d1a2b;
-	padding: 6px;
+	padding: 3px;
 	padding-left: 24px;
 	padding-right: 24px;
 	font-size: 10px;
 	font-weight: bold;
+	border-top: 1px solid rgba(15, 184, 220, 0.4);
 }
 
 .hxtool_host_panel_read_more:hover {
@@ -41,8 +41,47 @@
 
 .panelAlertsClass {
 	overflow: auto;
-	height: 71vh;
+	height: 62vh;
 }
 
-.hxtool_host_alert_table {
+.panelContentClass {
+	overflow: auto;
+	height: 62vh;
+}
+
+.panelAcqClass {
+	overflow: auto;
+	height: 62vh;
+}
+
+.hxtool_host_alert_table tbody tr:hover {
+	background: rgba(255,255,255,0.2);
+	cursor: pointer;
+}
+
+.hxtool_host_acq_table tbody tr:hover {
+	background: rgba(255,255,255,0.2);
+	cursor: pointer;
+}
+
+.hxtool_host_ul li {
+  font-size: 11px !important;
+}
+
+.hxtool_host_table {
+	width: 100%;
+	height: 140px;
+}
+
+.hxtool_host_table tbody tr:nth-child(odd) {
+	background: transparent;
+}
+
+.product {
+	text-align: center;
+}
+
+.hxtool_host_info_cell {
+	background: rgba(0,0,0,0.2);
+	font-weight: bold;
 }

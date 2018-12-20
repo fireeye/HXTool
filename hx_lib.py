@@ -228,7 +228,7 @@ class HXAPI:
 	def restGetUrl(self, url, method = 'GET'):
 
 		request = self.build_request(url, method = method)
-		(ret, response_code, response_data, response_headers) = handle_response(request)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
@@ -452,9 +452,16 @@ class HXAPI:
 	## Acquisitions
 	###############
 
-	def restListAllAcquisitions(self, limit=DEFAULT_LIMIT):
+	def restListAllAcquisitions(self, limit=DEFAULT_LIMIT, offset=0, filter_term={}):
 
-		request = self.build_request(self.build_api_route('acqs'), method = 'GET')
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}
+
+		params.update(filter_term)
+
+		request = self.build_request(self.build_api_route('acqs'), method = 'GET', params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 
 		return(ret, response_code, response_data)
@@ -1098,7 +1105,7 @@ class HXAPI:
 	@staticmethod	
 	def gtNoUs(dt_str):
 		
-		dt = dt_str[0:(len(dt_str) - 1)]
+		dt = dt_str[0:(len(dt_str) - 5)]
 		dt = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
 		return dt
 		

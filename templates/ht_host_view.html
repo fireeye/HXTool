@@ -1,8 +1,25 @@
 {% extends "layout.html" %}
-{% block title %}HXTool - OpenIOC{% endblock %}
+{% block title %}HXTool - Host view{% endblock %}
 {% block content %}
 
 <script>
+
+	function createHTML(json, isArray){
+	   
+	   var html = '<ul class="hxtool_host_ul">';
+	   for(var key in json){
+	       if(typeof json[key] == 'object'){
+	           html += '<li>' + (!isArray ? '<strong>'+ key +'</strong>' : '<strong>' + key + '</strong>') + '</li>' + createHTML(json[key], (json[key] instanceof Array ? 1 : 0));
+	       } else {
+	       	   html += '<li><strong>'+ key +'</strong> ' + json[key] +'</li>';
+//	           html += '<li>'+ json[key] +'</li>';
+	       }
+	   }
+	   return html+'</ul>';
+
+	}
+
+
 	$(document).ready(function() {
 
 		var myAgentId = getUrlParameter("host");
@@ -17,31 +34,305 @@
 			"searching": false,
 			"processing": false,
 			"columns": [
-				{ title: "Reported at" },
-				{ title: "Source" },
-				{ title: "Threat" },
-				{ title: "Resolution" }
+				{ title: "Event at", "data": "event_at" },
+				{ title: "Threat", "data": "threat" },
+				{ title: "Source", "data": "source" },
+				{ title: "Resolution", "data": "resolution" }
+			],
+			"columnDefs": [	
+				{
+				 "targets": 2,
+				 render: function ( data, type, row, meta ) {
+				 	return (host_parseSource(data));
+				 }
+				},
+				{
+				 "targets": 3,
+				 render: function ( data, type, row, meta ) {
+				 	return (host_parseResolution(data));
+				 }
+				},
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3]}
 			]
 		});
+
+		// Acqs table
+		$.fn.dataTable.ext.errMode = 'none';
+		var hostAcq_datatable = $('#hostAcqTable').DataTable( {
+			"ajax": "/api/v1/datatable_acqs_host?host=" + myAgentId,
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": false,
+			"processing": false,
+			"columns": [
+				{ "title": "Request time", "data": "request_time" },
+				{ "title": "Type", "data": "type" },
+				{ "title": "State", "data": "state" }
+			],
+			"columnDefs": [	
+				{
+				 "targets": 1,
+				 render: function ( data, type, row, meta ) {
+				 	return (host_parseAcquisitionType(data));
+				 }
+				},
+				{
+				 "targets": 2,
+				 render: function ( data, type, row, meta ) {
+				 	return (host_parseAcquisitionState(data));
+				 }
+				},
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2]}
+			]
+		});
+
+		hxtool_ajax_get_request("/api/v1/hosts/get", "id=" + myAgentId, function(myhost) {
+			myhostinfo = JSON.parse(myhost['api_response']);
+
+			$("#product").html(host_parsePlatform(myhostinfo['data']['os']['platform']));
+
+			$("#fieldHostname").html(myhostinfo['data']['hostname']);
+			$("#fieldDomain").html(myhostinfo['data']['domain']);
+			$("#fieldOS").html(myhostinfo['data']['os']['product_name']);
+			$("#fieldContainment").html(myhostinfo['data']['containment_state']);
+			$("#fieldPrimaryIP").html(myhostinfo['data']['primary_ip_address']);
+			$("#fieldLastPoll").html(myhostinfo['data']['last_poll_timestamp']);
+			$("#fieldAgentVersion").html(myhostinfo['data']['agent_version']);
+
+			// hostname, domain, product, containment state, last_poll_timestamp, primary_ip, alert_stats, agent_version
+			// sysinfo, drives, buildnumber, loggedonuser, EXG, MG, AV status, inteltimestamp, "is virtual"
+		});
+
+		hxtool_ajax_get_request("/api/v1/hosts/sysinfo", "id=" + myAgentId, function(myhost) {
+			mysysinfo = JSON.parse(myhost['api_response']);
+
+			$("#fieldDrives").html(mysysinfo['data']['drives']);
+			$("#fieldBuildnumber").html(mysysinfo['data']['buildNumber']);
+			$("#fieldVirtual").html(mysysinfo['data']['procConfigInfo']['vmGuest']);
+
+			var myloggedOnUsers = mysysinfo['data']['loggedOnUser'].toString();
+//			alert(myloggedOnUsers);
+			var myloggedOnUsersArr = myloggedOnUsers.split(",");
+			//$("#loggedOnUserPopup").find(".fe-modal__body").append(myloggedOnUsers);
+
+			$.each( myLoggedOnUsersArr, function( index, value ) {
+//				alert(value);
+				$("#loggedOnUserPopup").find(".fe-modal__body").append(value + "<br>");
+			});
+
+			//$("#loggedOnUserPopup").find(".fe-modal__body").html(myLoggedOnUsers.join + "<br>");
+
+		});
+
+		$('#loggedOnUserButton').click(function(){
+			$("#loggedOnUserPopup").show();
+		});
+
+		$("#loggedOnUserDismiss").click(function(){
+			$("#loggedOnUserPopup").hide();
+		});
+
+		$('#hostAlertTable').on('click','tr',function(){
+			hxtool_ajax_get_request("/api/v1/alerts/get", "id=" + $(this).attr("id"), function(myalert) {
+				var alert = JSON.parse(myalert['api_response']);
+				$("#hostContentPanel").find(".panelContentClass").html(createHTML(alert['data'], true));
+			});
+		});
+
+		$('#hostAcqTable').on('click','tr',function(){
+			hxtool_ajax_get_request("/api/v1/acquisition/get", "url=" + $(this).attr("id"), function(myacq) {
+				var acq = JSON.parse(myacq['api_response']);
+				$("#hostContentPanel").find(".panelContentClass").html(createHTML(acq['data'], true));
+			});
+		});
+
+
+
+
+/*
+
+		// ChartJS: Alerts timeline
+		var jsonData = $.ajax({
+			url: "/api/v1/chartjs_host_alert_timeline?id=" + myAgentId,
+			dataType: 'json',
+		}).done(function (myChartData) {
+
+			var config = {
+				type: 'line',
+				data: myChartData,
+			
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					title: {
+						display: false
+					},
+					legend: {
+						display: false
+					},						
+					tooltips: {
+						mode: 'index',
+						intersect: false,
+						borderColor: "rgba(15, 184, 220, 0.4)"
+					},
+					hover: {
+						mode: 'nearest',
+						intersect: true
+					},
+					scales: {
+						xAxes: [{
+							type: "time",
+							time: {
+								parser: 'YYYY-MM-DD HH:mm:ss',
+								unit: 'day',
+								min: '2018-12-09 18:43:53',
+								max: '2018-12-19 18:43:53'
+							},
+							ticks: {
+								source: 'data'
+							},
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							gridLines: {
+								display: false
+							}
+						}],
+						yAxes: [{
+							display: true,
+							scaleLabel: {
+								display: false,
+							},
+							ticks: {
+								beginAtZero: true,
+								maxTicksLimit: 5
+							},
+							gridLines: {
+								display: true ,
+								color: "rgba(15, 184, 220, 0.4)"
+							}
+						}]
+					}
+				}
+			}
+
+			var ctx = document.getElementById('chartjs_host_alert').getContext('2d');
+			window.chartjs_hostalert = new Chart(ctx, config);
+		});
+*/
+
+
+	var jsonData = $.ajax({
+		url: "/api/v1/chartjs_host_alert_timeline?id=" + myAgentId,
+		dataType: 'json',
+	}).done(function (myChartData) {
+
+	   new Chart(document.getElementById("chartjs_host_alert"), {
+	      type: 'line',
+	      data: myChartData,
+	      options: {
+	         scales: {
+	            xAxes: [{
+	               type: 'time',
+	               time: {
+	                  parser: 'YYYY-MM-DD HH:mm:ss',
+	                  unit: 'day',
+	                  displayFormats: {
+	                     day: 'ddd'
+	                  },
+	                  min: '2017-10-02 18:43:53',
+	                  max: '2017-10-09 18:43:53'
+	               },
+	               ticks: {
+	                  source: 'data'
+	               }
+	            }]
+	         },
+	         legend: {
+	            display: false
+	         },
+	         animation: {
+	            duration: 0,
+	         },
+	         hover: {
+	            animationDuration: 0,
+	         },
+	         responsiveAnimationDuration: 0
+	      },
+	      plugins: [{
+	         beforeInit: function(chart) {
+	            var time = chart.options.scales.xAxes[0].time, // 'time' object reference
+	               timeDiff = moment(time.max).diff(moment(time.min), 'd'); // difference (in days) between min and max date
+	            // populate 'labels' array
+	            // (create a date string for each date between min and max, inclusive)
+	            for (i = 0; i <= timeDiff; i++) {
+	               var _label = moment(time.min).add(i, 'd').format('YYYY-MM-DD HH:mm:ss');
+	               chart.data.labels.push(_label);
+	            }
+	         }
+	      }]
+	   });
+
+	  });
+
+
 
 	});
 </script>
 
 <div class="host-grid-container">
   <div class="host-top">
-	{{ htPanel.widgetHeader("Host", panelId="hostPanel") }}
-		test<br>
-		test<br>
-		test<br>
-		test<br>
+	{{ htPanel.widgetHeader("Host", panelId="hostPanel", elementAdditionalBodyClass="panelHostClass") }}
+		<table id='agentTable' class='hxtool_host_table hxtool_table'>
+			<tbody>
+				<tr>
+					<td rowspan='3' id='product' style='width: 150px; vertical-align: center; text-align: center; border-bottom: 0;'></td>
+					<td class='hxtool_host_info_cell'>Hostname</td>
+					<td id='fieldHostname'></td>
+					<td class='hxtool_host_info_cell'>Domain</td>
+				<td id='fieldDomain'></td>
+					<td class='hxtool_host_info_cell'>OS</td>
+					<td id='fieldOS'></td>
+					<td class='hxtool_host_info_cell'>Containment</td>
+					<td id='fieldContainment'></td>
+					<td rowspan='3' style='width: 250px; vertical-align: center; text-align: center; border-bottom: 0;'>
+						<canvas id="chartjs_host_alert" class='hxtool_chartjs_canvas'></canvas>
+					</td>
+				</tr>
+				<tr>
+					<td class='hxtool_host_info_cell'>Last poll</td>
+					<td id='fieldLastPoll'></td>
+					<td class='hxtool_host_info_cell'>Primary IP</td>
+					<td id='fieldPrimaryIP'></td>
+					<td class='hxtool_host_info_cell'>Agent version</td>
+					<td id='fieldAgentVersion'></td>
+					<td class='hxtool_host_info_cell'>Drives</td>
+					<td id='fieldDrives'></td>
+				</tr>
+				<tr>
+					<td class='hxtool_host_info_cell'>Buildnumber</td>
+					<td id='fieldBuildnumber'></td>
+					<td class='hxtool_host_info_cell'>Logged on user</td>
+					<td id='fieldLoggedOnUser'>
+						<button class="fe-btn fe-btn--sm fe-btn--primary" id="loggedOnUserButton" aria-label="show"><span> show </span></button>
+					</td>
+					<td class='hxtool_host_info_cell'>isVirtual</td>
+					<td id='fieldVirtual'></td>
+					<td class='hxtool_host_info_cell'>temp</td>
+					<td id='fieldTemp'></td>
+				</tr>
+			</tbody>
+		</table>
 	{{ htPanel.widgetFooter() }}
-<!--
+
 	<div style='text-align: center;'>
 		<div class='hxtool_host_panel_read_more'>
 			host details
 		</div>
 	</div>
--->
+
   </div>
   <div class="host-alerts">
  	{{ htPanel.widgetHeader("Alerts", panelId="hostAlertPanel", elementAdditionalBodyClass="panelAlertsClass") }}
@@ -49,19 +340,22 @@
 	{{ htPanel.widgetFooter() }}
   </div>
   <div class="host-content">
- 	{{ htPanel.widgetHeader("Content", panelId="hostContentPanel") }}
+ 	{{ htPanel.widgetHeader("Content", panelId="hostContentPanel", elementAdditionalBodyClass="panelContentClass") }}
 		test
 	{{ htPanel.widgetFooter() }}
   </div>
   <div class="host-acquisitions">
- 	{{ htPanel.widgetHeader("Acquisitions", panelId="hostAcqPanel") }}
-		<table id='hostAcqTable' class='hxtool_table'></table>
-		d
+ 	{{ htPanel.widgetHeader("Acquisitions", panelId="hostAcqPanel", elementAdditionalBodyClass="panelAcqClass") }}
+		<table style='width: 100%;' id='hostAcqTable' class='hxtool_table hxtool_host_acq_table'></table>
 	{{ htPanel.widgetFooter() }}
   </div>
 </div>
 
 
+{{ htModal.widgetHeader("Logged on users", modalId="loggedOnUserPopup") }}
+{{ htModal.widgetMiddle() }}
+		<button class="fe-btn fe-btn--md fe-btn--secondary" id="loggedOnUserDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
 
 
 {% endblock %}
