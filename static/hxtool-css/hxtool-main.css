@@ -7,6 +7,7 @@
 @import url("/static/hxtool-css/hxtool-chartjs.css");
 @import url("/static/hxtool-css/hxtool-scriptbuilder.css");
 @import url("/static/hxtool-css/hxtool-login.css");
+@import url("/static/hxtool-css/hxtool-host.css");
 
 body {
 	/* background-image: url("/static/3px-tile.png"), linear-gradient(180deg, #444444 12%, #777777 49%); */

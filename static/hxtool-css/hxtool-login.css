@@ -1,0 +1,15 @@
+.hxtool_login_main {
+	position: absolute;
+	left: 50%;
+	top: 20%;
+	margin-left: -250px;
+}
+
+.hxtool_login_profile {
+	list-style-type: none;
+}
+
+.hxtool_login_profile li {
+	font-size: 14px;
+	margin-bottom: 12px;
+}
