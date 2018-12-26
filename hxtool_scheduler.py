@@ -7,6 +7,7 @@ import datetime
 import calendar
 import random
 from multiprocessing.pool import ThreadPool
+from multiprocessing import cpu_count
 
 try:
 	import Queue as queue
@@ -42,20 +43,22 @@ MAX_HISTORY_QUEUE_LENGTH = 1000
 		
 # Note: scheduler resolution is a little less than a second
 class hxtool_scheduler:
-	def __init__(self, logger = logging.getLogger(__name__)):
+	def __init__(self, thread_count = None, logger = hxtool_global.get_logger(__name__)):
 		self.logger = logger
 		self._lock = threading.Lock()
 		self.task_queue = {}
 		self.history_queue = {}
 		self._poll_thread = threading.Thread(target = self._scan_task_queue, name = "PollThread")
 		self._stop_event = threading.Event()
-		self.task_threads = ThreadPool()
+		# Allow for thread oversubscription based on CPU count
+		self.thread_count = thread_count or (cpu_count() * 2)
+		self.task_threads = ThreadPool(self.thread_count)
 		self.logger.info("Task scheduler initialized.")
 
 	def _scan_task_queue(self):
 		while not self._stop_event.is_set():
 			with self._lock:
-				self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()])
+				self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()], self.thread_count)
 			self._stop_event.wait(.01)
 	
 	def _run_task(self, task):
@@ -144,12 +147,9 @@ class hxtool_scheduler:
 		return self._poll_thread.is_alive()
 		
 class hxtool_scheduler_task:
-	def __init__(self, profile_id, name, task_id = None, start_time = None, end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = logging.getLogger(__name__)):
+	def __init__(self, profile_id, name, task_id = None, start_time = None, end_time = None, next_run = None, enabled = True, immutable = False, stop_on_fail = True, parent_id = None, wait_for_parent = True, defer_interval = 30, logger = hxtool_global.get_logger(__name__)):
 		
-		try:
-			self.logger = hxtool_global.hxtool_scheduler.logger
-		except AttributeError:
-			self.logger = logger
+		self.logger = logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
 		self.task_id = task_id or str(secure_uuid4())

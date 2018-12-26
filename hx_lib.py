@@ -27,9 +27,12 @@ class HXAPI:
 	HX_MIN_API_VERSION = 2
 	DEFAULT_LIMIT = 100000
 	
-	def __init__(self, hx_host, hx_port = HX_DEFAULT_PORT, headers = None, cookies = None, proxies = None, disable_certificate_verification = True, logger = logging.getLogger(__name__), default_encoding = 'utf-8'):
-		self.logger = logger
-
+	def __init__(self, hx_host, hx_port = HX_DEFAULT_PORT, headers = None, cookies = None, proxies = None, disable_certificate_verification = True, logger_name = None, default_encoding = 'utf-8'):
+		if logger_name:
+			self.logger = logging.getLogger(logger_name)
+		else:
+			self.logger = logging.getLogger(__name__)
+		
 		self.logger.debug('__init__ start.')
 		
 		self.hx_host = hx_host

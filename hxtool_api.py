@@ -8,6 +8,7 @@ except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
 
+import hxtool_global
 from hx_lib import *
 from hxtool_util import *
 from hxtool_data_models import *
@@ -17,7 +18,7 @@ from hxtool_task_modules import *
 HXTOOL_API_VERSION = 1
 
 ht_api = Blueprint('ht_api', __name__, template_folder='templates')
-
+logger = hxtool_global.get_logger(__name__)
 
 ###################################
 # Common User interface endpoints #
@@ -393,10 +394,10 @@ def hxtool_api_acquisition_bulk_download(hx_api_object):
 	
 		hxtool_global.hxtool_scheduler.add_list(task_list)
 		
-		#app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		#app.logger.info(format_activity_log(msg="bulk acquisition action", action="download", id=request.args.get('id'), hostset=hostset_id, user=session['ht_user'], controller=session['hx_ip']))
-	#else:
-		#app.logger.warn("No host entries were returned for bulk acquisition: {}. Did you just start the job? If so, wait for the hosts to be queued up.".format(request.args.get('id')))
+		logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		logger.info(format_activity_log(msg="bulk acquisition action", action="download", id=request.args.get('id'), hostset=hostset_id, user=session['ht_user'], controller=session['hx_ip']))
+	else:
+		logger.warn("No host entries were returned for bulk acquisition: {}. Did you just start the job? If so, wait for the hosts to be queued up.".format(request.args.get('id')))
 
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
@@ -441,7 +442,7 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 					download = should_download,
 					skip_base64 = skip_base64,
 					comment=request.args.get('displayname'))
-	#app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+	logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 	
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
@@ -487,7 +488,7 @@ def hxtool_api_acquisition_bulk_new_file(hx_api_object):
 					download = should_download,
 					skip_base64 = skip_base64,
 					comment=request.form['displayname'])
-	#app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+	logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
@@ -1616,7 +1617,7 @@ def profile():
 		request_json = request.json
 		if validate_json(['hx_name', 'hx_host', 'hx_port'], request_json):
 			if app.hxtool_db.profileCreate(request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
-				app.logger.info("New controller profile added")
+				logger.info("New controller profile added")
 				return make_response_by_code(200)
 		else:
 			return make_response_by_code(400)
@@ -1633,11 +1634,11 @@ def profile_by_id(profile_id):
 		request_json = request.json
 		if validate_json(['profile_id', 'hx_name', 'hx_host', 'hx_port'], request_json):
 			if app.hxtool_db.profileUpdate(request_json['_id'], request_json['hx_name'], request_json['hx_host'], request_json['hx_port']):
-				app.logger.info("Controller profile %d modified.", profile_id)
+				logger.info("Controller profile %d modified.", profile_id)
 				return make_response_by_code(200)
 	elif request.method == 'DELETE':
 		if app.hxtool_db.profileDelete(profile_id):
-			app.logger.info("Controller profile %s deleted.", profile_id)
+			logger.info("Controller profile %s deleted.", profile_id)
 			return make_response_by_code(200)
 		else:
 			return make_response_by_code(404)

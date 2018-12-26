@@ -6,6 +6,7 @@ import logging
 from os import path
 import sys, logging, logging.handlers, socket
 
+import hxtool_global
 from hxtool_util import *
 
 #TODO: Add config documentation
@@ -52,7 +53,7 @@ class hxtool_config:
 			'critical' : logging.CRITICAL
 		}
 	
-	def __init__(self, config_file, logger = logging.getLogger(__name__)):
+	def __init__(self, config_file, logger = hxtool_global.get_logger(__name__)):
 		self.logger = logger
 		
 		self.logger.info('Reading configuration file %s', config_file)

@@ -45,7 +45,7 @@ class hxtool_session(CallbackDict, SessionMixin):
 	
 # expiration_delta is in minutes		
 class hxtool_session_interface(SessionInterface):
-	def __init__(self, app, logger=logging.getLogger(__name__), expiration_delta=30):
+	def __init__(self, app, logger = hxtool_global.get_logger(__name__), expiration_delta=30):
 		self.logger = logger
 		self.session_cache = {}
 		self.expiration_delta = expiration_delta

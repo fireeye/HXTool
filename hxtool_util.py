@@ -8,9 +8,10 @@ import threading
 import datetime
 import re
 import colorsys
+import logging
 
 try:
-	from flask import current_app, request, session, redirect, url_for
+	from flask import request, session, redirect, url_for
 except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
@@ -48,7 +49,7 @@ def valid_session_required(f):
 				session['ht_api_object'] = o.serialize()
 				return ret	
 			else:
-				current_app.logger.warn("The HX API token for the current session has expired, redirecting to the login page.")
+				hxtool_global.get_logger().warn("The HX API token for the current session has expired, redirecting to the login page.")
 		return ret
 	return is_session_valid
 	
@@ -63,6 +64,7 @@ def make_response_by_code(code):
 				400 : {'message' : 'Invalid request'},
 				404 : {'message' : 'Object not found'}}
 	return (json.dumps(code_table.get(code)), code)
+	
 
 """
 Generate a random byte string for use in encrypting the background processor credentails
