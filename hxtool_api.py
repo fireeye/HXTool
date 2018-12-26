@@ -256,6 +256,25 @@ def hxtool_api_alerts_get(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+
+#####################
+# Alert Annotations #
+#####################
+@ht_api.route('/api/v{0}/annotation/add'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_annotation_add(hx_api_object):
+	hxtool_global.hxtool_db.alertCreate(session['ht_profileid'], request.form['id'])
+	hxtool_global.hxtool_db.alertAddAnnotation(session['ht_profileid'], request.form['id'], request.form['text'], request.form['state'], session['ht_user'])
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/annotation/alert/view'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_annotation_alert_view(hx_api_object):
+	alertAnnotations = hxtool_global.hxtool_db.alertGet(session['ht_profileid'], request.args.get('id'))
+	return(app.response_class(response=json.dumps(alertAnnotations), status=200, mimetype='application/json'))
+
+
 #############
 # Scheduler #
 #############

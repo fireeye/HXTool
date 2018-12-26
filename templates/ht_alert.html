@@ -90,7 +90,21 @@
 
 		$(document).on('click', '.showannotation', function() {
 			aArr = $(this).attr("id").split("_");
-			showPopup(600, 1200, "/annotatedisplay?alertid=" + aArr[1], "annotateDisplayTable");
+
+			hxtool_ajax_get_request("/api/v1/annotation/alert/view", "id=" + aArr[1], function(myAnnotations) {
+
+				$("#annotateViewText").html("");
+
+				$.each(myAnnotations['annotations'], function(key, val) {
+
+					myAnno = "<h5 style='margin-bottom: 6px;'>On " + val['create_timestamp'] + " " + val['create_user'] + " wrote</h5>";
+					myAnno += "<textarea type='text' class='fe-input' style='height: 120px; margin-bottom: 12px;'>" + val['annotation'] + "</textarea>";
+
+					$("#annotateViewText").append(myAnno);
+				});
+
+				$("#annotationViewPopup").show();
+			});
 		});
 
 		$(document).on('mouseenter', '.alerttimestamp', function() {
@@ -116,22 +130,32 @@
 		$(document).on('click', '.addannotation', function() {
 			aArr = $(this).attr("id").split("_");
 			$("#annotationBoxID").val(aArr[1]);
+			$("#annotateText").val("");
 			$("#annotationPopup").show();
+			$("#annotateText").focus();
 		});
 
 		$(document).on('click', '.postannotation', function() {
-			alertid = $("#annotationBoxID").val();
-			$.post( "/annotateadd", $( "#annotationForm" ).serialize(), function( data ) {
-				$("#annotateText").val("");
- 				alert_datatable.ajax.reload();
-				$("#annotationBox").hide();
-				$('#shader').hide();
+			//alertid = $("#annotationBoxID").val();
+
+			var data = new FormData();
+			data.append("id", $("#annotationBoxID").val());
+			data.append("text", $("#annotateText").val());
+			data.append("state", $("#annotationState").data("id"));
+
+			hxtool_ajax_post_request("/api/v1/annotation/add", data, function() {
+				$("#annotationPopup").hide();
+				alert_datatable.ajax.reload();
 			});
 		});
 
 		$(document).on('click', '.cancelannotation', function() {
 			$("#annotateText").val("");
 			$("#annotationPopup").hide();
+		});
+
+		$(document).on('click', '.cancelannotationview', function() {
+			$("#annotationViewPopup").hide();
 		});
 
 		$("#alertTable").on("click", ".alertAction", function(){
@@ -254,7 +278,7 @@
 				 "width": "90px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='showannotation_" + row.DT_RowId + "'>show (" + data + ")</button>";
+				 		data = "<button class='showannotation fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='showannotation_" + row.DT_RowId + "'>show (" + data + ")</button>";
 				 	}
 				 	return data;
 				 }
@@ -455,35 +479,31 @@
 &nbsp;
 
 <!-- ANNOTATION POPUP -->
-<div id="annotationPopup" class="fe-modal" role="dialog" aria-modal="true">
-	<div class="fe-modal__dialog fe-modal__dialog--medium">
-		<div class="fe-modal__content">
-			<div>
-				<div class="fe-modal__header">
-					<h4 class="fe-modal__title">New Enterprise Search</h4>
-					<button class="fe-modal-close" name="button" type="button">
-						<i class="fe-icon--center fal fa-times"></i>
-					</button>
-				</div>
-			</div>
-			<div class="fe-modal__body">
+{{ htModal.widgetHeader("Add annotation", modalId="annotationPopup") }}
+	<input type='hidden' name='annotationBoxID' id='annotationBoxID' value='null'>
 
-				<input type='hidden' name='annotationBoxID' id='annotationBoxID' value='null'>
-				<textarea name='annotateText' id='annotateText' style='margin-bottom: 10px; width: 490px; height: 130px;'></textarea><br>
-				<select class='hxtool_input_select fe-input' name='annotateState' id='annotateState' style='margin-bottom: 20px; width: 150px;'>
-					<option value='1'>Investigating
-					<option value='2'>Completed
-				</select>
+	<textarea id='annotateText' style='height: 400px;' class='fe-input'></textarea>
+	<br>
 
-			</div>
-			<div class="fe-modal__footer clearfix">
-				<button class="cancelannotation fe-btn fe-btn--md fe-btn--secondary" id="annotationCancel" aria-label="Cancel"><span> Cancel </span></button>
-				<button class="fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Add </span></button>
-			</div>
-		</div>
+	{{ htDropdown.widgetHeader("Investigating", "annotationState", "1") }}
+	{{ htDropdown.widgetItem("Investigating", "1", elementIcon="fa-check") }}
+	{{ htDropdown.widgetItem("Completed", "2", elementIcon="fa-check") }}
+	{{ htDropdown.widgetFooter(elementLabel="Select the current alert state") }}
+
+{{ htModal.widgetMiddle() }}
+	<button class="cancelannotation fe-btn fe-btn--md fe-btn--secondary" id="annotationCancel" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="postannotation fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Add </span></button>
+{{ htModal.widgetFooter() }}
+
+
+<!-- VIEW ANNOTATION POPUP -->
+{{ htModal.widgetHeader("Alert annotations", modalId="annotationViewPopup") }}
+	<div id="annotateViewText">
 	</div>
-</div>
 
+{{ htModal.widgetMiddle() }}
+	<button class="cancelannotationview fe-btn fe-btn--md fe-btn--secondary" id="annotationCancel" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
 
 
 {% endblock %}
