@@ -69,10 +69,20 @@
 
 .hxtool_host_ul {
 	list-style-type: none;
+	background: url(/static/vlines/vline.png) repeat-y;
+	margin-left: 40px;
+	padding: 0;
 }
 
 .hxtool_host_ul li {
-  font-size: 12px !important;
+	margin: 0;
+	padding: 0px 12px;
+	line-height: 34px;
+	background: url(/static/vlines/node.png) no-repeat;
+}
+
+.hxtool_host_ul li:last-child {
+     background: url(/static/vlines/lastnode.png) no-repeat;
 }
 
 .hxtool_host_table {
@@ -113,4 +123,13 @@
 	font-size: 14px;
 	padding-bottom: 3px;
 	padding-left: 2px;
+}
+
+.hxtool_alert_json_item {
+	font-weight: bold;
+	border: 1px solid #10455B;
+	padding: 3px;
+	border-radius: 2px;
+	background: #0A0F18;
+
 }

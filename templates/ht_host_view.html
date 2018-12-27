@@ -9,9 +9,9 @@
 	   var html = '<ul class="hxtool_host_ul">';
 	   for(var key in json){
 	       if(typeof json[key] == 'object'){
-	           html += '<li>' + (!isArray ? '<strong>'+ key +'</strong>' : '<strong>' + key + '</strong>') + '</li>' + createHTML(json[key], (json[key] instanceof Array ? 1 : 0));
+	           html += '<li>' + (!isArray ? '<span class="hxtool_alert_json_item">'+ key +'</span>' : '<span class="hxtool_alert_json_item">' + key + '</span>') + '</li>' + createHTML(json[key], (json[key] instanceof Array ? 1 : 0));
 	       } else {
-	       	   html += '<li><strong>'+ key +'</strong> ' + json[key] +'</li>';
+	       	   html += '<li><span class="hxtool_alert_json_item">'+ key +'</span> ' + json[key] +'</li>';
 //	           html += '<li>'+ json[key] +'</li>';
 	       }
 	   }
