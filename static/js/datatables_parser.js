@@ -1,6 +1,6 @@
 function datatables_parseHostlink(data) {
 	myArr = data.split("___");
-	data = '<a class="hostLink" href="/hosts?host=' + encodeURIComponent(myArr[1]) + '">' + myArr[0] + '</a>';
+	data = '<a class="hostLink" href="/hostview?host=' + encodeURIComponent(myArr[1]) + '">' + myArr[0] + '</a>';
 	return(data);
 }
 

@@ -327,7 +327,7 @@
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		myArr = data.split("___");
-				 		data = '<a class="hostLink" href="/hosts?host=' + encodeURIComponent(myArr[1]) + '">' + myArr[0] + '</a>';
+				 		data = '<a class="hostLink" href="/hostview?host=' + encodeURIComponent(myArr[1]) + '">' + myArr[0] + '</a>';
 				 	}
 				 	return data;
 				 }
@@ -360,7 +360,7 @@
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		myArr = data.split("___");
-				 		data = '<a class="hostLink" href="/hosts?host=' + encodeURIComponent(myArr[1]) + '&alertid=' + encodeURIComponent(myArr[2]) + '">' + myArr[0] + '</a>';
+				 		data = '<a class="hostLink" href="/hostview?host=' + encodeURIComponent(myArr[1]) + '&alertid=' + encodeURIComponent(myArr[2]) + '">' + myArr[0] + '</a>';
 				 	}
 				 	return data;
 				 }

@@ -1,7 +1,7 @@
-{% macro widgetHeader(panelTitle, panelId="", panelDisplay="block", panelWidth="", elementAdditionalClass="", elementAdditionalBodyClass="") -%}
+{% macro widgetHeader(panelTitle, panelId="", panelDisplay="block", panelWidth="", elementAdditionalClass="", elementAdditionalBodyClass="", panelIcon="") -%}
 	<div id="{{panelId}}" class='fe-panel {% if elementAdditionalClass != "" %}{{elementAdditionalClass}}{% endif %}' style='display: {{panelDisplay}}; margin-top: 12px; {% if panelWidth != "" %}width: {{panelWidth}};{% endif %}'>
 		<div class="fe-panel-header fe-panel-header--no-background">
-			<div class="fe-label fe-label--background">{{panelTitle}}</div>
+			<div class="fe-label fe-label--background">{% if panelIcon != "" %}<i class='fe-icon--left fas {{panelIcon}}'></i>{% endif %}{{panelTitle}}</div>
 		</div>
 		<div class='fe-panel__body {% if elementAdditionalBodyClass != "" %}{{elementAdditionalBodyClass}}{% endif %}'>
 {% endmacro %}

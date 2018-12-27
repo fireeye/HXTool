@@ -1,9 +1,9 @@
 .host-grid-container {
   display: grid;
-  grid-template-columns: 0.7fr 1fr 0.5fr;
-  /*grid-template-rows: 17% 83%; */
+  grid-template-columns: 0.7fr 1fr 0.4fr;
+  grid-template-rows: 160px;
   grid-template-areas: "top top top" "alerts content acquisitions";
-  height: 92vh;
+  height: calc(100vh - 160px);
 }
 
 .host-top { 
@@ -39,19 +39,22 @@
 	cursor: pointer;
 }
 
+.panelHostClass {
+}
+
 .panelAlertsClass {
 	overflow: auto;
-	height: 62vh;
+	height: calc(100vh - 290px);
 }
 
 .panelContentClass {
 	overflow: auto;
-	height: 62vh;
+	height: calc(100vh - 290px);
 }
 
 .panelAcqClass {
 	overflow: auto;
-	height: 62vh;
+	height: calc(100vh - 290px);
 }
 
 .hxtool_host_alert_table tbody tr:hover {
@@ -64,13 +67,24 @@
 	cursor: pointer;
 }
 
+.hxtool_host_ul {
+	list-style-type: none;
+}
+
 .hxtool_host_ul li {
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .hxtool_host_table {
 	width: 100%;
-	height: 140px;
+}
+
+.hxtool_host_table tbody td:nth-child(1) {
+	width: 150px;
+}
+
+.hxtool_host_table tbody td:nth-child(10) {
+	width: 450px;
 }
 
 .hxtool_host_table tbody tr:nth-child(odd) {
@@ -83,5 +97,20 @@
 
 .hxtool_host_info_cell {
 	background: rgba(0,0,0,0.2);
+	width: 120px;
 	font-weight: bold;
+}
+
+.hxtool_table_host_alert {
+	width: 100%;
+	margin-bottom: 24px;
+}
+
+.hxtool_alert_header {
+	margin-block-start: 6px;
+	margin-block-end: 0;
+	border-bottom: 1px solid rgba(15, 184, 220, 0.4);
+	font-size: 14px;
+	padding-bottom: 3px;
+	padding-left: 2px;
 }

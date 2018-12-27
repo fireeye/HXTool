@@ -97,8 +97,21 @@
 
 				$.each(myAnnotations['annotations'], function(key, val) {
 
-					myAnno = "<h5 style='margin-bottom: 6px;'>On " + val['create_timestamp'] + " " + val['create_user'] + " wrote</h5>";
-					myAnno += "<textarea type='text' class='fe-input' style='height: 120px; margin-bottom: 12px;'>" + val['annotation'] + "</textarea>";
+					if (val['state'] == 1) {
+						myStateColor = "#ffe352";
+						myStateText = "Investigating";
+					}
+					else if (val['state'] == 2) {
+						myStateColor = "#11a962";
+						myStateText = "Completed";
+					}
+					else {
+						myStateColor = "#eeeeee";
+						myStateText = "Unknown";
+					}
+
+					myAnno = "<h5 style='margin-bottom: 6px;'><span style='color: " + myStateColor + ";'>[" + myStateText + "]</span> On " + val['create_timestamp'] + " " + val['create_user'] + " wrote</h5>";
+					myAnno += "<textarea type='text' class='fe-input' style='height: 80px; margin-bottom: 12px;'>" + val['annotation'] + "</textarea>";
 
 					$("#annotateViewText").append(myAnno);
 				});

@@ -34,6 +34,11 @@ select {
   background: rgba(15, 184, 220, 0.4);
 }
 
+.mainPlaceHolder {
+	margin: 12px 12px;
+	min-height: calc(100vh - 84px);
+}
+
 .hxtool_shader {
 	background: rgba(0,0,0,0.6);
 	position: absolute;
