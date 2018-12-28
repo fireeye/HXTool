@@ -869,6 +869,8 @@ def datatable_acqs_host(hx_api_object):
 				for acq in response_data['data']['entries']:
 					if 'url' in acq['acq'].keys():
 						myacqurl = acq['acq']['url']
+					elif (acq['type'] == "live"):
+						myacqurl = "/hx/api/v3/acqs/live/" + HXAPI.compat_str(acq['acq']['_id'])
 					else:
 						myacqurl = False
 

@@ -12,7 +12,6 @@
 	           html += '<li>' + (!isArray ? '<span class="hxtool_alert_json_item">'+ key +'</span>' : '<span class="hxtool_alert_json_item">' + key + '</span>') + '</li>' + createHTML(json[key], (json[key] instanceof Array ? 1 : 0));
 	       } else {
 	       	   html += '<li><span class="hxtool_alert_json_item">'+ key +'</span> ' + json[key] +'</li>';
-//	           html += '<li>'+ json[key] +'</li>';
 	       }
 	   }
 	   return html+'</ul>';
@@ -22,8 +21,13 @@
 	function parseTableData(myIndex, myValue) {
 		var r = ""
 
-		if (["md5sum", "sha1sum", "sha256sum"].indexOf(myIndex) >= 0) {
+		if (["md5sum", "sha1sum", "sha256sum", "fileWriteEvent/md5"].indexOf(myIndex) >= 0 && myValue.length > 31) {
 			r += "<i style='color: #11a962; margin-right: 6px;' class='fas fa-hashtag'></i>" + myValue;
+			r += "<div style='float: right;'>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary' data-link='https://www.virustotal.com/#/file/" + myValue + "/detection' aria-label='show'><span>virustotal</span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary' data-link='https://intelligence.fireeye.com/search.html?search=" + myValue +"' aria-label='show'><span>isight</span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary' data-link='https://www.google.com/search?q=" + myValue + "' aria-label='show'><span>google</span></button>";
+			r += "</div>";
 		}
 		else if (["container", "packed", "hidden", "system-file", "read-only", "temporary"].indexOf(myIndex) >= 0) {
 			if (myValue == "false") {
@@ -32,6 +36,12 @@
 			else {
 				r += "<i style='color: #11a962; margin-right: 6px;' class='fas fa-check'></i>" + myValue;
 			}
+		}
+		else if (["fileWriteEvent/fullPath", "file-path"].indexOf(myIndex) >= 0) {
+			r += myValue;
+			r += "<div style='float: right;'>";
+			r += "<button class='hxtool_host_alert_goAcquire fe-btn fe-btn--sm fe-btn--primary' data-id='" + myValue + "' aria-label='acquire'><span>acquire</span></button>";
+			r += "</div>";
 		}
 		else {
 			r = myValue;
@@ -54,7 +64,57 @@
 		return(r);
 	}
 
-	function parseAlert(myAlert) {
+	function parseHostAcquisition(myAcq) {
+		var r = "";
+
+		if ('zip_passphrase' in myAcq && !('script' in myAcq)) {
+			r += "<h5 class='hxtool_alert_header'>File Acquisition</h5>";
+			r += generateTable({
+				"File": myAcq['req_path'] + myAcq['req_filename'],
+				"State": myAcq['state'],
+				"Requested at": myAcq['request_time'],
+				"Finished": myAcq['finish_time'],
+				"Requested by": myAcq['request_actor']['username'],
+				"Zip Passphrase": myAcq['zip_passphrase']
+			});
+		}
+		else if ('disable_cef' in myAcq) {
+			r += "<h5 class='hxtool_alert_header'>Triage Acquisition</h5>";
+			r += generateTable({
+				"State": myAcq['state'],
+				"Message": myAcq['error_message'],
+				"Requested at": myAcq['request_time'],
+				"Requested by": myAcq['request_actor']['username'],
+				"Around timestamp": myAcq['req_timestamp'],
+				"Finished": myAcq['finish_time']
+			});
+		}
+		else if ('bulk_acq' in myAcq) {
+			r += "<h5 class='hxtool_alert_header'>Bulk Acquisition</h5>";
+			r += generateTable({
+				"State": myAcq['state'],
+				"Queued": myAcq['queued_at'],
+				"Completed at": myAcq['complete_at'],
+				"Message": myAcq['error'],
+				"Bulk Acq ID": myAcq['bulk_acq']['_id']
+			});
+		}
+		else if ('script' in myAcq) {
+			r += "<h5 class='hxtool_alert_header'>Data Acquisition</h5>";
+			r += generateTable({
+				"State": myAcq['state'],
+				"Message": myAcq['error_message'],
+				"Comment": myAcq['comment'],
+				"Name": myAcq['name'],
+				"Requested at": myAcq['request_time'],
+				"Requested by": myAcq['request_actor']['username'],
+				"Finished": myAcq['finish_time']
+			});
+		}
+		return(r);
+	}
+
+	function parseHostAlert(myAlert) {
 
 		var r = "";
 
@@ -180,6 +240,7 @@
 			]
 		});
 
+		// Get hostinfo
 		hxtool_ajax_get_request("/api/v1/hosts/get", "id=" + myAgentId, function(myhost) {
 			myhostinfo = JSON.parse(myhost['api_response']);
 
@@ -193,10 +254,9 @@
 			$("#fieldLastPoll").html(myhostinfo['data']['last_poll_timestamp']);
 			$("#fieldAgentVersion").html(myhostinfo['data']['agent_version']);
 
-			// hostname, domain, product, containment state, last_poll_timestamp, primary_ip, alert_stats, agent_version
-			// sysinfo, drives, buildnumber, loggedonuser, EXG, MG, AV status, inteltimestamp, "is virtual"
 		});
 
+		// Get sysinfo
 		hxtool_ajax_get_request("/api/v1/hosts/sysinfo", "id=" + myAgentId, function(myhost) {
 			mysysinfo = JSON.parse(myhost['api_response']);
 
@@ -205,17 +265,17 @@
 			$("#fieldVirtual").html(mysysinfo['data']['procConfigInfo']['vmGuest']);
 
 			var myloggedOnUsers = mysysinfo['data']['loggedOnUser'].toString();
-//			alert(myloggedOnUsers);
 			var myloggedOnUsersArr = myloggedOnUsers.split(",");
-			//$("#loggedOnUserPopup").find(".fe-modal__body").append(myloggedOnUsers);
 
-			$.each( myLoggedOnUsersArr, function( index, value ) {
-//				alert(value);
+			$.each( myloggedOnUsersArr, function( index, value ) {
 				$("#loggedOnUserPopup").find(".fe-modal__body").append(value + "<br>");
 			});
 
-			//$("#loggedOnUserPopup").find(".fe-modal__body").html(myLoggedOnUsers.join + "<br>");
+		});
 
+
+		$('#hostContentPanel').on('click','.hxtool_host_alert_goLink',function(){
+			window.open($(this).data("link"), '_blank');
 		});
 
 		$('#loggedOnUserButton').click(function(){
@@ -230,6 +290,10 @@
 			$(this).next("div").show(200);
 		});
 
+		$('#hostContentPanel').on('click','.allAcqDetailsButton',function(){
+			$(this).next("div").show(200);
+		});
+
 		$('#hostAlertTable').on('click','tr',function(){
 			hxtool_ajax_get_request("/api/v1/alerts/get", "id=" + $(this).attr("id"), function(myalert) {
 
@@ -239,7 +303,7 @@
 				$("#hostContentPanel").find(".panelContentClass").html("");
 
 				// Load alert template into content panel
-				$("#hostContentPanel").find(".panelContentClass").html(parseAlert(alert['data']));
+				$("#hostContentPanel").find(".panelContentClass").html(parseHostAlert(alert['data']));
 				
 				// Show all alert data
 				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAlertDetailsButton fe-btn fe-btn--sm fe-btn--primary' aria-label='show'><span> show all alert details </span></button>");
@@ -251,7 +315,16 @@
 		$('#hostAcqTable').on('click','tr',function(){
 			hxtool_ajax_get_request("/api/v1/acquisition/get", "url=" + $(this).attr("id"), function(myacq) {
 				var acq = JSON.parse(myacq['api_response']);
-				$("#hostContentPanel").find(".panelContentClass").html(createHTML(acq['data'], true));
+
+				// First clear the content panel
+				$("#hostContentPanel").find(".panelContentClass").html("");
+
+				// Load acquisition template into content panel
+				$("#hostContentPanel").find(".panelContentClass").html(parseHostAcquisition(acq['data']));
+
+				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAcqDetailsButton fe-btn fe-btn--sm fe-btn--primary' aria-label='show'><span> show all acquisition details </span></button>");
+				$("#hostContentPanel").find(".panelContentClass").append("<div style='display: none;' class='acqAllDetails'></div>");
+				$("#hostContentPanel").find(".panelContentClass").find(".acqAllDetails").html(createHTML(acq['data'], true));
 			});
 		});
 
@@ -452,6 +525,15 @@
   </div>
   <div class="host-content">
  	{{ htPanel.widgetHeader("Content", panelId="hostContentPanel", elementAdditionalBodyClass="panelContentClass", panelIcon="fa-home") }}
+ 		<div style='float: left; text-align: center; color: rgba(255, 255, 255, 0.1);'>
+	 		<i style='color: rgba(255, 255, 255, 0.1); margin-right: 6px;' class='fas fa-7x fa-arrow-circle-left'></i><br>
+	 		Alerts
+	 	</div>
+	 	<div style='float: right; text-align: center; color: rgba(255, 255, 255, 0.1);'>
+	 		<i style='color: rgba(255, 255, 255, 0.1); margin-right: 6px;' class='fas fa-7x fa-arrow-circle-right'></i><br>
+	 		Acquisitions
+	 	</div>
+	 	
 	{{ htPanel.widgetFooter() }}
   </div>
   <div class="host-acquisitions">

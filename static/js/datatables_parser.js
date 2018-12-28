@@ -54,7 +54,7 @@ function datatables_parseAcquisitionType(data) {
 	}
 	else if (data == "bulk") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-database fa-lg fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>File</b>";
+		data += "<i class='fas fa-database fa-lg fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Bulk</b>";
 		data += "</span>";
 	}
 	else {
@@ -81,7 +81,7 @@ function host_parseAcquisitionType(data) {
 	}
 	else if (data == "bulk") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-database fa-sm fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>File</b>";
+		data += "<i class='fas fa-database fa-sm fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Bulk</b>";
 		data += "</span>";
 	}
 	else {
