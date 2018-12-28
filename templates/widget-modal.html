@@ -1,6 +1,6 @@
-{% macro widgetHeader(modalTitle, modalId="") -%}
+{% macro widgetHeader(modalTitle, modalId="", modalSize="medium") -%}
 	<div id="{{modalId}}" class="fe-modal" role="dialog" aria-modal="true">
-		<div class="fe-modal__dialog fe-modal__dialog--medium">
+		<div class="fe-modal__dialog fe-modal__dialog--{{modalSize}}">
 			<div class="fe-modal__content">
 				<div>
 					<div class="fe-modal__header">

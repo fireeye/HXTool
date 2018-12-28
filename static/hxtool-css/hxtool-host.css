@@ -116,6 +116,11 @@
 	margin-bottom: 24px;
 }
 
+.hxtool_table_host_alert tbody tr:nth-child(odd) {
+	background: transparent;
+}
+
+
 .hxtool_alert_header {
 	margin-block-start: 6px;
 	margin-block-end: 0;
@@ -136,4 +141,9 @@
 
 .hxtool_host_alert_goLink {
 	margin-right: 6px;
+}
+
+.acqDownload {
+	display: block;
+	margin-bottom: 12px;
 }

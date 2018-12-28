@@ -50,6 +50,10 @@
 		return(r);
 	}
 
+	function isObject(obj) {
+		return obj === Object(obj);
+	}
+
 	function generateTable(myData) {
 		var r = "<table class='hxtool_table_host_alert hxtool_table'>";
 		r += "<tbody>";
@@ -57,6 +61,27 @@
 			r += "<tr>";
 			r += "<td class='hxtool_host_info_cell'>" + index + "</td>";
 			r += "<td>" + parseTableData(index, value) + "</td>";
+			r += "</tr>";
+		});
+		r += "</tbody>";
+		r += "</table>";
+		return(r);
+	}
+
+	function generateNestedTable(myData) {
+		var r = "<table class='hxtool_table_host_alert hxtool_table'>";
+		r += "<tbody>";
+		$.each( myData, function( index, value ) {
+			r += "<tr>";
+			r += "<td class='hxtool_host_info_cell'>" + index + "</td>";
+			r += "<td>";
+			if (isObject(value)) {
+				r += generateNestedTable(value);
+			}
+			else {
+				r += value
+			}
+			r += "</td>";
 			r += "</tr>";
 		});
 		r += "</tbody>";
@@ -254,6 +279,9 @@
 			$("#fieldLastPoll").html(myhostinfo['data']['last_poll_timestamp']);
 			$("#fieldAgentVersion").html(myhostinfo['data']['agent_version']);
 
+			$("#showAllHostDataPopup").find(".fe-modal__body").append("<h5 class='hxtool_alert_header'>Hostinfo</h5>");
+			$("#showAllHostDataPopup").find(".fe-modal__body").append(generateNestedTable(myhostinfo['data']));
+
 		});
 
 		// Get sysinfo
@@ -271,6 +299,9 @@
 				$("#loggedOnUserPopup").find(".fe-modal__body").append(value + "<br>");
 			});
 
+			$("#showAllHostDataPopup").find(".fe-modal__body").append("<h5 class='hxtool_alert_header'>Sysinfo</h5>");
+			$("#showAllHostDataPopup").find(".fe-modal__body").append(generateNestedTable(mysysinfo['data']));
+
 		});
 
 
@@ -284,6 +315,14 @@
 
 		$("#loggedOnUserDismiss").click(function(){
 			$("#loggedOnUserPopup").hide();
+		});
+
+		$('#showAllHostData').click(function(){
+			$("#showAllHostDataPopup").show();
+		});
+
+		$("#showAllHostDataDismiss").click(function(){
+			$("#showAllHostDataPopup").hide();
 		});
 
 		$('#hostContentPanel').on('click','.allAlertDetailsButton',function(){
@@ -308,11 +347,12 @@
 				// Show all alert data
 				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAlertDetailsButton fe-btn fe-btn--sm fe-btn--primary' aria-label='show'><span> show all alert details </span></button>");
 				$("#hostContentPanel").find(".panelContentClass").append("<div style='display: none;' class='alertAllDetails'></div>");
-				$("#hostContentPanel").find(".panelContentClass").find(".alertAllDetails").html(createHTML(alert['data'], true));
+				$("#hostContentPanel").find(".panelContentClass").find(".alertAllDetails").html(generateNestedTable(alert['data']));
 			});
 		});
 
-		$('#hostAcqTable').on('click','tr',function(){
+		$('#hostAcqTable').on('click','tr',function() {
+			myUrl = $(this).attr("id");
 			hxtool_ajax_get_request("/api/v1/acquisition/get", "url=" + $(this).attr("id"), function(myacq) {
 				var acq = JSON.parse(myacq['api_response']);
 
@@ -322,10 +362,28 @@
 				// Load acquisition template into content panel
 				$("#hostContentPanel").find(".panelContentClass").html(parseHostAcquisition(acq['data']));
 
+				myUrlArr = myUrl.split("/");
+				$("#hostContentPanel").find(".panelContentClass").append("<button class='acqDownload fe-btn fe-btn--sm fe-btn--primary' data-type='" + myUrlArr[5] + "' data-id='" + myUrl + "' aria-label='download'><span> download </span></button>")
+
 				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAcqDetailsButton fe-btn fe-btn--sm fe-btn--primary' aria-label='show'><span> show all acquisition details </span></button>");
 				$("#hostContentPanel").find(".panelContentClass").append("<div style='display: none;' class='acqAllDetails'></div>");
-				$("#hostContentPanel").find(".panelContentClass").find(".acqAllDetails").html(createHTML(acq['data'], true));
+				$("#hostContentPanel").find(".panelContentClass").find(".acqAllDetails").html(generateNestedTable(acq['data']));
 			});
+		});
+
+		
+		$('#hostContentPanel').on('click','.acqDownload',function() {
+
+			if ($(this).data("type") == "files" || $(this).data("type") == "bulk") {
+				location.href = "/api/v1/acquisition/download?id=" + $(this).data("id") + ".zip";
+			}
+			else if ($(this).data("type") == "live") {
+				location.href = "/api/v1/acquisition/download?id=" + $(this).data("id") + ".mans&content=json";
+			}
+			else {
+				location.href = "/api/v1/acquisition/download?id=" + $(this).data("id") + ".mans";
+			}
+			
 		});
 
 
@@ -502,8 +560,10 @@
 					</td>
 					<td class='hxtool_host_info_cell'>isVirtual</td>
 					<td id='fieldVirtual'></td>
-					<td class='hxtool_host_info_cell'>temp</td>
-					<td id='fieldTemp'></td>
+					<td class='hxtool_host_info_cell'>All data</td>
+					<td id='fieldAllData'>
+						<button class="fe-btn fe-btn--sm fe-btn--primary" id="showAllHostData" aria-label="show"><span> show </span></button>
+					</td>
 				</tr>
 			</tbody>
 		</table>
@@ -549,5 +609,9 @@
 		<button class="fe-btn fe-btn--md fe-btn--secondary" id="loggedOnUserDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
 {{ htModal.widgetFooter() }}
 
+{{ htModal.widgetHeader("Host and sysinfo", modalId="showAllHostDataPopup", modalSize="large") }}
+{{ htModal.widgetMiddle() }}
+		<button class="fe-btn fe-btn--md fe-btn--secondary" id="showAllHostDataDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
 
 {% endblock %}
