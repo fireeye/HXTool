@@ -46,7 +46,6 @@ from hxtool_session import *
 from hxtool_scheduler import *
 from hxtool_task_modules import *
 
-
 # Import HXTool API Flask blueprint
 from hxtool_api import ht_api
 
@@ -101,24 +100,13 @@ def scheduler_view(hx_api_object):
 	return render_template('ht_scheduler.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### Script builder page
-###############################
-### TODO: CONVERT TO API!!! ###
-###############################
 @app.route('/scriptbuilder', methods=['GET', 'POST'])
 @valid_session_required
 def scriptbuilder_view(hx_api_object):
-	if request.method == 'POST':
-		
-		mydata = request.get_json(silent=True)
-
-		app.hxtool_db.scriptCreate(mydata['scriptName'], HXAPI.b64(json.dumps(mydata['script'], indent=4).encode()), session['ht_user'])
-		app.logger.info(format_activity_log(msg="new scriptbuilder acquisiton script", name=mydata['scriptName'], user=session['ht_user'], controller=session['hx_ip']))
-		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
-	else:
-		myauditspacefile = open(combine_app_path('static/acquisitions.json'), 'r')
-		auditspace = myauditspacefile.read()
-		myauditspacefile.close()
-		return render_template('ht_scriptbuilder.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), auditspace=auditspace)
+	myauditspacefile = open(combine_app_path('static/acquisitions.json'), 'r')
+	auditspace = myauditspacefile.read()
+	myauditspacefile.close()
+	return render_template('ht_scriptbuilder.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), auditspace=auditspace)
 
 
 ### Task profile page

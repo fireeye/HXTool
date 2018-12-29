@@ -283,7 +283,7 @@
 				$.ajax
 				({
 					type: "POST",
-					url: '/scriptbuilder',
+					url: '/api/v1/scripts/builder',
 					dataType: 'json',
 					contentType: 'application/json',
 					data: JSON.stringify(myData, null, 4),
@@ -291,10 +291,10 @@
 						window.location.href = "/scripts";
 					},
 					error: function (xhr, status) {
-						enableStatusBarLive("An error occured while storing the script in HXTool", 200, "ht_statusbar_notifyRed");
+						$("#hxtoolMessageBody").html(JSON.stringify(xhr['responseText']));
+						$("#hxtoolMessage").show();
 					}
 				});
-
 
 			}
 			else {

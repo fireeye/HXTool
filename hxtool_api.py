@@ -535,6 +535,18 @@ def hxtool_api_scripts_upload(hx_api_object):
 	(r, rcode) = create_api_response(ret=True)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/scripts/builder'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_scripts_builder(hx_api_object):
+	mydata = request.get_json(silent=True)
+
+	app.hxtool_db.scriptCreate(mydata['scriptName'], HXAPI.b64(json.dumps(mydata['script'], indent=4).encode()), session['ht_user'])
+	app.logger.info(format_activity_log(msg="new scriptbuilder acquisiton script", name=mydata['scriptName'], user=session['ht_user'], controller=session['hx_ip']))
+
+	(r, rcode) = create_api_response(ret=True)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
 ##############
 # Datatables #
 ##############
