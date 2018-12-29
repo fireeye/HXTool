@@ -34,25 +34,6 @@ def testcall5(hx_api_object):
 		else:
 			return('',response_code)
 
-@ht_api.route('/api/v{0}/acquisition/download'.format(HXTOOL_API_VERSION), methods=['GET'])
-@valid_session_required
-def hxtool_api_acquisition_download(hx_api_object):
-	if request.args.get('id'):
-		if request.args.get('content') == "json":
-			(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'), accept = "application/json")
-		else:
-			(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
-		if ret:
-			flask_response = Response(iter_chunk(response_data))
-			flask_response.headers['Content-Type'] = response_data.headers['Content-Type']
-			flask_response.headers['Content-Disposition'] = response_data.headers['Content-Disposition']
-			return flask_response
-		else:
-			(r, rcode) = create_api_response(ret, response_code, response_data)
-			return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
-	else:
-		abort(404)
-
 @ht_api.route('/api/v{0}/getHealth'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def getHealth(hx_api_object):
@@ -77,6 +58,47 @@ def hxtool_api_acquisition_get(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/acquisition/download'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_download(hx_api_object):
+	if request.args.get('id'):
+		if request.args.get('content') == "json":
+			(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'), accept = "application/json")
+		else:
+			(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
+		if ret:
+			flask_response = Response(iter_chunk(response_data))
+			flask_response.headers['Content-Type'] = response_data.headers['Content-Type']
+			flask_response.headers['Content-Disposition'] = response_data.headers['Content-Disposition']
+			return flask_response
+		else:
+			(r, rcode) = create_api_response(ret, response_code, response_data)
+			return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+	else:
+		abort(404)
+
+@ht_api.route('/api/v{0}/acquisition/file'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_file(hx_api_object):
+
+	if request.args.get('type') == "api":
+		mode = True
+	if request.args.get('type') == "raw":
+		mode = False
+
+	print(request.args)
+
+	if '\\' in request.args.get('filepath'):
+		fileName = request.args.get('filepath').rsplit("\\", 1)[1]
+		filePath = request.args.get('filepath').rsplit("\\", 1)[0]
+	elif '/' in request.args.get('filepath'):
+		fileName = request.args.get('filepath').rsplit("/", 1)[1]
+		filePath = request.args.get('filepath').rsplit("/", 1)[0]
+		
+	(ret, response_code, response_data) = hx_api_object.restAcquireFile(request.args.get('id'), filePath, fileName, mode)
+
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 #####################
 # Enterprise Search #

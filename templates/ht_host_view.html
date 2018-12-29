@@ -21,6 +21,8 @@
 	function parseTableData(myIndex, myValue) {
 		var r = ""
 
+		var myTimestampFields = ["Event at", "Matched at", "Reported at", "Earliest detection time", "creation-time", "modification-time", "access-time", "fileWriteEvent/timestamp"];
+
 		if (["md5sum", "sha1sum", "sha256sum", "fileWriteEvent/md5"].indexOf(myIndex) >= 0 && myValue.length > 31) {
 			r += "<i style='color: #11a962; margin-right: 6px;' class='fas fa-hashtag'></i>" + myValue;
 			r += "<div style='float: right;'>";
@@ -42,6 +44,10 @@
 			r += "<div style='float: right;'>";
 			r += "<button class='hxtool_host_alert_goAcquire fe-btn fe-btn--sm fe-btn--primary' data-id='" + myValue + "' aria-label='acquire'><span>acquire</span></button>";
 			r += "</div>";
+		}
+		else if (myTimestampFields.indexOf(myIndex) >= 0) {
+			myTS = myValue.substring(0, myValue.length-5);
+			r += myTS.replace("T", " ");
 		}
 		else {
 			r = myValue;
@@ -79,7 +85,7 @@
 				r += generateNestedTable(value);
 			}
 			else {
-				r += value
+				r += parseTableData(index, value);
 			}
 			r += "</td>";
 			r += "</tr>";
@@ -152,12 +158,33 @@
 				"Reported at": myAlert['reported_at'],
 				"Resolution": myAlert['resolution'],
 				"Is false positive?": myAlert['is_false_positive'],
-				"Event ID": myAlert['event_id'],
+				"Event ID": myAlert['_id'],
 				"Event type": myAlert['event_type']
 			});
 
 			r += "<h5 class='hxtool_alert_header'>Event data</h5>";
 			r += generateTable(myAlert['event_values']);
+
+			return(r);
+		}
+		else if (myAlert['source'] == "EXD") {
+			r += "<h5 class='hxtool_alert_header'>Exploit Guard Alert</h5>";
+			r += generateTable({
+				"Event at": myAlert['event_at'],
+				"Matched at": myAlert['matched_at'],
+				"Reported at": myAlert['reported_at'],
+				"Resolution": myAlert['resolution'],
+				"Is false positive?": myAlert['is_false_positive'],
+				"Event ID": myAlert['_id']
+			});
+
+			r += "<h5 class='hxtool_alert_header'>Exploited Process</h5>";
+			r += generateTable({
+				"Process": myAlert['event_values']['process_name'],
+				"Process ID": myAlert['event_values']['process_id'],
+				"Earliest detection time": myAlert['event_values']['earliest_detection_time'],
+				"Behaviors": generateTable(myAlert['event_values']['messages'])
+			});
 
 			return(r);
 		}
@@ -217,6 +244,11 @@
 				{ title: "Source", "data": "source" },
 				{ title: "Resolution", "data": "resolution" }
 			],
+			"initComplete": function(settings, json) {
+				if (getUrlParameter("alertid") != "undefined") {
+					$('#hostAlertTable').find("#" + getUrlParameter("alertid")).click();
+				}
+			},
 			"columnDefs": [	
 				{
 				 "targets": 2,
@@ -230,7 +262,7 @@
 				 	return (host_parseResolution(data));
 				 }
 				},
-				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3]}
+				{"className": "hxtool_table_cell_center", "targets": [0, 2]}
 			]
 		});
 
@@ -261,7 +293,7 @@
 				 	return (host_parseAcquisitionState(data));
 				 }
 				},
-				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2]}
+				{"className": "hxtool_table_cell_center", "targets": [0]}
 			]
 		});
 
@@ -333,6 +365,16 @@
 			$(this).next("div").show(200);
 		});
 
+		$('#hostContentPanel').on('click','.hxtool_host_alert_goAcquire',function(){
+			var myAgentID = (myhostinfo['data']['_id']);
+			var myFilePath = $(this).data("id");
+
+			hxtool_ajax_get_request("/api/v1/acquisition/file", "id=" + myAgentID + "&type=api&filepath=" + myFilePath, function(resp) {
+				hostAcq_datatable.ajax.reload();
+			});
+
+		});
+
 		$('#hostAlertTable').on('click','tr',function(){
 			hxtool_ajax_get_request("/api/v1/alerts/get", "id=" + $(this).attr("id"), function(myalert) {
 
@@ -385,6 +427,8 @@
 			}
 			
 		});
+
+
 
 
 

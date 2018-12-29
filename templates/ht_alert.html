@@ -229,7 +229,9 @@
 				 "targets": 1,
 				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
-					return(datatables_parseHostlink(data));
+					myArr = data.split("___");
+					data = '<a class="hostLink" href="/hostview?host=' + encodeURIComponent(myArr[1]) + '&alertid=' + encodeURIComponent(myArr[2]) + '">' + myArr[0] + '</a>';
+					return(data);
 				 }
 				},
 				{
