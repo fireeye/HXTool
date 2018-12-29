@@ -76,17 +76,17 @@ def nl2br(eval_ctx, value):
 def dashboard(hx_api_object):
 	return render_template('ht_main-dashboard.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
-### New host drilldown page
-@app.route('/hostview', methods=['GET'])
-@valid_session_required
-def host_view(hx_api_object):
-	return render_template('ht_host_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-
 ### AV Dashboard
 @app.route('/dashboard-av', methods=['GET'])
 @valid_session_required
 def dashboardav(hx_api_object):
 	return render_template('ht_dashboard-av.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+### New host drilldown page
+@app.route('/hostview', methods=['GET'])
+@valid_session_required
+def host_view(hx_api_object):
+	return render_template('ht_host_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### Alerts page
 @app.route('/alert', methods=['GET'])
@@ -98,20 +98,12 @@ def alert(hx_api_object):
 @app.route('/scheduler', methods=['GET'])
 @valid_session_required
 def scheduler_view(hx_api_object):
-	if 'action' in request.args.keys():
-		key_to_delete = request.args.get('id')
-
-		for task in hxtool_global.hxtool_scheduler.tasks():
-			if task['parent_id'] == key_to_delete:
-				hxtool_global.hxtool_scheduler.remove(task['task_id'])
-
-		hxtool_global.hxtool_scheduler.remove(key_to_delete)
-
-		return redirect("/scheduler", code=302)
-	else:
-		return render_template('ht_scheduler.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+	return render_template('ht_scheduler.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### Script builder page
+###############################
+### TODO: CONVERT TO API!!! ###
+###############################
 @app.route('/scriptbuilder', methods=['GET', 'POST'])
 @valid_session_required
 def scriptbuilder_view(hx_api_object):
@@ -130,6 +122,9 @@ def scriptbuilder_view(hx_api_object):
 
 
 ### Task profile page
+###############################
+### TODO: CONVERT TO API!!! ###
+###############################
 @app.route('/taskprofile', methods=['GET', 'POST'])
 @valid_session_required
 def taskprofile(hx_api_object):
@@ -180,71 +175,25 @@ def taskprofile(hx_api_object):
 
 
 ### Bulk acq page
-@app.route('/bulkacq', methods=['GET', 'POST'])
+@app.route('/bulkacq', methods=['GET'])
 @valid_session_required
 def bulkacq_view(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restListHostsets()
+	hostsets = formatHostsetsFabric(response_data)
 
-	if request.method == 'POST':
-		start_time = None
-		interval = None
-		
-		if 'schedule' in request.form.keys():
-			if request.form['schedule'] == 'run_at':
-				start_time = HXAPI.dt_from_str(request.form['scheduled_timestamp'])
-			
-			schedule = None	
-			if request.form['schedule'] == 'run_interval':
-				schedule = {
-					'minutes' : request.form.get('intervalMin', None),
-					'hours'  : request.form.get('intervalHour', None),
-					'day_of_week' : request.form.get('intervalWeek', None),
-					'day_of_month' : request.form.get('intervalDay', None)
-				}
+	myscripts = app.hxtool_db.scriptList()
+	scripts = formatScriptsFabric(myscripts)
 
-		bulk_acquisition_script = None
-		skip_base64 = False
-		should_download = False
-		
-		if 'file' in request.form.keys():
-			f = request.files['bulkscript']
-			bulk_acquisition_script = f.read()
-		elif 'store' in request.form.keys():
-			bulk_acquisition_script = app.hxtool_db.scriptGet(request.form['script'])['script']
-			skip_base64 = True
-		
-		task_profile = None
-		if request.form.get('taskprocessor', False):
-			task_profile = request.form.get('taskprofile_id', None)
-			should_download = True
-			
-		submit_bulk_job(hx_api_object, 
-						int(request.form['bulkhostset']), 
-						bulk_acquisition_script, 
-						start_time = start_time, 
-						schedule = schedule, 
-						task_profile = task_profile, 
-						download = should_download,
-						skip_base64 = skip_base64,
-						comment=request.form['bulkcomment'])
-		app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		
-		return redirect("/bulkacq", code=302)
-	else:
-		(ret, response_code, response_data) = hx_api_object.restListHostsets()
-		hostsets = formatHostsetsFabric(response_data)
-
-		myscripts = app.hxtool_db.scriptList()
-		scripts = formatScriptsFabric(myscripts)
-
-		mytaskprofiles = app.hxtool_db.taskProfileList()
-		taskprofiles = formatTaskprofilesFabric(mytaskprofiles)
+	mytaskprofiles = app.hxtool_db.taskProfileList()
+	taskprofiles = formatTaskprofilesFabric(mytaskprofiles)
 
 	return render_template('ht_bulkacq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, scripts=scripts, taskprofiles=taskprofiles)
 
 
 ### Hosts
-##########
-
+###############################
+### TODO: CONVERT TO API!!! ###
+###############################
 @app.route('/hosts', methods=['GET', 'POST'])
 @valid_session_required
 def hosts(hx_api_object):
@@ -354,7 +303,6 @@ def fileaq(hx_api_object):
 	url = request.args.get('url')
 	return render_template('ht_fileaq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
 
-		
 ### Acquisition popup
 @app.route('/acq', methods=['GET'])
 @valid_session_required
@@ -362,30 +310,6 @@ def acq(hx_api_object):
 	hostid = request.args.get('host')
 	url = request.args.get('url')
 	return render_template('ht_acq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
-		
-### Annotations
-@app.route('/annotateadd', methods=['POST'])
-@valid_session_required
-def annotateadd(hx_api_object):
-	if request.method == "POST" and 'annotateText' in request.form:
-		app.hxtool_db.alertCreate(session['ht_profileid'], request.form['annotationBoxID'])
-		app.hxtool_db.alertAddAnnotation(session['ht_profileid'], request.form['annotationBoxID'], request.form['annotateText'], request.form['annotateState'], session['ht_user'])
-		app.logger.info('New annotation - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return('', 204)
-	else:
-		return('', 500)
-		
-@app.route('/annotatedisplay', methods=['GET'])
-@valid_session_required
-def annotatedisplay(hx_api_object):	
-	if 'alertid' in request.args:
-		alert = app.hxtool_db.alertGet(session['ht_profileid'], request.args.get('alertid'))
-		an = None
-		if alert:
-			an = alert['annotations']
-		annotatetable = formatAnnotationTable(an)
-
-	return render_template('ht_annotatedisplay.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), annotatetable=annotatetable)
 
 ### Acquisitions listing
 @app.route('/acqs', methods=['GET'])
@@ -394,63 +318,16 @@ def acqs(hx_api_object):
 	return render_template('ht_acqs.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 #### Enterprise Search
-@app.route('/search', methods=['GET', 'POST'])
+@app.route('/search', methods=['GET'])
 @valid_session_required
 def search(hx_api_object):	
-	# If we get a post it's a new sweep
-	if request.method == 'POST':
-		if 'file' in request.form.keys():
-			f = request.files['newioc']
-			ioc_script = HXAPI.b64(f.read())
-		elif 'store' in request.form.keys():
-			ioc_script = app.hxtool_db.oiocGet(request.form['ioc'])['ioc']
-		
-		ignore_unsupported_items = False
-		if 'esskipterms' in request.form.keys():
-			ignore_unsupported_items = (request.form['esskipterms'] == 'true')
+	(ret, response_code, response_data) = hx_api_object.restListHostsets()
+	hostsets = formatHostsetsFabric(response_data)
 
-		if 'displayname' in request.form.keys():
-			mydisplayname = request.form['displayname']
-		else:
-			mydisplayname = False
-
-		start_time = None
-		schedule = None
-		if 'schedule' in request.form.keys():
-			if request.form['schedule'] == 'run_at':
-				start_time = HXAPI.dt_from_str(request.form['scheduled_timestamp'])
-			
-			if request.form['schedule'] == 'run_interval':
-				schedule = {
-					'minutes' : request.form.get('intervalMin', None),
-					'hours'  : request.form.get('intervalHour', None),
-					'day_of_week' : request.form.get('intervalWeek', None),
-					'day_of_month' : request.form.get('intervalDay', None)
-				}	
-			
-		enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task", start_time = start_time)
-		
-		if schedule:
-			enterprise_search_task.set_schedule(**schedule)
-			
-		enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
-											'script' : ioc_script,
-											'hostset_id' : request.form['sweephostset'],
-											'ignore_unsupported_items' : ignore_unsupported_items,
-											'skip_base64': True,
-											'displayname': mydisplayname
-										})
-		hxtool_global.hxtool_scheduler.add(enterprise_search_task)
-		app.logger.info(format_activity_log(msg="new enterprise search", hostset=request.form['sweephostset'], ignore_unsupported_items=ignore_unsupported_items, user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/search", code=302)
-	else:
-		(ret, response_code, response_data) = hx_api_object.restListHostsets()
-		hostsets = formatHostsetsFabric(response_data)
-
-		myiocs = app.hxtool_db.oiocList()
-		openiocs = formatOpenIocsFabric(myiocs)
-		
-		return render_template('ht_searchsweep.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, openiocs=openiocs)
+	myiocs = app.hxtool_db.oiocList()
+	openiocs = formatOpenIocsFabric(myiocs)
+	
+	return render_template('ht_searchsweep.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, openiocs=openiocs)
 
 @app.route('/searchresult', methods=['GET'])
 @valid_session_required
@@ -459,23 +336,10 @@ def searchresult(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restGetSearchResults(request.args.get('id'))
 		return render_template('ht_search_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 			
-@app.route('/searchaction', methods=['GET'])
-@valid_session_required
-def searchaction(hx_api_object):
-	if request.args.get('action') == "stop":
-		(ret, response_code, response_data) = hx_api_object.restCancelJob('searches', request.args.get('id'))
-		app.logger.info(format_activity_log(msg="enterprise search action", action='stop', user=session['ht_user'], controller=session['hx_ip']))
-		#app.logger.info(format_activity_log(msg="", user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/search", code=302)
-
-	if request.args.get('action') == "remove":
-		(ret, response_code, response_data) = hx_api_object.restDeleteJob('searches', request.args.get('id'))
-		app.logger.info(format_activity_log(msg="enterprise search action", action='delete', user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/search", code=302)
-
 ### Manage Indicators
-#########################
-
+###############################
+### TODO: CONVERT TO API!!! ###
+###############################
 @app.route('/indicators', methods=['GET', 'POST'])
 @valid_session_required
 def indicators(hx_api_object):
@@ -549,7 +413,6 @@ def indicatorcondition(hx_api_object):
 
 	return render_template('ht_indicatorcondition.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), conditions=conditions)
 
-		
 
 @app.route('/categories', methods=['GET', 'POST'])
 @valid_session_required
@@ -751,35 +614,6 @@ def rtioc(hx_api_object):
 				# Invalid request
 				return('', 500)
 
-### Bulk Acquisition
-@app.route('/bulk', methods=['GET', 'POST'])
-@valid_session_required
-def listbulk(hx_api_object):
-	if request.method == 'POST':
-		if 'file' in request.form.keys():
-			f = request.files['bulkscript']
-			bulk_acquisition_script = f.read()
-			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), bulk_acquisition_script, download = False)
-			#app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-			app.logger.info(format_activity_log(msg="new bulk acquisition", source="file", user=session['ht_user'], controller=session['hx_ip']))
-		elif 'store' in request.form.keys():
-			scriptdef = app.hxtool_db.scriptGet(request.form['script'])
-			submit_bulk_job(hx_api_object, int(request.form['bulkhostset']), scriptdef['script'], download = False, skip_base64 = True)
-			#app.logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-			app.logger.info(format_activity_log(msg="new bulk acquisition", source="scriptstore", user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/bulk", code=302)
-	else:
-		(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
-		bulktable = formatBulkTable(app.hxtool_db, response_data, session['ht_profileid'])
-		
-		(ret, response_code, response_data) = hx_api_object.restListHostsets()
-		hostsets = formatHostsets(response_data)
-
-		myscripts = app.hxtool_db.scriptList()
-		scripts = formatScripts(myscripts)
-
-		return render_template('ht_bulk.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable, hostsets=hostsets, scripts=scripts)
-	
 @app.route('/bulkdetails', methods = ['GET'])
 @valid_session_required
 def bulkdetails(hx_api_object):
@@ -853,90 +687,22 @@ def download_multi_file_single(hx_api_object):
 			return "HX controller responded with code {0}: {1}".format(response_code, response_data)
 	abort(404)		
 
-@app.route('/bulkaction', methods=['GET'])
-@valid_session_required
-def bulkaction(hx_api_object):
-
-	if request.args.get('action') == "stop":
-		(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', request.args.get('id'))
-		#app.logger.info('Bulk acquisition action STOP - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		app.logger.info(format_activity_log(msg="bulk acquisition action", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/bulkacq", code=302)
-		
-	if request.args.get('action') == "remove":
-		(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', request.args.get('id'))
-		#app.logger.info('Bulk acquisition action REMOVE - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		app.logger.info(format_activity_log(msg="bulk acquisition action", action="delete", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/bulkacq", code=302)	
-		
-	if request.args.get('action') == "download":
-		hostset_id = -1
-		(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(request.args.get('id'))
-		if ret:
-			if 'host_set' in response_data['data']:
-				hostset_id = int(response_data['data']['host_set']['_id'])
-		
-		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
-		
-		if ret and response_data and len(response_data['data']['entries']) > 0:
-			bulk_download_eid = app.hxtool_db.bulkDownloadCreate(session['ht_profileid'], hostset_id = hostset_id, task_profile = None)
-			
-			bulk_acquisition_hosts = {}
-			task_list = []
-			for host in response_data['data']['entries']:
-				bulk_acquisition_hosts[host['host']['_id']] = {'downloaded' : False, 'hostname' :  host['host']['hostname']}
-				bulk_acquisition_download_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition Download: {}'.format(host['host']['hostname']))
-				bulk_acquisition_download_task.add_step(bulk_download_task_module, kwargs = {
-															'bulk_download_eid' : bulk_download_eid,
-															'agent_id' : host['host']['_id'],
-															'host_name' : host['host']['hostname']
-														})
-				# This works around a nasty race condition where the task would start before the download job was added to the database				
-				task_list.append(bulk_acquisition_download_task)
-			
-			app.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts, bulk_acquisition_id = int(request.args.get('id')))
-		
-			hxtool_global.hxtool_scheduler.add_list(task_list)
-			
-			#app.logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-			app.logger.info(format_activity_log(msg="bulk acquisition action", action="download", id=request.args.get('id'), hostset=hostset_id, user=session['ht_user'], controller=session['hx_ip']))
-		else:
-			app.logger.warn("No host entries were returned for bulk acquisition: {}. Did you just start the job? If so, wait for the hosts to be queued up.".format(request.args.get('id')))
-		return redirect("/bulkacq", code=302)
-		
-	if request.args.get('action') == "stopdownload":
-		ret = app.hxtool_db.bulkDownloadUpdate(request.args.get('id'), stopped = True)
-		# TODO: don't delete the job because the task module needs to know if the job is stopped or not.
-		#ret = app.hxtool_db.bulkDownloadDelete(session['ht_profileid'], request.args.get('id'))
-		#app.logger.info('Bulk acquisition action STOP DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		app.logger.info(format_activity_log(msg="bulk acquisition action", action="stop download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/bulkacq", code=302)
+##### NEED TO IMPLEMENT THIS IN AN API CALL FOR BULK ACQ
+#if request.args.get('action') == "stopdownload":
+#ret = app.hxtool_db.bulkDownloadUpdate(request.args.get('id'), stopped = True)
+#app.logger.info(format_activity_log(msg="bulk acquisition action", action="stop download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
+#return redirect("/bulkacq", code=302)
 
 ### Scripts
 @app.route('/scripts', methods=['GET', 'POST'])
 @valid_session_required
 def scripts(hx_api_object):
-	if request.method == "POST":
-		fc = request.files['script']				
-		rawscript = fc.read()
-		app.hxtool_db.scriptCreate(request.form['scriptname'], HXAPI.b64(rawscript), session['ht_user'])
-		app.logger.info(format_activity_log(msg="new acquisition script uploaded", name=request.form['scriptname'], user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/scripts", code=302)
-	elif request.method == "GET":
-		if request.args.get('action'):
-			if request.args.get('action') == "delete":
-				app.hxtool_db.scriptDelete(request.args.get('id'))
-				app.logger.info(format_activity_log(msg="acqusition script action", action='delete', user=session['ht_user'], controller=session['hx_ip']))
-				return redirect("/scripts", code=302)
-			elif request.args.get('action') == "view":
-				storedscript = app.hxtool_db.scriptGet(request.args.get('id'))
-				return render_template('ht_scripts_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), script=HXAPI.b64(storedscript['script'], decode=True, decode_string=True))
-			else:
-				return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-		else:
-			return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+	return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### OpenIOCs
+###############################
+### TODO: CONVERT TO API!!! ###
+###############################
 @app.route('/openioc', methods=['GET', 'POST'])
 @valid_session_required
 def openioc(hx_api_object):
@@ -1372,7 +1138,7 @@ def logout():
 
 		
 ###########
-### Main ####
+### Main ##
 ###########			
 def logout_task_sessions():
 	for profile_id in hxtool_global.task_hx_api_sessions:

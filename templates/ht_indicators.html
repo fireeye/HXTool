@@ -4,34 +4,29 @@
 {% block content %}
 
 <script>
-		$(document).ready(function() {
-			var table = $('#iocTable').DataTable( {
-				"info": false,
-				"pageLength": 20,
-				"lengthChange": false,
-				"columnDefs": [	
-					{"className": "dt-center", "targets": [2, 3, 4, 5, 6, 7]},
-					{
-					 "targets": 2,
-					 render: function ( data, type, row, meta ) {
-					 	return (datatables_Timestamp(data));
-					 }
-					}
-				]
+	$(document).ready(function() {
+		var table = $('#iocTable').DataTable( {
+			"info": false,
+			"pageLength": 20,
+			"lengthChange": false,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn" },
+				{ extend: "csv", className: "fe-btn" },
+				{ extend: "excel", className: "fe-btn" }
+			],
+			"columnDefs": [	
+				{"className": "hxtool_table_cell_center", "targets": [2, 3, 4, 5, 6, 7]},
+				{
+				 "targets": 2,
+				 render: function ( data, type, row, meta ) {
+				 	return (datatables_Timestamp(data));
+				 }
+				}
+			]
 		});
+		$('div.dataTables_filter input').addClass("fe-input");
 		
-		$('#iocTable').on('click', '.clickable-row', function() {
-				var items = $(this).data('value').split("___");
-				var category = items[0];
-				var uuid = items[1];
-				
-				enableStatusBar("<img style='height: 20px; margin-right: 10px; margin-bottom: -5px;' src='/static/spinner.svg'></img>Loading indicator", 200, "ht_statusbar_notifyBlue")
-				$('#indcond').load("/indicatorcondition?uuid=" + uuid + "&category=" + category, function(responseTxt, statusTxt, xhr){
-				if(statusTxt == "success")
-					disableStatusBar(200)
-				});
-		});
-
 		$("#iocTable").on('click', 'button', function(e) {
 			e.preventDefault();
 			myuuid = $(this).data('id');
