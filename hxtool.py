@@ -110,56 +110,10 @@ def scriptbuilder_view(hx_api_object):
 
 
 ### Task profile page
-###############################
-### TODO: CONVERT TO API!!! ###
-###############################
 @app.route('/taskprofile', methods=['GET', 'POST'])
 @valid_session_required
 def taskprofile(hx_api_object):
-
-	if request.args.get('action'):
-		if request.args.get('action') == "delete":
-			app.hxtool_db.taskProfileDelete(request.args.get('id'))
-			return redirect("/taskprofile", code=302)
-
-	if request.method == 'POST':
-
-		mydata = []
-		params = {}
-
-		for sfield, svalue in request.form.items():
-
-			if sfield == "taskprofile_name":
-				profilename = svalue
-			elif sfield == "module":
-				continue
-			else:
-				myfieldlist = sfield.split("_")
-
-				if not myfieldlist[0] in params.keys():
-					params[myfieldlist[0]] = {}
-
-				params[myfieldlist[0]][myfieldlist[2]] = svalue
-
-		for mykey, myval in params.items():
-			if 'tablename' in myval.keys():
-				myval.update({"module": "db"})
-				mydata.append(myval)
-			elif 'targetip' in myval.keys():
-				myval.update({"module": "ip"})
-				mydata.append(myval)
-			elif 'filepath' in myval.keys():
-				myval.update({"module": "file"})
-				mydata.append(myval)
-			elif 'url' in myval.keys():
-				myval.update({"module": "helix"})
-				mydata.append(myval)
-
-		app.hxtool_db.taskProfileAdd(profilename, session['ht_user'], mydata)
-
-		return redirect("/taskprofile", code=302)
-	else:
-		return render_template('ht_taskprofile.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+	return render_template('ht_taskprofile.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 
 ### Bulk acq page

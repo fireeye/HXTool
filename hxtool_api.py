@@ -358,10 +358,17 @@ def scheduler_tasks(hx_api_object):
 @ht_api.route('/api/v{0}/taskprofile/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_taskprofile_remove(hx_api_object):
-
 	app.hxtool_db.taskProfileDelete(request.args.get('id'))
+	(r, rcode) = create_api_response(ret=True)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
-	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+@ht_api.route('/api/v{0}/taskprofile/new'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_taskprofile_new(hx_api_object):
+	mydata = request.get_json(silent=True)
+	hxtool_global.hxtool_db.taskProfileAdd(mydata['name'], session['ht_user'], mydata['params'])
+	(r, rcode) = create_api_response(ret=True)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
 ####################

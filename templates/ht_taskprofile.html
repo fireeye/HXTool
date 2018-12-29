@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}HXTool - OpenIOC{% endblock %}
+{% block title %}HXTool - Task profiles{% endblock %}
 {% block content %}
 
 <script>
@@ -43,67 +43,115 @@
 			});
 		});
 
+		$("#tpSubmit").click(function() {
 
-		//$('body').on('change','select',function() {
-		$(".hxtool_module-dropdown").on( "click", "a", function(e) {
+			myTasks = {};
+			myTasks['params'] = [];
+
+			$(".taskProfileItem").each(function(index, value) {
+				taskItemArr = $(this).attr("id").split("_");
+				myTaskGuid = taskItemArr[1];
+				myTaskType = taskItemArr[0];
+
+				myTasks['name'] = $("#taskprofile_name").val();
+
+				if (myTaskType == "file") {
+					myTasks['params'].push({
+						"module": myTaskType,
+						"filepath": $("#" + myTaskGuid + "_file_filepath").val(),
+						"eventmode": $("#" + myTaskGuid + "_file_eventmode").data("id")
+					});
+				}
+				else if (myTaskType == "ip") {
+					myTasks['params'].push({
+						"module": myTaskType,
+						"protocol": $("#" + myTaskGuid + "_ip_protocol").data("id"),
+						"targetip": $("#" + myTaskGuid + "_ip_targetip").val(),
+						"targetport": $("#" + myTaskGuid + "_ip_targetport").val(),
+						"eventmode": $("#" + myTaskGuid + "_ip_eventmode").data("id")
+					});
+				}
+				else if (myTaskType == "helix") {
+					myTasks['params'].push({
+						"module": myTaskType,
+						"helix_url": $("#" + myTaskGuid + "_helix_url").val(),
+						"helix_apikey": $("#" + myTaskGuid + "_helix_apikey").val()
+					});
+				}
+			});
+
+			$.ajax
+			({
+				type: "POST",
+				url: '/api/v1/taskprofile/new',
+				dataType: 'json',
+				contentType: 'application/json',
+				data: JSON.stringify(myTasks),
+				success: function () {
+					taskprofileTable.ajax.reload();
+					$("#tpNewPopup").hide();
+					$("#params").html("");
+					$("#taskprofile_name").val("");
+
+				},
+				error: function (xhr, status) {
+					$("#hxtoolMessageBody").html(JSON.stringify(xhr['responseText']));
+					$("#hxtoolMessage").show();
+				}
+			});
+
+		});
+
 //		$("#tpNewPopup").on( "click", ".fe-dropdown__item-link", function(e) {
-			alert("kaka");
-//			if ($(this).attr('id') == "module") {
+		//$(".hxtool_module-dropdown").on( "click", ".fe-dropdown__item-link", function(e) {
+		$(".fe-dropdown__item-link").on("click", function() {
 
-				var mymodule = $(this).next("span").next("span").data("id");
-				alert(mymodule);
+			var mymodule = $(this).find("span").next("span").data("id");
 
-				myguid = guid();
+			myguid = guid();
 
-				if(mymodule == 1) {
-					$("#params").append("<div class='taskProfileItem' id='file_" + myguid + "'></div>");
-					$("#file_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>File Writer</div>");
-					$("#file_" + myguid).append("<div class='taskProfileRemovePH'><button class='taskProfileRemove' type='button' value='remove'></div>");
-					$("#file_" + myguid).append("<div style='clear: both;'></div>");
-					$("#file_" + myguid).append("<hr class='taskProfileBar'>");
-					$("#file_" + myguid).append("<b>Local file</b><br><input class='fe-input' style='width: 400px;' name='" + myguid + "_file_filepath' type='text'><br>");
-					$("#file_" + myguid).append("<b>Event mode</b><br>");
-					$("#file_" + myguid).append("<select name='" + myguid + "_ip_eventmode'><option value='per-event'>per-event<option value='batch'>batch</select><br>");
-					$("#file_" + myguid).append("<br>");
-				}
-				if(mymodule == 2) {
-					$("#params").append("<div class='taskProfileItem' id='ip_" + myguid + "'></div>");
-					$("#ip_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>IP Sender</div>");
-					$("#ip_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
-					$("#ip_" + myguid).append("<div style='clear: both;'></div>");
-					$("#ip_" + myguid).append("<hr class='taskProfileBar'>");
-					$("#ip_" + myguid).append("<b>Protocol</b><br>");
-					$("#ip_" + myguid).append("<select name='" + myguid + "_ip_protocol'><option value='tcp'>TCP<option value='udp'>UDP</select><br>");
-					$("#ip_" + myguid).append("<br>");
-					$("#ip_" + myguid).append("<b>Target IP</b><br><input class='fe-input' style='width: 400px;' name='" + myguid + "_ip_targetip' type='text'><br>");
-					$("#ip_" + myguid).append("<b>Target port</b><br><input class='fe-input' style='width: 100px;' name='" + myguid + "_ip_targetport' type='text'><br>");
-					$("#ip_" + myguid).append("<br>");
-					$("#ip_" + myguid).append("<b>Event mode</b><br>");
-					$("#ip_" + myguid).append("<select name='" + myguid + "_ip_eventmode'><option value='per-event'>per-event<option value='batch'>batch</select><br>");
-					$("#ip_" + myguid).append("<br>");
-				}
-				if(mymodule == 3) {
-					$("#params").append("<div class='taskProfileItem' id='db_" + myguid + "'></div>");
-					$("#db_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>Store in HXTool</div>");
-					$("#db_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
-					$("#db_" + myguid).append("<div style='clear: both;'></div>");
-					$("#db_" + myguid).append("<hr class='taskProfileBar'>");
-					$("#db_" + myguid).append("<b>Table name</b><br><input style='width: 400px' name='" + myguid + "_db_tablename' type='text'><br>");
-				}
-				if(mymodule == 4) {
-					$("#params").append("<div class='taskProfileItem' id='helix_" + myguid + "'></div>");
-					$("#helix_" + myguid).html("<div style='float: left; font-size: 14px; font-weight: bold;'>Upload to External API</div>");
-					$("#helix_" + myguid).append("<div class='taskProfileRemovePH'><input class='taskProfileRemove' type='button' value='remove'></div>");
-					$("#helix_" + myguid).append("<div style='clear: both;'></div>");
-					$("#helix_" + myguid).append("<hr class='taskProfileBar'>");
-					$("#helix_" + myguid).append("<b>API URL</b><br><input class='fe-input' style='width: 400px' name='" + myguid + "_helix_url' type='text'><br>");
-					$("#helix_" + myguid).append("<br>");
-					$("#helix_" + myguid).append("<b>API KEY</b><br><input class='fe-input' style='width: 400px' name='" + myguid + "_helix_apikey' type='text'><br>");
-				}
+			myEventModes = [
+				{"elementId": "per-event", "elementText": "per-event", "elementIcon": "fa-check"},
+				{"elementId": "batch", "elementText": "batch", "elementIcon": "fa-check"}
+			];
 
-				// reset the drop-down
-				//$(this).prop("selectedIndex", 0);
-//			}
+			if(mymodule == 1) {
+				$("#params").append("<div class='taskProfileItem' id='file_" + myguid + "'></div>");
+				$("#file_" + myguid).html("<div class='taskProfileModule'>File Writer<button class='fe-btn fe-btn--sm fe-btn--hxtool-main taskProfileRemove'>remove</button></div>");
+				$("#file_" + myguid).append("<br>");
+				$("#file_" + myguid).append("<b>Local file</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_file_filepath' type='text'><br>");
+				$("#file_" + myguid).append("<b>Event mode</b><br>");
+				$("#file_" + myguid).append(generateDropDown("per-event", myguid + "_file_eventmode", "per-event", entries=myEventModes, elementAdditionalClass=false, elementLabel=false));
+				$("#file_" + myguid).append("<br>");
+			}
+			if(mymodule == 2) {
+				$("#params").append("<div class='taskProfileItem' id='ip_" + myguid + "'></div>");
+				$("#ip_" + myguid).html("<div class='taskProfileModule'>IP Sender<button class='fe-btn fe-btn--sm fe-btn--hxtool-main taskProfileRemove'>remove</button></div>");
+				$("#ip_" + myguid).append("<br>");
+				$("#ip_" + myguid).append("<b>Protocol</b><br>");
+				$("#ip_" + myguid).append(generateDropDown("TCP", myguid + "_ip_protocol", "tcp", entries=[{"elementId": "tcp", "elementText": "TCP", "elementIcon": "fa-check"},{"elementId": "udp", "elementText": "UDP", "elementIcon": "fa-check"}], elementAdditionalClass=false, elementLabel=false));
+				$("#ip_" + myguid).append("<br>");
+				$("#ip_" + myguid).append("<b>Target IP</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_ip_targetip' type='text'><br>");
+				$("#ip_" + myguid).append("<b>Target port</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_ip_targetport' type='text'><br>");
+				$("#ip_" + myguid).append("<b>Event mode</b><br>");
+				$("#ip_" + myguid).append(generateDropDown("per-event", myguid + "_ip_eventmode", "per-event", entries=myEventModes, elementAdditionalClass=false, elementLabel=false));
+				$("#ip_" + myguid).append("<br>");
+			}
+			if(mymodule == 3) {
+				$("#params").append("<div class='taskProfileItem' id='db_" + myguid + "'></div>");
+				$("#db_" + myguid).html("<div class='taskProfileModule'>Store in HXTool<button class='fe-btn fe-btn--sm fe-btn--hxtool-main taskProfileRemove'>remove</button></div>");
+				$("#db_" + myguid).append("<br>");
+				$("#db_" + myguid).append("<b>Table name</b><br><input style='width: 100%;' id='" + myguid + "_db_tablename' type='text'><br>");
+				$("#db_" + myguid).append("<br>");
+			}
+			if(mymodule == 4) {
+				$("#params").append("<div class='taskProfileItem' id='helix_" + myguid + "'></div>");
+				$("#helix_" + myguid).html("<div class='taskProfileModule'>Upload to Helix<button class='fe-btn fe-btn--sm fe-btn--hxtool-main taskProfileRemove'>remove</button></div>");
+				$("#helix_" + myguid).append("<br>");
+				$("#helix_" + myguid).append("<b>API URL</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_helix_url' type='text'><br>");
+				$("#helix_" + myguid).append("<b>API KEY</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_helix_apikey' type='text'><br>");
+				$("#helix_" + myguid).append("<br>");
+			}
 		});
 
 		var taskprofileTable = $('#taskprofileTable').DataTable( {
@@ -125,6 +173,7 @@
 			"columnDefs": [	
 				{
 				 targets: 5,
+				 width: "120px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		data = "<button data-type='remove' data-id='" + data + "' class='tpAction fe-btn fe-btn--sm fe-btn--primary active'> delete <i class='fe-icon--right fas fa-ban'></i></button>"
@@ -162,7 +211,8 @@
 				 	}
 				 	return myparams;
 				 }
-				}
+				},
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 5]}
 			]
 		});
 
@@ -180,7 +230,7 @@
 {{ htModal.widgetHeader("New task profile", modalId="tpNewPopup") }}
 
 	<h3 class='hxtool_typography_h3'>Name</h3>
-	<input type="text" name="taskprofile_name" id="taskprofile_name" value="" class="fe-input" placeholder="my new search" />
+	<input type="text" name="taskprofile_name" id="taskprofile_name" value="" class="fe-input" placeholder="my new task profile" />
 	<span class="fe-input-hint-text">The name of the profile</span>
 	<br>
 
@@ -204,7 +254,7 @@
 
 {{ htModal.widgetMiddle() }}
 	<button class="fe-btn fe-btn--md fe-btn--secondary" id="tpCancel" aria-label="Cancel"><span> Cancel </span></button>
-	<button class="fe-btn fe-btn--md fe-btn--primary" aria-label="Click"><span> Submit </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="tpSubmit" aria-label="Click"><span> Submit </span></button>
 {{ htModal.widgetFooter() }}
 
 {{ htPanel.widgetHeader("Task profiles") }}

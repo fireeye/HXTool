@@ -78,3 +78,19 @@ select {
   color: rgba(255, 255, 255, 1.0);
   border-color: rgba(255, 255, 255, 0.1);
 }
+
+.taskProfileRemove {
+	float: right;
+	margin-top: -8px;
+}
+
+.taskProfileModule {
+	font-size: 14px; 
+	font-weight: bold;
+	border-bottom: 1px solid #10455B;
+}
+
+.taskProfileItem {
+	margin-top: 24px;
+}
+

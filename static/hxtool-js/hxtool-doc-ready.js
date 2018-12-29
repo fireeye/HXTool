@@ -64,19 +64,22 @@ function hxtool_doc_ready() {
 	});
 
 	/* DROP DOWN MENUS */
-	$(".fe-dropdown").click(function(e) {
+//	$(".fe-dropdown").click(function(e) {
+	$(document).on("click", ".fe-dropdown", function(e) {
 		collapse_all_dropdowns();
 		$(this).find("div").show();
 		$(this).find("div").fadeTo( "fast" , 1);
 		e.stopPropagation();
 	});
 
-	$(".fe-dropdown__item-link").click(function(e) {
+//	$(".fe-dropdown__item-link").click(function(e) {
+	$(document).on("click", ".fe-dropdown__item-link", function(e) {
 		$(this).closest("div").parent().find("button").html($(this).find(".fe-dropdown__item-link-text").html() + "<i class='fe-icon--right fal fa-chevron-up'></i>");
 		$(this).closest("div").parent().find("button").data("id", $(this).find(".fe-dropdown__item-link-text").data("id") );
 		$(this).closest("div").fadeTo( "fast", 0, function() {
 			$(".fe-dropdown__list-container").hide();
 		});
+
 		e.stopPropagation();
 	});
 
