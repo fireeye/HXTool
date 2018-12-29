@@ -9,7 +9,47 @@
 		$(document).on('click', '.viewbutton', function() {
 			sArr = $(this).attr('id').split('_')
 			showPopup(600, 900, '/scripts?action=view&id=' + sArr[1], "myscripttextarea", includeWidthRestriction=true);
-		});		
+		});
+
+		$("#scriptNew").click(function() {
+			$("#scriptNewPopup").show();
+		});
+
+		$("#scriptCancel").click(function() {
+			$("#scriptNewPopup").hide();
+		});
+
+		$("#scriptViewDismiss").click(function() {
+			$("#scriptViewPopup").hide();
+		});
+
+		$("#scriptTable").on('click', '.script_view', function() {
+			$("#scriptViewTextarea").val(atob($(this).data("script")));
+			$("#scriptViewPopup").show();
+		});
+
+		$("#scriptUploadButton").click(function() {
+			var data = new FormData();
+			$.each($('#script').prop('files'), function(key, value) {
+				data.append("myscript", value);
+			});
+
+			data.append("scriptname", $("#scriptname").val());
+
+			hxtool_ajax_post_request("/api/v1/scripts/upload", data, function(data) {
+				$("#scriptNewPopup").hide();
+				scriptTable.ajax.reload();
+			});
+		});
+
+		$("#scriptTable").on('click', '.script_remove', function() {
+			myrow = $(this).closest("tr");
+			hxtool_ajax_get_request("/api/v1/scripts/remove", "id=" + $(this).data("id"), function(mydata) {
+				myrow.fadeOut(200, function() {
+					scriptTable.row(myrow).remove().draw();
+				});
+			});
+		});
 
 		var scriptTable = $('#scriptTable').DataTable( {
 			"ajax": {
@@ -18,6 +58,12 @@
 			},
 			"paging":   false,
 			"info":     false,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn" },
+				{ extend: "csv", className: "fe-btn" },
+				{ extend: "excel", className: "fe-btn" }
+			],
 			"columns": [
 				{ "data": "scriptname", title: "Name" },
 				{ "data": "username", title: "Created By" },
@@ -28,41 +74,53 @@
 			"columnDefs": [	
 				{
 				 targets: 4,
+				 width: "200px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<input type='button' data-script='" + row.script + "' value='view' id='view_" + data + "' class='tableActionButton viewbutton'><a href='/scripts?action=delete&id=" + data + "' class='tableActionButton'>delete</a>"
+				 		//data = "<input type='button' data-script='" + row.script + "' value='view' id='view_" + data + "' class='tableActionButton viewbutton'><a href='/scripts?action=delete&id=" + data + "' class='tableActionButton'>delete</a>";
+				 		data = '<button style="margin-right: 6px;" data-script="' + row.script + '" class="script_view fe-btn fe-btn--sm fe-btn--primary"> view <i class="fe-icon--right far fa-eye"></i></button>'
+				 		data += '<button style="margin-right: 6px;" data-id="' + row.script_id + '" class="script_remove fe-btn fe-btn--sm fe-btn--primary"> remove <i class="fe-icon--right far fa-trash"></i></button>'
 				 	}
 				 	return data;
 				 }
 				},
-				{"className": "dt-center", "targets": [1, 2, 3]}
+				{"className": "hxtool_table_cell_center", "targets": [1, 2, 3, 4]}
 			]
 		});
+		$('div.dataTables_filter input').addClass("fe-input");
 
 	});
 
 </script>
 
-<form method='POST' action='/scripts' enctype="multipart/form-data" style='margin-bottom: 20px;'>
-		<div class='tableTitle'>
-			Upload new acquisition script
-		</div>
-	<div class='inputArea' style='width: 600px;'>
-		<b>Script name</b><br>
-		<input type='text' id='scriptname' name='scriptname' style='width: 400px; margin-bottom: 10px;'><br>
-		<input type='file' id='script' name='script'><br>
-		<br>
-		<div style='font-style: italic; margin-bottom: 15px; margin-top: 5px;'>An acquisition script is a file that controls what type of data should be returned by a bulk or normal acquisition.</div>
-		
-        <input class='tableActionButton' type='submit' value='Upload script'>
-	</div>
-</form>
 
-<div class='tableTitle'>
-	My scripts
-</div>
+{{ htModal.widgetHeader("Upload new script", modalId="scriptNewPopup") }}
 
-<table id='scriptTable' class='genericTable' style='width: 100%;'>
-</table>
+	<label for="" class="fe-input-label caption">Script name</label>
+    <input type="text" name="scriptname" id="scriptname" value="" class="fe-input" placeholder="enter a name" />
+    <span class="fe-input-hint-text">Enter a name for your uploaded script</span>
+
+    <br><br>
+
+	<label for="" class="fe-input-label caption">Script file</label>
+	<input class="fe-btn fe-btn--sm fe-btn--primary active" type='file' id='script' name='script'><br>
+	<span class="fe-input-hint-text">An acquisition script is a file that controls what type of data should be returned by a bulk or normal acquisition</span>
+
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="scriptCancel" aria-label="Cancel"><span> cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="scriptUploadButton" aria-label="Submit"><span> submit </span></button>
+{{ htModal.widgetFooter() }}
+
+{{ htModal.widgetHeader("View script", modalId="scriptViewPopup", modalSize="large") }}
+	<textarea id='scriptViewTextarea' style='width: 100%; height: 500px;' class='fe-input'></textarea>
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="scriptViewDismiss" aria-label="Dismiss"><span> dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
+<button class="fe-btn fe-btn--md fe-btn--primary fe-btn--hxtool-main" id='scriptNew'> upload <i style='color: #59dc90;' class="fe-icon--right fas fa-upload"></i></button>
+
+{{ htPanel.widgetHeader("Stored scripts", panelId="panelScriptTable", panelIcon="fa-database") }}
+	<table id='scriptTable' class='hxtool_table' style='width: 100%;'></table>
+{{ htPanel.widgetFooter() }}
 
 {% endblock %}

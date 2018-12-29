@@ -515,6 +515,25 @@ def hxtool_api_acquisition_bulk_new_file(hx_api_object):
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
+###########
+# Scripts #
+###########
+@ht_api.route('/api/v{0}/scripts/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_scripts_remove(hx_api_object):
+	hxtool_global.hxtool_db.scriptDelete(request.args.get('id'))
+	(r, rcode) = create_api_response(ret=True)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/scripts/upload'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_scripts_upload(hx_api_object):
+
+	fc = request.files['myscript']
+	rawscript = fc.read()
+	hxtool_global.hxtool_db.scriptCreate(request.form['scriptname'], HXAPI.b64(rawscript), session['ht_user'])
+	(r, rcode) = create_api_response(ret=True)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 ##############
 # Datatables #
