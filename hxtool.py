@@ -135,39 +135,11 @@ def bulkacq_view(hx_api_object):
 
 	return render_template('ht_bulkacq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, scripts=scripts, taskprofiles=taskprofiles)
 
-
 ### Hosts
 @app.route('/hostsearch', methods=['GET', 'POST'])
 @valid_session_required
 def hosts(hx_api_object):
 	return render_template('ht_hostsearch.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-			
-
-### Triage popup
-@app.route('/triage', methods=['GET'])
-@valid_session_required
-def triage(hx_api_object):
-	triageid= request.args.get('host')
-	url = request.args.get('url')
-	mytime = datetime.datetime.now()
-	return render_template('ht_triage.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), triageid=triageid, url=url, now=mytime.strftime('%Y-%m-%d %H:%M:%S'))
-
-		
-### File acquisition popup
-@app.route('/fileaq', methods=['GET'])
-@valid_session_required
-def fileaq(hx_api_object):
-	hostid = request.args.get('host')
-	url = request.args.get('url')
-	return render_template('ht_fileaq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
-
-### Acquisition popup
-@app.route('/acq', methods=['GET'])
-@valid_session_required
-def acq(hx_api_object):
-	hostid = request.args.get('host')
-	url = request.args.get('url')
-	return render_template('ht_acq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostid=hostid, url=url)
 
 ### Acquisitions listing
 @app.route('/acqs', methods=['GET'])
