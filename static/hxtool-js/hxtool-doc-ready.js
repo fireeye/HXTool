@@ -64,7 +64,6 @@ function hxtool_doc_ready() {
 	});
 
 	/* DROP DOWN MENUS */
-//	$(".fe-dropdown").click(function(e) {
 	$(document).on("click", ".fe-dropdown", function(e) {
 		collapse_all_dropdowns();
 		$(this).find("div").show();
@@ -72,7 +71,6 @@ function hxtool_doc_ready() {
 		e.stopPropagation();
 	});
 
-//	$(".fe-dropdown__item-link").click(function(e) {
 	$(document).on("click", ".fe-dropdown__item-link", function(e) {
 		$(this).closest("div").parent().find("button").html($(this).find(".fe-dropdown__item-link-text").html() + "<i class='fe-icon--right fal fa-chevron-up'></i>");
 		$(this).closest("div").parent().find("button").data("id", $(this).find(".fe-dropdown__item-link-text").data("id") );

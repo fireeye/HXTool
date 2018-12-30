@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
+
 try:
 	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort, Blueprint, current_app as app
 	from jinja2 import evalcontextfilter, Markup, escape
@@ -77,6 +79,28 @@ def hxtool_api_acquisition_download(hx_api_object):
 	else:
 		abort(404)
 
+@ht_api.route('/api/v{0}/acquisition/new'.format(HXTOOL_API_VERSION), methods=['GET', 'POST'])
+@valid_session_required
+def hxtool_api_acquisition_new(hx_api_object):
+
+	if request.method == 'POST':
+		fc = request.files['script']
+		myscript = fc.read()
+		myAgentID = request.form.get('id')
+		myScriptName = request.form.get('scriptname')
+		do_skip_base64 = False
+	elif request.method == 'GET':
+		myscript = hxtool_global.hxtool_db.scriptGet(request.args.get('scriptid'))['script']
+		do_skip_base64 = True
+		myAgentID = request.args.get('id')
+		myScriptName = request.args.get('scriptname')
+
+	(ret, response_code, response_data) = hx_api_object.restNewAcquisition(myAgentID, myScriptName, myscript, skip_base64=do_skip_base64)
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
+
 @ht_api.route('/api/v{0}/acquisition/file'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_acquisition_file(hx_api_object):
@@ -86,19 +110,37 @@ def hxtool_api_acquisition_file(hx_api_object):
 	if request.args.get('type') == "raw":
 		mode = False
 
-	print(request.args)
-
-	if '\\' in request.args.get('filepath'):
-		fileName = request.args.get('filepath').rsplit("\\", 1)[1]
-		filePath = request.args.get('filepath').rsplit("\\", 1)[0]
-	elif '/' in request.args.get('filepath'):
-		fileName = request.args.get('filepath').rsplit("/", 1)[1]
-		filePath = request.args.get('filepath').rsplit("/", 1)[0]
+	if 'filepath' in request.args:
+		if '\\' in request.args.get('filepath'):
+			fileName = request.args.get('filepath').rsplit("\\", 1)[1]
+			filePath = request.args.get('filepath').rsplit("\\", 1)[0]
+		elif '/' in request.args.get('filepath'):
+			fileName = request.args.get('filepath').rsplit("/", 1)[1]
+			filePath = request.args.get('filepath').rsplit("/", 1)[0]
+	elif 'path' in request.args:
+		filePath = request.args.get('path')
+		fileName = request.args.get('filename')
 		
 	(ret, response_code, response_data) = hx_api_object.restAcquireFile(request.args.get('id'), filePath, fileName, mode)
 
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/acquisition/triage'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_triage(hx_api_object):
+
+	if request.args.get('type') == "standard":
+		(ret, response_code, response_data) = hx_api_object.restAcquireTriage(request.args.get('id'))
+	elif request.args.get('type') in ["1", "2", "4", "8"]:
+		mytime = datetime.datetime.now() - datetime.timedelta(hours = int(request.args.get('type')))
+		(ret, response_code, response_data) = hx_api_object.restAcquireTriage(request.args.get('id'), mytime.strftime('%Y-%m-%d %H:%M:%S'))
+	elif request.args.get('type') == "timestamp":
+		(ret, response_code, response_data) = hx_api_object.restAcquireTriage(request.args.get('id'), request.args.get('timestamp'))
+
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 
 #####################
 # Enterprise Search #
@@ -233,6 +275,28 @@ def hxtool_api_hosts_sysinfo(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restGetHostSysinfo(request.args.get('id'))
 	(r, rcode) = create_api_response(response_data = response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/hosts/contain'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_hosts_contain(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restRequestContainment(request.args.get('id'))
+	(r, rcode) = create_api_response(response_data = response_data)	
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/hosts/uncontain'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_hosts_uncontain(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restRemoveContainment(request.args.get('id'))
+	(r, rcode) = create_api_response(response_data = response_data)	
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/hosts/contain/approve'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_hosts_contain_approve(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restApproveContainment(request.args.get('id'))
+	(r, rcode) = create_api_response(response_data = response_data)	
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 
 
 ###################

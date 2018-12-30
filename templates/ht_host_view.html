@@ -224,6 +224,35 @@
 
 	}
 
+	function setContainmentInfo(myAgentId) {
+		hxtool_ajax_get_request("/api/v1/hosts/get", "id=" + myAgentId, function(myhost) {
+			var myhostinfo = JSON.parse(myhost['api_response']);
+
+			$("#fieldContainment").html(myhostinfo['data']['containment_state']);
+			if (myhostinfo['data']['containment_queued'] == true && myhostinfo['data']['containment_state'] != "contain" && myhostinfo['data']['containment_state'] != "containing") {
+				$("#fieldContainment").append(" (approval pending)");
+			}
+
+			// Set containment button mode
+			if (myhostinfo['data']['containment_state'] == "contained" || myhostinfo['data']['containment_state'] == "containing" || myhostinfo['data']['containment_state'] == "contain_fail" || myhostinfo['data']['containment_state'] == "contain") {
+				$("#containButton").html("uncontain");
+			}
+			else if (myhostinfo['data']['containment_state'] == "normal" && myhostinfo['data']['containment_queued'] == false) {
+				$("#containButton").html("contain");
+			}
+			else if (myhostinfo['data']['containment_state'] == "normal" && myhostinfo['data']['containment_queued'] == true) {
+				$("#containButton").html("approve containment");
+			}
+			else if (myhostinfo['data']['containment_state'] == "uncontain") {
+				$("#containButton").html("uncontain requested");
+			}
+			else if (myhostinfo['data']['containment_state'] == "uncontaining") {
+				$("#containButton").html("uncontaining");	
+			}
+		});
+	}
+
+
 
 	$(document).ready(function() {
 
@@ -306,7 +335,7 @@
 			$("#fieldHostname").html(myhostinfo['data']['hostname']);
 			$("#fieldDomain").html(myhostinfo['data']['domain']);
 			$("#fieldOS").html(myhostinfo['data']['os']['product_name']);
-			$("#fieldContainment").html(myhostinfo['data']['containment_state']);
+			
 			$("#fieldPrimaryIP").html(myhostinfo['data']['primary_ip_address']);
 			$("#fieldLastPoll").html(myhostinfo['data']['last_poll_timestamp']);
 			$("#fieldAgentVersion").html(myhostinfo['data']['agent_version']);
@@ -314,7 +343,17 @@
 			$("#showAllHostDataPopup").find(".fe-modal__body").append("<h5 class='hxtool_alert_header'>Hostinfo</h5>");
 			$("#showAllHostDataPopup").find(".fe-modal__body").append(generateNestedTable(myhostinfo['data']));
 
+			setContainmentInfo(myAgentId);
+
 		});
+
+		// Update info every 10 seconds
+		doUpdate = setInterval(function () {
+			setContainmentInfo(myAgentId);
+			hostAcq_datatable.ajax.reload();
+			hostAlert_datatable.ajax.reload();
+		}, 10 * 1000);
+
 
 		// Get sysinfo
 		hxtool_ajax_get_request("/api/v1/hosts/sysinfo", "id=" + myAgentId, function(myhost) {
@@ -336,11 +375,11 @@
 
 		});
 
-
 		$('#hostContentPanel').on('click','.hxtool_host_alert_goLink',function(){
 			window.open($(this).data("link"), '_blank');
 		});
 
+		// Logged on users
 		$('#loggedOnUserButton').click(function(){
 			$("#loggedOnUserPopup").show();
 		});
@@ -349,6 +388,7 @@
 			$("#loggedOnUserPopup").hide();
 		});
 
+		// Host and sysinfo
 		$('#showAllHostData').click(function(){
 			$("#showAllHostDataPopup").show();
 		});
@@ -357,10 +397,124 @@
 			$("#showAllHostDataPopup").hide();
 		});
 
+		// Containment
+		$("#containButton").click(function() {
+			var myMode = $("#containButton").html();
+
+			if (myMode == "contain") {
+				hxtool_ajax_get_request("/api/v1/hosts/contain", "id=" + myAgentId, function() {
+					setContainmentInfo(myAgentId);
+				});
+			}
+			else if (myMode == "uncontain") {
+				hxtool_ajax_get_request("/api/v1/hosts/uncontain", "id=" + myAgentId, function() {
+					setContainmentInfo(myAgentId);
+				});
+			}
+			else if (myMode == "approve containment") {
+				hxtool_ajax_get_request("/api/v1/hosts/contain/approve", "id=" + myAgentId, function() {
+					setContainmentInfo(myAgentId);
+				});
+			}
+		});
+
+
+		// Data Acquisition
+		$("#dataButton").click(function() {
+			$("#dataNewPopup").show();
+		});
+
+		$("#dataCancel").click(function() {
+			$("#dataNewPopup").hide();
+		});
+
+		$("#dataSubmit").click(function() {
+			$("#dataNewPopup").hide();
+			var myAcqMode = $("input[name='datasource']:checked").val();
+
+			if (myAcqMode == "hxtool") {
+				hxtool_ajax_get_request("/api/v1/acquisition/new", "id=" + myAgentId + "&scriptid=" + $("#dataScriptDb").data("id") + "&scriptname=" + $("#dataname").val(), function() {
+					hostAcq_datatable.ajax.reload();
+				});
+			}
+			else if (myAcqMode == "file") {
+				var data = new FormData();
+				$.each($('#datascript').prop('files'), function(key, value) {
+					data.append("script", value);
+				});
+
+				data.append("id", myAgentId);
+				data.append("scriptname", $("#dataname").val());
+
+				hxtool_ajax_post_request("/api/v1/acquisition/new", data, function(data) {
+					hostAcq_datatable.ajax.reload();
+				});
+			}
+		});
+
+		// File Acquisition
+		$("#fileButton").click(function() {
+			$("#fileNewPopup").show();
+		});
+
+		$("#fileCancel").click(function() {
+			$("#fileNewPopup").hide();
+		});
+
+		$("#fileSubmit").click(function() {
+			$("#fileNewPopup").hide();
+			hxtool_ajax_get_request("/api/v1/acquisition/file", "id=" + myAgentId + "&type=" + $("#filemode").data("id") + "&path=" + $("#filepath").val() + "&filename=" + $("#filename").val(), function() {
+				hostAcq_datatable.ajax.reload();
+			});
+
+
+		});
+
+		// Triage
+		jQuery('#triage_timestamp').daterangepicker({
+			singleDatePicker: true,
+			autoApply: true,
+			timePicker: true,
+			timePicker24Hour: true,
+			buttonClasses: "fe-btn fe-btn--md",
+			applyButtonClasses: "fe-btn--primary",
+			cancelButtonClasses: "fe-btn--secondary",
+			locale: {
+				format: 'YYYY-MM-DD hh:mm:ss',
+				firstDay: 1
+			}
+		});
+
+		$("#triageButton").click(function() {
+			$("#triageNewPopup").show();
+		});
+
+		$("#triageCancel").click(function() {
+			$("#triageNewPopup").hide();
+		});
+
+		$("#triageSubmit").click(function() {
+			$("#triageNewPopup").hide();
+			myTriageMode = $("input[name='triagemode']:checked").val();
+
+			if (myTriageMode == "standard" || myTriageMode in [1,2,4,8]) {
+				hxtool_ajax_get_request("/api/v1/acquisition/triage", "&id=" + myAgentId + "&type=" + myTriageMode, function() {
+					hostAcq_datatable.ajax.reload();
+				});
+			}
+			else if (myTriageMode == "timestamp") {
+				hxtool_ajax_get_request("/api/v1/acquisition/triage", "&id=" + myAgentId + "&type=" + myTriageMode + "&timestamp=" + $("#triage_timestamp").val(), function() {
+					hostAcq_datatable.ajax.reload();
+				});
+			}
+		});
+
+		// All alert details
 		$('#hostContentPanel').on('click','.allAlertDetailsButton',function(){
 			$(this).next("div").show(200);
 		});
 
+		// All acquisition details
 		$('#hostContentPanel').on('click','.allAcqDetailsButton',function(){
 			$(this).next("div").show(200);
 		});
@@ -427,11 +581,6 @@
 			}
 			
 		});
-
-
-
-
-
 
 /*
 
@@ -567,7 +716,17 @@
 
 <div class="host-grid-container">
   <div class="host-top">
-	{{ htPanel.widgetHeader("Host", panelId="hostPanel", elementAdditionalBodyClass="panelHostClass", panelIcon="fa-desktop") }}
+	<div id="hostPanel" class='fe-panel panelHostClass' style='margin-top: 12px;'>
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i class='fe-icon--left fas fa-desktop'></i>Host information</div>
+		</div>
+		<div class='hxtool_panel_top_right_alert'>
+			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='containButton'>contain</button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='triageButton'>triage</button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='fileButton'>file acquisition</button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='dataButton'>data acquisition</button>
+		</div>
+		<div class='fe-panel__body panelHostClass'>
 		<table id='agentTable' class='hxtool_host_table hxtool_table'>
 			<tbody>
 				<tr>
@@ -647,15 +806,97 @@
   </div>
 </div>
 
-
+<!-- Logged on users popup -->
 {{ htModal.widgetHeader("Logged on users", modalId="loggedOnUserPopup") }}
 {{ htModal.widgetMiddle() }}
 		<button class="fe-btn fe-btn--md fe-btn--secondary" id="loggedOnUserDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
 {{ htModal.widgetFooter() }}
 
+<!-- Host and sysinfo popup -->
 {{ htModal.widgetHeader("Host and sysinfo", modalId="showAllHostDataPopup", modalSize="large") }}
 {{ htModal.widgetMiddle() }}
 		<button class="fe-btn fe-btn--md fe-btn--secondary" id="showAllHostDataDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
+<!-- Data Acquisition popup -->
+{{ htModal.widgetHeader("New Data Acquisition", modalId="dataNewPopup") }}
+
+	<!-- Data comment -->
+	<h3 class='hxtool_typography_h3'>Name</h3>
+	<div class='hxtool_panel_wrapper' style='width: 550px; margin-left: 0; margin-top: 6px;'>
+	    <input type="text" name="dataname" id="dataname" value="" class="fe-input" placeholder="my new acquisition" />
+	    <span class="fe-input-hint-text">Enter a name for your acquisition so others knows what it is</span>
+	</div>
+
+	<!-- Script source -->
+	<h3 class='hxtool_typography_h3'>Script source</h3>
+	<div class='hxtool_panel_wrapper'>
+
+		{{ htRadio.widgetHeader("From HXTool", "hxtool", "datasource-a", "datasource", elementChecked="true") }}
+		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
+			<div class="fe-dropdown">
+				<button id='dataScriptDb' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main"> Select an acquisition script <i class="fe-icon--right fal fa-chevron-up"></i></button>
+				<div class="fe-dropdown__list-container">
+					<ul class="fe-dropdown__list fe-list">
+						{% if scripts %} {{scripts|safe}} {% endif %}
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		{{ htRadio.widgetHeader("From file", "file", "datasource-a", "datasource", elementChecked="false") }}
+		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
+			<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='datascript' name='datascript'>
+		</div>
+	</div>
+
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="dataCancel" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="dataSubmit" aria-label="Click"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
+
+
+<!-- File Acquisition -->
+{{ htModal.widgetHeader("New File Acquisition", modalId="fileNewPopup") }}
+	<h3 class='hxtool_typography_h3'>File path</h3>
+	<div class='hxtool_panel_wrapper' style='width: 550px; margin-left: 0; margin-top: 6px;'>
+	    <input type="text" name="filepath" id="filepath" value="" class="fe-input" placeholder="c:\path\to\my\folder" />
+	    <span class="fe-input-hint-text">Enter the path to the file you wish to acquire</span>
+	</div>
+	<h3 class='hxtool_typography_h3'>File name</h3>
+	<div class='hxtool_panel_wrapper' style='width: 550px; margin-left: 0; margin-top: 6px;'>
+	    <input type="text" name="filename" id="filename" value="" class="fe-input" placeholder="myfile.exe" />
+	    <span class="fe-input-hint-text">Enter the file name of the file you wish to acquire</span>
+	</div>
+
+	<h3 class='hxtool_typography_h3'>Acquisition mode</h3>
+	{{ htDropdown.widgetHeader("API", "filemode", "api") }}
+	{{ htDropdown.widgetItem("API", "api", elementIcon="fab fa-check") }}
+	{{ htDropdown.widgetItem("RAW", "raw", elementIcon="fab fa-check") }}
+	{{ htDropdown.widgetFooter(elementLabel="Select acquisition mode") }}
+
+
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="fileCancel" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="fileSubmit" aria-label="Click"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
+
+
+<!-- Triage Acquisition -->
+{{ htModal.widgetHeader("New Triage Acquisition", modalId="triageNewPopup") }}
+	<h3 class='hxtool_typography_h3'>Triage mode</h3>
+	{{ htRadio.widgetHeader("Standard", "standard", "triagemode-a", "triagemode", elementChecked="true") }}
+	{{ htRadio.widgetHeader("Around 1 hour ago", "1", "triagemode-b", "triagemode", elementChecked="false") }}
+	{{ htRadio.widgetHeader("Around 2 hours ago", "2", "triagemode-c", "triagemode", elementChecked="false") }}
+	{{ htRadio.widgetHeader("Around 4 hours ago", "4", "triagemode-d", "triagemode", elementChecked="false") }}
+	{{ htRadio.widgetHeader("Around 8 hours ago", "8", "triagemode-e", "triagemode", elementChecked="false") }}
+	{{ htRadio.widgetHeader("Around timestamp", "timestamp", "triagemode-f", "triagemode", elementChecked="false") }}
+	<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px; width: 150px;'>
+		<input type='text' class="fe-input" id='triage_timestamp' name='triage_timestamp'>
+	</div>
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="triageCancel" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="triageSubmit" aria-label="Click"><span> Submit </span></button>
 {{ htModal.widgetFooter() }}
 
 {% endblock %}
