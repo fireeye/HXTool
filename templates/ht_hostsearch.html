@@ -5,61 +5,74 @@
 
 <script>
 	$(document).ready(function() {
+		var query = getUrlParameter("q");
 
-		$("a[id^='contain_']").click(function(e) {
-			var arrId = $(this).attr('id').split("_");
-			
-			e.preventDefault();
-			if (window.confirm("Are you sure?")) {
-				window.location = '/hosts?contain=' + arrId[1] + '&url=' + window.location.href
-			}
-			
+		$.fn.dataTable.ext.errMode = 'none';
+		var host_datatable = $('#hostTable').DataTable( {
+			"ajax": "/api/v1/datatable_hosts?q=" + query,
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": false,
+			"processing": false,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn" },
+				{ extend: "csv", className: "fe-btn" },
+				{ extend: "excel", className: "fe-btn" }
+			],
+			"columns": [
+				{ title: "Hostname", "data": "hostname" },
+				{ title: "Domain", "data": "domain" },
+				{ title: "Product", "data": "product_name" },
+				{ title: "Patch level", "data": "patch_level" },
+				{ title: "Agent version", "data": "agent_version" },
+				{ title: "Last poll", "data": "last_poll_timestamp" },
+				{ title: "Last poll ip", "data": "last_poll_ip" },
+				{ title: "Action", "data": "DT_RowId" },
+			],
+			"columnDefs": [	
+				{
+				 "targets": 0,
+				 render: function ( data, type, row, meta ) {
+					mydata = '<a class="hostLink" href="/hostview?host=' + row.DT_RowId + '">' + data + '</a>';
+				 	return (mydata);
+				 }
+				},
+				{
+				 "targets": 5,
+				 render: function ( data, type, row, meta ) {
+				 	return (datatables_Timestamp(data));
+				 }
+				},
+				{
+				 "targets": 7,
+				 "width": "80px",
+				 render: function ( data, type, row, meta ) {
+				 	data = "<button class='hostAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
+				 	return (data);
+				 }
+				},
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 7]}
+			]
 		});
-		
-		$("a[id^='uncontain_']").click(function(e) {
-			var arrId = $(this).attr('id').split("_");
 
-			e.preventDefault();
-			if (window.confirm("Are you sure?")) {
-				window.location = '/hosts?uncontain=' + arrId[1] + '&url=' + window.location.href
-			}
-
-		});
-		
-		$("a[id^='appcontain_']").click(function(e) {
-			var arrId = $(this).attr('id').split("_");
-
-			e.preventDefault();
-			if (window.confirm("Are you sure?")) {
-				window.location = '/hosts?appcontain=' + arrId[1] + '&url=' + window.location.href
-			}
-
-		});
-
-		$("a[id^='triage_']").click(function() {
-			var arrId = $(this).attr('id').split("_");
-			showPopup(305, 540, "/triage?host=" + arrId[1] + '&url=' + window.location.href);
-		});
-
-		$("a[id^='fileaq_']").click(function() {
-			var arrId = $(this).attr('id').split("_");
-			showPopup(270, 540, "/fileaq?host=" + arrId[1] + '&url=' + window.location.href);
-		});
-		
-		$("a[id^='acq_']").click(function() {
-			var arrId = $(this).attr('id').split("_");
-			showPopup(220, 540, "/acq?host=" + arrId[1] + '&url=' + window.location.href);
+		$("#hostTable").on("click", ".hostAction", function(){
+			myrow = $(this).closest("tr");
+			hxtool_ajax_get_request("/api/v1/hosts/" + $(this).data("type"), "id=" + $(this).data("id"), function() {
+				myrow.fadeOut(200, function() {
+					host_datatable.row(myrow).remove().draw();
+				})
+			});
 		});
 
 
 	});
 </script>
 
+{{ htPanel.widgetHeader("Matching hosts", panelIcon="fa-desktop") }}
+	<table style='width: 100%;' id='hostTable' class='hxtool_table'></table>
+{{ htPanel.widgetFooter() }}
 
-<div class='tableTitle'>
-	Matching hosts - Limited to 1000 hosts
-</div>
-
-{% if myhostlist %} {{ myhostlist|safe }} {% endif %}
 
 {% endblock %}

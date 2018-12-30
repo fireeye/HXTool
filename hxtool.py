@@ -137,17 +137,10 @@ def bulkacq_view(hx_api_object):
 
 
 ### Hosts
-###############################
-### TODO: CONVERT TO API!!! ###
-###############################
-@app.route('/hosts', methods=['GET', 'POST'])
+@app.route('/hostsearch', methods=['GET', 'POST'])
 @valid_session_required
 def hosts(hx_api_object):
-	# Host search returns table of hosts
-	if 'q' in request.args.keys():
-		(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = request.args.get('q'))
-		myhostlist = formatHostSearch(response_data, hx_api_object)
-		return render_template('ht_hostsearch.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), myhostlist=myhostlist)
+	return render_template('ht_hostsearch.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 			
 
 ### Triage popup

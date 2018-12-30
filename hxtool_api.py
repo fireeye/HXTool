@@ -297,6 +297,12 @@ def hxtool_api_hosts_contain_approve(hx_api_object):
 	(r, rcode) = create_api_response(response_data = response_data)	
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/hosts/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_hosts_remove(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restDeleteHostByID(request.args.get('id'))
+	(r, rcode) = create_api_response(response_data = response_data)	
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
 ###################
@@ -621,6 +627,30 @@ def hxtool_api_scripts_builder(hx_api_object):
 ##############
 # Datatables #
 ##############
+
+@ht_api.route('/api/v{0}/datatable_hosts'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_hosts(hx_api_object):
+	
+	mydata = {}
+	mydata['data'] = []
+
+	(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = request.args.get('q'))
+	if ret:
+		for host in response_data['data']['entries']:
+			mydata['data'].append({
+				"DT_RowId": host['_id'],
+				"hostname": host['hostname'],
+				"domain": host['domain'],
+				"agent_version": host['agent_version'],
+				"last_poll_timestamp": host['last_poll_timestamp'],
+				"last_poll_ip": host['last_poll_ip'],
+				"product_name": host['os']['product_name'],
+				"patch_level": host['os']['patch_level']
+				})
+
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
 
 @ht_api.route('/api/v{0}/datatable_hosts_with_alerts'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required

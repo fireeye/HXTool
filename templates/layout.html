@@ -245,16 +245,21 @@
 				</li>
 			</ul>
 		</nav>
-		<div class="fe-top-nav__action-container fe-top-nav__bookend--right fe-top-nav__bookend">
-			<a aria-label="search in topnav" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
-				<i class="fe-icon--center fas fa-search fa-2x"></i>
-			</a>
-			<a aria-label="info in topnav" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
-				<i class="fe-icon--center fas fa-info-circle fa-2x"></i>
-			</a>
-			<a id="hxtoolLogout" aria-label="logout" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
-				<i class="fe-icon--center fas fa-power-off fa-2x"></i>
-			</a>
+		<div class="fe-top-nav__action-container fe-top-nav__bookend--right fe-top-nav__bookend hxtool_topnav_right_container">
+			<div id='hxtool_topnav_left_container-search' class='hxtool_topnav_left_container-left'>
+				<input type="text" id="hxtool_global_search" value="" class="fe-input" style="width: 180px;" placeholder="search for a host" />
+			</div>
+			<div class='hxtool_topnav_right_container-right'>
+				<a aria-label="search in topnav" id="hxtool_topnavSearch" class="fe-top-nav__action-item" data-clicked='false' role="button" tabindex="0" aria-expanded="false">
+					<i class="fe-icon--center fas fa-search fa-2x"></i>
+				</a>
+				<a aria-label="info in topnav" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
+					<i class="fe-icon--center fas fa-info-circle fa-2x"></i>
+				</a>
+				<a id="hxtoolLogout" aria-label="logout" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
+					<i class="fe-icon--center fas fa-power-off fa-2x"></i>
+				</a>
+			</div>
 		</div>
 	</header>
 

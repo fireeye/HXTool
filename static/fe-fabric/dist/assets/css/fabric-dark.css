@@ -8185,6 +8185,8 @@ i.fe-icon--right {
   cursor: pointer;
   font-size: 12px;
   color: #bebebe;
+  outline:none;
+  text-decoration:none;
 }
 
 .fe-top-nav__action-item:hover {

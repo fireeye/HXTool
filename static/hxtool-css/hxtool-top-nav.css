@@ -12,3 +12,14 @@
 	width: 100%;
 	text-align: left;
 }
+
+.hxtool_topnav_left_container-left {
+	position: absolute;
+	display: none;
+	margin-left: 24px;
+}
+
+.hxtool_topnav_right_container-right {
+	float: right;
+	text-align: right;
+}
