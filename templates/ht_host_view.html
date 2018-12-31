@@ -261,7 +261,7 @@
 		// Alerts table
 		$.fn.dataTable.ext.errMode = 'none';
 		var hostAlert_datatable = $('#hostAlertTable').DataTable( {
-			"ajax": "/api/v1/datatable_alerts_host?host=" + myAgentId,
+			"ajax": "/api/v1/datatable_alerts_host?limit=1000&host=" + myAgentId,
 			"paging":   false,
 			"ordering": false,
 			"info":     false,

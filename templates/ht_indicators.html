@@ -5,33 +5,101 @@
 
 <script>
 	$(document).ready(function() {
-		var table = $('#iocTable').DataTable( {
-			"info": false,
-			"pageLength": 20,
-			"lengthChange": false,
+
+
+		hxtool_ajax_get_request("/api/v1/indicator_category/get_edit_policies", "", function(myCategoryPolicies) {
+			myEditPolicies = JSON.parse(myCategoryPolicies['api_response']);
+		});
+
+		var ioc_datatable = $('#iocTable').DataTable( {
+			"ajax": "/api/v1/datatable_indicators",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": true,
+			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
 				{ extend: "copy", className: "fe-btn" },
 				{ extend: "csv", className: "fe-btn" },
 				{ extend: "excel", className: "fe-btn" }
 			],
+			"columns": [
+				{ title: "", "data": "DT_RowId" },
+				{ title: "Name", "data": "display_name" },
+				{ title: "Active since", "data": "active_since" },
+				{ title: "Category", "data": "category_name" },
+				{ title: "Created by", "data": "created_by" },
+				{ title: "Platforms", "data": "platforms" },
+				{ title: "Conditions", "data": "active_conditions" },
+				{ title: "Hosts w/alerts", "data": "alerted_agents" },
+				{ title: "Action", "data": "DT_RowId" }
+			],
 			"columnDefs": [	
 				{"className": "hxtool_table_cell_center", "targets": [2, 3, 4, 5, 6, 7]},
+				{
+				 "targets": 0,
+				 render: function ( data, type, row, meta ) {
+				 	r = "<input data-id='" + row.DT_RowId + "' type='checkbox' />";
+				 	return (r);
+				 }
+				},
 				{
 				 "targets": 2,
 				 render: function ( data, type, row, meta ) {
 				 	return (datatables_Timestamp(data));
 				 }
+				},
+				{
+				 "targets": 8,
+				 "width": "270px",
+				 render: function ( data, type, row, meta ) {
+				 	r = "";
+				 	myId = String(row.category_id);
+				 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete") {
+				 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='edit' data-id='" + row.DT_RowId + "'>edit</button>";
+				 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view</button>";
+				 	}
+				 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete" || myEditPolicies[myId] == "delete") {
+				 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='remove' data-category='" + row.category_name + "' data-id='" + row.DT_RowId + "'>remove</button>";
+				 	}
+				 	if (row.category_name != "Custom") {
+				 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='clone' data-id='" + row.DT_RowId + "'>clone</button>";
+				 	}
+				 	return (r);
+				 }
 				}
 			]
 		});
 		$('div.dataTables_filter input').addClass("fe-input");
-		
+
+		$("#iocTable").on("click", ".iocAction", function() {
+			if ($(this).data("type") == "edit") {
+				location.href = "/rtioc?indicator=" + $(this).data("id");
+			}
+			if ($(this).data("type") == "clone") {
+				location.href = "/rtioc?indicator=" + $(this).data("id") + "&clone=true";
+			}
+			if ($(this).data("type") == "remove") {
+				myrow = $(this).closest("tr");
+				hxtool_ajax_get_request("/api/v1/indicators/remove", "id=" + $(this).data("id") + "&category=" + $(this).data("category"), function() {
+					myrow.fadeOut(200, function() {
+						ioc_datatable.row(myrow).remove().draw();
+					});
+				});
+			}
+			if ($(this).data("type") == "view") {
+				alert("view");
+			}
+		});
+
+		/*		
 		$("#iocTable").on('click', 'button', function(e) {
 			e.preventDefault();
 			myuuid = $(this).data('id');
 			showPopup(500, 900, "/indicatorcondition?uuid=" + myuuid, "myindicatorconditions");
 		});
+		*/
 		
 		$('#importIndicator').click(function(){ 
 			$('#shader').show();
@@ -46,11 +114,11 @@
 	});
 </script>
 
-<form style='margin: 0;' method='post'>
-
-<button class="fe-btn fe-btn--md fe-btn--primary active"> Export selected <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-<button class="fe-btn fe-btn--md fe-btn--primary active"> Import <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-<button class="fe-btn fe-btn--md fe-btn--primary active"> Create new indicator <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanel.widgetHeader("Action", panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> Export selected <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> Import <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> Create new indicator <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanel.widgetFooter() }}
 
 <!--
 <input class='tableActionButton' type='submit' value='Export Selected'>
@@ -59,16 +127,9 @@
 <br>
 -->
 
-
-<!-- ACTIONS -->
-<div id="esNew" class="fe-panel" style='margin-top: 12px;'>
-	<div class="fe-panel-header fe-panel-header--no-background">
-		<div class="fe-label fe-label--background">Action</div>
-	</div>
-	<div class="fe-panel__body">
-		{% if indicators %} {{indicators|safe}} {% endif %}
-	</div>
-</div>
+{{ htPanel.widgetHeader("Indicators", panelId="iocTableContainer") }}
+	<table style='width: 100%;' id='iocTable' class='hxtool_table'></table>
+{{ htPanel.widgetFooter() }}
 
 <!--
 <table style='margin: 0; width: 100%;'>
@@ -88,7 +149,6 @@
 	</td>
 </table>
 -->
-</form>
 
 <div class='shader' id='shader' style='display: none;'>&nbsp;</div>
 <div class='importPopup' id='importPopup' style='display: none;'>
