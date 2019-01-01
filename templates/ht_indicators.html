@@ -4,8 +4,34 @@
 {% block content %}
 
 <script>
-	$(document).ready(function() {
 
+	function generateConditionList(myConditions, myId) {
+		$("#ruleViewPopup").find(".fe-modal__body").append("<div id='" + myId + "' class='clt'></div>");
+		var r = "";
+		r += "<ul><li>or<ul>";
+
+		$.each(myConditions, function(key, value) {
+			r += "<li>and<ul>";
+			$.each(value['tests'], function(ckey, cvalue) {
+				r += "<li>";
+				if (cvalue['negate'] == true) {
+					r += "<span style='color: #ea475b; font-weight: bold;'>not </span>";
+				}
+				r += "<strong>" + cvalue['token'] + "</strong> " + cvalue['operator'] + " " + cvalue['value'];
+				if (cvalue['preservecase'] == true) {
+					r += "<span style='color: #59dc90;'> (case sensitive)</span>";
+				}
+				r += "</li>";
+			});
+			r += "</ul></li>";
+		});
+
+		r += "</ul></li>";
+		$("#" + myId).html(r);
+	}
+
+
+	$(document).ready(function() {
 
 		hxtool_ajax_get_request("/api/v1/indicator_category/get_edit_policies", "", function(myCategoryPolicies) {
 			myEditPolicies = JSON.parse(myCategoryPolicies['api_response']);
@@ -56,9 +82,9 @@
 				 render: function ( data, type, row, meta ) {
 				 	r = "";
 				 	myId = String(row.category_id);
+				 	r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view</button>";
 				 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete") {
 				 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='edit' data-id='" + row.DT_RowId + "'>edit</button>";
-				 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view</button>";
 				 	}
 				 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete" || myEditPolicies[myId] == "delete") {
 				 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='remove' data-category='" + row.category_name + "' data-id='" + row.DT_RowId + "'>remove</button>";
@@ -89,17 +115,30 @@
 				});
 			}
 			if ($(this).data("type") == "view") {
-				alert("view");
+				hxtool_ajax_get_request("/api/v1/indicators/get/conditions", "uuid=" + $(this).data("id"), function(myConditionsResponse) {
+					myConditions = JSON.parse(myConditionsResponse['api_response']);
+
+					// First empty the container
+					$("#ruleViewPopup").find(".fe-modal__body").html("");
+
+					// Generate the lists of conditions
+					if (myConditions['presence']['data']['entries'].length > 0) {
+						$("#ruleViewPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Conditions for detecting presence</h3>");
+						generateConditionList(myConditions['presence']['data']['entries'], "presenceList");
+					}
+					if (myConditions['execution']['data']['entries'].length > 0) {
+						$("#ruleViewPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Conditions for detecting execution</h3>");
+						generateConditionList(myConditions['execution']['data']['entries'], "executionList");
+					}
+
+					$("#ruleViewPopup").show();
+				});
 			}
 		});
 
-		/*		
-		$("#iocTable").on('click', 'button', function(e) {
-			e.preventDefault();
-			myuuid = $(this).data('id');
-			showPopup(500, 900, "/indicatorcondition?uuid=" + myuuid, "myindicatorconditions");
+		$("#ruleViewDismiss").click(function() {
+			$("#ruleViewPopup").hide();
 		});
-		*/
 		
 		$('#importIndicator').click(function(){ 
 			$('#shader').show();
@@ -120,35 +159,15 @@
 	<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> Create new indicator <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
 {{ htPanel.widgetFooter() }}
 
-<!--
-<input class='tableActionButton' type='submit' value='Export Selected'>
-<input class='tableActionButton' type='button' value='Import indicators' name='importIndicator' id='importIndicator'>
-<a href='/rtioc' class='tableActionButton'>Create new indicator</a>
-<br>
--->
-
-{{ htPanel.widgetHeader("Indicators", panelId="iocTableContainer") }}
+{{ htPanel.widgetHeader("Rules", panelId="iocTableContainer") }}
 	<table style='width: 100%;' id='iocTable' class='hxtool_table'></table>
 {{ htPanel.widgetFooter() }}
 
-<!--
-<table style='margin: 0; width: 100%;'>
-	<div class='tableTitle'>
-			Indicators on the controller
-	</div>
+{{ htModal.widgetHeader("View rule", modalId="ruleViewPopup", modalSize="large") }}
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="ruleViewDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
 
-	<td style='vertical-align: top;'>
--->
-<!--
-	</td>
-	<td style='width: 30%; vertical-align: top;'>
-		<div style='border-top: 2px solid rgb(215,215,215); border-bottom: 2px solid rgb(215,215,215); padding: 10px; font: open_sans,"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 13px; font-weight: 700;'>
-			Indicator conditions
-		</div>
-		<div id='indcond' style='padding: 10px; padding-top: none;'></div>
-	</td>
-</table>
--->
 
 <div class='shader' id='shader' style='display: none;'>&nbsp;</div>
 <div class='importPopup' id='importPopup' style='display: none;'>

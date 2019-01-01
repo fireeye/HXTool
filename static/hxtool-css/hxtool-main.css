@@ -94,3 +94,36 @@ select {
 	margin-top: 24px;
 }
 
+.clt, .clt ul, .clt li {
+     position: relative;
+}
+
+.clt ul {
+    list-style: none;
+    padding-left: 22px;
+}
+
+.clt li::before, .clt li::after {
+    content: "";
+    position: absolute;
+    left: -12px;
+}
+
+.clt li::before {
+    border-top: 1px solid rgba(15, 184, 220, 0.4);
+    top: 9px;
+    width: 8px;
+    height: 0;
+}
+
+.clt li::after {
+    border-left: 1px solid rgba(15, 184, 220, 0.4);
+    height: 100%;
+    width: 0px;
+    top: 2px;
+}
+
+.clt ul > li:last-child::after {
+    height: 8px;
+}
+

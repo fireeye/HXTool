@@ -649,7 +649,24 @@ def hxtool_api_indicators_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(request.args.get('category'), request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
-	
+
+
+@ht_api.route('/api/v{0}/indicators/get/conditions'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_indicators_get_conditions(hx_api_object):
+	uuid = request.args.get('uuid')
+
+	(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ "uri_name": uuid })
+	category = response_data['data']['entries'][0]['category']['uri_name']
+
+	(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(category, uuid, 'presence')
+	(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(category, uuid, 'execution')
+
+	myconditions = { "presence": condition_class_presence, "execution": condition_class_execution }
+
+	(r, rcode) = create_api_response(ret, response_code, myconditions)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 
 ##############
 # Datatables #

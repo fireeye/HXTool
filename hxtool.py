@@ -218,31 +218,7 @@ def indicators(hx_api_object):
 		app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 		return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
 
-	(ret, response_code, response_data) = hx_api_object.restListCategories()
-	if ret:
-		mycategories = {}
-		for category in response_data['data']['entries']:
-			mycategories[category['_id']] = category['ui_edit_policy']
-
-	(ret, response_code, response_data) = hx_api_object.restListIndicators()
-	indicators = formatIOCResults(response_data, mycategories)
-	return render_template('ht_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), indicators=indicators)
-
-@app.route('/indicatorcondition', methods=['GET'])
-@valid_session_required
-def indicatorcondition(hx_api_object):
-	uuid = request.args.get('uuid')
-
-	(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ "uri_name": uuid })
-	category = response_data['data']['entries'][0]['category']['uri_name']
-
-	(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(category, uuid, 'presence')
-	(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(category, uuid, 'execution')
-	
-	conditions = formatConditions(condition_class_presence, condition_class_execution)
-
-	return render_template('ht_indicatorcondition.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), conditions=conditions)
-
+	return render_template('ht_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 @app.route('/categories', methods=['GET', 'POST'])
 @valid_session_required
