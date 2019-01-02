@@ -66,7 +66,7 @@
 				{
 				 "targets": 0,
 				 render: function ( data, type, row, meta ) {
-				 	r = "<input data-id='" + row.DT_RowId + "' type='checkbox' />";
+				 	r = "<input id='" + row.DT_RowId + "_check' type='checkbox' />";
 				 	return (r);
 				 }
 				},
@@ -125,6 +125,7 @@
 					if (myConditions['presence']['data']['entries'].length > 0) {
 						$("#ruleViewPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Conditions for detecting presence</h3>");
 						generateConditionList(myConditions['presence']['data']['entries'], "presenceList");
+						$("#ruleViewPopup").find(".fe-modal__body").append("<br>");
 					}
 					if (myConditions['execution']['data']['entries'].length > 0) {
 						$("#ruleViewPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Conditions for detecting execution</h3>");
@@ -140,26 +141,60 @@
 			$("#ruleViewPopup").hide();
 		});
 		
-		$('#importIndicator').click(function(){ 
-			$('#shader').show();
-			$('#importPopup').show();
+		$('#importButton').click(function(){ 
+			$('#ruleImportPopup').show();
 		});
 
-		$('#importCancel').click(function(){
-			$('#importPopup').hide();
-			$('#shader').hide();
+		$('#ruleImportCancel').click(function(){
+			$('#ruleImportPopup').hide();
+		});
+
+		$('#ruleImportSubmit').click(function(){
+			$('#ruleImportPopup').hide();
+
+			var data = new FormData();
+			$.each($('#ruleImportFile').prop('files'), function(key, value) {
+				data.append("ruleImport", value);
+			});
+
+			hxtool_ajax_post_request("/api/v1/indicators/import", data, function() {
+				ioc_datatable.ajax.reload();
+			});
+
+		});
+
+		$("#exportButton").click(function() {
+			myExports = {};
+			ioc_datatable.rows().eq(0).each( function ( index ) {
+				var row = ioc_datatable.row( index );
+
+				if ($("#" + row.data()['DT_RowId'] + "_check").is(":checked")) {
+					myuuid = row.data()['DT_RowId'];
+					myExports[myuuid] = {
+						"name": row.data()['display_name'],
+						"category": row.data()['category_name'],
+						"platforms": row.data()['platforms'],
+					};
+				}
+
+			});
+			location.href = "/api/v1/indicators/export?indicators=" + JSON.stringify(myExports);
+		});
+
+		$("#createButton").click(function() {
+			location.href = "/rtioc";
 		});
 		
 	});
 </script>
 
-{{ htPanel.widgetHeader("Action", panelDisplay="inline-block") }}
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> Export selected <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> Import <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> Create new indicator <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanel.widgetHeader("Action", panelDisplay="inline-block", panelIcon="fa-external-link-square") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="exportButton"> Export selected <i style='color: #11a962;' class="fe-icon--right fas fa-file-export"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="importButton"> Import <i style='color: #11a962;' class="fe-icon--right fas fa-file-import"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="createButton"> Create new rule <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
 {{ htPanel.widgetFooter() }}
 
-{{ htPanel.widgetHeader("Rules", panelId="iocTableContainer") }}
+{{ htPanel.widgetHeader("Rules", panelId="iocTableContainer", panelIcon="fa-table") }}
 	<table style='width: 100%;' id='iocTable' class='hxtool_table'></table>
 {{ htPanel.widgetFooter() }}
 
@@ -168,20 +203,14 @@
 	<button class="fe-btn fe-btn--md fe-btn--secondary" id="ruleViewDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
 {{ htModal.widgetFooter() }}
 
-
-<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
-<div class='importPopup' id='importPopup' style='display: none;'>
-	<form method='post' action='/import' enctype='multipart/form-data' style='font-size: 14px; font-weight: bold;'>
-		<div class='tableTitle' style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 15px;'>Import indicators from file</div>
-		<br>
-		<input type='file' name='iocfile' id='iocfile'><br>
-		<br>
-		<div style='font-style: italic; margin-bottom: 20px; font-weight: 400;'>- Please note that you need to import a file in the hxTool format. OpenIOC/STIX and other formats are not yet supported</div>
-		<input class='tableActionButton' type='submit' value='Import indicators'>
-		<input class='tableActionButton' type='button' value='Cancel' id='importCancel'>
-	</form>
-</div>
-
-
+{{ htModal.widgetHeader("Import indicators", modalId="ruleImportPopup", modalSize="small") }}
+	<h3 class='hxtool_typography_h3'>Upload hxtool exported rules</h3>
+	<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='ruleImportFile' name='ruleImportFile'>
+	<br>
+	<h5>HXTool rule format only! <br>(No STIX/YARA/OpenIOC formats)</h5>
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="ruleImportCancel" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="ruleImportSubmit" aria-label="Submit"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
 
 {% endblock %}

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+from io import BytesIO
 
 try:
 	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort, Blueprint, current_app as app
@@ -21,6 +22,8 @@ HXTOOL_API_VERSION = 1
 
 ht_api = Blueprint('ht_api', __name__, template_folder='templates')
 logger = hxtool_global.get_logger(__name__)
+
+default_encoding = 'utf-8'
 
 ###################################
 # Common User interface endpoints #
@@ -667,6 +670,80 @@ def hxtool_api_indicators_get_conditions(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, myconditions)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+
+@ht_api.route('/api/v{0}/indicators/export'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_indicators_export(hx_api_object):
+	iocList = json.loads(request.args.get('indicators'))
+	for uuid, ioc in iocList.items():
+		(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], uuid, 'execution')
+		for item in response_data['data']['entries']:
+			if not 'execution' in iocList[uuid].keys():
+				iocList[uuid]['execution'] = []
+			iocList[uuid]['execution'].append(item['tests'])
+		(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], uuid, 'presence')
+		for item in response_data['data']['entries']:
+			if not 'presence' in iocList[uuid].keys():
+				iocList[uuid]['presence'] = []
+			iocList[uuid]['presence'].append(item['tests'])
+
+
+	if len(iocList.keys()) == 1:
+		print(list(iocList.keys())[0])
+		iocfname = iocList[list(iocList.keys())[0]]['name'] + ".ioc"
+	else:
+		iocfname = "multiple_indicators.ioc"
+	
+	buffer = BytesIO()
+	buffer.write(json.dumps(iocList, indent=4, ensure_ascii=False).encode(default_encoding))
+	buffer.seek(0)
+	app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+	return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
+
+@ht_api.route('/api/v{0}/indicators/import'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_indicators_import(hx_api_object):
+
+	fc = request.files['ruleImport']
+	iocs = json.loads(fc.read().decode(default_encoding))
+	
+	for iockey in iocs:
+
+		# Check if category exists
+		category_exists = False
+		(ret, response_code, response_data) = hx_api_object.restListCategories(limit = 1, filter_term={'name' : iocs[iockey]['category']})
+		if ret:
+			# As it turns out, filtering by name also returns partial matches. However the exact match seems to be the 1st result
+			category_exists = (len(response_data['data']['entries']) == 1 and response_data['data']['entries'][0]['name'].lower() == iocs[iockey]['category'].lower())
+			if not category_exists:
+				app.logger.info('Adding new IOC category as part of import: %s - User: %s@%s:%s', iocs[iockey]['category'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(iocs[iockey]['category']))
+				category_exists = ret
+			
+			if category_exists:
+				(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
+				if ret:
+					ioc_guid = response_data['data']['_id']
+					
+					if 'presence' in iocs[iockey].keys():
+						for p_cond in iocs[iockey]['presence']:
+							data = json.dumps(p_cond)
+							data = """{"tests":""" + data + """}"""
+							(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
+
+					if 'execution' in iocs[iockey].keys():
+						for e_cond in iocs[iockey]['execution']:
+							data = json.dumps(e_cond)
+							data = """{"tests":""" + data + """}"""
+							(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
+			
+					app.logger.info('New indicator imported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			else:
+				app.logger.warn('Unable to create category for indicator import - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+		else:
+			app.logger.warn('Unable to import indicator - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 ##############
 # Datatables #

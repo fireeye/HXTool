@@ -167,57 +167,9 @@ def searchresult(hx_api_object):
 		return render_template('ht_search_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 			
 ### Manage Indicators
-###############################
-### TODO: CONVERT TO API!!! ###
-###############################
 @app.route('/indicators', methods=['GET', 'POST'])
 @valid_session_required
 def indicators(hx_api_object):
-	if request.method == 'POST':
-		
-		# Export selected indicators
-		iocs = []
-		for postvalue in request.form:
-			if postvalue.startswith('ioc___'):
-				sval = postvalue.split("___")
-				iocname = sval[1]
-				ioccategory = sval[2]
-				platforms = sval[3]
-				iocs.append({'uuid':request.form.get(postvalue), 'name':iocname, 'category':ioccategory, 'platforms':platforms})
-		
-		ioclist = {}
-		for ioc in iocs:
-			#Data structure for the conditions
-			ioclist[ioc['uuid']] = {}
-			ioclist[ioc['uuid']]['execution'] = []
-			ioclist[ioc['uuid']]['presence'] = []
-			ioclist[ioc['uuid']]['name'] = ioc['name']
-			ioclist[ioc['uuid']]['category'] = ioc['category']
-			ioclist[ioc['uuid']]['platforms'] = ioc['platforms'].split(',')
-
-			#Grab execution indicators
-			(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], ioc['uuid'], 'execution')
-			for item in response_data['data']['entries']:
-				ioclist[ioc['uuid']]['execution'].append(item['tests'])
-
-			#Grab presence indicators
-			(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], ioc['uuid'], 'presence')
-			for item in response_data['data']['entries']:
-				ioclist[ioc['uuid']]['presence'].append(item['tests'])
-							
-		if len(iocs) == 1:
-			iocfname = iocs[0]['name'] + ".ioc"
-		else:
-			iocfname = "multiple_indicators.ioc"
-		
-		
-		
-		buffer = BytesIO()
-		buffer.write(json.dumps(ioclist, indent=4, ensure_ascii=False).encode(default_encoding))
-		buffer.seek(0)
-		app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
-
 	return render_template('ht_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 @app.route('/categories', methods=['GET', 'POST'])
@@ -235,50 +187,6 @@ def categories(hx_api_object):
 	categories = formatCategories(response_data)
 	
 	return render_template('ht_categories.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories)
-
-@app.route('/import', methods=['POST'])
-@valid_session_required
-def importioc(hx_api_object):
-	if request.method == 'POST':
-	
-		fc = request.files['iocfile']				
-		iocs = json.loads(fc.read().decode(default_encoding))
-		
-		for iockey in iocs:
-
-			# Check if category exists
-			category_exists = False
-			(ret, response_code, response_data) = hx_api_object.restListCategories(limit = 1, filter_term={'name' : iocs[iockey]['category']})
-			if ret:
-				# As it turns out, filtering by name also returns partial matches. However the exact match seems to be the 1st result
-				category_exists = (len(response_data['data']['entries']) == 1 and response_data['data']['entries'][0]['name'].lower() == iocs[iockey]['category'].lower())
-				if not category_exists:
-					app.logger.info('Adding new IOC category as part of import: %s - User: %s@%s:%s', iocs[iockey]['category'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-					(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(iocs[iockey]['category']))
-					category_exists = ret
-				
-				if category_exists:
-					(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
-					if ret:
-						ioc_guid = response_data['data']['_id']
-						
-						for p_cond in iocs[iockey]['presence']:
-							data = json.dumps(p_cond)
-							data = """{"tests":""" + data + """}"""
-							(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
-
-						for e_cond in iocs[iockey]['execution']:
-							data = json.dumps(e_cond)
-							data = """{"tests":""" + data + """}"""
-							(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
-				
-						app.logger.info('New indicator imported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-				else:
-					app.logger.warn('Unable to create category for indicator import - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-			else:
-				app.logger.warn('Unable to import indicator - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-	
-	return redirect("/indicators", code=302)
 
 ### Real-time indicators
 @app.route('/rtioc', methods=['POST', 'GET'])
