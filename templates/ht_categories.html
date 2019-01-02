@@ -4,60 +4,104 @@
 {% block content %}
 
 <script>
-		$(document).ready(function() {
-		
-			$('#createCategory').click(function(){ 
-				$('#shader').show();
-				$('#createCategoryPopup').show();
-			});
-	
-			$('#createCategoryCancel').click(function(){
-				$('#createCategoryPopup').hide();
-				$('#shader').hide();
-			});		
-		
+	$(document).ready(function() {
+
+		var category_datatable = $('#categoryTable').DataTable( {
+			"ajax": "/api/v1/datatable_categories",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": true,
+			"processing": false,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn" },
+				{ extend: "csv", className: "fe-btn" },
+				{ extend: "excel", className: "fe-btn" }
+			],
+			"columns": [
+				{ title: "Name", "data": "name" },
+				{ title: "Retention policy", "data": "retention_policy" },
+				{ title: "Edit policy", "data": "ui_edit_policy" },
+				{ title: "Signature enabled", "data": "ui_signature_enabled" },
+				{ title: "Source alerts enabled", "data": "ui_source_alerts_enabled" },
+				{ title: "Share mode", "data": "share_mode" },
+				{ title: "Action", "data": "DT_RowId" }
+			],
+			"columnDefs": [	
+				{"className": "hxtool_table_cell_center", "targets": [1, 2, 3, 4, 5, 6]},
+				{
+				 "targets": 6,
+				 "width": "120px",
+				 render: function ( data, type, row, meta ) {
+				 	r = "<button style='margin-right: 6px;' class='categoryRemove fe-btn fe-btn--sm fe-btn--hxtool-main' data-id='" + row.uri_name + "'>remove</button>";
+				 	return (r);
+				 }
+				}
+			]
 		});
+		$('div.dataTables_filter input').addClass("fe-input");
+		
+		$('#createButton').click(function(){ 
+			$('#categoryNewPopup').show();
+		});
+
+		$('#categoryNewCancel').click(function(){
+			$('#categoryNewPopup').hide();
+		});		
+
+		$('#categoryTable').on("click", ".categoryRemove", function(){
+			myrow = $(this).closest("tr");
+			hxtool_ajax_get_request("/api/v1/indicator_category/remove", "id=" + $(this).data("id"), function() {
+					myrow.fadeOut(200, function() {
+						category_datatable.row(myrow).remove().draw();
+					});
+			});
+		});
+
+		$('#categoryNewSubmit').click(function(){
+			$('#categoryNewPopup').hide();
+			hxtool_ajax_get_request("/api/v1/indicator_category/new", "name=" + $("#category_name").val() + "&retention_policy=" + $("#retention_policy").data("id") + "&edit_policy=" + $("#edit_policy").data("id"), function() {
+				category_datatable.ajax.reload();
+			});
+		});
+		
+	});
 </script>
 
-<form style='margin: 0;' method='post'>
-<input class='tableActionButton' type='button' value='Create new category' name='createCategory' id='createCategory'>
-<br><br>
+{{ htPanel.widgetHeader("Action", panelDisplay="inline-block", panelIcon="fa-external-link-square") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="createButton"> Create new category <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanel.widgetFooter() }}
 
-<div class='tableTitle'>
-	Indicator categories
-</div>
-
-{% if categories %} {{ categories|safe }} {% endif %}
+{{ htPanel.widgetHeader("Rule categories", panelId="categoryTableContainer", panelIcon="fa-table") }}
+	<table style='width: 100%;' id='categoryTable' class='hxtool_table'></table>
+{{ htPanel.widgetFooter() }}
 
 
-<div class='shader' id='shader' style='display: none;'>&nbsp;</div>
-<div class='createCategoryPopup' id='createCategoryPopup' style='display: none;'>
-	<form method='post' style='font-size: 14px; font-weight: bold;'>
-		<div class='tableTitle' style='border-bottom: 1px solid rgb(215,215,215); margin-bottom: 15px;'>Create new category</div>
-		<div class='descr'>- Create a new category for real-time indicators</div>
-		<br>
-		<div class='inputTitle'>Category name</div>
-		<input type='text' name='catname' id='catname' style='width: 400px;'><br>
-		<br>
-		<div class='inputTitle'>Retention policy</div>
-		<select name='retentionpolicy' id='retentionpolicy'>
-			<option value='manual'>manual
-			<option value='auto'>auto
-			<option value='intel'>intel
-		</select>
-		<br><br>
-		<div class='inputTitle'>Edit policy</div>
-		<select name='editpolicy' id='editpolicy'>
-			<option value='full'>full
-			<option value='edit_delete'>edit_delete
-			<option value='delete'>delete
-			<option value='read_only'>read-only
-		</select>
-		<br><br>
-		<input class='tableActionButton' type='submit' value='Create'>
-		<input class='tableActionButton' type='button' value='Cancel' id='createCategoryCancel'>
-	</form>
-</div>
+{{ htModal.widgetHeader("Create new category", modalId="categoryNewPopup", modalSize="medium") }}
+	<h3 class='hxtool_typography_h3'>Category name</h3>
+    <input type="text" name="category_name" id="category_name" value="" class="fe-input" placeholder="my new category" />
+    <span class="fe-input-hint-text">Enter a name for your new category</span>
 
+	<h3 class='hxtool_typography_h3'>Retention policy</h3>
+	{{ htDropdown.widgetHeader("Select a policy", "retention_policy", "false") }}
+	{{ htDropdown.widgetItem("manual", "manual", elementIcon="fa-check") }}
+	{{ htDropdown.widgetItem("auto", "auto", elementIcon="fa-check") }}
+	{{ htDropdown.widgetItem("intel", "intel", elementIcon="fa-check") }}
+	{{ htDropdown.widgetFooter() }}
+
+	<br>
+	<h3 class='hxtool_typography_h3'>Edit policy</h3>
+	{{ htDropdown.widgetHeader("Select a policy", "edit_policy", "false") }}
+	{{ htDropdown.widgetItem("full", "full", elementIcon="fa-check") }}
+	{{ htDropdown.widgetItem("edit_delete", "edit_delete", elementIcon="fa-check") }}
+	{{ htDropdown.widgetItem("delete", "delete", elementIcon="fa-check") }}
+	{{ htDropdown.widgetItem("read-only", "read-only", elementIcon="fa-check") }}
+	{{ htDropdown.widgetFooter() }}
+
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="categoryNewCancel" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="categoryNewSubmit" aria-label="Submit"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
 
 {% endblock %}

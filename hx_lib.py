@@ -391,6 +391,14 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
+	# Delete a category
+	def restDeleteCategory(self, indicator_category):
+		
+		request = self.build_request(self.build_api_route('indicator_categories/{0}'.format(indicator_category)), method = 'DELETE')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
 	# List all conditions
 	# TODO: Add has_alerts and enabled parameters
 	def restListConditions(self, limit=DEFAULT_LIMIT, offset=0, has_share_mode=None, search_term=None, query_terms={}):

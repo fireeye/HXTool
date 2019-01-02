@@ -172,21 +172,10 @@ def searchresult(hx_api_object):
 def indicators(hx_api_object):
 	return render_template('ht_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
-@app.route('/categories', methods=['GET', 'POST'])
+@app.route('/categories', methods=['GET'])
 @valid_session_required
 def categories(hx_api_object):
-	if request.method == 'POST':
-		catname = request.form.get('catname')
-
-		(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(catname), category_options={"ui_edit_policy": HXAPI.compat_str(request.form.get('editpolicy')), "retention_policy": HXAPI.compat_str(request.form.get('retentionpolicy'))})
-		if ret:
-			app.logger.info('New indicator category created - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-
-
-	(ret, response_code, response_data) = hx_api_object.restListCategories()
-	categories = formatCategories(response_data)
-	
-	return render_template('ht_categories.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories)
+	return render_template('ht_categories.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### Real-time indicators
 @app.route('/rtioc', methods=['POST', 'GET'])

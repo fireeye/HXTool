@@ -642,6 +642,24 @@ def hxtool_api_indicator_category_get_edit_policies(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, mycategories)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/indicator_category/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_indicator_category_remove(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restDeleteCategory(request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/indicator_category/new'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_indicator_category_new(hx_api_object):
+	mycategory_options = {
+		"ui_edit_policy": HXAPI.compat_str(request.args.get('edit_policy')),
+		"retention_policy": HXAPI.compat_str(request.args.get('retention_policy')),
+	}
+	(ret, response_code, response_data) = hx_api_object.restCreateCategory(request.args.get('name'), category_options=mycategory_options)
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 
 ##############
 # Indicators #
@@ -745,9 +763,33 @@ def hxtool_api_indicators_import(hx_api_object):
 
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
+
+
 ##############
 # Datatables #
 ##############
+@ht_api.route('/api/v{0}/datatable_categories'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_categories(hx_api_object):
+	mydata = {}
+	mydata['data'] = []
+
+	(ret, response_code, response_data) = hx_api_object.restListCategories()
+	if ret:
+		for category in response_data['data']['entries']:
+			mydata['data'].append({
+				"uri_name": category['uri_name'],
+				"DT_RowId": category['_id'],
+				"name": category['name'],
+				"retention_policy": category['retention_policy'],
+				"ui_edit_policy": category['ui_edit_policy'],
+				"ui_signature_enabled": category['ui_signature_enabled'],
+				"ui_source_alerts_enabled": category['ui_source_alerts_enabled'],
+				"share_mode": category['share_mode']
+				})
+
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
 
 @ht_api.route('/api/v{0}/datatable_indicators'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
