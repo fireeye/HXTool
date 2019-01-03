@@ -19,6 +19,7 @@
 				myhtml += "<option name='" + index + "'>" + index;
 			});
 			myhtml += "</select>";
+			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
 			$(targetelement).html(myhtml);
 
 			// Check if we need to populate fields
@@ -39,6 +40,7 @@
 				myhtml += "<option data-type='" + field.type + "' value='" + field.name + "'>" + field.name;
 			});
 			myhtml += "</select>";
+			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
 			$(targetelement).html(myhtml);
 
 			if (myField) {
@@ -73,6 +75,7 @@
 				myhtml += "<option value='between'>between";
 			}
 			myhtml += "</select>";
+			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
 			$(targetelement).html(myhtml);
 
 			if (myOperator) {
@@ -87,28 +90,30 @@
 			// Set the condition type
 			if (condition_type) {
 				if (condition_type == "presence") {
-					mytypehtml = "<select id='ioctype'><option value='presence' selected>presence<option value='execution'>execution</select>";
+					mytypehtml = "<select style='margin-top: 6px; margin-left: 16px;' id='ioctype'><option value='presence' selected>presence<option value='execution'>execution</select>";
 				}
 				else {
-					mytypehtml = "<select id='ioctype'><option value='presence'>presence<option value='execution' selected>execution</select>";
+					mytypehtml = "<select style='margin-top: 6px; margin-left: 16px;' id='ioctype'><option value='presence'>presence<option value='execution' selected>execution</select>";
 				}
 				
 			}
 			else {
-				mytypehtml = "<select id='ioctype'><option value='presence'>presence<option value='execution'>execution</select>";
+				mytypehtml = "<select style='margin-top: 6px; margin-left: 16px;' id='ioctype'><option value='presence'>presence<option value='execution'>execution</select>";
 			}
+
+			mytypehtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
 			
 			// Append row to table
-			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td style=\'background: #eeeeee; text-align: left; border-right: none; font-weight: bold; font-size: 14px;\' colspan=\'7\'>Condition ' +  mytypehtml + '</td><td style=\'border-left: none; background: #eeeeee; text-align: center;\'><input id=\'gdelete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall conditionDeleteButton\' type=\'button\' value=\'remove\'></td></tr>');
+			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>Condition for detecting<br>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main conditionDeleteButton\'>remove</button></td></tr>');
 		}
 
 		function addElement(myguid, optionalElement) {
 			//Append row to table
 			if (optionalElement == undefined) {
-				$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><input type=\'button\' class=\'tableActionButton tableActionButtonSmall elementAddButton\' value=\'+\' id=\'add_' + myguid + '\'></td><td><input id=\'delete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall elementDeleteButton\' type=\'button\' value=\'remove\'></td></tr>');
+				$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementDeleteButton\'>remove</button></td></tr>');
 			}
 			else {
-				$('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><input type=\'button\' class=\'tableActionButton tableActionButtonSmall elementAddButton\' value=\'+\' id=\'add_' + myguid + '\'></td><td><input id=\'delete_' + myguid + '\' class=\'tableActionButton tableActionButtonSmall elementDeleteButton\' type=\'button\' value=\'remove\'></td></tr>').insertAfter($(optionalElement)).closest('tr');
+				$('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementDeleteButton\'>remove</button></td></tr>').insertAfter($(optionalElement)).closest('tr');
 			}
 		}
 
@@ -216,19 +221,19 @@
 			});
 
 			// + button clicked - need to add new element on the next row
-			$('#ioctable').on('click', 'input.elementAddButton', function() {
+			$('#ioctable').on('click', 'button.elementAddButton', function() {
 				myguid = ($(this).parent().parent().data('id'));
 				addElement(myguid, $(this).parent().parent());
 				getGroups(eventspace, $(this).parent().parent().next().find('td:first'), myguid);
 			});
 
 			// Delete button clicked - remove the element
-			$('#ioctable').on('click', 'input.elementDeleteButton', function() {
+			$('#ioctable').on('click', 'button.elementDeleteButton', function() {
 				removeElements($(this));
 			});
 
 			// Condition delete button clicked
-			$('#ioctable').on('click', 'input.conditionDeleteButton', function() {
+			$('#ioctable').on('click', 'button.conditionDeleteButton', function() {
 				removeElements($(this));
 			});
 
@@ -301,20 +306,13 @@
 				// Post a new indicator (new mode)				
 				if ($('#myTitle').data('id') == "new") {
 					if ($('#indicator_name').val() !== "") {
-						$.ajax
-						({
-							type: "POST",
-							url: '/rtioc?mode=new',
-							dataType: 'json',
-							contentType: 'application/json',
-							data: JSON.stringify(data),
-							success: function () {
-								window.location.href = "/indicators";
-							},
-							error: function (xhr, status) {
-								enableStatusBarLive("One or more conditions are invalid. Please resolve conditions and resubmit.", 200, "ht_statusbar_notifyRed");
-							}
-						})
+						var myForm = new FormData();
+						myForm.append("rule", JSON.stringify(data));
+
+						hxtool_ajax_post_request("/api/v1/indicators/new", myForm, function() {
+							location.href = "/indicators";
+						});
+
 					}
 					else {
 						enableStatusBarLive("Enter an indicator name!", 200, "ht_statusbar_notifyRed");
@@ -323,20 +321,12 @@
 				// Post new indicator edit request (edit mode)
 				else {
 					if ($('#indicator_name').val() !== "") {
-						$.ajax
-						({
-							type: "POST",
-							url: '/rtioc?mode=edit',
-							dataType: 'json',
-							contentType: 'application/json',
-							data: JSON.stringify(data),
-							success: function () {
-								window.location.href = "/indicators";
-							},
-							error: function (xhr, status) {
-								enableStatusBarLive("One or more conditions are invalid. Please resolve conditions and resubmit.", 200, "ht_statusbar_notifyRed");
-							}
-						})
+						var myForm = new FormData();
+						myForm.append("rule", JSON.stringify(data));
+
+						hxtool_ajax_post_request("/api/v1/indicators/edit", myForm, function() {
+							location.href = "/indicators";
+						});
 					}
 					else {
 						enableStatusBarLive("Enter an indicator name!", 200, "ht_statusbar_notifyRed");
@@ -346,53 +336,59 @@
 		});
 	</script>
 
-<form>
+
 	{% if iocname %}
-		<div id='myTitle' data-id='edit' data-category='{{myioccategory|safe}}' data-iocname='{{iocname|safe}}' data-iocuri='{{myiocuri|safe}}' class='tableTitle'>Edit Indicator - {{iocname|safe}}</div>
+		<div id='myTitle' data-id='edit' data-category='{{myioccategory|safe}}' data-iocname='{{iocname|safe}}' data-iocuri='{{myiocuri|safe}}' class='tableTitle'></div>
 	{% else %}
-		<div id='myTitle' data-id='new' class='tableTitle'>New Indicator</div>
+		<div id='myTitle' data-id='new' class='tableTitle'></div>
 	{% endif %}
 
-	<div class='inputArea' style='margin-bottom: 15px; float: left;'>
-		<div class='inputTitle'>Indicator name</div>
-		<input style='margin-bottom: 7px; width: 650px;' type='text' id='indicator_name' name='indicator_name' value='{% if iocname %}{{iocname|safe}}{% endif %}'>
+	{{ htPanel.widgetHeader("Rule settings", panelDisplay="inline-block", panelIcon="fa-external-link-square") }}
+		<h3 class='hxtool_typography_h3'>Rule name</h3>
+		<input style='margin-bottom: 7px; width: 650px;' class='fe-input' type='text' id='indicator_name' name='indicator_name' value='{% if iocname %}{{iocname|safe}}{% endif %}'>
 
-		<div class='inputTitle'>Indicator description</div>
-		<textarea id='indicatorDesc' class='indicatorDescription'>{% if mydescription %}{{mydescription|safe}}{% endif %}</textarea>
+		<h3 class='hxtool_typography_h3'>Rule description</h3>
+		<textarea id='indicatorDesc' style='height: 100px;' class='indicatorDescription fe-input'>{% if mydescription %}{{mydescription|safe}}{% endif %}</textarea>
 
-		<div class='inputTitle' style='margin-bottom: 7px;'>Indicator Category</div>
+		<h3 class='hxtool_typography_h3'>Rule category</h3>
 		{% if categories %}{{categories|safe}}{% endif %}
+		<span style='margin-left: -4px;' class='hxtool_select_tail'><i class="fe-icon--right fas fa-chevron-up"></i></span>
 
-		<div class='inputTitle'>Platform</div>
+		<h3 class='hxtool_typography_h3'>Platform</h3>
 		<select id='indicator_platform'>
 			<option value='win'>Microsoft Windows
 			<option value='osx'>Apple MacOS
 			<option value='all'>All
 		</select>
+		<span style='margin-left: -4px;' class='hxtool_select_tail'><i class="fe-icon--right fas fa-chevron-up"></i></span>
 		{% if iocname %}
 			<div style='width: 650px; font-style: italic; font-size: 11px; margin-top: 10px;'>Note: Due to limitations in the HX API indicator conditions cannot be edited. When you use HXTool to edit an indicator a new indicator will be created and the old indicator will be removed. Make sure to backup your indicators before proceeding</div>
 		{% endif %}
-	</div>
+		<div style='text-align: right;'>
+			<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="postbutton"> Submit <i style='color: #11a962;' class="fe-icon--right fas fa-check"></i></button>
+		</div>
+	{{ htPanel.widgetFooter() }}
 
-	<table id='ioctable' class='genericTable genericTableIOC' style='width: 100%;'>
-		<thead>
-			<th>Group</th>
-			<th>Field</th>
-			<th>Operator</th>
-			<th>Negate</th>
-			<th>Preserve Case</th>
-			<th>Matching Value</th>
-			<th>&nbsp;</th>
-			<th>Delete</th>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
+	{{ htPanel.widgetHeader("Rule", panelIcon="fa-table") }}
+		<table id='ioctable' class='hxtool_rtioc_table hxtool_table' style='width: 100%;'>
+			<thead>
+				<th>Group</th>
+				<th>Field</th>
+				<th>Operator</th>
+				<th>Negate</th>
+				<th>Preserve Case</th>
+				<th>Matching Value</th>
+				<th>&nbsp;</th>
+				<th>Delete</th>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
 
-	<br>
-	<input type='button' class='tableActionButton' id='add_cond' value='add condition'>
-	<br><br>
-	<input type='button' class='tableActionButton' id='postbutton' value='submit'>
-</form>
+		<div style='text-align: center; padding-top: 6px;'>
+			<button id='add_cond' class='fe-btn fe-btn--sm fe-btn--hxtool-main'>add condition</button>
+		</div>
+	{{ htPanel.widgetFooter() }}
+
 
 {% endblock %}

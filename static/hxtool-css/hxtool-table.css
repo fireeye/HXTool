@@ -37,9 +37,11 @@
 	border-bottom: 1px solid rgba(15, 184, 220, 0.1);
 }
 
+/* Zebra striping?
 .hxtool_table tbody tr:nth-child(odd) {
 	background: rgba(0,0,0,0.2);
 }
+*/
 
 .hxtool_table tbody tr:last-child {
 	border-bottom: none;

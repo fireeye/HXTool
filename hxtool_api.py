@@ -649,6 +649,13 @@ def hxtool_api_indicator_category_remove(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/indicator_category/list'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_indicator_category_list(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restListCategories()
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 @ht_api.route('/api/v{0}/indicator_category/new'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_indicator_category_new(hx_api_object):
@@ -762,6 +769,97 @@ def hxtool_api_indicators_import(hx_api_object):
 			app.logger.warn('Unable to import indicator - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
 
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/indicators/new'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_indicators_new(hx_api_object):
+
+	mydata = json.loads(request.form.get('rule'))
+
+	if mydata['platform'] == "all":
+		chosenplatform = ['win', 'osx']
+	else:
+		chosenplatform = [mydata['platform']]
+
+	(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform, description=mydata['description'])
+	if ret:
+		ioc_guid = response_data['data']['_id']
+
+		for key, value in mydata.items():
+			if key not in ['name', 'category', 'platform', 'description']:
+				(iocguid, ioctype) = key.split("_")
+				mytests = {"tests": []}
+				for entry in value:
+					if not entry['negate'] and not entry['case']:
+						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
+					elif entry['negate'] and not entry['case']:
+						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
+					elif entry['case'] and not entry['negate']:
+						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+					else:
+						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
+
+				(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], ioc_guid, ioctype, json.dumps(mytests))
+				if not ret:
+					# Remove the indicator if condition push was unsuccessful
+					(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(mydata['category'], ioc_guid)
+					return ('', 500)
+		# All OK
+		app.logger.info(format_activity_log(msg="new real-time indicator created", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
+		return ('', 204)
+	else:
+		# Failed to create indicator
+		return ('', 500)
+
+
+@ht_api.route('/api/v{0}/indicators/edit'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_indicators_edit(hx_api_object):
+
+	mydata = json.loads(request.form.get('rule'))
+
+	# Get the original URI
+	myOriginalURI = mydata['iocuri']
+	myOriginalCategory = mydata['originalcategory']
+	myState = True
+
+	if mydata['platform'] == "all":
+		chosenplatform = ['win', 'osx']
+	else:
+		chosenplatform = [mydata['platform']]
+
+	(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform, description=mydata['description'])
+	if ret:
+		myNewURI = response_data['data']['_id']
+		for key, value in mydata.items():
+			if key not in ['name', 'category', 'platform', 'originalname', 'originalcategory', 'iocuri', 'description']:
+				(iocguid, ioctype) = key.split("_")
+				mytests = {"tests": []}
+				for entry in value:
+					if not entry['negate'] and not entry['case']:
+						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
+					elif entry['negate'] and not entry['case']:
+						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
+					elif entry['case'] and not entry['negate']:
+						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
+					else:
+						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
+
+				(ret, response_code, response_data) = hx_api_object.restAddCondition(mydata['category'], myNewURI, ioctype, json.dumps(mytests))
+				if not ret:
+					# Condition was not added successfully set state to False to prevent the original indicator from being removed
+					myState = False
+					return('', 500)
+		# Everything is OK
+		if myState:
+			# Remove the original indicator
+			(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(myOriginalCategory, myOriginalURI)
+		app.logger.info(format_activity_log(msg="real-time indicator was edited", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
+		return('', 204)
+	else:
+		# Failed to create indicator
+		return('',500)
 
 
 

@@ -8,6 +8,7 @@
 @import url("/static/hxtool-css/hxtool-scriptbuilder.css");
 @import url("/static/hxtool-css/hxtool-login.css");
 @import url("/static/hxtool-css/hxtool-host.css");
+@import url("/static/hxtool-css/hxtool-rtioc.css");
 
 body {
 	background: radial-gradient(62vw at 50% 0%, #355881 0%, #222 100%);
@@ -15,6 +16,35 @@ body {
 
 select {
 	color: black;
+	-webkit-appearance: none;
+	-webkit-border-radius: 0px;
+	line-height: 24px;
+	padding: 0 8px;
+	font-size: 12px;
+	height: 24px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-right: 0;
+	color: rgba(255, 255, 255, 0.8);
+	background-color: rgba(255, 255, 255, 0.2);
+	font-weight: bold;
+	letter-spacing: 0px;
+	cursor: pointer;
+	outline: 0;
+	text-decoration: 0;
+}
+
+.hxtool_select_tail {
+	position: relative;
+	top: 1px;
+	font-size: 16px;
+	line-height: 22px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-left: 0;
+	color: rgba(255, 255, 255, 0.8);
+	background-color: rgba(255, 255, 255, 0.2);
+	padding-right: 4px;
+	font-weight: bold;
+	cursor: pointer;
 }
 
 
