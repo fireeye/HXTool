@@ -1,0 +1,64 @@
+.hxtool_rtioc_table_header_condition {
+	text-align: left !important;
+	border-right: none !important;
+	border-left: none; 
+	font-weight: bold; 
+	font-size: 14px;
+	background: rgba(0,0,0,0.2);
+	padding-top: 12px !important;
+	padding-bottom: 12px !important;
+	vertical-align: middle;
+}
+
+.hxtool_rtioc_table_header_condition_right {
+	text-align: center !important;
+	border-right: none;
+	border-left: none; 
+	background: rgba(0,0,0,0.2);
+	padding-top: 12px;
+}
+
+.hxtool_rtioc_input {
+	padding: 3px;
+}
+
+.hxtool_rtioc_table tbody tr:nth-child(odd) {
+	background: transparent !important;
+}
+
+
+.hxtool_rtioc_table tbody td:nth-child(1) {
+	text-align: center;
+	width: 230px;
+}
+
+.hxtool_rtioc_table tbody td:nth-child(2) {
+	text-align: center;
+	width: 200px;
+}
+
+.hxtool_rtioc_table tbody td:nth-child(3) {
+	text-align: center;
+	width: 130px;
+}
+
+.hxtool_rtioc_table tbody td:nth-child(4) {
+	text-align: center;
+	width: 100px;
+}
+
+.hxtool_rtioc_table tbody td:nth-child(5) {
+	text-align: center;
+	width: 100px;
+}
+
+.hxtool_rtioc_table tbody td:nth-child(7) {
+	text-align: center;
+	width: 40px;
+}
+
+.hxtool_rtioc_table tbody td:nth-child(8) {
+	text-align: center;
+	width: 100px;
+}
+
