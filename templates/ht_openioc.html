@@ -9,8 +9,10 @@
 		$(document).on('click', '.ioc_view', function() {
 			hxtool_ajax_get_request("/api/v1/openioc/view", "id=" + $(this).closest("tr").attr("id"), function(mydata) {
 				myIocObject = JSON.parse(mydata['api_response']);
+				// Why???!?
+				myIocObject = JSON.parse(myIocObject);
 				$("#iocViewTextArea").val(atob(myIocObject['ioc']));
-				$(".iocViewName").html(myIocObject['iocname']);
+				$("#iocView").find(".fe-modal__title").html(myIocObject['iocname']);
 				$("#iocView").show();
 			});
 		});
@@ -47,11 +49,9 @@
 				 "width": "300px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = '<button style="margin-right: 6px;" class="ioc_view fe-btn fe-btn--sm fe-btn--primary active"> view <i class="fe-icon--right far fa-eye"></i></button>'
-				 		data += '<button style="margin-right: 6px;" class="ioc_download fe-btn fe-btn--sm fe-btn--primary active"> download <i class="fe-icon--right fas fa-download"></i></button>'
-				 		data += '<button class="ioc_remove fe-btn fe-btn--sm fe-btn--primary active"> remove <i class="fe-icon--right fas fa-trash"></i></button>'
-
-				 		//data = "<input type='button' value='view' id='view_" + data + "' class='tableActionButton viewbutton'><a href='/openioc?action=delete&id=" + data + "' class='tableActionButton'>delete</a>"
+				 		data = '<button style="margin-right: 6px;" class="ioc_view fe-btn fe-btn--sm fe-btn--primary"> view <i class="fe-icon--right far fa-eye"></i></button>'
+				 		data += '<button style="margin-right: 6px;" class="ioc_download fe-btn fe-btn--sm fe-btn--primary"> download <i class="fe-icon--right fas fa-download"></i></button>'
+				 		data += '<button class="ioc_remove fe-btn fe-btn--sm fe-btn--primary"> remove <i class="fe-icon--right fas fa-trash"></i></button>'
 				 	}
 				 	return data;
 				 }
@@ -91,85 +91,35 @@
 </script>
 
 <!-- ACTIONS -->
-<div id="openiocNew" class="fe-panel" style='margin-top: 12px; display: inline-block;'>
-	<div class="fe-panel-header fe-panel-header--no-background">
-		<div class="fe-label fe-label--background">Action</div>
-	</div>
-	<div class="fe-panel__body">
-		<button class="fe-btn fe-btn--md fe-btn--primary fe-btn--hxtool-main"> upload <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-	</div>
-</div>
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--primary fe-btn--hxtool-main" id="openiocNew"> upload <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
 
 <!-- INPUT FIELD -->
-<div id="openiocNewPopup" class="fe-modal" role="dialog" aria-modal="true">
-	<div class="fe-modal__dialog fe-modal__dialog--medium">
-		<div class="fe-modal__content">
-			<div>
-				<div class="fe-modal__header">
-					<h4 class="fe-modal__title">Upload new OpenIOC indicator</h4>
-					<button class="newIocCancel fe-modal-close" name="button" type="button">
-						<i class="fe-icon--center fal fa-times"></i>
-					</button>
-				</div>
-			</div>
-			<div class="fe-modal__body">
+{{ htModal.widgetHeader("Upload new OpenIOC indicator", modalId="openiocNewPopup", modalSize="medium") }}
+	<h3 class='hxtool_typography_h3'>OpenIOC name</h3>
+	<input type="text" name="iocname" id="iocname" value="" class="fe-input" placeholder="enter a name" />
+	<span class="fe-input-hint-text">Enter a name for your uploaded OpenIOC indicator</span>
 
-				<div class='hxtool_panel_wrapper'>
-					<label for="" class="fe-input-label caption">OpenIOC name</label>
-				    <input type="text" name="iocname" id="iocname" value="" class="fe-input" placeholder="enter a name" />
-				    <span class="fe-input-hint-text">Enter a name for your uploaded OpenIOC indicator</span>
-				</div>
+	<h3 class='hxtool_typography_h3'>OpenIOC file</h3>
+	<input class="fe-input" type='file' id='ioc' name='ioc'>
+	<span class="fe-input-hint-text">An OpenIOC 1.1 file is an indicator which can be used by Enterprise search as the source of your conditions</span>
 
-				<div class='hxtool_panel_wrapper'>
-					<label for="" class="fe-input-label caption">OpenIOC file</label>
-					<input class="fe-btn fe-btn--sm fe-btn--primary active" type='file' id='ioc' name='ioc'><br>
-					<span class="fe-input-hint-text">An OpenIOC 1.1 file is an indicator which can be used by Enterprise search as the source of your conditions</span>
-				</div>		
-
-			</div>
-			<div class="fe-modal__footer clearfix">
-				<button class="newIocCancel fe-btn fe-btn--md fe-btn--secondary" aria-label="Cancel"><span> Cancel </span></button>
-				<button class="fe-btn fe-btn--md fe-btn--primary" id="newIoc" aria-label="Click"><span> Submit </span></button>
-			</div>
-		</div>
-	</div>
-</div>
-
+{{ htModal.widgetMiddle() }}
+	<button class="newIocCancel fe-btn fe-btn--md fe-btn--secondary" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="newIoc" aria-label="Click"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
 
 <!-- MAIN TABLE -->
-<div class="fe-panel" style='margin-top: 12px;'>
-	<div class="fe-panel-header fe-panel-header--no-background">
-		<div class="fe-label fe-label--background">Stored OpenIOC indicators</div>
-	</div>
-	<div class="fe-panel__body">
-		<table id='iocTable' class='hxtool_table' style='width: 100%;'></table>
-	</div>
-</div>
+{{ htPanel.widgetHeader("Stored OpenIOC indicators", panelIcon="fa-table") }}
+	<table id='iocTable' class='hxtool_table' style='width: 100%;'></table>
+{{ htPanel.widgetFooter() }}
 
 <!-- IOC VIEW -->
-<div id="iocView" class="fe-modal" role="dialog" aria-modal="true">
-	<div class="fe-modal__dialog fe-modal__dialog--medium">
-		<div class="fe-modal__content">
-			<div>
-				<div class="fe-modal__header">
-					<h4 class="iocViewName fe-modal__title">OpenIOC</h4>
-					<button class="iocViewDismiss fe-modal-close" name="button" type="button">
-						<i class="fe-icon--center fal fa-times"></i>
-					</button>
-				</div>
-			</div>
-			<div class="fe-modal__body">
-
-				<textarea id='iocViewTextArea' style='height: 400px;' class='fe-input'></textarea>
-
-			</div>
-			<div class="fe-modal__footer clearfix">
-				<button class="iocViewDismiss fe-btn fe-btn--md fe-btn--secondary" aria-label="Cancel"><span> Dismiss </span></button>
-			</div>
-		</div>
-	</div>
-</div>
-
-
+{{ htModal.widgetHeader("OpenIOC", modalId="iocView", modalSize="medium") }}
+	<textarea id='iocViewTextArea' style='height: 400px;' class='fe-input'></textarea>
+{{ htModal.widgetMiddle() }}
+	<button class="iocViewDismiss fe-btn fe-btn--md fe-btn--secondary" aria-label="Cancel"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
 
 {% endblock %}

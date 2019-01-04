@@ -819,7 +819,7 @@
 {{ htModal.widgetFooter() }}
 
 <!-- Data Acquisition popup -->
-{{ htModal.widgetHeader("New Data Acquisition", modalId="dataNewPopup") }}
+{{ htModal.widgetHeader("New Data Acquisition", modalId="dataNewPopup", modalOverflow="true") }}
 
 	<!-- Data comment -->
 	<h3 class='hxtool_typography_h3'>Name</h3>
@@ -857,7 +857,7 @@
 
 
 <!-- File Acquisition -->
-{{ htModal.widgetHeader("New File Acquisition", modalId="fileNewPopup") }}
+{{ htModal.widgetHeader("New File Acquisition", modalId="fileNewPopup", modalOverflow="true") }}
 	<h3 class='hxtool_typography_h3'>File path</h3>
 	<div class='hxtool_panel_wrapper' style='width: 550px; margin-left: 0; margin-top: 6px;'>
 	    <input type="text" name="filepath" id="filepath" value="" class="fe-input" placeholder="c:\path\to\my\folder" />

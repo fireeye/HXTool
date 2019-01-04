@@ -1,4 +1,5 @@
 {% import 'widget-panel.html' as htPanel %}
+{% import 'widget-panel-noheader.html' as htPanelNoHeader %}
 {% import 'widget-modal.html' as htModal %}
 {% import 'widget-radio.html' as htRadio %}
 {% import 'widget-dropdown.html' as htDropdown %}
@@ -263,135 +264,7 @@
 		</div>
 	</header>
 
-
-
-
-	<!--
-	<div class='htLayoutTopBarMenuContainer' id='htLayoutTopBarMenuContainer'>
-
-		<div id='navcategory_dashboard' style='float: left; position: relative;' class='htLayoutMenuItem'>Dashboard <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
-			<div id='dropdown-content-dashboard' class='htLayoutDropdown-content'>
-				<div id='navbutton_' class='htLayoutDropdown-item'>
-					<i class="fas fa-chart-line fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Main Dashboard
-				</div>
-				<div id='navbutton_dashboard-av' class='htLayoutDropdown-item'>
-					<i class="fas fa-bug fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Anti-virus Dashboard
-				</div>
-			</div>				
-		</div>
-
-		<div id='navbutton_alert' style='float: left;' class='htLayoutMenuItem'>Alerts</div>
-
-		<div id='navcategory_es' style='float: left; position: relative;' class='htLayoutMenuItem'>Enterprise Search <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
-			<div id='dropdown-content-es' class='htLayoutDropdown-content'>
-				<div id='navbutton_search' class='htLayoutDropdown-item'>
-					<i class="fas fa-search fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					OpenIOC search
-				</div>
-				<div id='navbutton_openioc' class='htLayoutDropdown-item'>
-					<i class="fas fa-code-branch fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Manage OpenIOC 1.1
-				</div>
-			</div>				
-		</div>
-
-		<div id='navcategory_acquisition' style='float: left; position: relative;' class='htLayoutMenuItem'>Acquisition <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
-			<div id='dropdown-content-acquisition' class='htLayoutDropdown-content'>
-				<div id='navbutton_scriptbuilder' class='htLayoutDropdown-item'>
-					<i class="fas fa-keyboard fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Script builder
-				</div>
-				<div id='navbutton_scripts' class='htLayoutDropdown-item'>
-					<i class="fas fa-code fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Manage Scripts
-				</div>
-				<div id='navbutton_acqs' class='htLayoutDropdown-item'>
-					<i class="fas fa-list-ul fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Acquisitions
-				</div>
-				<div id='navbutton_bulkacq' class='htLayoutDropdown-item'>
-					<i class="fas fa-th-list fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Bulk Acquisitions
-				</div>
-				<div id='navbutton_multifile' class='htLayoutDropdown-item'>
-					<i class="fas fa-copy fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Multi-File Acquisitions
-				</div>
-				<div id='navbutton_stacking' class='htLayoutDropdown-item'>
-					<i class="fas fa-object-group fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Data Stacking
-				</div>
-				<div id='navbutton_taskprofile' class='htLayoutDropdown-item'>
-					<i class="fas fa-database fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Task profiles
-				</div>
-			</div>				
-		</div>
-		
-		<div id='navcategory_indicator' style='float: left; position: relative;' class='htLayoutMenuItem'>Indicators <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
-			<div id='dropdown-content-indicators' class='htLayoutDropdown-content'>
-				<div id='navbutton_rtioc' class='htLayoutDropdown-item'>
-					<i class="fas fa-file-code fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Build Indicator
-				</div>
-				<div id='navbutton_indicators' class='htLayoutDropdown-item'>
-					<i class="fas fa-list-ul fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Manage Indicators
-				</div>
-				<div id='navbutton_categories' class='htLayoutDropdown-item'>
-					<i class="fas fa-list-ul fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Manage Categories
-				</div>
-			</div>				
-		</div>
-
-		<div id='navbutton_scheduler' style='float: left;' class='htLayoutMenuItem'>Scheduler</div>
-
-		<div id='navcategory_admin' style='float: left; position: relative; border-right: none;' class='htLayoutMenuItem'>Admin <i class="fas fa-angle-down fa-1x" aria-hidden="true"></i>
-			<div id='dropdown-content-admin' class='htLayoutDropdown-content'>
-				<div id='navbutton_channels' class='htLayoutDropdown-item'>
-					<i class="fas fa-lock fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					Custom Config Channels
-				</div>
-				<div id='navbutton_settings' class='htLayoutDropdown-item'>
-					<i class="fas fa-wrench fa-1x fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-					HXTool Settings
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class='htLayoutTopBarMenuFindAHost'>
-		<span class='htLayoutTopBarMenuTextSpan'>Find a host</span>
-		<input type='text' id='findhost' style='width: 200px;'>
-	</div>
-
-	<div class='htLayoutTopBarMenuBox'></div>
-	<div style='position: absolute; left: 0; top: 0; z-index: 30; width: 100%;'>
-		<div class='htLayoutTopBarBox' style='float: left; border-right: none;'>
-			<img src='/static/fireeye.svg' class='htLayoutTopBarLogo'>
-			<div class='htLayoutTopBarLogoText'>HXTool</div>
-			<i class="htLayoutTopBarLogoIcon fas fa-search fa-2x fa-fw" aria-hidden="true"></i>
-		</div>
-		<div class='htLayoutTriangle-topleft' style='float: left;'></div>
-		<div class='htLayoutTopBarBox' style='float: right; border-left: none; right: 0;'>
-			<div style='float: right; margin-top: 12px;'>
-				<a class='htLayoutLinkIcon' href='#' id='ht_info'><i class="fas fa-info fa-2x htLayoutPadIcon" aria-hidden="true"></i></a>
-				<div id='ht_info_content' class='htLayoutPopup'>
-					<b>User:</b> {{ user }} <br>
-					<b>Controller:</b> {{ controller }}<br>
-					<b>HXTool version</b> 4.0.1<br>
-					<b>Controller version:</b> {{ session['hx_version'] }}
-				</div>
-				<a class='htLayoutLinkIcon' href='/settings'><i class="fas fa-cog fa-2x htLayoutPadIcon" aria-hidden="true"></i></a>
-				<a class='htLayoutLinkIcon' href='/logout'><i class="fas fa-power-off fa-2x htLayoutPadIcon" aria-hidden="true"></i></a>
-			</div>
-		</div>
-		<div class='htLayoutTriangle-topright' style='float: right;'></div>
-	</div>
-	-->
-
+	<!-- Message popup -->
 	<div id="hxtoolMessage" style='z-index: 100;' class="fe-modal" role="dialog" aria-modal="true">
 		<div class="fe-modal__dialog fe-modal__dialog--medium">
 			<div class="fe-modal__content">
@@ -414,6 +287,6 @@
 		</div>
 	</div>
 
-
+	<!-- Main placeholder -->
 	<div class='mainPlaceHolder'>{% block content %}{% endblock %}</div>
 </html>

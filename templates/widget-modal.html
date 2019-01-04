@@ -1,7 +1,7 @@
-{% macro widgetHeader(modalTitle, modalId="", modalSize="medium") -%}
+{% macro widgetHeader(modalTitle, modalId="", modalSize="medium", modalOverflow="false") -%}
 	<div id="{{modalId}}" class="fe-modal" role="dialog" aria-modal="true">
 		<div class="fe-modal__dialog fe-modal__dialog--{{modalSize}}">
-			<div class="fe-modal__content">
+			<div class="fe-modal__content"{% if modalOverflow != "false" %} style="overflow: visible;"{% endif %}>
 				<div>
 					<div class="fe-modal__header">
 						<h4 class="fe-modal__title">{{modalTitle}}</h4>
@@ -10,7 +10,7 @@
 						</button>
 					</div>
 				</div>
-				<div class="fe-modal__body">
+				<div class="fe-modal__body"{% if modalOverflow != "false" %} style="overflow: visible;"{% endif %}>
 {% endmacro %}
 
 {% macro widgetMiddle() -%}
