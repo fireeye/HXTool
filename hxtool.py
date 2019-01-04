@@ -300,37 +300,16 @@ def download_multi_file_single(hx_api_object):
 #return redirect("/bulkacq", code=302)
 
 ### Scripts
-@app.route('/scripts', methods=['GET', 'POST'])
+@app.route('/scripts', methods=['GET'])
 @valid_session_required
 def scripts(hx_api_object):
 	return render_template('ht_scripts.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### OpenIOCs
-###############################
-### TODO: CONVERT TO API!!! ###
-###############################
-@app.route('/openioc', methods=['GET', 'POST'])
+@app.route('/openioc', methods=['GET'])
 @valid_session_required
 def openioc(hx_api_object):
-	if request.method == "POST":
-		fc = request.files['ioc']				
-		rawioc = fc.read()
-		app.hxtool_db.oiocCreate(request.form['iocname'], HXAPI.b64(rawioc), session['ht_user'])
-		app.logger.info(format_activity_log(msg="new openioc file stored", name=request.form['iocname'], user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/openioc", code=302)
-	elif request.method == "GET":
-		if request.args.get('action'):
-			if request.args.get('action') == "delete":
-				app.hxtool_db.oiocDelete(request.args.get('id'))
-				app.logger.info(format_activity_log(msg="openioc file deleted", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
-				return redirect("/openioc", code=302)
-			elif request.args.get('action') == "view":
-				storedioc = app.hxtool_db.oiocGet(request.args.get('id'))
-				return render_template('ht_openioc_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), ioc=HXAPI.b64(storedioc['ioc'], decode=True, decode_string=True))
-			else:
-				return render_template('ht_openioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-		else:
-			return render_template('ht_openioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+	return render_template('ht_openioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### Multifile acquisitions
 @app.route('/multifile', methods=['GET', 'POST'])

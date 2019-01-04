@@ -50,8 +50,8 @@
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		data = '<button style="margin-right: 6px;" class="ioc_view fe-btn fe-btn--sm fe-btn--primary"> view <i class="fe-icon--right far fa-eye"></i></button>'
-				 		data += '<button style="margin-right: 6px;" class="ioc_download fe-btn fe-btn--sm fe-btn--primary"> download <i class="fe-icon--right fas fa-download"></i></button>'
-				 		data += '<button class="ioc_remove fe-btn fe-btn--sm fe-btn--primary"> remove <i class="fe-icon--right fas fa-trash"></i></button>'
+				 		data += '<button style="margin-right: 6px;" data-id="' + row.ioc_id + '" class="ioc_download fe-btn fe-btn--sm fe-btn--primary"> download <i class="fe-icon--right fas fa-download"></i></button>'
+				 		data += '<button data-id="' + row.ioc_id + '" class="ioc_remove fe-btn fe-btn--sm fe-btn--primary"> remove <i class="fe-icon--right fas fa-trash"></i></button>'
 				 	}
 				 	return data;
 				 }
@@ -68,6 +68,21 @@
 		$(".newIocCancel").click(function(){
 			$("#openiocNewPopup").hide();
 		});
+
+		$("#iocTable").on('click', '.ioc_download', function() {
+			location.href = "/api/v1/openioc/download?id=" + $(this).data("id")
+
+		});
+
+		$("#iocTable").on('click', '.ioc_remove', function() {
+			myrow = $(this).closest("tr");
+			hxtool_ajax_get_request("/api/v1/openioc/remove", "id=" + $(this).data("id"), function() {
+				myrow.fadeOut(200, function() {
+					iocTable.row(myrow).remove().draw();
+				});
+			});
+		});
+
 
 		$("#newIoc").click(function(){
 

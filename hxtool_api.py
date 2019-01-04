@@ -335,6 +335,19 @@ def hxtool_api_openioc_upload(hx_api_object):
 	(r, rcode) = create_api_response(ret=True)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/openioc/download'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_openioc_download(hx_api_object):
+
+	myiocData = hxtool_global.hxtool_db.oiocGet(request.args.get('id'))
+
+	buffer = BytesIO()
+	buffer.write(json.dumps(HXAPI.b64(myiocData['ioc'], decode=True, decode_string=True)).encode(default_encoding))
+	buffer.seek(0)
+
+	return send_file(buffer, attachment_filename=myiocData['iocname'] + ".ioc", as_attachment=True)
+
+
 ##########
 # Alerts #
 ##########
