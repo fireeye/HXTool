@@ -51,6 +51,10 @@
 			});
 		});
 
+		$("#scriptTable").on('click', '.script_download', function() {
+			location.href = "/api/v1/scripts/download?id=" + $(this).data("id");
+		});
+
 		var scriptTable = $('#scriptTable').DataTable( {
 			"ajax": {
 				"url": "/api/v1/datatable_scripts",
@@ -74,12 +78,13 @@
 			"columnDefs": [	
 				{
 				 targets: 4,
-				 width: "200px",
+				 width: "320px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		//data = "<input type='button' data-script='" + row.script + "' value='view' id='view_" + data + "' class='tableActionButton viewbutton'><a href='/scripts?action=delete&id=" + data + "' class='tableActionButton'>delete</a>";
-				 		data = '<button style="margin-right: 6px;" data-script="' + row.script + '" class="script_view fe-btn fe-btn--sm fe-btn--primary"> view <i class="fe-icon--right far fa-eye"></i></button>'
-				 		data += '<button style="margin-right: 6px;" data-id="' + row.script_id + '" class="script_remove fe-btn fe-btn--sm fe-btn--primary"> remove <i class="fe-icon--right far fa-trash"></i></button>'
+				 		data = '<button style="margin-right: 6px;" data-script="' + row.script + '" class="script_view fe-btn fe-btn--sm fe-btn--primary"> view <i class="fe-icon--right far fa-eye"></i></button>';
+				 		data += '<button style="margin-right: 6px;" data-id="' + row.script_id + '" class="script_download fe-btn fe-btn--sm fe-btn--primary"> download <i class="fe-icon--right far fa-trash"></i></button>'
+				 		data += '<button style="margin-right: 6px;" data-id="' + row.script_id + '" class="script_remove fe-btn fe-btn--sm fe-btn--primary"> remove <i class="fe-icon--right far fa-trash"></i></button>';
 				 	}
 				 	return data;
 				 }
@@ -117,7 +122,9 @@
 	<button class="fe-btn fe-btn--md fe-btn--secondary" id="scriptViewDismiss" aria-label="Dismiss"><span> dismiss </span></button>
 {{ htModal.widgetFooter() }}
 
-<button class="fe-btn fe-btn--md fe-btn--primary fe-btn--hxtool-main" id='scriptNew'> upload <i style='color: #59dc90;' class="fe-icon--right fas fa-upload"></i></button>
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--primary fe-btn--hxtool-main" id='scriptNew'> upload <i style='color: #59dc90;' class="fe-icon--right fas fa-upload"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
 
 {{ htPanel.widgetHeader("Stored scripts", panelId="panelScriptTable", panelIcon="fa-database") }}
 	<table id='scriptTable' class='hxtool_table' style='width: 100%;'></table>

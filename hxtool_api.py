@@ -639,6 +639,19 @@ def hxtool_api_scripts_builder(hx_api_object):
 	(r, rcode) = create_api_response(ret=True)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/scripts/download'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_scripts_download(hx_api_object):
+
+	myscriptData = hxtool_global.hxtool_db.scriptGet(request.args.get('id'))
+
+	buffer = BytesIO()
+	buffer.write(HXAPI.b64(myscriptData['script'], decode=True, decode_string=True).encode(default_encoding))
+	buffer.seek(0)
+
+	return send_file(buffer, attachment_filename=myscriptData['scriptname'] + ".json", as_attachment=True)
+
+
 
 ########################
 # Indicator categories #
