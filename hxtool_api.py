@@ -892,6 +892,93 @@ def hxtool_api_indicators_edit(hx_api_object):
 ##############
 # Datatables #
 ##############
+@ht_api.route('/api/v{0}/datatable/avcontent'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_avcontent_detail(hx_api_object):
+	mydata = {}
+	mydata['data'] = []
+
+	myversion = request.args.get('version')
+
+	(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts()
+	for host in hresponse_data['data']['entries']:
+		(ret, response_code, response_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+		if 'malware' in response_data['data']:
+			if 'av' in response_data['data']['malware']:
+				if myversion == response_data['data']['malware']['av']['content']['version']:
+					mydata['data'].append({
+						"hostname": host['hostname'],
+						"agentid": host['_id'],
+						"content_version": myversion
+						})
+		else:
+			if myversion == "none":
+				mydata['data'].append({
+					"hostname": host['hostname'],
+					"agentid": host['_id'],
+					"content_version": myversion
+					})
+
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/datatable/avengine'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_avengine_detail(hx_api_object):
+	mydata = {}
+	mydata['data'] = []
+
+	myversion = request.args.get('version')
+
+	(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts()
+	for host in hresponse_data['data']['entries']:
+		(ret, response_code, response_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+		if 'malware' in response_data['data']:
+			if 'av' in response_data['data']['malware']:
+				if myversion == response_data['data']['malware']['av']['engine']['version']:
+					mydata['data'].append({
+						"hostname": host['hostname'],
+						"agentid": host['_id'],
+						"engine_version": myversion
+						})
+		else:
+			if myversion == "none":
+				mydata['data'].append({
+					"hostname": host['hostname'],
+					"agentid": host['_id'],
+					"engine_version": myversion
+					})
+
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/datatable/avstatus'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_avstatus_detail(hx_api_object):
+	mydata = {}
+	mydata['data'] = []
+
+	mystate = request.args.get('state')
+
+	(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts()
+	for host in hresponse_data['data']['entries']:
+		(ret, response_code, response_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+		if 'MalwareProtectionStatus' in response_data['data']:
+			if mystate == response_data['data']['MalwareProtectionStatus']:
+				mydata['data'].append({
+					"hostname": host['hostname'],
+					"agentid": host['_id'],
+					"state": mystate
+					})
+		else:
+			if mystate == "none":
+				mydata['data'].append({
+					"hostname": host['hostname'],
+					"agentid": host['_id'],
+					"state": mystate
+					})
+
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
 @ht_api.route('/api/v{0}/datatable_categories'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def datatable_categories(hx_api_object):

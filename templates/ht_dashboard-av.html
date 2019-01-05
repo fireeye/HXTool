@@ -27,7 +27,7 @@
 					 render: function ( data, type, row, meta ) {
 					 	if(type === 'display'){
 					 		myArr = data.split("___");
-					 		data = '<a class="hostLink" href="/hosts?host=' + encodeURIComponent(myArr[1]) + '&alertid=' + encodeURIComponent(myArr[2]) + '">' + myArr[0] + '</a>';
+					 		data = '<a class="hostLink" href="/hostview?host=' + encodeURIComponent(myArr[1]) + '&alertid=' + encodeURIComponent(myArr[2]) + '">' + myArr[0] + '</a>';
 					 	}
 					 	return data;
 					 }
@@ -50,6 +50,61 @@
 			return(row2_cell1_datatable);
 		}
 
+		function displayMalwareContent(event, array){
+			if(array[0]){
+
+				var clickedElementindex = array[0]["_index"]
+				var label = chartjs_av_content.data.labels[clickedElementindex];
+				var value = chartjs_av_content.data.datasets[0].data[clickedElementindex];
+
+				$("#avContentPopup").find(".fe-modal__header").find("h4").append("<i id='popupSpinner' style='margin-left: 12px; color: #11a962;' class='fas fa-spinner fa-spin'></i>");
+				avContentPopup_datatable.clear().draw();
+				avContentPopup_datatable.ajax.url("/api/v1/datatable/avcontent?version=" + label);
+				avContentPopup_datatable.ajax.reload(function() {
+					$("#popupSpinner").remove();
+				});
+
+				$("#avContentPopup").show();
+			}
+		}
+
+		function displayMalwareEngine(event, array){
+			if(array[0]){
+
+				var clickedElementindex = array[0]["_index"]
+				var label = chartjs_av_engine.data.labels[clickedElementindex];
+				var value = chartjs_av_engine.data.datasets[0].data[clickedElementindex];
+
+				$("#avEnginePopup").find(".fe-modal__header").find("h4").append("<i id='popupSpinner' style='margin-left: 12px; color: #11a962;' class='fas fa-spinner fa-spin'></i>");
+				avEnginePopup_datatable.clear().draw();
+				avEnginePopup_datatable.ajax.url("/api/v1/datatable/avengine?version=" + label);
+				avEnginePopup_datatable.ajax.reload(function() {
+					$("#popupSpinner").remove();
+				});
+
+				$("#avEnginePopup").show();
+			}
+		}
+
+		function displayMalwareStatus(event, array){
+			if(array[0]){
+
+				var clickedElementindex = array[0]["_index"]
+				var label = chartjs_av_status.data.labels[clickedElementindex];
+				var value = chartjs_av_status.data.datasets[0].data[clickedElementindex];
+
+				$("#avStatusPopup").find(".fe-modal__header").find("h4").append("<i id='popupSpinner' style='margin-left: 12px; color: #11a962;' class='fas fa-spinner fa-spin'></i>");
+				avStatusPopup_datatable.clear().draw();
+				avStatusPopup_datatable.ajax.url("/api/v1/datatable/avstatus?state=" + label);
+				avStatusPopup_datatable.ajax.reload(function() {
+					$("#popupSpinner").remove();
+				});
+
+				$("#avStatusPopup").show();
+			}
+		}
+
+
         $(document).ready(function() {
 
 			Chart.defaults.global.defaultFontColor = 'rgba(255, 255, 255, 0.8)';
@@ -70,6 +125,96 @@
 			// Datatable: Last 20 MAL alerts
 			row2_cell1_datatable = datatable_last_alerts();
 
+			// Dattable: malware content drilldown
+			$.fn.dataTable.ext.errMode = 'none';
+			avContentPopup_datatable = $('#avContentTable').DataTable( {
+				"paging":   false,
+				"ordering": false,
+				"info":     false,
+				"searching": false,
+				"dom": '<"hxtool_datatables_popup_buttons"B>frtip',
+				"buttons": [
+					{ extend: "copy", className: "fe-btn" },
+					{ extend: "csv", className: "fe-btn" },
+					{ extend: "excel", className: "fe-btn" }
+				],
+				"columns": [
+					{ "data": "hostname", title: "Hostname" },
+					{ "data": "agentid", title: "Agent ID" },
+					{ "data": "content_version", title: "Version" }
+				],
+				"columnDefs": [
+					{
+					 "targets": 0,
+					 render: function ( data, type, row, meta ) {
+						data = '<a class="hostLink" href="/hostview?host=' + encodeURIComponent(row.agentid) + '">' + data + '</a>';
+						return(data);
+					 }
+					},
+					{"className": "hxtool_table_cell_center", "targets": [0, 1, 2]}
+				]
+			});
+
+			// Dattable: malware engine drilldown
+			$.fn.dataTable.ext.errMode = 'none';
+			avEnginePopup_datatable = $('#avEngineTable').DataTable( {
+				"paging":   false,
+				"ordering": false,
+				"info":     false,
+				"searching": false,
+				"dom": '<"hxtool_datatables_popup_buttons"B>frtip',
+				"buttons": [
+					{ extend: "copy", className: "fe-btn" },
+					{ extend: "csv", className: "fe-btn" },
+					{ extend: "excel", className: "fe-btn" }
+				],
+				"columns": [
+					{ "data": "hostname", title: "Hostname" },
+					{ "data": "agentid", title: "Agent ID" },
+					{ "data": "engine_version", title: "Version" }
+				],
+				"columnDefs": [
+					{
+					 "targets": 0,
+					 render: function ( data, type, row, meta ) {
+						data = '<a class="hostLink" href="/hostview?host=' + encodeURIComponent(row.agentid) + '">' + data + '</a>';
+						return(data);
+					 }
+					},
+					{"className": "hxtool_table_cell_center", "targets": [0, 1, 2]}
+				]
+			});
+
+			// Dattable: malware engine drilldown
+			$.fn.dataTable.ext.errMode = 'none';
+			avStatusPopup_datatable = $('#avStatusTable').DataTable( {
+				"paging":   false,
+				"ordering": false,
+				"info":     false,
+				"searching": false,
+				"dom": '<"hxtool_datatables_popup_buttons"B>frtip',
+				"buttons": [
+					{ extend: "copy", className: "fe-btn" },
+					{ extend: "csv", className: "fe-btn" },
+					{ extend: "excel", className: "fe-btn" }
+				],
+				"columns": [
+					{ "data": "hostname", title: "Hostname" },
+					{ "data": "agentid", title: "Agent ID" },
+					{ "data": "state", title: "Status" }
+				],
+				"columnDefs": [
+					{
+					 "targets": 0,
+					 render: function ( data, type, row, meta ) {
+						data = '<a class="hostLink" href="/hostview?host=' + encodeURIComponent(row.agentid) + '">' + data + '</a>';
+						return(data);
+					 }
+					},
+					{"className": "hxtool_table_cell_center", "targets": [0, 1, 2]}
+				]
+			});
+
 
 			var jsonData = $.ajax({
 				url: "/api/v1/chartjs_malwarecontent",
@@ -81,6 +226,7 @@
 					data: myChartData,
 				
 					options: {
+						onClick: displayMalwareContent,
 						responsive: true,
 						maintainAspectRatio: false,
 						title: {
@@ -91,6 +237,9 @@
 							position: 'right'
 						},						
 						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_avcontent").css("cursor", el[0] ? "pointer" : "default");
+							},
 							mode: 'nearest',
 							intersect: true
 						}
@@ -111,6 +260,7 @@
 					data: myChartData,
 				
 					options: {
+						onClick: displayMalwareEngine,
 						responsive: true,
 						maintainAspectRatio: false,
 						title: {
@@ -121,6 +271,9 @@
 							position: 'right'
 						},						
 						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_avengine").css("cursor", el[0] ? "pointer" : "default");
+							},
 							mode: 'nearest',
 							intersect: true
 						}
@@ -142,6 +295,7 @@
 					data: myChartData,
 				
 					options: {
+						onClick: displayMalwareStatus,
 						responsive: true,
 						maintainAspectRatio: false,
 						title: {
@@ -152,6 +306,9 @@
 							position: 'right'
 						},						
 						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_avstatus").css("cursor", el[0] ? "pointer" : "default");
+							},
 							mode: 'nearest',
 							intersect: true
 						}
@@ -162,11 +319,45 @@
 				window.chartjs_av_status = new Chart(ctx, config);
 			});
 
+		$(document).on("click", ".avContentDismiss", function() {
+			$("#avContentPopup").hide();
+		});
+
+		$(document).on("click", ".avEngineDismiss", function() {
+			$("#avEnginePopup").hide();
+		});
+
+		$(document).on("click", ".avStatusDismiss", function() {
+			$("#avStatusPopup").hide();
+		});
 
 
         });
 </script>
 
+<!-- AV Content popup -->
+{{ htModal.widgetHeader("Hosts with AV content version", modalId="avContentPopup", modalSize="medium") }}
+	<table id="avContentTable" class='hxtool_table' style='width: 100%;'></table>
+{{ htModal.widgetMiddle() }}
+	<button class="avContentDismiss fe-btn fe-btn--md fe-btn--secondary" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
+<!-- AV Engine popup -->
+{{ htModal.widgetHeader("Hosts with AV engine version", modalId="avEnginePopup", modalSize="medium") }}
+	<table id="avEngineTable" class='hxtool_table' style='width: 100%;'></table>
+{{ htModal.widgetMiddle() }}
+	<button class="avEngineDismiss fe-btn fe-btn--md fe-btn--secondary" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
+<!-- AV status popup -->
+{{ htModal.widgetHeader("Hosts with AV status", modalId="avStatusPopup", modalSize="medium") }}
+	<table id="avStatusTable" class='hxtool_table' style='width: 100%;'></table>
+{{ htModal.widgetMiddle() }}
+	<button class="avStatusDismiss fe-btn fe-btn--md fe-btn--secondary" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
+
+<!-- DASH GRID -->
 <div class="avdash-grid-container">
   <div class="avtable">
 
@@ -225,68 +416,5 @@
   </div>
 </div>
 
-
-<!--
-
-<table id='dashboard' class='dashTable' style='width: 100%;'>
-	<tr>
-		<th>
-			<div style='float: left;'>
-				<i class="fas fa-chart-bar fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-			</div>
-			Endpoints with anti-virus content version
-			<div style='float: right;'>
-				<input type='checkbox' id='row1_cell1_auto'> auto
-			</div>
-		</td>
-		<th>
-			<div style='float: left;'>
-				<i class="fas fa-chart-bar fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-			</div>
-			Endpoints with anti-virus engine version
-			<div style='float: right;'>
-				<input type='checkbox' id='row1_cell2_auto'> auto
-			</div>
-		</td>
-		<th>
-			<div style='float: left;'>
-				<i class="fas fa-chart-bar fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-			</div>
-			Status of anti-virus on endpoints
-			<div style='float: right;'>
-				<input type='checkbox' id='row1_cell3_auto'> auto
-			</div>
-		</td>
-	</tr>
-	<tr>
-		<td id='row1_cell1'>
-			<div id='row1_cell1'></div>
-		</td>
-		<td style='text-align: center;'>
-			<div id='row1_cell2'></div>
-		</td>
-		<td style='text-align: center;'>
-			<div id='row1_cell3'></div>
-		</td>
-	</tr>
-	<tr>
-		<th colspan='3'>
-			<div style='float: left;'>
-				<i class="fas fa-table fa-lg fa-fw" style='margin-right: 2px;' aria-hidden="true"></i>
-			</div>
-			Last 15 Anti-virus alerts
-			<div style='float: right;'>
-				<input type='checkbox' id='row2_cell1_auto'> auto
-			</div>
-		</td>
-	</tr>
-	<tr>
-		<td id='row2_cell1' colspan='3'>
-			<table id="row2_cell1_table" class='genericTable' style='width: 100%;'></table>
-		</td>
-	</tr>
-</table>
-
--->
 
 {% endblock %}
