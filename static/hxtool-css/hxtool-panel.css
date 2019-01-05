@@ -45,3 +45,8 @@
 	padding-left: 6px;
 	margin-top: -32px;
 }
+
+.hxtool_panel_scriptbuilder {
+	height: calc(100vh - 120px);
+	overflow-y: auto;
+}
