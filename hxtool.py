@@ -635,45 +635,20 @@ def settings(hx_api_object):
 	return render_template('ht_settings.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bgcreds=bgcreds)
 
 
-			
 ### Custom Configuration Channels
-@app.route('/channels', methods=['GET', 'POST'])
+@app.route('/channels', methods=['GET'])
 @valid_session_required
 def channels(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restListCustomConfigChannels(limit=1)
 	if ret:
-	
-		if (request.method == 'POST'):
-			(ret, response_code, response_data) = hx_api_object.restNewConfigChannel(request.form['name'], request.form['description'], request.form['priority'], request.form.getlist('hostsets'), request.form['confjson'])
-			app.logger.info(format_activity_log(msg="new configuration channel", profile=session['ht_profileid'], user=session['ht_user'], controller=session['hx_ip']))
-		
-		if request.args.get('delete'):
-			(ret, response_code, response_data) = hx_api_object.restDeleteConfigChannel(request.args.get('delete'))
-			app.logger.info(format_activity_log(msg="configuration channel action", action="delete", profile=session['ht_profileid'], user=session['ht_user'], controller=session['hx_ip']))
-			return redirect("/channels", code=302)
-		
-		(ret, response_code, response_data) = hx_api_object.restListCustomConfigChannels()
-		channels = formatCustomConfigChannels(response_data)
-		
 		(ret, response_code, response_data) = hx_api_object.restListHostsets()
 		hostsets = formatHostsets(response_data)
 		
-		return render_template('ht_configchannel.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), channels=channels, hostsets=hostsets)
+		return render_template('ht_configchannel.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets)
 	else:
 		return render_template('ht_noaccess.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-			
-
-@app.route('/channelinfo', methods=['GET'])
-@valid_session_required
-def channelinfo(hx_api_object):
-	(ret, response_code, response_data) = hx_api_object.restListCustomConfigChannels(limit=1)
-	if ret:
-		# TODO: finish
-		(ret, response_code, response_data) = hx_api_object.restGetConfigChannelConfiguration(request.args.get('id'))
-		return render_template('ht_configchannel_info.html', channel_json = json.dumps(response_data, sort_keys = False, indent = 4))
-	else:
-		return render_template('ht_noaccess.html')
 		
+
 #### Authentication
 @app.route('/login', methods=['GET', 'POST'])
 def login():

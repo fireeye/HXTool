@@ -5,63 +5,146 @@
 
 <script>
 	$(document).ready(function() {
-                var table = $('#channeltable').DataTable( {
-                        "info": false,
-                        "pageLength": 15,
-                        "lengthChange": false
-                });
-		
-		$('#hostsets').multiSelect({
-			selectableHeader: "<div style='background: rgb(121, 161, 190); color: white; padding: 4px; text-align: center; font-weight: bold; border-top-left-radius: 5px; border-top-right-radius: 5px;'>Not included</div>",
-			selectionHeader: "<div style='background: rgb(121, 161, 190); color: white; padding: 4px; text-align: center; font-weight: bold; border-top-left-radius: 5px; border-top-right-radius: 5px;'>Included</div>",
+
+		var ccc_datatable = $('#cccTable').DataTable( {
+			"ajax": "/api/v1/datatable_ccc",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": true,
+			"processing": false,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn" },
+				{ extend: "csv", className: "fe-btn" },
+				{ extend: "excel", className: "fe-btn" }
+			],
+			"columns": [
+				{ title: "Name", "data": "name" },
+				{ title: "Description", "data": "description" },
+				{ title: "Priority", "data": "priority" },
+				{ title: "Hostsets", "data": "host_sets" },
+				{ title: "Created", "data": "create_time" },
+				{ title: "Created by", "data": "create_actor" },
+				{ title: "Action", "data": "DT_RowId" }
+			],
+			"columnDefs": [	
+				{"className": "hxtool_table_cell_center", "targets": [2, 3, 4, 5, 6]},
+				{
+				 "targets": 4,
+				 render: function ( data, type, row, meta ) {
+				 	return (datatables_Timestamp(data));
+				 }
+				},
+				{
+				 "targets": 6,
+				 "width": "200px",
+				 render: function ( data, type, row, meta ) {
+				 	r = "";
+				 	r += "<button style='margin-right: 6px;' class='cccAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view</button>";
+				 	r += "<button style='margin-right: 6px;' class='cccAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
+				 	return (r);
+				 }
+				}
+			]
 		});
-				
-		$('#channeltable').on('click', '.clickable-row', function() {
-			window.document.location = $(this).data("href");
+		$('div.dataTables_filter input').addClass("fe-input");
+
+		$("#cccTable").on("click", ".cccAction", function() {
+			if ($(this).data("type") == "remove") {
+				myrow = $(this).closest("tr");
+				hxtool_ajax_get_request("/api/v1/ccc/remove", "id=" + $(this).data("id"), function() {
+					myrow.fadeOut(200, function() {
+						ccc_datatable.row(myrow).remove().draw();
+					});
+				});
+			}
+			if ($(this).data("type") == "view") {
+				hxtool_ajax_get_request("/api/v1/ccc/get", "id=" + $(this).data("id"), function(cccResponse) {
+					mytemp = JSON.parse(cccResponse['api_response']);
+					myPrettyJSON = JSON.stringify(mytemp, undefined, 4);
+
+					$("#cccViewTextarea").val(myPrettyJSON);
+					$("#cccViewPopup").show();
+				});
+			}
 		});
 
-		showStatusBar("text", 500, 500, 3000);
+		$('#hostsets').multiSelect({
+			selectableHeader: "<div class='hxtool_customconfig_selection_header'>Not included</div>",
+			selectionHeader: "<div class='hxtool_customconfig_selection_header'>Included</div>",
+		});
+
+		$("#cccNewButton").click(function() {
+			$("#cccNewPopup").show();
+		});
+
+		$("#cccNewDismiss").click(function() {
+			$("#cccNewPopup").hide();
+		});
+
+		$("#cccViewDismiss").click(function() {
+			$("#cccViewPopup").hide();
+		});
+
+		$("#cccNewSubmit").click(function() {
+
+			$("#cccNewPopup").hide();
+
+			myChannel = {};
+			myChannel['hostsets'] = [];
+
+			$('#hostsets option:selected').each(function() {
+				myChannel['hostsets'].push($(this).val());
+			});
+
+			myChannel['name'] = $("#cccNewName").val();
+			myChannel['description'] = $("#cccNewDescription").val();
+			myChannel['priority'] = $("#cccNewPriority").val();
+			myChannel['confjson'] = $("#cccNewJSON").val();
+
+			var requestdata = new FormData();
+			requestdata.append("channel", JSON.stringify(myChannel));
+
+			hxtool_ajax_post_request("/api/v1/ccc/new", requestdata, function() {
+				ccc_datatable.ajax.reload();
+			});			
+			
+		});
 		
 	});
 </script>
 
-<form method='POST' action='/channels' enctype="multipart/form-data">
-	<div class='tableTitle'>
-		New custom configuration channel
-	</div>
-	<div class='inputArea'>
-	
-		<table style='width: 100%; font-size: 12px;'>
-			<tr>
-				<td style='vertical-align: top; width: 400px;'>
-					<div style='font-weight: bold;'>Name</div>
-					<input style='margin-bottom: 5px; width: 200px;' type='text' id='name' name='name'>
-					<div style='font-weight: bold;'>Description</div>
-					<input style='margin-bottom: 5px; width: 300px;' type='text' id='description' name='description'>
-					<div style='font-weight: bold;'>Priority</div>
-					<input style='margin-bottom: 5px; width: 50px;' type='text' id='priority' name='priority'>
-					<br><br>
-					<div style='font-weight: bold;'>Host sets</div>
-					<select multiple="multiple" name='hostsets' id='hostsets'>
-						{% if hostsets %} {{ hostsets|safe }} {% endif %}
-					</select>
-				</td>
-				<td style='vertical-align: top; border-left: 1px solid #cccccc; padding-left: 30px;'>
-					<div style='font-weight: bold;'>Configuration JSON</div>
-					<textarea style='width: 600px; height: 355px;' name='confjson'></textarea>
-				</td>
-		</table>
-		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>Custom configuration channels allows you to use separate configuration settings for host-sets. Refer to the HX API guide on how to use this functionality.</div>
-		
-	    <input type='submit' value='Create channel'>
-	</div>
-</form>
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="cccNewButton"> New <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
 
-<br>
+{{ htPanel.widgetHeader("Custom configuration channels", panelId="cccTableContainer", panelIcon="fa-table") }}
+	<table style='width: 100%;' id='cccTable' class='hxtool_table'></table>
+{{ htPanel.widgetFooter() }}
 
-<div class='tableTitle'>
-	Custom configuration channels
-</div>
+{{ htModal.widgetHeader("Create new custom config", modalId="cccNewPopup", modalSize="large") }}
+	{{ htInput.widget("my new channel", elementTitle="Name", elementHint="Enter a name for the channel", elementId="cccNewName", elementWidth="100%") }}
+	{{ htInput.widget("channel info", elementTitle="Description", elementHint="Enter a description for the channel", elementId="cccNewDescription", elementWidth="100%") }}
+	{{ htInput.widget("1", elementTitle="Priority", elementHint="Channel priority", elementId="cccNewPriority", elementWidth="100px;") }}
 
-{% if channels %} {{ channels|safe }} {% endif %}
+	<h4 class='hxtool_typography_h4'>Include hostsets</h4>
+	<select class='fe-input' multiple="multiple" name='hostsets' id='hostsets'>
+		{% if hostsets %} {{ hostsets|safe }} {% endif %}
+	</select>
+
+	<h4 class='hxtool_typography_h4'>Configuration JSON</h4>
+	<textarea class='fe-input' style='width: 100%; height: 30vh;' id='cccNewJSON'></textarea>
+
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="cccNewDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="cccNewSubmit" aria-label="Submit"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
+
+{{ htModal.widgetHeader("View channel", modalId="cccViewPopup", modalSize="medium") }}
+	<textarea id='cccViewTextarea' style='height: 400px;' class='fe-input'></textarea>
+{{ htModal.widgetMiddle() }}
+	<button id="cccViewDismiss" class="fe-btn fe-btn--md fe-btn--secondary" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
 {% endblock %}

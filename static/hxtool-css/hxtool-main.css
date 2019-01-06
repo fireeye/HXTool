@@ -157,3 +157,31 @@ select {
     height: 8px;
 }
 
+.hxtool_customconfig_selection_header {
+	background: rgba(255, 255, 255, 0.2);
+	border: 1px solid rgba(190, 190, 190, 0.5);
+	color: rgba(255, 255, 255, 0.8);
+	font-weight: bold;
+	font-size: 14px;
+	text-align: center;
+}
+
+.ms-selectable {
+	background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.ms-selection {
+	background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.ms-list li {
+	border: 0 !important;
+	border-bottom: 1px solid rgba(190, 190, 190, 0.3) !important;
+	color: rgba(255, 255, 255, 0.8) !important;
+	font-size: 12px;
+}
+
+.ms-list {
+	border: 1px solid rgba(190, 190, 190, 0.5) !important;
+}
+

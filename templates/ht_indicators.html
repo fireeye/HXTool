@@ -188,11 +188,11 @@
 	});
 </script>
 
-{{ htPanel.widgetHeader("Action", panelDisplay="inline-block", panelIcon="fa-external-link-square") }}
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
 	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="exportButton"> Export selected <i style='color: #11a962;' class="fe-icon--right fas fa-file-export"></i></button>
 	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="importButton"> Import <i style='color: #11a962;' class="fe-icon--right fas fa-file-import"></i></button>
 	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="createButton"> Create new rule <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-{{ htPanel.widgetFooter() }}
+{{ htPanelNoHeader.widgetFooter() }}
 
 {{ htPanel.widgetHeader("Rules", panelId="iocTableContainer", panelIcon="fa-table") }}
 	<table style='width: 100%;' id='iocTable' class='hxtool_table'></table>

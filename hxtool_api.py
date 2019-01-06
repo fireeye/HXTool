@@ -888,10 +888,72 @@ def hxtool_api_indicators_edit(hx_api_object):
 		return('',500)
 
 
+#################################
+# Custom configuration channels #
+#################################
+
+@ht_api.route('/api/v{0}/ccc/new'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_ccc_new(hx_api_object):
+
+	mydata = json.loads(request.form.get('channel'))
+
+	(ret, response_code, response_data) = hx_api_object.restNewConfigChannel(
+		mydata['name'], 
+		mydata['description'], 
+		mydata['priority'], 
+		mydata['hostsets'], 
+		mydata['confjson']
+		)
+
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/ccc/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_ccc_remove(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restDeleteConfigChannel(request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/ccc/get'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_ccc_get(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restGetConfigChannelConfiguration(request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 
 ##############
 # Datatables #
 ##############
+
+@ht_api.route('/api/v{0}/datatable_ccc'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_ccc(hx_api_object):
+	mydata = {}
+	mydata['data'] = []
+
+	(ret, response_code, response_data) = hx_api_object.restListCustomConfigChannels()
+	if ret:
+		for channel in response_data['data']['entries']:
+
+			myhostsets = []
+			for hostset in channel['host_sets']:
+				myhostsets.append(hostset['name'])
+
+			mydata['data'].append({
+				"DT_RowId": channel['_id'],
+				"name": channel['name'],
+				"description": channel['description'],
+				"priority": channel['priority'],
+				"host_sets": myhostsets,
+				"create_time": channel['create_time'],
+				"create_actor": channel['create_actor']['username']
+				})
+
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
 @ht_api.route('/api/v{0}/datatable/avcontent'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def datatable_avcontent_detail(hx_api_object):
