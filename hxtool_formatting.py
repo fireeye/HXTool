@@ -55,67 +55,6 @@ def formatProfCredsInfo(has_creds):
 		x += "</form>"
 	
 	return(x)
-
-def formatStackTable(ht_db, profile_id, hs):
-
-	x = ""
-	
-	stack_jobs = ht_db.stackJobList(profile_id)
-	
-	x += "<table id='stacktable' class='genericTable dataTable no-footer' style='width: 100%;'>"
-	x += "<thead>"
-	x += "<tr>"
-	x += "<td>ID</td>"
-	x += "<td>Created</td>"
-	x += "<td>Last updated</td>"
-	x += "<td>Stack Type</td>"
-	x += "<td>State</td>"
-	x += "<td>Profile ID</td>"
-	x += "<td>HX Bulk ID</td>"
-	x += "<td>Hostset ID</td>"
-	x += "<td style='width: 160px;'>Completion rate</td>"
-	x += "<td style='width: 260px;'>Actions</td>"
-	x += "</tr>"
-	x += "</thead>"
-	x += "<tbody>"
-	
-	for job in stack_jobs:
-		bulk_download = ht_db.bulkDownloadGet(bulk_download_eid = job['bulk_download_eid'])
-		x += "<tr>"
-		x += "<td>" + HXAPI.compat_str(job.eid) + "</td>"
-		x += "<td>" + HXAPI.compat_str(job['create_timestamp']) + "</td>"
-		x += "<td>" + HXAPI.compat_str(job['update_timestamp']) + "</td>"
-		x += "<td>" + job['stack_type'] + "</td>"
-		x += "<td>" + ("STOPPED" if job['stopped'] else "RUNNING") + "</td>"
-		x += "<td>" + HXAPI.compat_str(job['profile_id'])	+ "</td>"
-		x += "<td>" + (HXAPI.compat_str(bulk_download['bulk_acquisition_id']) if 'bulk_acquisition_id' in bulk_download else "N/A") + "</td>"		
-		x += "<td>" + HXAPI.compat_str(bulk_download['hostset_id']) + "</td>"
-		
-		# Completion rate
-		job_progress = 0
-		if 'hosts' in job:
-			hosts_completed = len([_ for _ in job['hosts'] if _['processed']])
-		else:
-			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
-		if hosts_completed > 0:
-			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
-		x += "<td>"
-		x += "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + HXAPI.compat_str(job.eid) + "' data-percent='" + HXAPI.compat_str(job_progress) + "'></div></div>"
-		x += "</td>"
-		
-		# Actions
-		x += "<td>"
-		x += "<a href='/stacking?stop=" +  HXAPI.compat_str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
-		x += "<a href='/stacking?remove=" +  HXAPI.compat_str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
-		x += "<a href='/stackinganalyze?id=" +  HXAPI.compat_str(job.eid) + "' style='margin-right: 10px;' class='tableActionButton'>analyze</a>"
-		x += "</td>"
-		x += "</tr>"
-	
-	x += "</tbody>"
-	x += "</table>"
-
-	return(x)
-
 	
 def formatOpenIocs(iocs):
 

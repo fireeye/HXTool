@@ -29,15 +29,20 @@ default_encoding = 'utf-8'
 # Common User interface endpoints #
 ###################################
 
-@ht_api.route('/api/v{0}/hostsets'.format(HXTOOL_API_VERSION), methods=['GET'])
+@ht_api.route('/api/v{0}/hostsets/list'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
-def testcall5(hx_api_object):
-	if request.method == 'GET':
-		(ret, response_code, response_data) = hx_api_object.restListHostsets()
-		if ret:
-			return(app.response_class(response=json.dumps(response_data), status=200, mimetype='application/json'))
-		else:
-			return('',response_code)
+def hxtool_api_hostsets_list(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restListHostsets()
+	if ret:
+		response_data['data']['entries'].append({
+			"_id": 9,
+			"name": "All hosts",
+			"type": "hidden",
+			"url": "/hx/api/v3/host_sets/9"
+			})
+		(r, rcode) = create_api_response(ret, response_code, response_data)
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 
 @ht_api.route('/api/v{0}/getHealth'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
@@ -924,9 +929,93 @@ def hxtool_api_ccc_get(hx_api_object):
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
+############
+# Stacking #
+############
+@ht_api.route('/api/v{0}/stacking/stacktypes'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_stacking_stacktypes(hx_api_object):
+	mystacktypes = list(hxtool_data_models.stack_types.keys())
+	return(app.response_class(response=json.dumps(mystacktypes), status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/stacking/new'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_stacking_new(hx_api_object):
+	print(request.form)
+	stack_type = hxtool_data_models.stack_types.get(request.form['stack_type'])
+	if stack_type:
+		with open(combine_app_path('scripts', stack_type['script']), 'r') as f:
+			script_xml = f.read()
+			hostset_id = int(request.form['stackhostset'])
+			bulk_download_eid = submit_bulk_job(hx_api_object, hostset_id, script_xml, task_profile = "stacking")
+			ret = hxtool_global.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
+			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/stacking/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_stacking_remove(hx_api_object):
+	stack_job = hxtool_global.hxtool_db.stackJobGet(request.args.get('id'))
+	if stack_job:
+		bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
+		if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
+			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])	
+			hxtool_global.hxtool_db.bulkDownloadDelete(bulk_download_job.eid)
+			
+		hxtool_global.hxtool_db.stackJobDelete(stack_job.eid)
+		(r, rcode) = create_api_response(ret, response_code, response_data)
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/stacking/stop'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_stacking_stop(hx_api_object):
+	stack_job = hxtool_global.hxtool_db.stackJobGet(stack_job_eid = request.args.get('id'))
+	bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
+	if stack_job:
+		(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
+		if ret:
+			hxtool_global.hxtool_db.stackJobStop(stack_job_eid = stack_job.eid)
+			hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_job.eid, stopped = True)
+
+			(r, rcode) = create_api_response(ret, response_code, response_data)
+			return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 ##############
 # Datatables #
 ##############
+
+@ht_api.route('/api/v{0}/datatable_stacking'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_stacking(hx_api_object):
+	mydata = {}
+	mydata['data'] = []
+
+	stack_jobs = hxtool_global.hxtool_db.stackJobList(session['ht_profileid'])
+	for job in stack_jobs:
+		bulk_download = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = job['bulk_download_eid'])
+
+		job_progress = 0
+		if 'hosts' in job:
+			hosts_completed = len([_ for _ in job['hosts'] if _['processed']])
+		else:
+			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
+		if hosts_completed > 0:
+			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
+
+		mydata['data'].append({
+			"DT_RowId": job.eid,
+			"create_timestamp": HXAPI.compat_str(job['create_timestamp']),
+			"update_timestamp": HXAPI.compat_str(job['update_timestamp']),
+			"stack_type": job['stack_type'],
+			"state": ("STOPPED" if job['stopped'] else "RUNNING"),
+			"profile_id": HXAPI.compat_str(job['profile_id']),
+			"bulk_acquisition_id": (HXAPI.compat_str(bulk_download['bulk_acquisition_id']) if 'bulk_acquisition_id' in bulk_download else "N/A"),
+			"hostset_id": HXAPI.compat_str(bulk_download['hostset_id']),
+			"job_progress": HXAPI.compat_str(job_progress)
+			})
+
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
+
 
 @ht_api.route('/api/v{0}/datatable_ccc'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required

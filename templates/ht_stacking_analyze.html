@@ -5,9 +5,25 @@
 
 <script>
 	$(document).ready(function() {
+
+		$("#backButton").click(function(){
+			location.href = "/stacking";
+		});
+
+		$("#endpointViewDismiss").click(function(){
+			$("#endpointViewPopup").hide();
+		});
+
+		$("#stackResultsTable").on("click", ".showendpoints", function() {
+			$("#endpointViewPopup").find(".fe-modal__body").html("");
+			$("#endpointViewPopup").find(".fe-modal__body").html($(this).next("div").html());
+			$("#endpointViewPopup").show();
+		});
+
+		myid = getQueryParam('id');
 		$.ajax({
 				type: "GET",
-				url: "/api/v1/stacking/{{ stack_id }}/results",
+				url: "/api/v1/stacking/" + myid + "/results",
 				contentType: "application/json; charset=utf-8",
 				dataType: "json",
 				success: function(r) {
@@ -18,9 +34,12 @@
 						if ($.isArray(v) && v.length > 1) {
 							c['render'] = function(data, type, row, meta) {
 											if (type == 'display' && data.length > 1) {
-												return '<a href="#" class="tableActionButton" style="text-decoration: none;" onclick="JavaScript: $(this).next().show()">Multiple</a>\
-												<div id="indexPopup" onclick="JavaScript: $(this).hide();" class="stackingIndexPopup" style="display:none; position: absolute; cursor: pointer;">'
-												+ data.join('<br />') + '</div>';
+												myr = "";
+												myr += "<button class='showendpoints fe-btn fe-btn--sm fe-btn--hxtool-main'>multiple</button>";
+												myr += "<div style='display: none;'>";
+												myr += data.join('<br />');
+												myr += "</div>";
+												return(myr);
 											} else {
 												return data
 											}
@@ -30,21 +49,22 @@
 					});
 					
 					$('#stackResultsTable').DataTable({
-                        "info": false,
 						"columns": columns,
 						"data": r, 
-                        "pageLength": 25,
-                        "lengthChange": false,
+						"paging":   false,
+						"info":     false,
+						"searching": true,
+						"processing": false,
 						"order": [columns.length - 1, "asc"],
 						"colReorder": true,
-						"dom": '<"htDTButtons"B>frtip',
+						"dom": '<"hxtool_datatables_buttons"B>frtip',
 						"buttons": [
-							{ extend: "copy", className: "myDTButton" },
-							{ extend: "csv", className: "myDTButton" },
-							{ extend: "excel", className: "myDTButton" },
-							{ extend: "print", className: "myDTButton" }
+							{ extend: "copy", className: "fe-btn" },
+							{ extend: "csv", className: "fe-btn" },
+							{ extend: "excel", className: "fe-btn" }
 						]
 					});
+					$('div.dataTables_filter input').addClass("fe-input");
 				},
 				error: function(xhr) {
 					alert("Error: " + xhr.responseJSON);
@@ -54,11 +74,17 @@
 	});
 </script>
 
-<br>
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="backButton"> back <i style='color: #11a962;' class="fe-icon--right fas fa-file-export"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
 
-<div class='tableTitle'>
-        Stacking Results
-</div>
-<table id='stackResultsTable' class='genericTable dataTable no-footer' style='width: 100%;'>
-</table>
+{{ htPanel.widgetHeader("Stacking results", panelId="iocTableContainer", panelIcon="fa-table") }}
+	<table id='stackResultsTable' class='hxtool_table' style='width: 100%;'></table>
+{{ htPanel.widgetFooter() }}
+
+{{ htModal.widgetHeader("Matching endpoints", modalId="endpointViewPopup", modalSize="medium") }}
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="endpointViewDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
 {% endblock %}

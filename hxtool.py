@@ -543,58 +543,15 @@ def get_file_listings(hx_api_object):
 	return json.dumps({'data': data_rows})
 
 ### Stacking
-@app.route('/stacking', methods=['GET', 'POST'])
+@app.route('/stacking', methods=['GET'])
 @valid_session_required
 def stacking(hx_api_object):
-	if request.args.get('stop'):
-		stack_job = app.hxtool_db.stackJobGet(stack_job_eid = request.args.get('stop'))
-		bulk_download_job = app.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
-		if stack_job:
-			
-			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
-			if ret:
-				app.hxtool_db.stackJobStop(stack_job_eid = stack_job.eid)
-				app.hxtool_db.bulkDownloadUpdate(bulk_download_job.eid, stopped = True)
-				app.logger.info(format_activity_log(msg="data stacking action", action="stop", user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/stacking", code=302)
+	return render_template('ht_stacking.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
-	if request.args.get('remove'):
-		stack_job = app.hxtool_db.stackJobGet(request.args.get('remove'))
-		if stack_job:
-			bulk_download_job = app.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
-			if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
-				(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])	
-				app.hxtool_db.bulkDownloadDelete(bulk_download_job.eid)
-				
-			app.hxtool_db.stackJobDelete(stack_job.eid)
-			app.logger.info(format_activity_log(msg="data stacking action", action="delete", user=session['ht_user'], controller=session['hx_ip']))
-		return redirect("/stacking", code=302)
-
-		
-	if request.method == 'POST':
-		stack_type = hxtool_data_models.stack_types.get(request.form['stack_type'])
-		if stack_type:
-			with open(combine_app_path('scripts', stack_type['script']), 'r') as f:
-				script_xml = f.read()
-				hostset_id = int(request.form['stackhostset'])
-				bulk_download_eid = submit_bulk_job(hx_api_object, hostset_id, script_xml, task_profile = "stacking")
-				ret = app.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
-				app.logger.info(format_activity_log(msg="new stacking job", hostset=request.form['stackhostset'], user=session['ht_user'], controller=session['hx_ip']))
-
-		return redirect("/stacking", code=302)
-	
-	(ret, response_code, response_data) = hx_api_object.restListHostsets()
-	hostsets = formatHostsets(response_data)
-	
-	stacktable = formatStackTable(app.hxtool_db, session['ht_profileid'], response_data)
-	
-	return render_template('ht_stacking.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), stacktable=stacktable, hostsets=hostsets, stack_types = hxtool_data_models.stack_types)
-
-
-@app.route('/stackinganalyze', methods=['GET', 'POST'])
+@app.route('/stackinganalyze', methods=['GET'])
 @valid_session_required
 def stackinganalyze(hx_api_object):
-	return render_template('ht_stacking_analyze.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), stack_id = request.args.get('id'))
+	return render_template('ht_stacking_analyze.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 		
 			
 ### Settings

@@ -5,55 +5,164 @@
 
 <script>
 	$(document).ready(function() {
-                var table = $('#stackTable').DataTable( {
-                        "info": false,
-                        "pageLength": 15,
-                        "lengthChange": false
-                });
-				
-				
-		$('#stackTable').on('click', '.clickable-row', function() {
-			window.document.location = $(this).data("href");
+		var stacking_datatable = $('#stackingTable').DataTable( {
+			"ajax": "/api/v1/datatable_stacking",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": true,
+			"processing": false,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn" },
+				{ extend: "csv", className: "fe-btn" },
+				{ extend: "excel", className: "fe-btn" }
+			],
+			"columns": [
+				{ title: "ID", "data": "DT_RowId" },
+				{ title: "Created", "data": "create_timestamp" },
+				{ title: "Updated", "data": "update_timestamp" },
+				{ title: "Type", "data": "stack_type" },
+				{ title: "State", "data": "state" },
+				{ title: "Bulk ID", "data": "bulk_acquisition_id" },
+				{ title: "Hostset ID", "data": "hostset_id" },
+				{ title: "Progress", "data": "job_progress" },
+				{ title: "Action", "data": "DT_RowId" }
+			],
+			"fnDrawCallback": function (oSettings) {
+				$("div[id^='crate_']").each(function() {
+					$(this).progress()
+				});
+			},
+			"columnDefs": [	
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+				{
+				 "targets": [1, 2],
+				 render: function ( data, type, row, meta ) {
+				 	return (datatables_Timestamp(data));
+				 }
+				},
+				{
+				 "targets": 7,
+				 "width": "270px",
+				 render: function ( data, type, row, meta ) {
+					data = "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + row.DT_RowId + "' data-percent='" + Math.round(data) + "'></div></div>"
+				 	return (data);
+				 }
+				},
+				{
+				 "targets": 8,
+				 "width": "240px",
+				 render: function ( data, type, row, meta ) {
+				 	r = "";
+				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop</button>";
+				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
+				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='analyze' data-id='" + row.DT_RowId + "'>analyze</button>";
+				 	return (r);
+				 }
+				}
+			]
+		});
+		$('div.dataTables_filter input').addClass("fe-input");
+
+		setInterval( function () {
+			stacking_datatable.ajax.reload();
+		}, 10000 );
+
+		$("#stackingTable").on("click", ".stackAction", function() {
+			if ($(this).data("type") == "analyze") {
+				location.href = "/stackinganalyze?id=" + $(this).data("id");
+			}
+			else if ($(this).data("type") == "remove") {
+				myrow = $(this).closest("tr");
+				hxtool_ajax_get_request("/api/v1/stacking/remove", "id=" + $(this).data("id"), function() {
+					myrow.fadeOut(200, function() {
+						stacking_datatable.row(myrow).remove().draw();
+					});
+				});
+			}
+			else if ($(this).data("type") == "stop") {
+				hxtool_ajax_get_request("/api/v1/stacking/stop", "id=" + $(this).data("id"), function() {
+					stacking_datatable.ajax.reload();
+				});
+			}
 		});
 
-		$("div[id^='crate_']").each(function() {
-			$(this).progress()
+		$("#stackingNew").click(function() {
+			$("#stackingPopup").find(".fe-modal__body").html("");
+
+			hxtool_ajax_get_request("/api/v1/stacking/stacktypes", "", function(typeResponse) {
+				myentries = [];
+				$.each(typeResponse, function( index, value ) {
+					myentries.push({
+						"elementText": value,
+						"elementId": value,
+						"elementIcon": "fa-check"
+					});
+				});
+				$("#stackingPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Stacking type</h3>");
+				$("#stackingPopup").find(".fe-modal__body").append(generateDropDown(myentries[0]['elementText'], "stack_type", myentries[0]['elementId'], entries=myentries, "", ""));
+				$("#stackingPopup").find(".fe-modal__body").append("<br>");
+			
+				hxtool_ajax_get_request("/api/v1/hostsets/list", "", function(setResponse) {
+					myResponse = JSON.parse(setResponse['api_response']);
+					myhostentries = [];
+					$.each(myResponse['data']['entries'], function( index, value ) {
+						myhostentries.push({
+							"elementText": value['name'],
+							"elementId": value['_id'],
+							"elementIcon": "fa-check"
+						});
+					});
+
+					$("#stackingPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Hostset</h3>");
+					$("#stackingPopup").find(".fe-modal__body").append(generateDropDown(myhostentries[0]['elementText'], "stackhostset", myhostentries[0]['elementId'], entries=myhostentries, "", ""));
+					$("#stackingPopup").find(".fe-modal__body").append("<br>");
+
+					$("#stackingPopup").find(".fe-modal__body").append("<div style='margin-bottom: 15px; margin-top: 8px;'>This feature allows you to acquire artifacts from all the endpoints of a host set and do frequency analysis on captured data to find potential deviations among your endpoints.<br>This feature is not available unless you have set the background processing credentials on the settings page.<br><br><b>Please Note:</b> This initial release of stacking only supports Microsoft Windows and Linux platforms, make sure your host-set does not contain any MacOS endpoints.</div>");
+
+					$("#stackingPopup").show();
+				});
+
+			});
+			
 		});
+
+		$("#stackingSubmit").click(function() {
+
+			$("#stackingPopup").hide();
+
+			var data = new FormData();
+
+			data.append("stack_type", $("#stack_type").data("id"));
+			data.append("stackhostset", $("#stackhostset").data("id"));
+
+			hxtool_ajax_post_request("/api/v1/stacking/new", data, function() {
+				stacking_datatable.ajax.reload();
+			});
+
+		});
+
+		$("#stackingDismiss").click(function() {
+			$("#stackingPopup").hide();
+		});
+
 
 	});
 </script>
 
-<form method='POST' action='/stacking'>
-        <div class='tableTitle'>
-                Data Stacking
-        </div>
-		
-	<div class='inputArea' style='width: 800px;'>
-		Stack type: 
-	        <select name='stack_type' id='stack_type'>
-				{% if stack_types %}
-					{% for stack_type in stack_types %}
-						<option value='{{ stack_type }}'>{{ stack_types[stack_type].platform }}: {{ stack_types[stack_type].name }}
-					{% endfor %}			
-				{% endif %}
-			</select>
-		Host set: 
-		<select name='stackhostset' id='stackhostset'>
-			{% if hostsets %} {{ hostsets|safe }} {% endif %}
-		</select>
-		<br>
-		<div style='font-style: italic; margin-bottom: 15px; margin-top: 8px;'>This feature allows you to acquire artifacts from all the endpoints of a host set and do frequency analysis on captured data to find potential deviations among your endpoints.<br>This feature is not available unless you have set the background processing credentials on the "<a href='/settings'>settings</a>" page.<br><br><b>Please Note:</b> This initial release of stacking only supports Microsoft Windows and Linux platforms, make sure your host-set does not contain any MacOS endpoints.</div>
-		
-	        <input class='tableActionButton' type='submit' value='Start stacking data'>
-	</div>
-</form>
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="stackingNew"> New stacking job <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
 
-<br>
+{{ htPanel.widgetHeader("Stacking jobs", panelId="stackingTableContainer", panelIcon="fa-table") }}
+	<table style='width: 100%;' id='stackingTable' class='hxtool_table'></table>
+{{ htPanel.widgetFooter() }}
 
-<div class='tableTitle'>
-	Data stacking jobs on this controller
-</div>
-
-{% if stacktable %} {{ stacktable|safe }} {% endif %}
+{{ htModal.widgetHeader("New stacking job", modalId="stackingPopup", modalSize="medium") }}
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="stackingDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="stackingSubmit" aria-label="Submit"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
 
 {% endblock %}
