@@ -50,3 +50,8 @@
 	height: calc(100vh - 120px);
 	overflow-y: auto;
 }
+
+.hxtool_panel_stackinganalyze {
+	max-height: calc(100vh - 190px);
+	overflow-y: auto;
+}
