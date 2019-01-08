@@ -543,8 +543,33 @@ debug_mode = False
 if __name__ == "__main__":
 	signal.signal(signal.SIGINT, sigint_handler)
 	
-	if len(sys.argv) == 2 and sys.argv[1] == '-debug':
-		debug_mode = True
+	if len(sys.argv) == 2:
+		if sys.argv[1].endswith('-debug'):
+			debug_mode = True
+		elif sys.argv[1] == '--clear-sessions':
+			print("Clearing sessions from the database and exiting.")
+			hxtool_db = hxtool_db('hxtool.db')
+			for s in hxtool_db.sessionList():
+				hxtool_db.sessionDelete(s['session_id'])
+			hxtool_db.close()
+			hxtool_db = None
+			exit(0)
+		elif sys.argv[1] == '--clear-saved-tasks':
+			print("WARNING! WARNING! WARNING!")
+			print("This will clear ALL saved tasks in the database for ALL profiles!")
+			if raw_input:
+				f = raw_input
+			else:
+				f = input
+			r = f("Do you want to proceed (Y/N)?")
+			if r.strip().lower() == 'y':
+				print("Clearing saved tasks from the database and exiting.")
+				hxtool_db = hxtool_db('hxtool.db')
+				for t in hxtool_db.taskList():
+					hxtool_db.taskDelete(t['profile_id'], t['task_id'])
+				hxtool_db.close()
+				hxtool_db = None
+			exit(0)
 	
 	app_init(debug_mode)
 	
