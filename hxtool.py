@@ -584,6 +584,10 @@ def app_init(debug = False):
 	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
 	hxtool_global.hxtool_config = app.hxtool_config
 	
+	# Initialize the scheduler
+	hxtool_global.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
+	hxtool_global.hxtool_scheduler.start()
+	
 	app.task_api_key = 'Z\\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
 	
 	# Loop through background credentials and start the API sessions
@@ -602,21 +606,21 @@ def app_init(debug = False):
 																					headers = app.hxtool_config['headers'], 
 																					cookies = app.hxtool_config['cookies'], 
 																					logger_name = hxtool_global.get_submodule_logger_name(HXAPI.__name__), 
-																					default_encoding = default_encoding)																
-				(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[profile['profile_id']].restLogin(task_api_credential['hx_api_username'], decrypted_background_password, auto_renew_token = True)
-				if ret:
-					app.logger.info("Successfully initialized task API session for profile {} ({})".format(profile['hx_host'], profile['profile_id']))
-				else:
-					app.logger.error("Failed to initialized task API session for profile {} ({})".format(profile['hx_host'], profile['profile_id']))
-					del hxtool_global.task_hx_api_sessions[profile['profile_id']]
+																					default_encoding = default_encoding)				
+				api_login_task = hxtool_scheduler_task(profile['profile_id'], "Task API Login - {}".format(profile['hx_host']), immutable = True)
+				api_login_task.add_step(task_api_session_module, kwargs = {
+											'profile_id' : profile['profile_id'],
+											'username' : task_api_credential['hx_api_username'],
+											'password' : decrypted_background_password
+				})
+				decrypted_background_password = None
+				hxtool_global.hxtool_scheduler.add(api_login_task)
 			except UnicodeDecodeError:
 				app.logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 		else:
 			app.logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 	
-	# Initialize the scheduler
-	hxtool_global.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
-	hxtool_global.hxtool_scheduler.start()
+	# Load tasks from the database after the task API sessions have been initialized
 	hxtool_global.hxtool_scheduler.load_from_database()
 	
 	
