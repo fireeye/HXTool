@@ -312,102 +312,9 @@ def openioc(hx_api_object):
 	return render_template('ht_openioc.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### Multifile acquisitions
-@app.route('/multifile', methods=['GET', 'POST'])
+@app.route('/multifile', methods=['GET'])
 @valid_session_required
 def multifile(hx_api_object):
-	profile_id = session['ht_profileid']
-	if request.args.get('stop'):
-		mf_job = app.hxtool_db.multiFileGetById(request.args.get('stop'))
-		if mf_job:
-			success = True
-			#TODO: Stop each file acquisition or handle solely in remove?
-			if success:
-				app.hxtool_db.multiFileStop(mf_job.eid)
-				#app.logger.info('MultiFile Job ID {0} action STOP - User: {1}@{2}:{3}'.format(mf_job.eid, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
-				app.logger.info(format_activity_log(msg="multif-file job", action="stop", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
-
-	elif request.args.get('remove'):
-		mf_job = app.hxtool_db.multiFileGetById(request.args.get('remove'))
-		if mf_job:
-			success = True
-			for f in mf_job['files']:
-				uri = 'acqs/files/{0}'.format(f['acquisition_id'])
-				(ret, response_code, response_data) = hx_api_object.restDeleteFile(uri)
-				#TODO: Replace with delete of file from record
-				if not f['downloaded']:
-					app.hxtool_db.multiFileUpdateFile(profile_id, mf_job.eid, f['acquisition_id'])
-				# If the file acquisition no longer exists on the controller(404), then we should delete it from our DB anyway.
-				if not ret and response_code != 404:
-					app.logger.error("Failed to remove file acquisition {0} from the HX controller, response code: {1}".format(f['acquisition_id'], response_code))
-					success = False		
-			if success:
-				app.hxtool_db.multiFileDelete(mf_job.eid)
-				#app.logger.info('MultiFile Job ID {0} action REMOVE - User: {1}@{2}:{3}'.format( mf_job.eid, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
-				app.logger.info(format_activity_log(msg="multif-file job", action="delete", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
-
-	#TODO: Make Configurable both from GUI and config file?
-	elif request.method == 'POST':
-		MAX_FILE_ACQUISITIONS = 50
-		
-		display_name = ('display_name' in request.form) and request.form['display_name'] or "{0} job at {1}".format(session['ht_user'], datetime.datetime.now())
-		use_api_mode = ('use_raw_mode' not in request.form)
-
-		# Collect User Selections
-		file_jobs, choices, listing_ids = [], {}, set([])
-		choice_re = re.compile('^choose_file_(\d+)_(\d+)$')
-		for k, v in list(request.form.items()):
-			m = choice_re.match(k)
-			if m:
-				fl_id = int(m.group(1))
-				listing_ids.add(fl_id)
-				choices.setdefault(fl_id, []).append(int(m.group(2)))
-		if choices:
-			choice_files, agent_ids = [], {}
-			for fl_id, file_ids in list(choices.items()):
-				# Gather the records for files to acquire from the file listing
-				file_listing = app.hxtool_db.fileListingGetById(fl_id)
-				if not file_listing:
-					app.logger.warn('File Listing %s does not exist - User: %s@%s:%s', session['ht_user'], fl_id, hx_api_object.hx_host, hx_api_object.hx_port)
-					continue
-				choice_files = [file_listing['files'][i] for i in file_ids if i <= len(file_listing['files'])]
-				multi_file_eid = app.hxtool_db.multiFileCreate(session['ht_user'], profile_id, display_name=display_name, file_listing_id=file_listing.eid, api_mode=use_api_mode)
-				# Create a data acquisition for each file from its host
-				for cf in choice_files:
-					if cf['hostname'] in agent_ids:
-						agent_id = agent_ids[cf['hostname']]
-					else:
-						(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = cf['hostname'])
-						agent_id = agent_ids[cf['hostname']] = response_data['data']['entries'][0]['_id']
-					path, filename = cf['FullPath'].rsplit('\\', 1)
-					(ret, response_code, response_data) = hx_api_object.restAcquireFile(agent_id, path, filename, use_api_mode)
-					if ret:
-						acq_id = response_data['data']['_id']
-						job_record = {
-							'acquisition_id' : int(acq_id),
-							'hostname': cf['hostname'],
-							'path': cf['FullPath'],
-							'downloaded': False
-						}
-						mf_job_id = app.hxtool_db.multiFileAddJob(multi_file_eid, job_record)
-						file_acquisition_task = hxtool_scheduler_task(profile_id, "File Acquisition: {}".format(cf['hostname']))
-						file_acquisition_task.add_step(file_acquisition_task_module, kwargs = {
-															'multi_file_eid' : multi_file_eid,
-															'file_acquisition_id' : int(acq_id),
-															'host_name' : cf['hostname']
-														})
-						hxtool_global.hxtool_scheduler.add(file_acquisition_task)
-						#app.logger.info('File acquisition requested from host %s at path %s- User: %s@%s:%s - host: %s', cf['hostname'], cf['FullPath'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, agent_id)
-						app.logger.info(format_activity_log(msg="file acquistion requested", fromhost=cf['hostname'], path=cf['FullPath'], host=agent_id, user=session['ht_user'], controller=session['hx_ip']))
-						file_jobs.append(acq_id)
-						if len(file_jobs) >= MAX_FILE_ACQUISITIONS:
-							break
-					else:
-						#TODO: Handle fail
-						pass
-			if file_jobs:
-				#app.logger.info('New Multi-File Download requested (profile %s) - User: %s@%s:%s', profile_id, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-				app.logger.info(format_activity_log(msg="new multi-file download", action="requested", user=session['ht_user'], controller=session['hx_ip']))
-		
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
 	hostsets = formatHostsets(response_data)
 	return render_template('ht_multifile.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets)
@@ -420,7 +327,6 @@ def file_listing(hx_api_object):
 	file_listing = app.hxtool_db.fileListingGetById(fl_id)
 	fl_results = file_listing['files']
 	display_fields = ['FullPath', 'Username', 'SizeInBytes', 'Modified', 'Sha256sum'] 
-
 	return render_template('ht_file_listing.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), file_listing=file_listing, fl_results=fl_results, display_fields=display_fields)
 
 ### Stacking
@@ -433,7 +339,6 @@ def stacking(hx_api_object):
 @valid_session_required
 def stackinganalyze(hx_api_object):
 	return render_template('ht_stacking_analyze.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-		
 			
 ### Settings
 @app.route('/settings', methods=['GET', 'POST'])

@@ -101,6 +101,14 @@
 	background: transparent;
 }
 
+.hxtool_host_table tbody td {
+	border-right: 0;
+}
+
+.hxtool_host_table tbody tr {
+	border-bottom: 0;
+}
+
 .product {
 	text-align: center;
 }

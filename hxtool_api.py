@@ -1051,6 +1051,109 @@ def hxtool_api_acquisition_multi_file_listing_remove(hx_api_object):
 		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
+@ht_api.route('/api/v{0}/acquisition/multi/mf/stop'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_multi_mf_stop(hx_api_object):
+	mf_job = hxtool_global.hxtool_db.multiFileGetById(request.args.get('id'))
+	if mf_job:
+		success = True
+		#TODO: Stop each file acquisition or handle solely in remove?
+		if success:
+			hxtool_global.hxtool_db.multiFileStop(mf_job.eid)
+			app.logger.info(format_activity_log(msg="multif-file job", action="stop", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
+			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/acquisition/multi/mf/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_multi_mf_remove(hx_api_object):
+	mf_job = hxtool_global.hxtool_db.multiFileGetById(request.args.get('id'))
+	if mf_job:
+		success = True
+		for f in mf_job['files']:
+			uri = 'acqs/files/{0}'.format(f['acquisition_id'])
+			(ret, response_code, response_data) = hx_api_object.restDeleteFile(uri)
+			#TODO: Replace with delete of file from record
+			if not f['downloaded']:
+				hxtool_global.hxtool_db.multiFileUpdateFile(session['ht_profileid'], mf_job.eid, f['acquisition_id'])
+			# If the file acquisition no longer exists on the controller(404), then we should delete it from our DB anyway.
+			if not ret and response_code != 404:
+				app.logger.error("Failed to remove file acquisition {0} from the HX controller, response code: {1}".format(f['acquisition_id'], response_code))
+				success = False		
+		if success:
+			hxtool_global.hxtool_db.multiFileDelete(mf_job.eid)
+			#app.logger.info('MultiFile Job ID {0} action REMOVE - User: {1}@{2}:{3}'.format( mf_job.eid, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
+			app.logger.info(format_activity_log(msg="multif-file job", action="delete", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
+			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/acquisition/multi/mf/new'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_acquisition_multi_mf_new(hx_api_object):
+
+	#TODO: Make Configurable both from GUI and config file?
+	if request.method == 'POST':
+		MAX_FILE_ACQUISITIONS = 50
+		
+		display_name = ('display_name' in request.form) and request.form['display_name'] or "{0} job at {1}".format(session['ht_user'], datetime.datetime.now())
+		use_api_mode = ('use_raw_mode' not in request.form)
+
+		# Collect User Selections
+		file_jobs, choices, listing_ids = [], {}, set([])
+		choice_re = re.compile('^choose_file_(\d+)_(\d+)$')
+		for k, v in list(request.form.items()):
+			m = choice_re.match(k)
+			if m:
+				fl_id = int(m.group(1))
+				listing_ids.add(fl_id)
+				choices.setdefault(fl_id, []).append(int(m.group(2)))
+		if choices:
+			choice_files, agent_ids = [], {}
+			for fl_id, file_ids in list(choices.items()):
+				# Gather the records for files to acquire from the file listing
+				file_listing = app.hxtool_db.fileListingGetById(fl_id)
+				if not file_listing:
+					app.logger.warn('File Listing %s does not exist - User: %s@%s:%s', session['ht_user'], fl_id, hx_api_object.hx_host, hx_api_object.hx_port)
+					continue
+				choice_files = [file_listing['files'][i] for i in file_ids if i <= len(file_listing['files'])]
+				multi_file_eid = app.hxtool_db.multiFileCreate(session['ht_user'], session['ht_profileid'], display_name=display_name, file_listing_id=file_listing.eid, api_mode=use_api_mode)
+				# Create a data acquisition for each file from its host
+				for cf in choice_files:
+					if cf['hostname'] in agent_ids:
+						agent_id = agent_ids[cf['hostname']]
+					else:
+						(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = cf['hostname'])
+						agent_id = agent_ids[cf['hostname']] = response_data['data']['entries'][0]['_id']
+					path, filename = cf['FullPath'].rsplit('\\', 1)
+					(ret, response_code, response_data) = hx_api_object.restAcquireFile(agent_id, path, filename, use_api_mode)
+					if ret:
+						acq_id = response_data['data']['_id']
+						job_record = {
+							'acquisition_id' : int(acq_id),
+							'hostname': cf['hostname'],
+							'path': cf['FullPath'],
+							'downloaded': False
+						}
+						mf_job_id = app.hxtool_db.multiFileAddJob(multi_file_eid, job_record)
+						file_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], "File Acquisition: {}".format(cf['hostname']))
+						file_acquisition_task.add_step(file_acquisition_task_module, kwargs = {
+															'multi_file_eid' : multi_file_eid,
+															'file_acquisition_id' : int(acq_id),
+															'host_name' : cf['hostname']
+														})
+						hxtool_global.hxtool_scheduler.add(file_acquisition_task)
+						#app.logger.info('File acquisition requested from host %s at path %s- User: %s@%s:%s - host: %s', cf['hostname'], cf['FullPath'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, agent_id)
+						app.logger.info(format_activity_log(msg="file acquistion requested", fromhost=cf['hostname'], path=cf['FullPath'], host=agent_id, user=session['ht_user'], controller=session['hx_ip']))
+						file_jobs.append(acq_id)
+						if len(file_jobs) >= MAX_FILE_ACQUISITIONS:
+							break
+					else:
+						#TODO: Handle fail
+						pass
+			if file_jobs:
+				#app.logger.info('New Multi-File Download requested (profile %s) - User: %s@%s:%s', profile_id, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				app.logger.info(format_activity_log(msg="new multi-file download", action="requested", user=session['ht_user'], controller=session['hx_ip']))
+				return redirect("/multifile", code=302)
+
 ##############
 # Datatables #
 ##############
@@ -1102,10 +1205,8 @@ def datatable_multi_multifile(hx_api_object):
 		# Completion rate
 		job_progress = (int(job['file_count']) > 0) and  int(hosts_completed / float(job['file_count']) * 100) or 0
 		job['progress'] = "<div class='htMyBar htBarWrap'><div class='htBar' id='multi_file_prog_" + str(job['id']) + "' data-percent='" + str(job_progress) + "'></div></div>"
-		
-		# Actions
-		job['actions'] = "<a href='/multifile?stop=" +  str(job['id']) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
-		job['actions'] += "<a href='/multifile?remove=" +  str(job['id']) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
+
+		job['DT_RowId'] = job['id']
 		data_rows.append(job)
 	return(app.response_class(response=json.dumps({'data': data_rows}), status=200, mimetype='application/json'))
 

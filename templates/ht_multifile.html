@@ -36,6 +36,9 @@
 td.file-rows-control{
 	background: url("static/img/datatables/details_open.png") no-repeat center center;
 }
+td.file-rows-control:hover{
+	cursor: pointer;
+}
 tr.shown td.file-rows-control {
 	background: url("static/img/datatables/details_close.png") no-repeat center center;
 }
@@ -62,7 +65,7 @@ table.nested_table tr:hover {
 	$(document).ready(function() {
 		var ftable = $('#fileListingTable').DataTable({
 			"info": false,
-			"pageLength": 15,
+			"pageLength": 10,
 			"lengthChange": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
@@ -106,33 +109,30 @@ table.nested_table tr:hover {
 		// Formatting function for File Acquisition nested table
 		function format_file_rows ( d ) {
 			// `d` is the original data object for the row
-			var file_table = '<table class="nested_table" cellpadding="5" cellspacing="0" border="0" style="width:100%; padding-left:50px; text-align:left; font-size: 12px"">'+
-				'<tr>'+
+			var file_table = '<table class="hxtool_table" cellpadding="5" cellspacing="0" border="0" style="width:100%; text-align:left; font-size: 12px"">'+
+				'<thead><tr>'+
 					'<th>Hostname</th>'+
 					'<th>FullPath</th>'+
 					'<th></th>'+
-				'</tr>';
+				'</tr></thead>';
 			for(i = 0; i < d.files.length; i++) {
 				var row_class = (i%2) == 0 ? 'even' : 'odd';
 				file_table += '<tr class="'+row_class+'">'+
 					'<td style="width:150px;">'+d.files[i].hostname+'</td>'+
 					'<td>'+d.files[i].path+'</td>';
 				if(d.files[i].downloaded) {
-					var img_path='static/img/open-iconic-master/data-transfer-download.png';
-					var alt_text = 'Download Now';
+					file_table +='<td style="width:132px";><button style="margin-right: 6px;"" class="mDownload fe-btn fe-btn--sm fe-btn--hxtool-main" data-url="/download_file?mf_id=' + d.id + "&acq_id=" + d.files[i]['acquisition_id'] + '">download<i class="fe-icon--right far fa-download"></i></button></td>';
 				}
 				else {
-					var img_path='static/img/open-iconic-master/clock.png';
-					var alt_text = 'Waiting for Acquisition';
+					file_table +='<td style="width:132px";><button style="margin-right: 6px;"" class="fe-btn fe-btn--sm fe-btn--hxtool-main">waiting<i class="fe-icon--right far fa-clock"></i></button></td>';
 				}
-				file_table +='<td style="width:32px";><a href="{{ url_for('download_multi_file_single') }}?mf_id='+d.id+'&acq_id='+d.files[i]['acquisition_id']+'"><img src="'+img_path+'" alt="'+alt_text+'" style="display: block; margin: auto;"/></a></td>';
-				'</tr>';
+				file_table += '</tr>';
 			}
 			return file_table + '</table>';
 		}
 		mtable = $('#fileAcquisitionTable').DataTable( {
 			"info": false,
-			"pageLength": 20,
+			"pageLength": 10,
 			"lengthChange": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
@@ -156,7 +156,7 @@ table.nested_table tr:hover {
 				{ "data": "username" },
 				{ "data": "create_timestamp" },
 				{ "data": "progress" },
-				{ "data": "actions" }
+				{ "data": "DT_RowId" }
 			],
 			"order": [[1, 'desc']],
 			"initComplete": function(settings, json) {
@@ -164,7 +164,19 @@ table.nested_table tr:hover {
 				$("div[id^='multi_file_prog_']").each(function() {
 					$(this).progress()
 				});
-			}
+			},
+			"columnDefs": [	
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]},
+				{
+				 "targets": 9,
+				 render: function ( data, type, row, meta ) {
+				 	r = "";
+				 	r += "<button style='margin-right: 6px;' class='mAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='mAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+				 	return (r);
+				 }
+				}
+			]
 		});
 		$('div.dataTables_filter input').addClass("fe-input");
 
@@ -191,6 +203,34 @@ table.nested_table tr:hover {
 			}
 		});
 
+		$("#fileAcquisitionTable").on("click", ".mDownload", function() {
+			location.href = $(this).data("url");
+		});
+
+		$("#fileAcquisitionTable").on("click", ".mAction", function() {
+			if ($(this).data("type") == "stop") {
+				$(this).find("i").addClass("fa-spin");
+				hxtool_ajax_get_request("/api/v1/acquisition/multi/mf/stop", "id=" + $(this).data("id"), function() {
+					setTimeout(function(){ 
+						mtable.ajax.reload(function() {
+							$(this).find("i").removeClass("fa-spin");
+							$("div[id^='multi_file_prog_']").each(function() {
+								$(this).progress()
+							});
+						});
+					 }, 3000);
+				});
+			}
+			if ($(this).data("type") == "remove") {
+				myrow = $(this).closest("tr");
+				hxtool_ajax_get_request("/api/v1/acquisition/multi/mf/remove", "id=" + $(this).data("id"), function() {
+					myrow.fadeOut(200, function() {
+						mtable.row(myrow).remove().draw();
+					});
+				});
+			}
+		});
+
 		// Show/Hide File Acquisition nested table
 		$('#fileAcquisitionTable tbody').on('click', 'td.file-rows-control', function () {
 			var tr = $(this).closest('tr');
@@ -207,9 +247,6 @@ table.nested_table tr:hover {
 				tr.addClass('shown');
 			}
 		});
-		$('#file-listing-form').on('submit', function() {
-			//TODO: Validate Form.
-		});
 
 		$("#flistSubmit").click(function() {
 			$("#flistPopup").hide();
@@ -218,7 +255,7 @@ table.nested_table tr:hover {
 			fdata.append("listing_name", $("#listing_name").val());
 			fdata.append("listing_path", $("#listing_path").val());
 			fdata.append("listing_regex", $("#listing_regex").val());
-			fdata.append("hostset", $("#hostset").val());
+			fdata.append("hostset", $("#hostset").data("id"));
 			if ($('#use_raw_mode').is(':checked')) {
 				fdata.append("use_raw_mode", true);	
 			}
@@ -226,7 +263,7 @@ table.nested_table tr:hover {
 			hxtool_ajax_post_request("/api/v1/acquisition/multi/file_listing/new", fdata, function() {
 				ftable.ajax.reload(function() {
 					$("div[id^='file_listing_prog_']").each(function() {
-						$(this).progress()
+						$(this).progress();
 					});
 				});
 
@@ -234,7 +271,21 @@ table.nested_table tr:hover {
 		});
 
 		$("#createFileListing").click(function() {
-			$("#flistPopup").show();
+
+			hxtool_ajax_get_request("/api/v1/hostsets/list", "", function(setResponse) {
+				myResponse = JSON.parse(setResponse['api_response']);
+				myhostentries = [];
+				$.each(myResponse['data']['entries'], function( index, value ) {
+					myhostentries.push({
+						"elementText": value['name'],
+						"elementId": value['_id'],
+						"elementIcon": "fa-check"
+					});
+				});
+
+				$("#hostsetContainer").append(generateDropDown(myhostentries[0]['elementText'], "hostset", myhostentries[0]['elementId'], entries=myhostentries, "", ""));
+				$("#flistPopup").show();
+			});
 		});
 
 		$("#flistCancel").click(function() {
@@ -250,24 +301,24 @@ table.nested_table tr:hover {
 {{ htPanelNoHeader.widgetFooter() }}
 
 {{ htModal.widgetHeader("Multi-file Listing Acquisition Request", modalId="flistPopup", modalSize="medium") }}
-	<div style='font-style: italic;'>Request a file listing by providing a file path, regex, and a set of hosts to acquire from. Once acquired, you will be able to selectively acquire files from the hosts.</div>
-	<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
-
 	{{ htInput.widget("my new listing", elementTitle="Name", elementHint="", elementId="listing_name", elementWidth="100%;") }}
 	{{ htInput.widget("c:\\temp", elementTitle="File Listing Path", elementHint="", elementId="listing_path", elementWidth="100%;") }}
 	{{ htInput.widget("regular expression", elementTitle="File Listing Regex", elementHint="", elementId="listing_regex", elementWidth="100%;") }}
 
-	Host set<br/>
-	<select id='hostset' name='hostset'>
-		{% if hostsets %} {{ hostsets|safe }} {% endif %}
-	</select>
+	<h4 class='hxtool_typography_h3'>Hostset</h4>
+	<div id='hostsetContainer'></div>
+
+	<br/>
+
 	<input type='checkBox' id='use_raw_mode' name='use_raw_mode'/>
-	<label for='use_raw_mode'>Use Raw Mode?</label><br/><br/>
-	Default is API mode. Raw mode should not be used when disk encryption is enabled on endpoint.<br/><br/>
+	<label for='use_raw_mode'>Use Raw Mode?</label><br/>
 
-	<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
+	<h5>Request a file listing by providing a file path, regex, and a set of hosts to acquire from. Once acquired, you will be able to selectively acquire files from the hosts.</h5>
 
-	<div style='font-style: italic;'><b>Note</b>: The download feature is only available once you have set the background processing credentials on the "<a href='/settings'>settings</a>" page.</div>
+	<h5>Default is API mode. Raw mode should not be used when disk encryption is enabled on endpoint.</h5>
+
+	<h5><b>Note</b>: The download feature is only available once you have set the background processing credentials on the settings page.</h5>
+
 {{ htModal.widgetMiddle() }}
 	<button class="fe-btn fe-btn--md fe-btn--secondary" id="flistCancel" aria-label="Cancel"><span> Cancel </span></button>
 	<button class="fe-btn fe-btn--md fe-btn--primary" id="flistSubmit" aria-label="Submit"><span> Submit </span></button>

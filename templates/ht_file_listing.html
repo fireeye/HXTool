@@ -37,25 +37,34 @@
 	$(document).ready(function() {
 		table = $('#file_table').DataTable( {
 			"info": false,
-			"pageLength": 20,
+			"searching": false,
+			"paging":   false,
 			"lengthChange": false,
 			"order": [[1, 'asc'],[2, 'asc']],
-			"dom": 'Bfrtip',
-			"buttons": ['copyHtml5', 'csvHtml5', {
-				'text': 'Download Selected',
-				"action": function (e, dt, node, config) {
-					//alert('Clicked');
-					var has_selection = false;
-					table.$('input[type="checkbox"]').each(function(){
-						if(this.checked){
-							has_selection = true;
-						}
-					});
-					if(has_selection) $('#form_file_download').submit();
-					else alert("No selection made");
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" },
+				{
+					'text': 'Download Selected<i class="fe-icon--right far fa-download"></i>',
+					"action": function (e, dt, node, config) {
+						//alert('Clicked');
+						var has_selection = false;
+						table.$('input[type="checkbox"]').each(function(){
+							if(this.checked){
+								has_selection = true;
+							}
+						});
+						if(has_selection) $('#form_file_download').submit();
+						else alert("No selection made");
+					}
 				}
-			}]
+
+			]
 		});
+		$('div.dataTables_filter input').addClass("fe-input");
+
 		// Handle click on "Select all" control
 		$('#file-select-all').on('click', function(){
 			// Get all rows with search applied
@@ -95,39 +104,48 @@
 						);
 					}
 				}
-			});
+			});			
 		});
+
+		$("#backButton").click(function() {
+			location.href = "/multifile";
+		});
+
 	});
 
 </script>
 
-<form id="form_file_download" action="{{ url_for('multifile') }}" method="POST">
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="backButton"> back <i style='color: #11a962;' class="fe-icon--right fas fa-arrow-left"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
+
+<form id="form_file_download" action="/api/v1/acquisition/multi/mf/new" method="POST">
 	<div id='two-pane-page'>
 		<div id='floating-pane-left'>
+			{{ htPanel.widgetHeader("File listing", panelId="flistTableContainer", panelIcon="fa-table") }}
 			<div class='inputArea'>
-				<div class='tableTitle'>
-					File Listing
+				<h3 class='hxtool_typography_h3'>File Listing</h3>
+				<div class='fileListingConfig clt'>
+					<ul style='padding-inline-start: 20px; margin-top: 6px;'>
+						<li style='font-size: 12px;'><strong>Path</strong> {{ file_listing['cfg']['path'] }}</li>
+						<li style='font-size: 12px;'><strong>Regex</strong> {{ file_listing['cfg']['regex'] }}</li>
+						<li style='font-size: 12px;'><strong>Hostset</strong> {{ file_listing['cfg']['hostset'] }}</li>
+						<li style='font-size: 12px;'><strong>Depth</strong> {{ file_listing['cfg']['depth'] }}</li>
+					</ul>
 				</div>
-				<div class='fileListingConfig'>
-					Path:	 {{ file_listing['cfg']['path'] }}<br/>
-					Regex:	{{ file_listing['cfg']['regex'] }}<br/>
-					Host Set: {{ file_listing['hostset'] }}<br/>
-					Depth:	{{ file_listing['cfg']['depth'] }}<br/>
-				</div>
-				<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
-				<div class='tableTitle'>
-					File Acquisition Name
-				</div>
-				<input type='text' id='display_name' name='display_name' style='width: 100%;'><br/><br/>
+				<h3 class='hxtool_typography_h3'>File Acquisition Name</h3>
+				<input type='text' class='fe-input' id='display_name' name='display_name' style='width: 100%;'>
 				<input type='checkBox' id='use_raw_mode' name='use_raw_mode'/>
-				<label for='use_raw_mode'>Use Raw Mode?</label><br/><br/>
-				Default is API mode. Raw mode should not be used when disk encryption is enabled on endpoint.<br/><br/>
+				<label for='use_raw_mode' style='font-size: 12px;'>Use Raw Mode?</label>
+				<h6>Default is API mode. Raw mode should not be used when disk encryption is enabled on endpoint.</h6>
 			</div>
+			{{ htPanel.widgetFooter() }}
 		</div>
-		<div id='floating-pane-right'>
+		<div id='floating-pane-right' style='padding-left: 24px;'>
 	{% if fl_results %}
-			<div id="listing_div" style="margin-left: 20px; margin-right:20px;">
-				<table id='file_table' class='genericTable' style='width: 100%;'>
+			{{ htPanel.widgetHeader("File listing results", panelId="flistResultTableContainer", panelIcon="fa-table") }}
+			<div id="listing_div">
+				<table id='file_table' class='hxtool_table' style='width: 100%;'>
 					<thead><tr>
 						<td><input name="select_all" value="1" id="file-select-all" type="checkbox"></td>
 						<td>Hostname</td>
@@ -148,6 +166,7 @@
 					</tbody>
 				</table>
 			</div>
+			{{ htPanel.widgetFooter() }}
 	{% endif %}
 		</div>
 		<div id='clearing-div'></div>
