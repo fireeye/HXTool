@@ -2,6 +2,7 @@
 {% import 'widget-input.html' as htInput %}
 {% import 'widget-panel.html' as htPanel %}
 {% import 'widget-modal.html' as htModal %}
+{% import 'widget-panel-noheader.html' as htPanelNoHeader %}
 
 <html>
 <head>
@@ -18,6 +19,7 @@
 
 	function getProfiles() {
 		hxtool_ajax_get_request("/api/v1/profile", "", function(myprofiles) {
+			$("#profile").next("div").find("ul").html("");
 			$.each(myprofiles.data, function() {
 				$("#profile").next("div").find("ul").append("<li class='fe-dropdown__item'><a class='fe-dropdown__item-link'><span class='fe-dropdown__item-link-left-section'><i style='margin-top: 2px;' class='fas fa-check fa-lg'></i></span><span class='fe-dropdown__item-link-text' data-id='" + this.profile_id + "'>" + this.hx_name + "</span></a></li>");
 			});
@@ -52,7 +54,7 @@
 				$("#profileRemove").find(".fe-modal__body").find("table").append("<thead><th>name</th><th>hostname</th><th>port</th><th>action</th></thead>");
 				$("#profileRemove").find(".fe-modal__body").find("table").append("<tbody></tbody>");
 				$.each(myprofiles.data, function() {
-					$("#profileRemove").find(".fe-modal__body").find("table").find("tbody").append("<tr><td>" + this.hx_name  + "</td><td>" + this.hx_host + "</td><td>" + this.hx_port + "</td><td style='text-align: center;'><button type='button' data-id='" + this.profile_id + "' class='profileRemoveClass fe-btn fe-btn--sm fe-btn--primary'> remove <i class='fe-icon--right fas fa-trash'></i></button></td></tr>");
+					$("#profileRemove").find(".fe-modal__body").find("table").find("tbody").append("<tr><td>" + this.hx_name  + "</td><td>" + this.hx_host + "</td><td>" + this.hx_port + "</td><td style='text-align: center;'><button type='button' data-id='" + this.profile_id + "' class='profileRemoveClass fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove'>remove<i class='fe-icon--right fas fa-trash'></i></button></td></tr>");
 				});
 				$("#profileRemove").show();
 			});
@@ -70,6 +72,7 @@
 				dataType: "json",
 				success: function(r) {
 					myrow.remove();
+					getProfiles();
 				},
 				error: function(xhr) {
 					alert("Error: " + xhr.responseJSON);
@@ -124,15 +127,18 @@
 </script>
 
 <body>
-	{{ htPanel.widgetHeader("HXTool 4.5.0", panelWidth="500px", elementAdditionalClass="hxtool_login_main") }}
+  <div class='mainPlaceHolder' style='min-height: 98vh;'>
+
+	{{ htPanelNoHeader.widgetHeader(panelWidth="500px", elementAdditionalClass="hxtool_login_main") }}
 
 		<div style='padding: 24px;'>
 
-			<div style='text-align: center; margin-bottom: 25px;'><img src='/static/fireeye.svg' style='left: 120px; top: 40px; position: absolute; height: 100px; clip: rect(0px,251px,104px,0px);'></div>
+			<div style='text-align: center; margin-bottom: 25px;'><img src='/static/fireeye.svg' style='left: 120px; top: 10px; position: absolute; height: 100px; clip: rect(0px,251px,104px,0px);'></div>
 
-			<br><br>
-			<h3 style='text-align: center;'>Extended user interface for FireEye Endpoint Security</h3>
-			<br>
+			<br/>
+			<h3 style='text-align: center; font-size: 24px; font-weight: bold;'>HXTool 4.5.0</h3>
+			<h3 style='text-align: center; font-size: 14px;'>Extended user interface for FireEye Endpoint Security</h3>
+			<br/>
 
 			<form id='login_form' method='post'>
 				{{ htInput.widget("username", elementTitle="Username", elementHint="Enter an apiuser or apiadmin username", elementId="ht_user", elementWidth="100%") }}
@@ -148,12 +154,12 @@
 				<input type='hidden' name='controllerProfileDropdown' id='controllerProfileDropdown'>
 
 				<div style='margin-top: 12px; margin-bottom: 24px;'>
-					<button type="button" id="profile_create" class="fe-btn fe-btn--md fe-btn--secondary"> new <i class="fe-icon--right fas fa-plus-circle"></i></button>
-					<button type="button" id="profile_delete" class="fe-btn fe-btn--md fe-btn--secondary"> manage <i class="fe-icon--right fas fa-trash"></i></button>
+					<button type="button" id="profile_create" class="fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main"> new <i class="fe-icon--right fas fa-plus"></i></button>
+					<button type="button" id="profile_delete" class="fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main"> manage <i class="fe-icon--right fas fa-cogs"></i></button>
 				</div>
 
 				<div style='text-align: center; margin-top: 24px; margin-bottom: 24px;'>
-					<button id="login_submit" style='width: 100%;' class="fe-btn fe-btn--lg fe-btn--primary"> login <i class="fe-icon--right fas fa-check"></i></button>
+					<button id="login_submit" style='width: 100%;' class="fe-btn fe-btn--lg fe-btn--primary fe-btn--hxtool-main-master"> login <i style='color: #11a962;' class="fe-icon--right fas fa-check"></i></button>
 				</div>
 
 				<h5 class='hxtool_typography_h5' style='text-align: center;'>Copyright &copy; 2019 by FireEye, Inc. All rights reserved</h5>
@@ -162,7 +168,7 @@
 
 		</div>
 
-	{{ htPanel.widgetFooter() }}
+	{{ htPanelNoHeader.widgetFooter() }}
 
 	{% if fail %}
 	<div id="hxtoolMessage" style='z-index: 100; display: block;' class="fe-modal" role="dialog" aria-modal="true">
@@ -204,6 +210,6 @@
 		<button class="fe-btn fe-btn--md fe-btn--primary" id="profileRemoveDismiss" aria-label="Click"><span> Dismiss </span></button>
 	{{ htModal.widgetFooter() }}
 
-
+  </div>
 </body>
 </html>

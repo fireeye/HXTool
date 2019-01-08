@@ -117,7 +117,7 @@
 
 			if(mymodule == 1) {
 				$("#params").append("<div class='taskProfileItem' id='file_" + myguid + "'></div>");
-				$("#file_" + myguid).html("<div class='taskProfileModule'>File Writer<button class='fe-btn fe-btn--sm fe-btn--hxtool-main taskProfileRemove'>remove</button></div>");
+				$("#file_" + myguid).html("<div class='taskProfileModule'>File Writer<button class='fe-btn fe-btn--sm fe-btn--hxtool-main-remove taskProfileRemove'>remove</button></div>");
 				$("#file_" + myguid).append("<br>");
 				$("#file_" + myguid).append("<b>Local file</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_file_filepath' type='text'><br>");
 				$("#file_" + myguid).append("<b>Event mode</b><br>");
@@ -126,7 +126,7 @@
 			}
 			if(mymodule == 2) {
 				$("#params").append("<div class='taskProfileItem' id='ip_" + myguid + "'></div>");
-				$("#ip_" + myguid).html("<div class='taskProfileModule'>IP Sender<button class='fe-btn fe-btn--sm fe-btn--hxtool-main taskProfileRemove'>remove</button></div>");
+				$("#ip_" + myguid).html("<div class='taskProfileModule'>IP Sender<button class='fe-btn fe-btn--sm fe-btn--hxtool-main-remove taskProfileRemove'>remove</button></div>");
 				$("#ip_" + myguid).append("<br>");
 				$("#ip_" + myguid).append("<b>Protocol</b><br>");
 				$("#ip_" + myguid).append(generateDropDown("TCP", myguid + "_ip_protocol", "tcp", entries=[{"elementId": "tcp", "elementText": "TCP", "elementIcon": "fa-check"},{"elementId": "udp", "elementText": "UDP", "elementIcon": "fa-check"}], elementAdditionalClass=false, elementLabel=false));
@@ -139,14 +139,14 @@
 			}
 			if(mymodule == 3) {
 				$("#params").append("<div class='taskProfileItem' id='db_" + myguid + "'></div>");
-				$("#db_" + myguid).html("<div class='taskProfileModule'>Store in HXTool<button class='fe-btn fe-btn--sm fe-btn--hxtool-main taskProfileRemove'>remove</button></div>");
+				$("#db_" + myguid).html("<div class='taskProfileModule'>Store in HXTool<button class='fe-btn fe-btn--sm fe-btn--hxtool-main-remove taskProfileRemove'>remove</button></div>");
 				$("#db_" + myguid).append("<br>");
 				$("#db_" + myguid).append("<b>Table name</b><br><input style='width: 100%;' id='" + myguid + "_db_tablename' type='text'><br>");
 				$("#db_" + myguid).append("<br>");
 			}
 			if(mymodule == 4) {
 				$("#params").append("<div class='taskProfileItem' id='helix_" + myguid + "'></div>");
-				$("#helix_" + myguid).html("<div class='taskProfileModule'>Upload to Helix<button class='fe-btn fe-btn--sm fe-btn--hxtool-main taskProfileRemove'>remove</button></div>");
+				$("#helix_" + myguid).html("<div class='taskProfileModule'>Upload to Helix<button class='fe-btn fe-btn--sm fe-btn--hxtool-main-remove taskProfileRemove'>remove</button></div>");
 				$("#helix_" + myguid).append("<br>");
 				$("#helix_" + myguid).append("<b>API URL</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_helix_url' type='text'><br>");
 				$("#helix_" + myguid).append("<b>API KEY</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_helix_apikey' type='text'><br>");
