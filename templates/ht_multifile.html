@@ -66,9 +66,9 @@ table.nested_table tr:hover {
 			"lengthChange": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn" },
-				{ extend: "csv", className: "fe-btn" },
-				{ extend: "excel", className: "fe-btn" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 			],
 			"ajax": "/api/v1/datatable_multi_filelisting",
 			"columns": [
@@ -94,9 +94,9 @@ table.nested_table tr:hover {
 				 "targets": 7,
 				 render: function ( data, type, row, meta ) {
 				 	r = "";
-				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop</button>";
-				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
-				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view</button>";
+				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view<i class='fe-icon--right far fa-eye'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
 				 	return (r);
 				 }
 				}
@@ -136,9 +136,9 @@ table.nested_table tr:hover {
 			"lengthChange": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn" },
-				{ extend: "csv", className: "fe-btn" },
-				{ extend: "excel", className: "fe-btn" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 			],
 			"ajax": "/api/v1/datatable_multi_multifile",
 			"columns": [
@@ -246,7 +246,7 @@ table.nested_table tr:hover {
 </script>
 
 {{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="createFileListing"> New file listing <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="createFileListing"> New file listing <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
 {{ htPanelNoHeader.widgetFooter() }}
 
 {{ htModal.widgetHeader("Multi-file Listing Acquisition Request", modalId="flistPopup", modalSize="medium") }}

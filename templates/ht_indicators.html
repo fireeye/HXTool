@@ -45,9 +45,9 @@
 				"processing": false,
 				"dom": '<"hxtool_datatables_buttons"B>frtip',
 				"buttons": [
-					{ extend: "copy", className: "fe-btn" },
-					{ extend: "csv", className: "fe-btn" },
-					{ extend: "excel", className: "fe-btn" }
+					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+					{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 				],
 				"columns": [
 					{ title: "", "data": "DT_RowId" },
@@ -61,9 +61,10 @@
 					{ title: "Action", "data": "DT_RowId" }
 				],
 				"columnDefs": [	
-					{"className": "hxtool_table_cell_center", "targets": [2, 3, 4, 5, 6, 7]},
+					{"className": "hxtool_table_cell_center", "targets": [2, 3, 4, 5, 6, 7, 8]},
 					{
 					 "targets": 0,
+					 "width": "34px",
 					 render: function ( data, type, row, meta ) {
 					 	r = "<input id='" + row.DT_RowId + "_check' type='checkbox' />";
 					 	return (r);
@@ -77,19 +78,19 @@
 					},
 					{
 					 "targets": 8,
-					 "width": "270px",
+					 "width": "350px",
 					 render: function ( data, type, row, meta ) {
 					 	r = "";
 					 	myId = String(row.category_id);
-					 	r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view</button>";
+					 	r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view<i class='fe-icon--right far fa-eye'></i></button>";
 					 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete") {
-					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='edit' data-id='" + row.DT_RowId + "'>edit</button>";
+					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='edit' data-id='" + row.DT_RowId + "'>edit<i class='fe-icon--right far fa-edit'></i></button>";
 					 	}
 					 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete" || myEditPolicies[myId] == "delete") {
-					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='remove' data-category='" + row.category_name + "' data-id='" + row.DT_RowId + "'>remove</button>";
+					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-category='" + row.category_name + "' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
 					 	}
 					 	if (row.category_name != "Custom") {
-					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='clone' data-id='" + row.DT_RowId + "'>clone</button>";
+					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='clone' data-id='" + row.DT_RowId + "'>clone<i class='fe-icon--right far fa-clone'></i></button>";
 					 	}
 					 	return (r);
 					 }
@@ -190,9 +191,9 @@
 </script>
 
 {{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="exportButton"> Export selected <i style='color: #11a962;' class="fe-icon--right fas fa-file-export"></i></button>
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="importButton"> Import <i style='color: #11a962;' class="fe-icon--right fas fa-file-import"></i></button>
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="createButton"> Create new rule <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="exportButton"> Export selected <i style='color: #11a962;' class="fe-icon--right fas fa-file-export"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="importButton"> Import <i style='color: #11a962;' class="fe-icon--right fas fa-file-import"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="createButton"> Create new rule <i style='color: #11a962;' class="fe-icon--right fas fa-plus"></i></button>
 {{ htPanelNoHeader.widgetFooter() }}
 
 {{ htPanel.widgetHeader("Rules", panelId="iocTableContainer", panelIcon="fa-table") }}

@@ -15,9 +15,9 @@
 			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn" },
-				{ extend: "csv", className: "fe-btn" },
-				{ extend: "excel", className: "fe-btn" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ title: "Name", "data": "name" },
@@ -38,11 +38,11 @@
 				},
 				{
 				 "targets": 6,
-				 "width": "200px",
+				 "width": "240px",
 				 render: function ( data, type, row, meta ) {
 				 	r = "";
-				 	r += "<button style='margin-right: 6px;' class='cccAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view</button>";
-				 	r += "<button style='margin-right: 6px;' class='cccAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
+				 	r += "<button style='margin-right: 6px;' class='cccAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view<i class='fe-icon--right far fa-eye'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='cccAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
 				 	return (r);
 				 }
 				}
@@ -116,7 +116,7 @@
 </script>
 
 {{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="cccNewButton"> New <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="cccNewButton"> New <i style='color: #11a962;' class="fe-icon--right fas fa-plus"></i></button>
 {{ htPanelNoHeader.widgetFooter() }}
 
 {{ htPanel.widgetHeader("Custom configuration channels", panelId="cccTableContainer", panelIcon="fa-table") }}

@@ -104,16 +104,16 @@
 			mytypehtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
 			
 			// Append row to table
-			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>Condition for detecting<br>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main conditionDeleteButton\'>remove</button></td></tr>');
+			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>Condition for detecting<br>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove conditionDeleteButton\'>remove<i class=\'fe-icon--right far fa-trash\'></i></button></td></tr>');
 		}
 
 		function addElement(myguid, optionalElement) {
 			//Append row to table
 			if (optionalElement == undefined) {
-				$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementDeleteButton\'>remove</button></td></tr>');
+				$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove elementDeleteButton\'>remove<i class=\'fe-icon--right far fa-trash\'></i></button></td></tr>');
 			}
 			else {
-				$('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementDeleteButton\'>remove</button></td></tr>').insertAfter($(optionalElement)).closest('tr');
+				$('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove elementDeleteButton\'>remove<i class=\'fe-icon--right far fa-trash\'></i></button></td></tr>').insertAfter($(optionalElement)).closest('tr');
 			}
 		}
 
@@ -365,7 +365,7 @@
 			<div style='width: 650px; font-style: italic; font-size: 11px; margin-top: 10px;'>Note: Due to limitations in the HX API indicator conditions cannot be edited. When you use HXTool to edit an indicator a new indicator will be created and the old indicator will be removed. Make sure to backup your indicators before proceeding</div>
 		{% endif %}
 		<div style='text-align: right;'>
-			<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="postbutton"> Submit <i style='color: #11a962;' class="fe-icon--right fas fa-check"></i></button>
+			<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="postbutton"> Submit <i style='color: #11a962;' class="fe-icon--right fas fa-check"></i></button>
 		</div>
 	{{ htPanel.widgetFooter() }}
 
@@ -386,7 +386,7 @@
 		</table>
 
 		<div style='text-align: center; padding-top: 6px;'>
-			<button id='add_cond' class='fe-btn fe-btn--sm fe-btn--hxtool-main'>add condition</button>
+			<button id='add_cond' class='fe-btn fe-btn--sm fe-btn--hxtool-main'>add condition<i class='fe-icon--right far fa-plus'></i></button>
 		</div>
 	{{ htPanel.widgetFooter() }}
 

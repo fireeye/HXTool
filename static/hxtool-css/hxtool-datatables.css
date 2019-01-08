@@ -15,17 +15,34 @@
   line-height: 100%;
   text-transform: uppercase;
   background: rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
+  color: rgba(255, 255, 255, 0.9) !important;
   border-color: #0000 !important;
   border-radius: 0 !important;
   padding: 5px !important;
+}
+
+.dt-button:hover, .dt-button:focus, .dt-button.focus {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(255, 255, 255, 1.0) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dt-button-info {
+  background: rgb(31, 31, 31) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.dt-button-info h2 {
+  background: #000000 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .dataTables_filter {
   position: absolute;
   right: 0;
   margin-top: -47px;
-  margin-right: 176px;
+  margin-right: 218px;
   font-family: 'Open Sans'
   font-size: 12px;
   font-weight: bold;

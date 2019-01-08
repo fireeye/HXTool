@@ -71,8 +71,14 @@
 			"paging":   false,
 			"ordering": false,
 			"info":     false,
-			"searching": false,
+			"searching": true,
 			"processing": false,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+			],
 			"columns": [
 				{ "title": "id", "data": "DT_RowId" },
 				{ "title": "state", "data": "state" },
@@ -192,24 +198,37 @@
 				},
 				{
 				 "targets": 21,
-				 "width": "230px",
+				 "width": "280px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
 				 		if (data === parseInt(data, 10)) {
 					 		myid = data;
-					 		data = "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary active' data-type='stop' data-id='" + myid + "'>stop</button>";
-					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary active' data-type='remove' data-id='" + myid + "'>remove</button>";
-					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary active' data-type='download' data-id='" + myid + "'>download</button>";
+					 		data = "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='download' data-id='" + myid + "'>download<i class='fe-icon--right far fa-download'></i></button>";
+					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='stop' data-id='" + myid + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
+					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + myid + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
 					 	}
-					 	else {
-					 		data = "Task Profile: " + data;
+					 	else if (data == "file_listing") {
+					 		data = "<button style='margin-right: 6px;' class='bulkLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='multi'>multi-file job<i class='fe-icon--right far fa-external-link'></i></button>";
+					 	}
+					 	else if (data == "stacking") {
+					 		data = "<button style='margin-right: 6px;' class='bulkLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='stacking'>stacking job<i class='fe-icon--right far fa-external-link'></i></button>";
 					 	}
 				 	}
 				 	return data;
 				 }
 				},
-				{"className": "hxtool_table_cell_center", "targets": [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]}
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]}
 			]
+		});
+		$('div.dataTables_filter input').addClass("fe-input");
+
+		$("#bulktable").on("click", ".bulkLink", function(){
+			if ($(this).data("type") == "stacking") {
+				location.href = "/stacking";
+			}
+			else if ($(this).data("type") == "multi") {
+				location.href = "/multifile";
+			}			
 		});
 
 		setInterval( function () {
@@ -468,12 +487,12 @@
 	});
 </script>
 
-{{ htPanel.widgetHeader("Action", panelId="bulkNew", panelDisplay="inline-block") }}
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main"> new bulk acquisition <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-{{ htPanel.widgetFooter() }}
+{{ htPanelNoHeader.widgetHeader(panelId="bulkNew", panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master"> new bulk acquisition <i style='color: #11a962;' class="fe-icon--right fas fa-download"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
 
 <!-- BULK GRAPH -->
-{{ htPanel.widgetHeader("Bulk acquisitions over time", panelId="esGraph") }}
+{{ htPanel.widgetHeader("Bulk acquisitions over time", panelId="esGraph", panelIcon="fa-chart-area") }}
 	<canvas id="chartjs_bulk" class='hxtool_chartjs_canvas'></canvas>
 {{ htPanel.widgetFooter() }}
 
@@ -495,7 +514,7 @@
 		{{ htRadio.widgetHeader("From HXTool", "hxtool", "bulksource-a", "bulksource", elementChecked="true") }}
 		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
 			<div class="fe-dropdown">
-				<button id='bulkScriptDb' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main"> Select an acquisition script <i class="fe-icon--right fal fa-chevron-up"></i></button>
+				<button id='bulkScriptDb' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> Select an acquisition script <i class="fe-icon--right fal fa-chevron-up"></i></button>
 				<div class="fe-dropdown__list-container">
 					<ul class="fe-dropdown__list fe-list">
 						{% if scripts %} {{scripts|safe}} {% endif %}
@@ -506,7 +525,7 @@
 
 		{{ htRadio.widgetHeader("From file", "file", "bulksource-a", "bulksource", elementChecked="false") }}
 		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
-			<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='bulkscript' name='bulkscript'>
+			<input class="fe-input" style='width: 96%;' type='file' id='bulkscript' name='bulkscript'>
 		</div>
 	</div>
 
@@ -557,7 +576,7 @@
 	<button class="fe-btn fe-btn--md fe-btn--primary" id="bulkSubmit" aria-label="Click"><span> Submit </span></button>
 {{ htModal.widgetFooter() }}
 
-{{ htPanel.widgetHeader("Bulk acquisitions") }}
+{{ htPanel.widgetHeader("Bulk acquisitions", panelIcon="fa-table") }}
 	<table id='bulktable' style='width: 100%' class='hxtool_table hxtool_table_header_es'></table>
 {{ htPanel.widgetFooter() }}
 

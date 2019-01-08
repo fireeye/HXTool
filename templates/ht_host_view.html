@@ -26,9 +26,9 @@
 		if (["md5sum", "sha1sum", "sha256sum", "fileWriteEvent/md5"].indexOf(myIndex) >= 0 && myValue.length > 31) {
 			r += "<i style='color: #11a962; margin-right: 6px;' class='fas fa-hashtag'></i>" + myValue;
 			r += "<div style='float: right;'>";
-			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary' data-link='https://www.virustotal.com/#/file/" + myValue + "/detection' aria-label='show'><span>virustotal</span></button>";
-			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary' data-link='https://intelligence.fireeye.com/search.html?search=" + myValue +"' aria-label='show'><span>isight</span></button>";
-			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary' data-link='https://www.google.com/search?q=" + myValue + "' aria-label='show'><span>google</span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://www.virustotal.com/#/file/" + myValue + "/detection' aria-label='show'><span>vt<i class='fe-icon--right far fa-external-link'></i></span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://intelligence.fireeye.com/search.html?search=" + myValue +"' aria-label='show'><span>isight<i class='fe-icon--right far fa-external-link'></i></span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://www.google.com/search?q=" + myValue + "' aria-label='show'><span>google<i class='fe-icon--right far fa-external-link'></i></span></button>";
 			r += "</div>";
 		}
 		else if (["container", "packed", "hidden", "system-file", "read-only", "temporary"].indexOf(myIndex) >= 0) {
@@ -42,7 +42,7 @@
 		else if (["fileWriteEvent/fullPath", "file-path"].indexOf(myIndex) >= 0) {
 			r += myValue;
 			r += "<div style='float: right;'>";
-			r += "<button class='hxtool_host_alert_goAcquire fe-btn fe-btn--sm fe-btn--primary' data-id='" + myValue + "' aria-label='acquire'><span>acquire</span></button>";
+			r += "<button class='hxtool_host_alert_goAcquire fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-id='" + myValue + "' aria-label='acquire'><span>acquire<i class='fe-icon--right far fa-download'></i></span></button>";
 			r += "</div>";
 		}
 		else if (myTimestampFields.indexOf(myIndex) >= 0) {
@@ -101,7 +101,7 @@
 		if ('zip_passphrase' in myAcq && !('script' in myAcq)) {
 			r += "<h5 class='hxtool_alert_header'>File Acquisition</h5>";
 			r += generateTable({
-				"File": myAcq['req_path'] + myAcq['req_filename'],
+				"File": myAcq['req_path'] + "\\" + myAcq['req_filename'],
 				"State": myAcq['state'],
 				"Requested at": myAcq['request_time'],
 				"Finished": myAcq['finish_time'],
@@ -541,7 +541,7 @@
 				$("#hostContentPanel").find(".panelContentClass").html(parseHostAlert(alert['data']));
 				
 				// Show all alert data
-				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAlertDetailsButton fe-btn fe-btn--sm fe-btn--primary' aria-label='show'><span> show all alert details </span></button>");
+				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAlertDetailsButton fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' aria-label='show'><span> show all alert details </span></button>");
 				$("#hostContentPanel").find(".panelContentClass").append("<div style='display: none;' class='alertAllDetails'></div>");
 				$("#hostContentPanel").find(".panelContentClass").find(".alertAllDetails").html(generateNestedTable(alert['data']));
 			});
@@ -559,9 +559,9 @@
 				$("#hostContentPanel").find(".panelContentClass").html(parseHostAcquisition(acq['data']));
 
 				myUrlArr = myUrl.split("/");
-				$("#hostContentPanel").find(".panelContentClass").append("<button class='acqDownload fe-btn fe-btn--sm fe-btn--primary' data-type='" + myUrlArr[5] + "' data-id='" + myUrl + "' aria-label='download'><span> download </span></button>")
+				$("#hostContentPanel").find(".panelContentClass").append("<button class='acqDownload fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='" + myUrlArr[5] + "' data-id='" + myUrl + "' aria-label='download'><span> download </span></button>")
 
-				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAcqDetailsButton fe-btn fe-btn--sm fe-btn--primary' aria-label='show'><span> show all acquisition details </span></button>");
+				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAcqDetailsButton fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' aria-label='show'><span> show all acquisition details </span></button>");
 				$("#hostContentPanel").find(".panelContentClass").append("<div style='display: none;' class='acqAllDetails'></div>");
 				$("#hostContentPanel").find(".panelContentClass").find(".acqAllDetails").html(generateNestedTable(acq['data']));
 			});
@@ -721,10 +721,10 @@
 			<div class="fe-label fe-label--background"><i class='fe-icon--left fas fa-desktop'></i>Host information</div>
 		</div>
 		<div class='hxtool_panel_top_right_alert'>
-			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='containButton'>contain</button>
-			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='triageButton'>triage</button>
-			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='fileButton'>file acquisition</button>
-			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='dataButton'>data acquisition</button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='containButton'>contain</button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='triageButton'>triage<i class='fe-icon--right far fa-download'></i></button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='fileButton'>file acquisition<i class='fe-icon--right far fa-file'></i></button>
+			<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='dataButton'>data acquisition<i class='fe-icon--right far fa-download'></i></button>
 		</div>
 		<div class='fe-panel__body panelHostClass'>
 		<table id='agentTable' class='hxtool_host_table hxtool_table'>
@@ -759,13 +759,13 @@
 					<td id='fieldBuildnumber'></td>
 					<td class='hxtool_host_info_cell'>Logged on user</td>
 					<td id='fieldLoggedOnUser'>
-						<button class="fe-btn fe-btn--sm fe-btn--primary" id="loggedOnUserButton" aria-label="show"><span> show </span></button>
+						<button class="fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main" id="loggedOnUserButton" aria-label="show"><span> show </span></button>
 					</td>
 					<td class='hxtool_host_info_cell'>isVirtual</td>
 					<td id='fieldVirtual'></td>
 					<td class='hxtool_host_info_cell'>All data</td>
 					<td id='fieldAllData'>
-						<button class="fe-btn fe-btn--sm fe-btn--primary" id="showAllHostData" aria-label="show"><span> show </span></button>
+						<button class="fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main" id="showAllHostData" aria-label="show"><span> show </span></button>
 					</td>
 				</tr>
 			</tbody>
@@ -835,7 +835,7 @@
 		{{ htRadio.widgetHeader("From HXTool", "hxtool", "datasource-a", "datasource", elementChecked="true") }}
 		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
 			<div class="fe-dropdown">
-				<button id='dataScriptDb' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main"> Select an acquisition script <i class="fe-icon--right fal fa-chevron-up"></i></button>
+				<button id='dataScriptDb' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> Select an acquisition script <i class="fe-icon--right fal fa-chevron-up"></i></button>
 				<div class="fe-dropdown__list-container">
 					<ul class="fe-dropdown__list fe-list">
 						{% if scripts %} {{scripts|safe}} {% endif %}
@@ -846,7 +846,7 @@
 
 		{{ htRadio.widgetHeader("From file", "file", "datasource-a", "datasource", elementChecked="false") }}
 		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
-			<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='datascript' name='datascript'>
+			<input class="fe-input" style='width: 96%;' type='file' id='datascript' name='datascript'>
 		</div>
 	</div>
 

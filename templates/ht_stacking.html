@@ -14,9 +14,9 @@
 			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn" },
-				{ extend: "csv", className: "fe-btn" },
-				{ extend: "excel", className: "fe-btn" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ title: "ID", "data": "DT_RowId" },
@@ -52,12 +52,12 @@
 				},
 				{
 				 "targets": 8,
-				 "width": "240px",
+				 "width": "280px",
 				 render: function ( data, type, row, meta ) {
 				 	r = "";
-				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop</button>";
-				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
-				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='analyze' data-id='" + row.DT_RowId + "'>analyze</button>";
+				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='analyze' data-id='" + row.DT_RowId + "'>analyze<i class='fe-icon--right far fa-eye'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
 				 	return (r);
 				 }
 				}
@@ -152,7 +152,7 @@
 </script>
 
 {{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="stackingNew"> New stacking job <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="stackingNew"> New stacking job <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
 {{ htPanelNoHeader.widgetFooter() }}
 
 {{ htPanel.widgetHeader("Stacking jobs", panelId="stackingTableContainer", panelIcon="fa-table") }}

@@ -12,7 +12,7 @@ function datatables_parsePlatform(data) {
 		data = '<i class="fab fa-apple fa-2x fa-fw" style="margin-right: 2px; color: rgb(127, 127, 127);" aria-hidden="true"></i>';
 	}
 	else if (data == "linux") {
-		data = '<i class="fab fa-linux fa-2x fa-fw" style="margin-right: 2px; color: rgb(42, 53, 58);" aria-hidden="true"></i>';
+		data = '<i class="fab fa-linux fa-2x fa-fw" style="margin-right: 2px;" aria-hidden="true"></i>';
 	}
 	else {
 		data = "N/A"
@@ -28,7 +28,7 @@ function host_parsePlatform(data) {
 		data = '<i class="fab fa-apple fa-7x fa-fw" style="margin-right: 2px; color: rgb(127, 127, 127);" aria-hidden="true"></i>';
 	}
 	else if (data == "linux") {
-		data = '<i class="fab fa-linux fa-7x fa-fw" style="margin-right: 2px; color: rgb(42, 53, 58);" aria-hidden="true"></i>';
+		data = '<i class="fab fa-linux fa-7x fa-fw" style="margin-right: 2px;" aria-hidden="true"></i>';
 	}
 	else {
 		data = "N/A"
@@ -39,22 +39,22 @@ function host_parsePlatform(data) {
 function datatables_parseAcquisitionType(data) {
 	if (data == "triage") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-medkit fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Triage</b>";
+		data += "<i class='fas fa-medkit fa-md fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Triage</b>";
 		data += "</span>";
 	}
 	else if (data == "live") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-database fa-lg fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Acquisition</b>";
+		data += "<i class='fas fa-database fa-md fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Acquisition</b>";
 		data += "</span>";
 	}
 	else if (data == "file") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-file fa-lg fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>File</b>";
+		data += "<i class='fas fa-file fa-md fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>File</b>";
 		data += "</span>";
 	}
 	else if (data == "bulk") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-database fa-lg fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Bulk</b>";
+		data += "<i class='fas fa-database fa-md fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Bulk</b>";
 		data += "</span>";
 	}
 	else {
@@ -93,27 +93,32 @@ function host_parseAcquisitionType(data) {
 function datatables_parseAcquisitionState(data) {
 	if (data == "QUEUED") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-clock fa-lg fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>QUEUED</b>";
+		data += "<i class='fas fa-clock fa-md fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>QUEUED</b>";
 		data += "</span>";
 	}
 	else if (data == "RUNNING") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fal fa-cog fa-lg fa-spin' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
+		data += "<i class='fal fa-cog fa-md fa-spin' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
 		data += "</span>";
 	}
 	else if (data == "COMPLETE") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-check-square fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>COMPLETE</b>";
+		data += "<i class='fas fa-check-square fa-md fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>COMPLETE</b>";
 		data += "</span>";
 	}
 	else if (data == "NEW") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-plus-square fa-lg fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>NEW</b>";
+		data += "<i class='fas fa-plus-square fa-md fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>NEW</b>";
 		data += "</span>";
 	}
 	else if (data == "STOPPED") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-stop-circle fa-lg fa-fw' style='margin-right: 2px; color: #ea475b;' aria-hidden='true'></i><b>STOPPED</b>";
+		data += "<i class='fas fa-stop-circle fa-md fa-fw' style='margin-right: 2px; color: #ea475b;' aria-hidden='true'></i><b>STOPPED</b>";
+		data += "</span>";
+	}
+	else if (data == "ABORTED") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-ban fa-md fa-fw' style='margin-right: 2px; color: #f44242;' aria-hidden='true'></i><b>ABORTED</b>";
 		data += "</span>";
 	}
 	else {
@@ -148,6 +153,11 @@ function host_parseAcquisitionState(data) {
 		data += "<i class='fas fa-stop-circle fa-sm fa-fw' style='margin-right: 2px; color: #ea475b;' aria-hidden='true'></i><b>STOPPED</b>";
 		data += "</span>";
 	}
+	else if (data == "ABORTED") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-ban fa-sm fa-fw' style='margin-right: 2px; color: #f44242;' aria-hidden='true'></i><b>ABORTED</b>";
+		data += "</span>";
+	}
 	else {
 		data = data;
 	}
@@ -157,32 +167,32 @@ function host_parseAcquisitionState(data) {
 function datatables_parseContainmentState(data) {
 	if (data == "normal") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-lock-open fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Normal</b>";
+		data += "<i class='fas fa-lock-open fa-md fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Normal</b>";
 		data += "</span>";
 	}
 	else if (data == "containing") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Containing</b>";
+		data += "<i class='fas fa-unlock fa-md fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Containing</b>";
 		data += "</span>";
 	}
 	else if (data == "uncontain") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Uncontain</b>";
+		data += "<i class='fas fa-unlock fa-md fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Uncontain</b>";
 		data += "</span>";
 	}
 	else if (data == "uncontaining") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Uncontaining</b>";
+		data += "<i class='fas fa-unlock fa-md fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Uncontaining</b>";
 		data += "</span>";
 	}
 	else if (data == "contain") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-unlock fa-lg fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Contain</b>";
+		data += "<i class='fas fa-unlock fa-md fa-fw' style='margin-right: 2px; color: #cc9216;' aria-hidden='true'></i><b>Contain</b>";
 		data += "</span>";
 	}
 	else if (data == "contained") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-lock fa-lg fa-fw' style='margin-right: 2px; color: #d11717;' aria-hidden='true'></i><b>Contained</b>";
+		data += "<i class='fas fa-lock fa-md fa-fw' style='margin-right: 2px; color: #d11717;' aria-hidden='true'></i><b>Contained</b>";
 		data += "</span>";
 	}
 	else {
@@ -194,17 +204,17 @@ function datatables_parseContainmentState(data) {
 function datatables_parseSource(data) {
 	if (data == "IOC") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-link fa-lg fa-fw' style='margin-right: 2px; color: #001ee5;' aria-hidden='true'></i><b>IOC</b>";
+		data += "<i class='fas fa-link fa-md fa-fw' style='margin-right: 2px; color: #001ee5;' aria-hidden='true'></i><b>IOC</b>";
 		data += "</span>";
 	}
 	else if (data == "EXD") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-file-code fa-lg fa-fw' style='margin-right: 2px; color: #e50700;' aria-hidden='true'></i><b>EXG</b>";
+		data += "<i class='fas fa-file-code fa-md fa-fw' style='margin-right: 2px; color: #e50700;' aria-hidden='true'></i><b>EXG</b>";
 		data += "</span>";
 	}
 	else if (data == "MAL") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-bug fa-lg fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>MAL</b>";
+		data += "<i class='fas fa-bug fa-md fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>MAL</b>";
 		data += "</span>";
 	}
 	else {
@@ -238,17 +248,17 @@ function host_parseSource(data) {
 function datatables_parseResolution(data) {
 	if (data == "ALERT") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-exclamation-circle fa-lg fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>ALERT</b>";
+		data += "<i class='fas fa-exclamation-circle fa-md fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>ALERT</b>";
 		data += "</span>";
 	}
 	else if (data == "BLOCK") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-stop-circle fa-lg fa-fw' style='margin-right: 2px; color: #e50700;' aria-hidden='true'></i><b>BLOCK</b>";
+		data += "<i class='fas fa-stop-circle fa-md fa-fw' style='margin-right: 2px; color: #e50700;' aria-hidden='true'></i><b>BLOCK</b>";
 		data += "</span>"
 	}
 	else if (data == "QUARANTINED") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-database fa-lg fa-fw' style='margin-right: 2px; color: #e50700;' aria-hidden='true'></i><b>QUARANTINE</b>";
+		data += "<i class='fas fa-database fa-md fa-fw' style='margin-right: 2px; color: #e50700;' aria-hidden='true'></i><b>QUARANTINE</b>";
 		data += "</span>";
 	}
 	else {

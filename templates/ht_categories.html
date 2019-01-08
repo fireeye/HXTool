@@ -15,9 +15,9 @@
 			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn" },
-				{ extend: "csv", className: "fe-btn" },
-				{ extend: "excel", className: "fe-btn" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ title: "Name", "data": "name" },
@@ -32,9 +32,9 @@
 				{"className": "hxtool_table_cell_center", "targets": [1, 2, 3, 4, 5, 6]},
 				{
 				 "targets": 6,
-				 "width": "120px",
+				 "width": "140px",
 				 render: function ( data, type, row, meta ) {
-				 	r = "<button style='margin-right: 6px;' class='categoryRemove fe-btn fe-btn--sm fe-btn--hxtool-main' data-id='" + row.uri_name + "'>remove</button>";
+				 	r = "<button style='margin-right: 6px;' class='categoryRemove fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-id='" + row.uri_name + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
 				 	return (r);
 				 }
 				}
@@ -69,9 +69,9 @@
 	});
 </script>
 
-{{ htPanel.widgetHeader("Action", panelDisplay="inline-block", panelIcon="fa-external-link-square") }}
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="createButton"> Create new category <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-{{ htPanel.widgetFooter() }}
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="createButton"> Create new category <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
 
 {{ htPanel.widgetHeader("Rule categories", panelId="categoryTableContainer", panelIcon="fa-table") }}
 	<table style='width: 100%;' id='categoryTable' class='hxtool_table'></table>

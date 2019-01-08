@@ -43,9 +43,9 @@
 					"processing": false,
 					"dom": '<"hxtool_datatables_buttons"B>frtip',
 					"buttons": [
-						{ extend: "copy", className: "fe-btn" },
-						{ extend: "csv", className: "fe-btn" },
-						{ extend: "excel", className: "fe-btn" }
+						{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+						{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+						{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 					],
 					"colReorder": true,
 					"columnDefs": [
@@ -58,15 +58,6 @@
 					]
 				});
 				$('div.dataTables_filter input').addClass("fe-input");
-
-
-				/*
-				$('#esTableResults_' + currtype.replace(/ /g,"_") + ' thead th').each(function () {
-					myNewTitle = $(this).find('div').html().replace(/_/g," ");
-					$(this).find('div').text(myNewTitle);
-				});
-				*/
-			
 			}
 
 		});
@@ -75,9 +66,9 @@
 
 </script>
 
-{{ htPanel.widgetHeader("Action", panelId="goBack", panelDisplay="inline-block") }}
-	<button class="fe-btn fe-btn--md fe-btn--primary active"> back <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-{{ htPanel.widgetFooter() }}
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
+	<button id="goBack" class="fe-btn fe-btn--md fe-btn--primary fe-btn--hxtool-main-master"> back <i style='color: #11a962;' class="fe-icon--right fas fa-arrow-left"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
 
 
 <div id='tableContainer'></div>

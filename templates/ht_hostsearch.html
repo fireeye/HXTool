@@ -13,13 +13,13 @@
 			"paging":   false,
 			"ordering": false,
 			"info":     false,
-			"searching": false,
+			"searching": true,
 			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn" },
-				{ extend: "csv", className: "fe-btn" },
-				{ extend: "excel", className: "fe-btn" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ title: "Hostname", "data": "hostname" },
@@ -47,15 +47,16 @@
 				},
 				{
 				 "targets": 7,
-				 "width": "80px",
+				 "width": "120px",
 				 render: function ( data, type, row, meta ) {
-				 	data = "<button class='hostAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
+				 	data = "<button class='hostAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
 				 	return (data);
 				 }
 				},
 				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 7]}
 			]
 		});
+		$('div.dataTables_filter input').addClass("fe-input");
 
 		$("#hostTable").on("click", ".hostAction", function(){
 			myrow = $(this).closest("tr");

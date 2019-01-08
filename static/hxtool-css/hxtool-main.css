@@ -90,8 +90,10 @@ select {
 }
 
 .hxtool_progress {
-	background: rgba(17, 169, 98, 0.2);
-	border-radius: 3px;
+	background: #11a962;
+	color: rgba(255, 255, 255, 1.0);
+	font-weight: bold;
+	border-radius: 1px;
 	padding-left: 6px;
 	padding-right: 6px;
 	margin-top: 2px;
@@ -109,6 +111,24 @@ select {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+.fe-btn--hxtool-main-top {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.fe-btn--hxtool-main-dropdown {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.fe-btn--hxtool-main-master {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 .fe-btn--hxtool-main:hover, .fe-btn--hxtool-main:focus, .fe-btn--hxtool-main.focus {
   background-color: #0fb8dc;
   color: rgba(255, 255, 255, 1.0);
@@ -117,6 +137,24 @@ select {
 
 .fe-btn--hxtool-main-remove:hover, .fe-btn--hxtool-main-remove:focus, .fe-btn--hxtool-main-remove.focus {
   background-color: #ff7b88;
+  color: rgba(255, 255, 255, 1.0);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.fe-btn--hxtool-main-top:hover, .fe-btn--hxtool-main-top:focus, .fe-btn--hxtool-main-top.focus {
+  background-color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 1.0);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.fe-btn--hxtool-main-dropdown:hover, .fe-btn--hxtool-main-dropdown:focus, .fe-btn--hxtool-main-top.dropdown {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 1.0);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.fe-btn--hxtool-main-master:hover, .fe-btn--hxtool-main-master:focus, .fe-btn--hxtool-main-top.master {
+  background-color: rgba(255, 255, 255, 0.5);
   color: rgba(255, 255, 255, 1.0);
   border-color: rgba(255, 255, 255, 0.1);
 }

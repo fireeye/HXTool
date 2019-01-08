@@ -20,7 +20,13 @@
 			"paging":   false,
 			"ordering": false,
 			"info":     false,
-			"searching": false,
+			"searching": true,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+			],
 			"columns": [
 				{ title: "profile", "data": "profile" },
 				{ title: "child states", "data": "child_states" },
@@ -33,7 +39,7 @@
 				{ title: "action", "data": "action" }
 			],
 			"columnDefs": [	
-				{ "className": "hxtool-center", "targets": [0, 1, 2, 3, 4, 5, 6, 7] },
+				{ "className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8] },
 				{
 				"targets": [ 3, 6 ], 
 				render: function ( data, type, row, meta ) {
@@ -65,13 +71,14 @@
 				render: function ( data, type, row, meta ) {
 					myhtml = "";
 					if (row.immutable == false) {
-						myhtml = "<button class='schedulerAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-id='" + data + "' data-type='remove'>delete</button>";
+						myhtml = "<button class='schedulerAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-id='" + data + "' data-type='remove'>delete<i class='fe-icon--right far fa-trash'></i></button>";
 					}
 					return myhtml;
 					}
 				},
 			]
 		});
+		$('div.dataTables_filter input').addClass("fe-input");
 
 		setInterval( function () {
 			scheduler_tasks.ajax.reload();
@@ -97,11 +104,11 @@
 
 </script>
 
-{{ htPanel.widgetHeader("Scheduler status", panelDisplay="inline-block") }}
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
 	<h3 class='hxtool_typography_h3' id='schedulerHealth'></h3>
-{{ htPanel.widgetFooter() }}
+{{ htPanelNoHeader.widgetFooter() }}
 
-{{ htPanel.widgetHeader("Scheduler tasks") }}
+{{ htPanel.widgetHeader("Scheduler tasks", panelIcon="fa-table") }}
 	<table id='tableContainer' class='hxtool_table' style='width: 100%;'></table>
 {{ htPanel.widgetFooter() }}
 

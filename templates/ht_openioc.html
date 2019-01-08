@@ -30,11 +30,12 @@
 			"rowId": 'ioc_id',
 			"paging":   false,
 			"info":     false,
+			"searching": true,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn" },
-				{ extend: "csv", className: "fe-btn" },
-				{ extend: "excel", className: "fe-btn" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ "data": "iocname", title: "Name" },
@@ -49,9 +50,9 @@
 				 "width": "300px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = '<button style="margin-right: 6px;" class="ioc_view fe-btn fe-btn--sm fe-btn--primary"> view <i class="fe-icon--right far fa-eye"></i></button>'
-				 		data += '<button style="margin-right: 6px;" data-id="' + row.ioc_id + '" class="ioc_download fe-btn fe-btn--sm fe-btn--primary"> download <i class="fe-icon--right fas fa-download"></i></button>'
-				 		data += '<button data-id="' + row.ioc_id + '" class="ioc_remove fe-btn fe-btn--sm fe-btn--primary"> remove <i class="fe-icon--right fas fa-trash"></i></button>'
+				 		data = '<button style="margin-right: 6px;" class="ioc_view fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main"> view <i class="fe-icon--right far fa-eye"></i></button>'
+				 		data += '<button style="margin-right: 6px;" data-id="' + row.ioc_id + '" class="ioc_download fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main"> download <i class="fe-icon--right fas fa-download"></i></button>'
+				 		data += '<button data-id="' + row.ioc_id + '" class="ioc_remove fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove"> remove <i class="fe-icon--right fas fa-trash"></i></button>'
 				 	}
 				 	return data;
 				 }
@@ -107,7 +108,7 @@
 
 <!-- ACTIONS -->
 {{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
-	<button class="fe-btn fe-btn--md fe-btn--primary fe-btn--hxtool-main" id="openiocNew"> upload <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="openiocNew"> upload <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
 {{ htPanelNoHeader.widgetFooter() }}
 
 <!-- INPUT FIELD -->

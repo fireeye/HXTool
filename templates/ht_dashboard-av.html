@@ -11,7 +11,13 @@
 				"paging":   false,
 				"ordering": false,
 				"info":     false,
-				"searching": false,
+				"searching": true,
+				"dom": '<"hxtool_datatables_buttons"B>frtip',
+				"buttons": [
+					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+					{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+				],
 				"columns": [
 					{ title: "Hostname" },
 					{ title: "Domain" },
@@ -47,6 +53,7 @@
 					{"className": "dt-center", "targets": [0, 1, 2, 3]}
 				]
 			});
+			$('div.dataTables_filter input').addClass("fe-input");
 			return(row2_cell1_datatable);
 		}
 

@@ -161,7 +161,13 @@
 			},
 			"paging":   false,
 			"info":     false,
-			"searching": false,
+			"searching": true,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+			],
 			"columns": [
 				{ "data": "name", title: "Profile name" },
 				{ "data": "actor", title: "Created by" },
@@ -176,7 +182,7 @@
 				 width: "120px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<button data-type='remove' data-id='" + data + "' class='tpAction fe-btn fe-btn--sm fe-btn--primary active'> delete <i class='fe-icon--right fas fa-ban'></i></button>"
+				 		data = "<button data-type='remove' data-id='" + data + "' class='tpAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove'> delete <i class='fe-icon--right fas fa-ban'></i></button>"
 				 	}
 				 	return data;
 				 }
@@ -215,6 +221,7 @@
 				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 5]}
 			]
 		});
+		$('div.dataTables_filter input').addClass("fe-input");
 
 	});
 
@@ -222,9 +229,9 @@
 
 
 <!-- ACTIONS -->
-{{ htPanel.widgetHeader("Action", panelId="tpNew", panelDisplay="inline-block") }}
+{{ htPanelNoHeader.widgetHeader(panelId="tpNew", panelDisplay="inline-block") }}
 	<button class="fe-btn fe-btn--md fe-btn--primary active"> new profile <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
-{{ htPanel.widgetFooter() }}
+{{ htPanelNoHeader.widgetFooter() }}
 
 <!-- INPUT FIELD -->
 {{ htModal.widgetHeader("New task profile", modalId="tpNewPopup") }}
@@ -257,7 +264,7 @@
 	<button class="fe-btn fe-btn--md fe-btn--primary" id="tpSubmit" aria-label="Click"><span> Submit </span></button>
 {{ htModal.widgetFooter() }}
 
-{{ htPanel.widgetHeader("Task profiles") }}
+{{ htPanel.widgetHeader("Task profiles", panelIcon="fa-table") }}
 	<table id='taskprofileTable' class='hxtool_table' style='width: 100%;'></table>
 {{ htPanel.widgetFooter() }}
 

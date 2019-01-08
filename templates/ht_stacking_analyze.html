@@ -59,9 +59,9 @@
 						"colReorder": true,
 						"dom": '<"hxtool_datatables_buttons"B>frtip',
 						"buttons": [
-							{ extend: "copy", className: "fe-btn" },
-							{ extend: "csv", className: "fe-btn" },
-							{ extend: "excel", className: "fe-btn" }
+							{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+							{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+							{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 						]
 					});
 					$('div.dataTables_filter input').addClass("fe-input");
@@ -75,7 +75,7 @@
 </script>
 
 {{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
-	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="backButton"> back <i style='color: #11a962;' class="fe-icon--right fas fa-file-export"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="backButton"> back <i style='color: #11a962;' class="fe-icon--right fas fa-arrow-left"></i></button>
 {{ htPanelNoHeader.widgetFooter() }}
 
 {{ htPanel.widgetHeader("Stacking results", panelId="iocTableContainer", panelIcon="fa-table", elementAdditionalBodyClass="hxtool_panel_stackinganalyze") }}

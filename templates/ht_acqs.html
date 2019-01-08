@@ -16,9 +16,9 @@
 			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn" },
-				{ extend: "csv", className: "fe-btn" },
-				{ extend: "excel", className: "fe-btn" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ "title": "", "data": "platform" },
@@ -87,13 +87,13 @@
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		if (row.type == "triage" && row.state == "COMPLETE") {
-				 			data = "<button data-id='/api/v1/acquisition/download?id=/hx/api/v3/acqs/triages/" + row.DT_RowId + ".mans' class='acqAction fe-btn fe-btn--sm fe-btn--hxtool-main'>download</button>";
+				 			data = "<button data-id='/api/v1/acquisition/download?id=/hx/api/v3/acqs/triages/" + row.DT_RowId + ".mans' class='acqAction fe-btn fe-btn--sm fe-btn--hxtool-main'> download <i class='fe-icon--right far fa-download'></i></button>";
 				 		}
 				 		else if (row.type == "live" && row.state == "COMPLETE") {
-				 			data = "<button data-id='/api/v1/acquisition/download?id=/hx/api/v3/acqs/live/" + row.DT_RowId + ".mans&content=json' class='acqAction fe-btn fe-btn--sm fe-btn--hxtool-main'>download</button>";
+				 			data = "<button data-id='/api/v1/acquisition/download?id=/hx/api/v3/acqs/live/" + row.DT_RowId + ".mans&content=json' class='acqAction fe-btn fe-btn--sm fe-btn--hxtool-main'> download <i class='fe-icon--right far fa-download'></i></button>";
 				 		}
 				 		else if (row.type == "file" && row.state == "COMPLETE") {
-				 			data = "<button data-id='/api/v1/acquisition/download?id=/hx/api/v3/acqs/files/" + row.DT_RowId + ".zip' class='acqAction fe-btn fe-btn--sm fe-btn--hxtool-main'>download</button>";
+				 			data = "<button data-id='/api/v1/acquisition/download?id=/hx/api/v3/acqs/files/" + row.DT_RowId + ".zip' class='acqAction fe-btn fe-btn--sm fe-btn--hxtool-main'> download <i class='fe-icon--right far fa-download'></i></button>";
 				 		}
 				 		else {
 				 			data = "N/A";	
@@ -102,7 +102,7 @@
 				 	return data;
 				 }
 				},
-				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 8]}
+				{"className": "hxtool_table_cell_center", "targets": [0, 2, 3, 4, 5, 6, 8, 9]}
 			]
 		});
 		$('div.dataTables_filter input').addClass("fe-input");
@@ -115,7 +115,7 @@
 
 </script>
 
-{{ htPanel.widgetHeader("Task profiles") }}
+{{ htPanel.widgetHeader("Acquisitions", panelIcon="fa-download") }}
 	<table id='acqTable' class='hxtool_table' style='width: 100%'></table>
 {{ htPanel.widgetFooter() }}
 

@@ -191,9 +191,9 @@
 			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn" },
-				{ extend: "csv", className: "fe-btn" },
-				{ extend: "excel", className: "fe-btn" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ "title": "", "data": "platform" },
@@ -300,11 +300,11 @@
 				},
 				{
 				 "targets": 11,
-				 "width": "180px",
+				 "width": "240px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<button class='addannotation fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' style='margin-right: 6px;' id='annotate_" + row.DT_RowId + "'>annotate</button>";
-				 		data += "<button class='alertAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
+				 		data = "<button class='addannotation fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' style='margin-right: 6px;' id='annotate_" + row.DT_RowId + "'>annotate<i class='fe-icon--right far fa-comments'></i></button>";
+				 		data += "<button class='alertAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
 				 	}
 				 	return data;
 				 }
@@ -390,12 +390,12 @@
 		<div class="fe-label fe-label--background">Alert filters</div>
 	</div>
 	<div class='hxtool_panel_top_right_alert'>
-		<button class='fe-btn fe-btn--sm fe-btn--primary' id='nav_1'>today</button>
-		<button class='fe-btn fe-btn--sm fe-btn--primary' id='nav_7'>week</button>
-		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_30'>month</button>
-		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_90'>quarter</button>
-		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_180'>half-year</button>
-		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_365'>year</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='nav_1'>today</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='nav_7'>week</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='nav_30'>month</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='nav_90'>quarter</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='nav_180'>half-year</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='nav_365'>year</button>
 
 		<span style='font-weight: bold; font-size: 12px; margin-left: 12px;'>from</span>
 		<input style='display: inline-block; width: 75px; padding-bottom: 2px;' type='text' class="hxtool_input_small fe-input" id='from'/>
@@ -403,7 +403,7 @@
 		<span style='font-weight: bold; font-size: 12px;'>to</span>
 		<input style='display: inline-block; width: 75px; padding-bottom: 2px; margin-right: 12px;' type='text' class="hxtool_input_small fe-input" id='to'/>
 
-		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='refresh'>refresh</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='refresh'>refresh</button>
 	</div>
 	<div class="fe-panel__body">
 
@@ -477,7 +477,7 @@
 
 
 <!-- Alerts GRAPH -->
-{{ htPanel.widgetHeader("Alerts over time", panelId="alertGraph") }}
+{{ htPanel.widgetHeader("Alerts over time", panelId="alertGraph", panelIcon="fa-chart-area") }}
 	<canvas id="chartjs_alerts" class='hxtool_chartjs_canvas'></canvas>
 {{ htPanel.widgetFooter() }}
 
@@ -491,7 +491,6 @@
 		<table id="alertTable" class='hxtool_table' style='width: 100%;'></table>
 	</div>
 </div>
-&nbsp;
 
 <!-- ANNOTATION POPUP -->
 {{ htModal.widgetHeader("Add annotation", modalId="annotationPopup", modalOverflow="true") }}

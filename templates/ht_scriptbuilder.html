@@ -49,7 +49,7 @@
 		myObj = document.getElementById(myaudit);
 
 		$(myObj).append($('<div>', {class: 'auditName', text: auditname}));
-		$(myObj).append($('<div>', {class: 'auditRemove', html: "<i class='fas fa-trash-alt fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> remove"}));
+		$(myObj).append($('<div>', {class: 'fe-btn fe-btn--sm fe-btn--hxtool-main-remove auditRemove', html: "remove<i class='fas fa-trash fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i>"}));
 		$(myObj).append($('<div>', {class: 'auditClear'}));
 
 		$(myObj).append($('<div>', {class: 'auditNameUUID', text: myaudit}));
@@ -111,7 +111,7 @@
 			if (repeat) {myrepeat = "true";} else {myrepeat = "false";}
 			$(newdiv).append($('<input>', {class: 'fe-input auditTextInput', type: 'text', id: auditname + "_" + my_uuid + "_" + objData['name'] + "_" + myrepeat}));
 			if (repeat) {
-				$(newdiv).append($('<div>', {class: 'fe-btn fe-btn--sm fe-btn--primary auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+				$(newdiv).append($('<div>', {class: 'fe-btn fe-btn--sm fe-btn--hxtool-main auditRepeat', html: "repeat<i class='fas fa-plus fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i>"}));
 			}
 			$(newdiv).append($('<div>', {class: 'fe-input-hint-text', text: objData['usage']}));
 		}
@@ -129,7 +129,7 @@
 			}
 			$(newdiv).append($('<textarea>', {class: 'fe-input auditTextAreaInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
 			if (repeat) {
-				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+				$(newdiv).append($('<div>', {class: 'fe-btn fe-btn--sm fe-btn--hxtool-main auditRepeat', html: "repeat<i class='fas fa-plus fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i>"}));
 			}
 			$(newdiv).append($('<div>', {class: 'fe-input-hint-text', text: objData['usage']}));
 		}
@@ -152,7 +152,7 @@
 			}
 			$(newdiv).append($('<span>', {class: 'hxtool_select_tail', html: '<i class="fe-icon--right fal fa-chevron-up"></i>'}));
 			if (repeat) {
-				$(newdiv).append($('<div>', {class: 'auditRepeat', html: "<i class='fas fa-plus-square fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i> repeat"}));
+				$(newdiv).append($('<div>', {class: 'fe-btn fe-btn--sm fe-btn--hxtool-main auditRepeat', html: "repeat<i class='fas fa-plus fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i>"}));
 			}
 			$(newdiv).append($('<div>', {class: 'fe-input-hint-text', text: objData['usage']}));
 		}
@@ -348,7 +348,7 @@
 		<div style='clear: both;'></div>
 	</div>
 	
-	<button id='generateScript' class="fe-btn fe-btn--md fe-btn--hxtool-main" aria-label="Click"><span> Create script </span></button>
+	<button id='generateScript' class="fe-btn fe-btn--md fe-btn--hxtool-main-master" aria-label="Click"><span> Create script </span></button>
     
 </div>
 {{ htPanel.widgetFooter() }}
