@@ -98,13 +98,25 @@ select {
 }
 
 .fe-btn--hxtool-main {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.8);
+  background-color: #006b8c;
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.fe-btn--hxtool-main-remove {
+  background-color: #ea475b;
+  color: rgba(255, 255, 255, 0.9);
   border-color: rgba(255, 255, 255, 0.1);
 }
 
 .fe-btn--hxtool-main:hover, .fe-btn--hxtool-main:focus, .fe-btn--hxtool-main.focus {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: #0fb8dc;
+  color: rgba(255, 255, 255, 1.0);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.fe-btn--hxtool-main-remove:hover, .fe-btn--hxtool-main-remove:focus, .fe-btn--hxtool-main-remove.focus {
+  background-color: #ff7b88;
   color: rgba(255, 255, 255, 1.0);
   border-color: rgba(255, 255, 255, 0.1);
 }

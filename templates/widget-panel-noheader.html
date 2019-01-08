@@ -1,0 +1,9 @@
+{% macro widgetHeader(panelId="", panelDisplay="block", panelWidth="", elementAdditionalClass="", elementAdditionalBodyClass="") -%}
+	<div id="{{panelId}}" class='fe-panel {% if elementAdditionalClass != "" %}{{elementAdditionalClass}}{% endif %}' style='display: {{panelDisplay}}; {% if panelWidth != "" %}width: {{panelWidth}};{% endif %}'>
+		<div class='fe-panel__body {% if elementAdditionalBodyClass != "" %}{{elementAdditionalBodyClass}}{% endif %}'>
+{% endmacro %}
+
+{% macro widgetFooter() -%}
+		</div>
+	</div>
+{% endmacro %}

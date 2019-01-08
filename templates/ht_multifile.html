@@ -46,25 +46,31 @@ table.nested_table th {
 }
 
 table.nested_table tr.even {
-	background-color: #E2E4FF;
+	background-color: transparent;
 }
 
 table.nested_table tr.odd {
-	background-color: white;
+	background-color: transparent;
 }
 
 table.nested_table tr:hover {
-	background-color: #acbad4;
+	background-color: transparent;
 }
 </style>
 
 <script>
 	$(document).ready(function() {
-		var table = $('#fileListingTable').DataTable({
+		var ftable = $('#fileListingTable').DataTable({
 			"info": false,
 			"pageLength": 15,
 			"lengthChange": false,
-			"ajax": "{{ url_for('get_file_listings') }}",
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn" },
+				{ extend: "csv", className: "fe-btn" },
+				{ extend: "excel", className: "fe-btn" }
+			],
+			"ajax": "/api/v1/datatable_multi_filelisting",
 			"columns": [
 				{ "data": "id" },
 				{ "data": "state" },
@@ -73,7 +79,7 @@ table.nested_table tr:hover {
 				{ "data": "username" },
 				{ "data": "update_timestamp" },
 				{ "data": "progress" },
-				{ "data": "actions" }
+				{ "data": "DT_RowId" }
 			],
 			"order": [[1, 'desc']],
 			"initComplete": function(settings, json) {
@@ -81,8 +87,22 @@ table.nested_table tr:hover {
 				$("div[id^='file_listing_prog_']").each(function() {
 					$(this).progress()
 				});
-			}
+			},
+			"columnDefs": [	
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 7]},
+				{
+				 "targets": 7,
+				 render: function ( data, type, row, meta ) {
+				 	r = "";
+				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop</button>";
+				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
+				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view</button>";
+				 	return (r);
+				 }
+				}
+			]
 		});
+		$('div.dataTables_filter input').addClass("fe-input");
 		// Formatting function for File Acquisition nested table
 		function format_file_rows ( d ) {
 			// `d` is the original data object for the row
@@ -110,11 +130,17 @@ table.nested_table tr:hover {
 			}
 			return file_table + '</table>';
 		}
-		table = $('#fileAcquisitionTable').DataTable( {
+		mtable = $('#fileAcquisitionTable').DataTable( {
 			"info": false,
 			"pageLength": 20,
 			"lengthChange": false,
-			"ajax": "{{ url_for('get_multi_files') }}",
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn" },
+				{ extend: "csv", className: "fe-btn" },
+				{ extend: "excel", className: "fe-btn" }
+			],
+			"ajax": "/api/v1/datatable_multi_multifile",
 			"columns": [
 				{
 					"className": 'file-rows-control',
@@ -140,92 +166,142 @@ table.nested_table tr:hover {
 				});
 			}
 		});
+		$('div.dataTables_filter input').addClass("fe-input");
+
+		$("#fileListingTable").on("click", ".flistAction", function() {
+			if ($(this).data("type") == "stop") {
+				hxtool_ajax_get_request("/api/v1/acquisition/multi/file_listing/stop", "id=" + $(this).data("id"), function() {
+					ftable.ajax.reload(function() {
+						$("div[id^='file_listing_prog_']").each(function() {
+							$(this).progress()
+						});
+					});
+				});
+			}
+			if ($(this).data("type") == "view") {
+				location.href = "/file_listing?id=" + $(this).data("id");
+			}
+			if ($(this).data("type") == "remove") {
+				myrow = $(this).closest("tr");
+				hxtool_ajax_get_request("/api/v1/acquisition/multi/file_listing/remove", "id=" + $(this).data("id"), function() {
+					myrow.fadeOut(200, function() {
+						ftable.row(myrow).remove().draw();
+					});
+				});
+			}
+		});
+
 		// Show/Hide File Acquisition nested table
 		$('#fileAcquisitionTable tbody').on('click', 'td.file-rows-control', function () {
 			var tr = $(this).closest('tr');
-			var row = table.row( tr );
+			var row = mtable.row( tr );
 	 
 			if ( row.child.isShown() ) {
 				// This row is already open - close it
-				row.child.hide();
+				row.child.hide(200);
 				tr.removeClass('shown');
 			}
 			else {
 				// Open this row
-				row.child( format_file_rows(row.data()) ).show();
+				row.child( format_file_rows(row.data()) ).show(200);
 				tr.addClass('shown');
 			}
 		});
 		$('#file-listing-form').on('submit', function() {
 			//TODO: Validate Form.
 		});
+
+		$("#flistSubmit").click(function() {
+			$("#flistPopup").hide();
+
+			var fdata = new FormData();
+			fdata.append("listing_name", $("#listing_name").val());
+			fdata.append("listing_path", $("#listing_path").val());
+			fdata.append("listing_regex", $("#listing_regex").val());
+			fdata.append("hostset", $("#hostset").val());
+			if ($('#use_raw_mode').is(':checked')) {
+				fdata.append("use_raw_mode", true);	
+			}
+
+			hxtool_ajax_post_request("/api/v1/acquisition/multi/file_listing/new", fdata, function() {
+				ftable.ajax.reload(function() {
+					$("div[id^='file_listing_prog_']").each(function() {
+						$(this).progress()
+					});
+				});
+
+			});
+		});
+
+		$("#createFileListing").click(function() {
+			$("#flistPopup").show();
+		});
+
+		$("#flistCancel").click(function() {
+			$("#flistPopup").hide();
+		});
+
+
 	});
 </script>
-<div id='two-pane-page'>
-	<div id='floating-pane-left'>
-		<div id='file-listing-form-div'>
-			<div class='inputArea'>
-				<form id='file-listing-form' method='POST' action='/file_listing' enctype='multipart/form-data'>
-					<h2 style='margin-top: 0px;'>Multi-file Listing Acquisition Request</h2>
-					<div style='font-style: italic;'>Request a file listing by providing a file path, regex, and a set of hosts to acquire from. Once acquired, you will be able to selectively acquire files from the hosts.</div>
-					<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
 
-					Name<br/>
-					<input type='text' id='listing_name' name='listing_name' style='width: 100%;'><br/><br/>
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main" id="createFileListing"> New file listing <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
 
-					File Listing Path<br/>
-					<input type='text' id='listing_path' name='listing_path' style='width: 100%;'><br/><br/>
+{{ htModal.widgetHeader("Multi-file Listing Acquisition Request", modalId="flistPopup", modalSize="medium") }}
+	<div style='font-style: italic;'>Request a file listing by providing a file path, regex, and a set of hosts to acquire from. Once acquired, you will be able to selectively acquire files from the hosts.</div>
+	<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
 
-					File Listing Regex<br/>
-					<input type='text' id='listing_regex' name='listing_regex' style='width: 100%;'><br/><br/>
+	{{ htInput.widget("my new listing", elementTitle="Name", elementHint="", elementId="listing_name", elementWidth="100%;") }}
+	{{ htInput.widget("c:\\temp", elementTitle="File Listing Path", elementHint="", elementId="listing_path", elementWidth="100%;") }}
+	{{ htInput.widget("regular expression", elementTitle="File Listing Regex", elementHint="", elementId="listing_regex", elementWidth="100%;") }}
 
-					Host set<br/>
-					<select id='hostset' name='hostset'>
-						{% if hostsets %} {{ hostsets|safe }} {% endif %}
-					</select>
-					<input type='checkBox' id='use_raw_mode' name='use_raw_mode'/>
-					<label for='use_raw_mode'>Use Raw Mode?</label><br/><br/>
-					Default is API mode. Raw mode should not be used when disk encryption is enabled on endpoint.<br/><br/>
+	Host set<br/>
+	<select id='hostset' name='hostset'>
+		{% if hostsets %} {{ hostsets|safe }} {% endif %}
+	</select>
+	<input type='checkBox' id='use_raw_mode' name='use_raw_mode'/>
+	<label for='use_raw_mode'>Use Raw Mode?</label><br/><br/>
+	Default is API mode. Raw mode should not be used when disk encryption is enabled on endpoint.<br/><br/>
 
-					<input type='submit' value='Get File Listing' class='tableActionButton' style='color: white; background-color: #008CBA; border: 2px solid #008CBA; border-radius: 4px; padding: 8px 16px; font-size: 14px;'>
-					<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
+	<hr style='height: 1px; border: 0; border-top:1px solid #ccc; margin: 8px 0px;'>
 
-					<div style='font-style: italic;'><b>Note</b>: The download feature is only available once you have set the background processing credentials on the "<a href='/settings'>settings</a>" page.</div>
-				</form>
-			</div>
-		</div>
-	</div>
+	<div style='font-style: italic;'><b>Note</b>: The download feature is only available once you have set the background processing credentials on the "<a href='/settings'>settings</a>" page.</div>
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="flistCancel" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="flistSubmit" aria-label="Submit"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
 
-	<div id='floating-pane-right'>
-		<div class="tableTitle">File Listing Acquisitions</div>
-		<table id='fileListingTable' class='genericTable stripe' style='width: 100%;'>
-			<thead><tr>
-				<th>id</th>
-				<th>state</th>
-				<th>Name</th>
-				<th>#</th>
-				<th>User</th>
-				<th>Updated</th>
-				<th style='width: 160px;'>Progress</th>
-				<th style='width: 260px;'>Actions</th>
-			</tr></thead>
-		</table>
-		<div class="tableTitle">Multi-File Acquisitions</div>
-		<table id='fileAcquisitionTable' class='genericTable stripe' style='width: 100%;'>
-			<thead><tr>
-				<th></th>
-				<th>ID</th>
-				<th>state</th>
-				<th>Name</th>
-				<th>Mode</th>
-				<th>ListingID</th>
-				<th>User</th>
-				<th>Created</th>
-				<th style='width: 160px;'>Progress</th>
-				<th style='width: 260px;'>Actions</th>
-			</tr></thead>
-		</table>
-	</div>
-	<div id='clearing-div'></div>
-</div>
+{{ htPanel.widgetHeader("File listing acquisitions", panelId="flistAcqTableContainer", panelIcon="fa-table") }}
+	<table id='fileListingTable' class='hxtool_table' style='width: 100%;'>
+		<thead><tr>
+			<th>id</th>
+			<th>state</th>
+			<th>Name</th>
+			<th>#</th>
+			<th>User</th>
+			<th>Updated</th>
+			<th style='width: 160px;'>Progress</th>
+			<th style='width: 260px;'>Actions</th>
+		</tr></thead>
+	</table>
+{{ htPanel.widgetFooter() }}
+<br>
+{{ htPanel.widgetHeader("Multi-file acquisitions", panelId="mAcqTableContainer", panelIcon="fa-table") }}
+	<table id='fileAcquisitionTable' class='hxtool_table' style='width: 100%;'>
+		<thead><tr>
+			<th></th>
+			<th>ID</th>
+			<th>state</th>
+			<th>Name</th>
+			<th>Mode</th>
+			<th>ListingID</th>
+			<th>User</th>
+			<th>Created</th>
+			<th style='width: 160px;'>Progress</th>
+			<th style='width: 260px;'>Actions</th>
+		</tr></thead>
+	</table>
+{{ htPanel.widgetFooter() }}
 {% endblock %}

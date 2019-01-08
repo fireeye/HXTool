@@ -3,6 +3,8 @@
 
 import datetime
 from io import BytesIO
+from xml.sax.saxutils import escape as xmlescape
+from string import Template
 
 try:
 	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort, Blueprint, current_app as app
@@ -979,9 +981,133 @@ def hxtool_api_stacking_stop(hx_api_object):
 			(r, rcode) = create_api_response(ret, response_code, response_data)
 			return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+
+
+##########################
+# Multi-file acquisition #
+##########################
+
+@ht_api.route('/api/v{0}/acquisition/multi/file_listing/new'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_acquisition_multi_file_listing(hx_api_object):
+
+	# Get Acquisition Options from Form
+	display_name = xmlescape(request.form['listing_name'])
+	regex = xmlescape(request.form['listing_regex'])
+	path = xmlescape(request.form['listing_path'])
+	hostset = int(xmlescape(request.form['hostset']))
+	use_api_mode = ('use_raw_mode' not in request.form)
+	depth = '-1'
+	# Build a script from the template
+	script_xml = None
+	try:
+		if regex:
+			re.compile(regex)
+		else:
+			app.logger.warn("Regex is empty!!")
+			regex = ''
+		if use_api_mode:
+			template_path = 'scripts/api_file_listing_script_template.xml'
+		else:
+			template_path = 'scripts/file_listing_script_template.xml'
+		with open(combine_app_path(template_path), 'r') as f:
+			t = Template(f.read())
+			script_xml = t.substitute(regex=regex, path=path, depth=depth)
+		if not display_name:
+			display_name = 'hostset: {0} path: {1} regex: {2}'.format(hostset, path, regex)
+	except re.error:
+		return(app.response_class(response=json.dumps("FAIL"), status=404, mimetype='application/json'))
+	if script_xml:
+		bulk_download_eid = submit_bulk_job(hx_api_object, hostset, HXAPI.compat_str(script_xml), task_profile = "file_listing")
+		ret = app.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, depth, display_name, api_mode=use_api_mode)
+		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+	else:
+		return(app.response_class(response=json.dumps("FAIL"), status=404, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/acquisition/multi/file_listing/stop'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_multi_file_listing_stop(hx_api_object):
+	file_listing_job = hxtool_global.hxtool_db.fileListingGetById(request.args.get('id'))
+	if file_listing_job:
+		bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(file_listing_job['bulk_download_eid'])
+		(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
+		if ret:
+			hxtool_global.hxtool_db.fileListingStop(file_listing_job.eid)
+			hxtool_global.hxtool_db.bulkDownloadUpdate(file_listing_job['bulk_download_eid'], stopped = True)
+			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/acquisition/multi/file_listing/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_multi_file_listing_remove(hx_api_object):
+	file_listing_job = hxtool_global.hxtool_db.fileListingGetById(request.args.get('id'))
+	if file_listing_job:
+		bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(file_listing_job['bulk_download_eid'])
+		if bulk_download_job.get('bulk_acquisition_id', None):
+			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
+		hxtool_global.hxtool_db.bulkDownloadDelete(file_listing_job['bulk_download_eid'])
+		hxtool_global.hxtool_db.fileListingDelete(file_listing_job.eid)
+		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+
 ##############
 # Datatables #
 ##############
+
+@ht_api.route('/api/v{0}/datatable_multi_filelisting'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_multi_filelisting(hx_api_object):
+	profile_id = session['ht_profileid']
+	data_rows = []
+	for j in hxtool_global.hxtool_db.fileListingList(profile_id):
+		job = dict(j)
+		job.update({'id': j.eid})
+		job['state'] = ("STOPPED" if job['stopped'] else "RUNNING")
+		job['file_count'] = len(job.pop('files'))
+
+		# Completion rate
+		bulk_download = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = job['bulk_download_eid'])
+		if bulk_download:
+			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
+			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
+			if 'display_name' not in job:
+				job['display_name'] = 'hostset {0}, path: {1} regex: {2}'.format(bulk_download['hostset_id'] , job['cfg']['path'], job['cfg']['regex'])
+		else:
+			job_progress = job['file_count'] > 1 and 100 or 0
+			if 'display_name' not in job:
+				job['display_name'] = 'path: {0} regex: {1}'.format(job['cfg']['path'], job['cfg']['regex'])
+		
+		job['progress'] = "<div class='htMyBar htBarWrap'><div class='htBar' id='file_listing_prog_" + str(job['id']) + "' data-percent='" + str(job_progress) + "'></div></div>"
+		job['DT_RowId'] = job['id']
+		data_rows.append(job)
+	return(app.response_class(response=json.dumps({'data': data_rows}), status=200, mimetype='application/json'))
+
+
+@ht_api.route('/api/v{0}/datatable_multi_multifile'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_multi_multifile(hx_api_object):
+	profile_id = session['ht_profileid']
+	data_rows = []
+	for mf in hxtool_global.hxtool_db.multiFileList(profile_id):
+		job = dict(mf)
+		hosts_completed = len([_ for _ in job['files'] if _['downloaded']])
+		job.update({
+			'id': mf.eid,
+			'state': ("STOPPED" if job['stopped'] else "RUNNING"),
+			'file_count': len(job['files']),
+			'mode': ('api_mode' in job and job['api_mode']) and 'API' or 'RAW'
+		})
+
+		# Completion rate
+		job_progress = (int(job['file_count']) > 0) and  int(hosts_completed / float(job['file_count']) * 100) or 0
+		job['progress'] = "<div class='htMyBar htBarWrap'><div class='htBar' id='multi_file_prog_" + str(job['id']) + "' data-percent='" + str(job_progress) + "'></div></div>"
+		
+		# Actions
+		job['actions'] = "<a href='/multifile?stop=" +  str(job['id']) + "' style='margin-right: 10px;' class='tableActionButton'>stop</a>"
+		job['actions'] += "<a href='/multifile?remove=" +  str(job['id']) + "' style='margin-right: 10px;' class='tableActionButton'>remove</a>"
+		data_rows.append(job)
+	return(app.response_class(response=json.dumps({'data': data_rows}), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/datatable_stacking'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required

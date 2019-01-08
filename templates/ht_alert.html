@@ -304,7 +304,7 @@
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		data = "<button class='addannotation fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' style='margin-right: 6px;' id='annotate_" + row.DT_RowId + "'>annotate</button>";
-				 		data += "<button class='alertAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
+				 		data += "<button class='alertAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove</button>";
 				 	}
 				 	return data;
 				 }
@@ -390,8 +390,8 @@
 		<div class="fe-label fe-label--background">Alert filters</div>
 	</div>
 	<div class='hxtool_panel_top_right_alert'>
-		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_1'>today</button>
-		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_7'>week</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary' id='nav_1'>today</button>
+		<button class='fe-btn fe-btn--sm fe-btn--primary' id='nav_7'>week</button>
 		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_30'>month</button>
 		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_90'>quarter</button>
 		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='nav_180'>half-year</button>
