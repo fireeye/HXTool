@@ -272,6 +272,13 @@ def hxtool_api_enterprise_search_new_file(hx_api_object):
 #########
 # Hosts #
 #########
+@ht_api.route('/api/v{0}/hosts/config'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_hosts_config(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restGetUrl("/hx/api/v3/hosts/" + request.args.get('id') + "/configuration/actual.json")
+	(r, rcode) = create_api_response(response_data = response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 @ht_api.route('/api/v{0}/hosts/get'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_hosts_get(hx_api_object):

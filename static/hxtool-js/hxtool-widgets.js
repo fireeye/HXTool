@@ -9,7 +9,6 @@ function hxtoolAddInput(title, name, id, placeholder, hint) {
 	return(html);
 }
 
-
 function generateDropDown(elementValue, elementId, elementDefault, entries=[{}], elementAdditionalClass, elementLabel) {
 	var r = "";
 
@@ -47,27 +46,3 @@ function generateDropDown(elementValue, elementId, elementDefault, entries=[{}],
 
 	return(r);
 }
-
-
-/*
-
-	<div class='fe-dropdown{% if elementAdditionalClass != "" %} {{elementAdditionalClass}}{% endif %}'>
-		<button type="button" id="{{elementId}}" data-id="{{elementDefault}}" class="fe-btn fe-btn--sm fe-btn--hxtool-main"> {{elementValue}} <i class="fe-icon--right fal fa-chevron-up"></i></button>
-		<div class="fe-dropdown__list-container">
-			<ul class="fe-dropdown__list fe-list">
-
-				<li class="fe-dropdown__item">
-					<a class="fe-dropdown__item-link">
-						<span class="fe-dropdown__item-link-left-section">
-							<i style='margin-top: 2px;' class="fas {{elementIcon}} fa-lg"></i>
-						</span>
-						<span class="fe-dropdown__item-link-text" data-id="{{elementId}}">{{elementText}}</span>
-					</a>
-				</li>			
-
-			</ul>
-		</div>
-	</div>
-	<br>
-	<span class="fe-input-hint-text">{{elementLabel}}</span><br>
-*/

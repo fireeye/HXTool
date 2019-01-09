@@ -354,6 +354,11 @@
 			hostAlert_datatable.ajax.reload();
 		}, 10 * 1000);
 
+		// Get configuration
+		hxtool_ajax_get_request("/api/v1/hosts/config", "id=" + myAgentId, function(myhost) {
+			myconf = JSON.parse(myhost['api_response']);
+			$("#showConfigPopup").find(".fe-modal__body").append(generateNestedTable(myconf));
+		});
 
 		// Get sysinfo
 		hxtool_ajax_get_request("/api/v1/hosts/sysinfo", "id=" + myAgentId, function(myhost) {
@@ -362,6 +367,8 @@
 			$("#fieldDrives").html(mysysinfo['data']['drives']);
 			$("#fieldBuildnumber").html(mysysinfo['data']['buildNumber']);
 			$("#fieldVirtual").html(mysysinfo['data']['procConfigInfo']['vmGuest']);
+			$("#fieldStateagent").html(mysysinfo['data']['stateAgentStatus']);
+			$("#fieldInstalled").html(mysysinfo['data']['installDate']);
 
 			var myloggedOnUsers = mysysinfo['data']['loggedOnUser'].toString();
 			var myloggedOnUsersArr = myloggedOnUsers.split(",");
@@ -395,6 +402,15 @@
 
 		$("#showAllHostDataDismiss").click(function(){
 			$("#showAllHostDataPopup").hide();
+		});
+
+		//config
+		$('#confButton').click(function(){
+			$("#showConfigPopup").show();
+		});
+
+		$("#showConfigDismiss").click(function(){
+			$("#showConfigPopup").hide();
 		});
 
 		// Containment
@@ -581,136 +597,6 @@
 			}
 			
 		});
-
-/*
-
-		// ChartJS: Alerts timeline
-		var jsonData = $.ajax({
-			url: "/api/v1/chartjs_host_alert_timeline?id=" + myAgentId,
-			dataType: 'json',
-		}).done(function (myChartData) {
-
-			var config = {
-				type: 'line',
-				data: myChartData,
-			
-				options: {
-					responsive: true,
-					maintainAspectRatio: false,
-					title: {
-						display: false
-					},
-					legend: {
-						display: false
-					},						
-					tooltips: {
-						mode: 'index',
-						intersect: false,
-						borderColor: "rgba(15, 184, 220, 0.4)"
-					},
-					hover: {
-						mode: 'nearest',
-						intersect: true
-					},
-					scales: {
-						xAxes: [{
-							type: "time",
-							time: {
-								parser: 'YYYY-MM-DD HH:mm:ss',
-								unit: 'day',
-								min: '2018-12-09 18:43:53',
-								max: '2018-12-19 18:43:53'
-							},
-							ticks: {
-								source: 'data'
-							},
-							display: true,
-							scaleLabel: {
-								display: false,
-							},
-							gridLines: {
-								display: false
-							}
-						}],
-						yAxes: [{
-							display: true,
-							scaleLabel: {
-								display: false,
-							},
-							ticks: {
-								beginAtZero: true,
-								maxTicksLimit: 5
-							},
-							gridLines: {
-								display: true ,
-								color: "rgba(15, 184, 220, 0.4)"
-							}
-						}]
-					}
-				}
-			}
-
-			var ctx = document.getElementById('chartjs_host_alert').getContext('2d');
-			window.chartjs_hostalert = new Chart(ctx, config);
-		});
-*/
-
-/*
-	var jsonData = $.ajax({
-		url: "/api/v1/chartjs_host_alert_timeline?id=" + myAgentId,
-		dataType: 'json',
-	}).done(function (myChartData) {
-
-	   new Chart(document.getElementById("chartjs_host_alert"), {
-	      type: 'line',
-	      data: myChartData,
-	      options: {
-	         scales: {
-	            xAxes: [{
-	               type: 'time',
-	               time: {
-	                  parser: 'YYYY-MM-DD HH:mm:ss',
-	                  unit: 'day',
-	                  displayFormats: {
-	                     day: 'ddd'
-	                  },
-	                  min: '2017-10-02 18:43:53',
-	                  max: '2017-10-09 18:43:53'
-	               },
-	               ticks: {
-	                  source: 'data'
-	               }
-	            }]
-	         },
-	         legend: {
-	            display: false
-	         },
-	         animation: {
-	            duration: 0,
-	         },
-	         hover: {
-	            animationDuration: 0,
-	         },
-	         responsiveAnimationDuration: 0
-	      },
-	      plugins: [{
-	         beforeInit: function(chart) {
-	            var time = chart.options.scales.xAxes[0].time, // 'time' object reference
-	               timeDiff = moment(time.max).diff(moment(time.min), 'd'); // difference (in days) between min and max date
-	            // populate 'labels' array
-	            // (create a date string for each date between min and max, inclusive)
-	            for (i = 0; i <= timeDiff; i++) {
-	               var _label = moment(time.min).add(i, 'd').format('YYYY-MM-DD HH:mm:ss');
-	               chart.data.labels.push(_label);
-	            }
-	         }
-	      }]
-	   });
-
-	  });
-*/
-
-
 	});
 </script>
 
@@ -739,10 +625,8 @@
 					<td id='fieldOS'></td>
 					<td class='hxtool_host_info_cell'>Containment</td>
 					<td id='fieldContainment'></td>
-					<td rowspan='3' style='vertical-align: center; text-align: center;'>
-						<!--<canvas id="chartjs_host_alert" class='hxtool_chartjs_canvas'></canvas> -->
-						graph goes here
-					</td>
+					<td class='hxtool_host_info_cell'>Stateagent</td>
+					<td id='fieldStateagent'></td>
 				</tr>
 				<tr>
 					<td class='hxtool_host_info_cell'>Last poll</td>
@@ -753,6 +637,8 @@
 					<td id='fieldAgentVersion'></td>
 					<td class='hxtool_host_info_cell'>Drives</td>
 					<td id='fieldDrives'></td>
+					<td class='hxtool_host_info_cell'>Installed</td>
+					<td id='fieldInstalled'></td>
 				</tr>
 				<tr>
 					<td class='hxtool_host_info_cell'>Buildnumber</td>
@@ -767,6 +653,8 @@
 					<td id='fieldAllData'>
 						<button class="fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main" id="showAllHostData" aria-label="show"><span> show </span></button>
 					</td>
+					<td class='hxtool_host_info_cell'>Host config</td>
+					<td id='fieldConfig'><button class="fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main" id="confButton" aria-label="show"><span> show </span></button></td>
 				</tr>
 			</tbody>
 		</table>
@@ -816,6 +704,12 @@
 {{ htModal.widgetHeader("Host and sysinfo", modalId="showAllHostDataPopup", modalSize="large") }}
 {{ htModal.widgetMiddle() }}
 		<button class="fe-btn fe-btn--md fe-btn--secondary" id="showAllHostDataDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
+<!-- Conf popup -->
+{{ htModal.widgetHeader("Host configuration", modalId="showConfigPopup", modalSize="large") }}
+{{ htModal.widgetMiddle() }}
+		<button class="fe-btn fe-btn--md fe-btn--secondary" id="showConfigDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
 {{ htModal.widgetFooter() }}
 
 <!-- Data Acquisition popup -->

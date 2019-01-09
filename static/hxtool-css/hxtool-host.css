@@ -93,10 +93,6 @@
 	width: 150px;
 }
 
-.hxtool_host_table tbody td:nth-child(10) {
-	width: 450px;
-}
-
 .hxtool_host_table tbody tr:nth-child(odd) {
 	background: transparent;
 }

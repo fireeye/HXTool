@@ -231,6 +231,7 @@ class HXAPI:
 	def restGetUrl(self, url, method = 'GET'):
 
 		request = self.build_request(url, method = method)
+		print(request)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
