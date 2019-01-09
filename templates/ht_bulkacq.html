@@ -118,7 +118,7 @@
 				$(thead).find('th').eq(17).html('<div class="hxtool_table_cell_vertical">aborted</div>');
 				$(thead).find('th').eq(18).html('<div class="hxtool_table_cell_vertical">cancelled</div>');
 			},
-			"fnDrawCallback": function (oSettings) {
+			"initComplete": function(settings, json) {
 				$("div[id^='crate_']").each(function() {
 					$(this).progress()
 				});
@@ -232,7 +232,14 @@
 		});
 
 		setInterval( function () {
-			bulk_datatable.ajax.reload();
+			bulk_datatable.ajax.reload(function() {
+				$("div[id^='crate_']").each(function() {
+					$(this).progressNoAnimate();
+				});
+				$("div[id^='prog_']").each(function() {
+					$(this).progressNoAnimate();
+				});
+			});
 		}, 60000 );
 
 		$('body').on('change','select',function(){

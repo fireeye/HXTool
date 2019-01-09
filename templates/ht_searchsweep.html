@@ -113,9 +113,9 @@
 				$(thead).find('th').eq(19).html('<div class="hxtool_table_cell_vertical">not matched</div>');
 				$(thead).find('th').eq(20).html('<div class="hxtool_table_cell_vertical">error</div>');
 			},
-			"fnDrawCallback": function (oSettings) {
+			"initComplete": function(settings, json) {
 				$("div[id^='crate_']").each(function() {
-					$(this).progress()
+					$(this).progress();
 				});
 			},
 			"columnDefs": [	
@@ -199,7 +199,11 @@
 		});
 
 		setInterval( function () {
-			es_datatable.ajax.reload();
+			es_datatable.ajax.reload(function() {
+				$("div[id^='crate_']").each(function() {
+					$(this).progressNoAnimate();
+				});
+			});
 		}, 60000 );
 
 		$("#esNew").click(function(){

@@ -55,3 +55,13 @@
 	max-height: calc(100vh - 190px);
 	overflow-y: auto;
 }
+
+.hxtool_panel_multi_flist {
+	max-height: calc(50vh - 125px);
+	overflow-y: auto;
+}
+
+.hxtool_panel_multi_macq {
+	max-height: calc(50vh - 125px);
+	overflow-y: auto;
+}

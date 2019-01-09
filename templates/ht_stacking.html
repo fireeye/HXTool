@@ -29,7 +29,7 @@
 				{ title: "Progress", "data": "job_progress" },
 				{ title: "Action", "data": "DT_RowId" }
 			],
-			"fnDrawCallback": function (oSettings) {
+			"initComplete": function(settings, json) {
 				$("div[id^='crate_']").each(function() {
 					$(this).progress()
 				});
@@ -66,8 +66,12 @@
 		$('div.dataTables_filter input').addClass("fe-input");
 
 		setInterval( function () {
-			stacking_datatable.ajax.reload();
-		}, 10000 );
+			stacking_datatable.ajax.reload(function() {
+				$("div[id^='crate_']").each(function() {
+					$(this).progressNoAnimate();
+				});
+			});
+		}, 60000 );
 
 		$("#stackingTable").on("click", ".stackAction", function() {
 			if ($(this).data("type") == "analyze") {

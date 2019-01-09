@@ -5,3 +5,10 @@
     this.find("div").animate({ width: percent+"%" });
   };
 }( jQuery ));
+
+(function ( $ ) {
+  $.fn.progressNoAnimate = function() {
+    var percent = this.data("percent");
+    this.html("<div class='hxtool_progress' style='width: " + percent + "%;'>"+percent+"%</div>");
+  };
+}( jQuery ));
