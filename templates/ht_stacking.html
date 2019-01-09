@@ -5,65 +5,81 @@
 
 <script>
 	$(document).ready(function() {
-		var stacking_datatable = $('#stackingTable').DataTable( {
-			"ajax": "/api/v1/datatable_stacking",
-			"paging":   false,
-			"ordering": false,
-			"info":     false,
-			"searching": true,
-			"processing": false,
-			"dom": '<"hxtool_datatables_buttons"B>frtip',
-			"buttons": [
-				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
-			],
-			"columns": [
-				{ title: "ID", "data": "DT_RowId" },
-				{ title: "Created", "data": "create_timestamp" },
-				{ title: "Updated", "data": "update_timestamp" },
-				{ title: "Type", "data": "stack_type" },
-				{ title: "State", "data": "state" },
-				{ title: "Bulk ID", "data": "bulk_acquisition_id" },
-				{ title: "Hostset ID", "data": "hostset_id" },
-				{ title: "Progress", "data": "job_progress" },
-				{ title: "Action", "data": "DT_RowId" }
-			],
-			"initComplete": function(settings, json) {
-				$("div[id^='crate_']").each(function() {
-					$(this).progress()
-				});
-			},
-			"columnDefs": [	
-				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8]},
-				{
-				 "targets": [1, 2],
-				 render: function ( data, type, row, meta ) {
-				 	return (datatables_Timestamp(data));
-				 }
+
+		hxtool_ajax_get_request("/api/v1/hostsets/list", "", function(setResponse) {
+			myHostSetResponse = JSON.parse(setResponse['api_response']);
+			myhostsets = {};
+			$.each(myHostSetResponse['data']['entries'], function( index, value ) {
+				myhostsets[value['_id']] = value['name'];
+			});
+
+			var stacking_datatable = $('#stackingTable').DataTable( {
+				"ajax": "/api/v1/datatable_stacking",
+				"paging":   false,
+				"ordering": false,
+				"info":     false,
+				"searching": true,
+				"processing": false,
+				"dom": '<"hxtool_datatables_buttons"B>frtip',
+				"buttons": [
+					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
+					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
+					{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+				],
+				"columns": [
+					{ title: "ID", "data": "DT_RowId" },
+					{ title: "Created", "data": "create_timestamp" },
+					{ title: "Updated", "data": "update_timestamp" },
+					{ title: "Type", "data": "stack_type" },
+					{ title: "State", "data": "state" },
+					{ title: "Bulk ID", "data": "bulk_acquisition_id" },
+					{ title: "Hostset ID", "data": "hostset_id" },
+					{ title: "Progress", "data": "job_progress" },
+					{ title: "Action", "data": "DT_RowId" }
+				],
+				"initComplete": function(settings, json) {
+					$("div[id^='crate_']").each(function() {
+						$(this).progress()
+					});
 				},
-				{
-				 "targets": 7,
-				 "width": "270px",
-				 render: function ( data, type, row, meta ) {
-					data = "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + row.DT_RowId + "' data-percent='" + Math.round(data) + "'></div></div>"
-				 	return (data);
-				 }
-				},
-				{
-				 "targets": 8,
-				 "width": "280px",
-				 render: function ( data, type, row, meta ) {
-				 	r = "";
-				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='analyze' data-id='" + row.DT_RowId + "'>analyze<i class='fe-icon--right far fa-eye'></i></button>";
-				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
-				 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
-				 	return (r);
-				 }
-				}
-			]
+				"columnDefs": [	
+					{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+					{
+					 "targets": [1, 2],
+					 render: function ( data, type, row, meta ) {
+					 	return (datatables_Timestamp(data));
+					 }
+					},
+					{
+					 "targets": [6],
+					 render: function ( data, type, row, meta ) {
+					 	r = myhostsets[data];
+					 	return (r);
+					 }
+					},
+					{
+					 "targets": 7,
+					 "width": "270px",
+					 render: function ( data, type, row, meta ) {
+						data = "<div class='htMyBar htBarWrap'><div class='htBar' id='crate_" + row.DT_RowId + "' data-percent='" + Math.round(data) + "'></div></div>"
+					 	return (data);
+					 }
+					},
+					{
+					 "targets": 8,
+					 "width": "280px",
+					 render: function ( data, type, row, meta ) {
+					 	r = "";
+					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='analyze' data-id='" + row.DT_RowId + "'>analyze<i class='fe-icon--right far fa-eye'></i></button>";
+					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
+					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+					 	return (r);
+					 }
+					}
+				]
+			});
+			$('div.dataTables_filter input').addClass("fe-input");
 		});
-		$('div.dataTables_filter input').addClass("fe-input");
 
 		setInterval( function () {
 			stacking_datatable.ajax.reload(function() {
