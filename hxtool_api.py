@@ -491,6 +491,14 @@ def hxtool_api_acquisition_bulk_stop(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+# Stop download
+@ht_api.route('/api/v{0}/acquisition/bulk/stopdownload'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_bulk_stopdownload(hx_api_object):
+	ret = hxtool_global.hxtool_db.bulkDownloadUpdate(request.args.get('id'), stopped = True)
+	app.logger.info(format_activity_log(msg="bulk acquisition action", action="stop download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
 # Download
 @ht_api.route('/api/v{0}/acquisition/bulk/download'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required

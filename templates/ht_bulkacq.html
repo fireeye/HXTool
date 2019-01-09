@@ -203,21 +203,24 @@
 				 	if(type === 'display') {
 				 		if (data === parseInt(data, 10)) {
 					 		myid = data;
-					 		data = "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='download' data-id='" + myid + "'>download<i class='fe-icon--right far fa-download'></i></button>";
+					 		data = "";
+					 		if (row.downloadrate == "N/A") {
+						 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='download' data-id='" + myid + "'>download<i class='fe-icon--right far fa-download'></i></button>";
+						 	}
 					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='stop' data-id='" + myid + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
 					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + myid + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
 					 	}
 					 	else if (data == "file_listing") {
-					 		data = "<button style='margin-right: 6px;' class='bulkLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='multi'>multi-file job<i class='fe-icon--right far fa-external-link'></i></button>";
+					 		data = "<button style='margin-right: 6px;' class='bulkLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='multi'>multi-file<i class='fe-icon--right far fa-external-link'></i></button>";
 					 	}
 					 	else if (data == "stacking") {
-					 		data = "<button style='margin-right: 6px;' class='bulkLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='stacking'>stacking job<i class='fe-icon--right far fa-external-link'></i></button>";
+					 		data = "<button style='margin-right: 6px;' class='bulkLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='stacking'>stacking<i class='fe-icon--right far fa-external-link'></i></button>";
 					 	}
 				 	}
 				 	return data;
 				 }
 				},
-				{"className": "hxtool_table_cell_center", "targets": [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]}
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]}
 			]
 		});
 		$('div.dataTables_filter input').addClass("fe-input");
