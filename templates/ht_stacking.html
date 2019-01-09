@@ -13,7 +13,7 @@
 				myhostsets[value['_id']] = value['name'];
 			});
 
-			var stacking_datatable = $('#stackingTable').DataTable( {
+			stacking_datatable = $('#stackingTable').DataTable( {
 				"ajax": "/api/v1/datatable_stacking",
 				"paging":   false,
 				"ordering": false,
@@ -48,6 +48,12 @@
 					 "targets": [1, 2],
 					 render: function ( data, type, row, meta ) {
 					 	return (datatables_Timestamp(data));
+					 }
+					},
+					{
+					 "targets": [4],
+					 render: function ( data, type, row, meta ) {
+					 	return (datatables_parseAcquisitionState(data));
 					 }
 					},
 					{
@@ -104,7 +110,11 @@
 			}
 			else if ($(this).data("type") == "stop") {
 				hxtool_ajax_get_request("/api/v1/stacking/stop", "id=" + $(this).data("id"), function() {
-					stacking_datatable.ajax.reload();
+					stacking_datatable.ajax.reload(function() {
+						$("div[id^='crate_']").each(function() {
+							$(this).progressNoAnimate();
+						});
+					});
 				});
 			}
 		});
@@ -159,7 +169,11 @@
 			data.append("stackhostset", $("#stackhostset").data("id"));
 
 			hxtool_ajax_post_request("/api/v1/stacking/new", data, function() {
-				stacking_datatable.ajax.reload();
+				stacking_datatable.ajax.reload(function() {
+					$("div[id^='crate_']").each(function() {
+						$(this).progressNoAnimate();
+					});
+				});
 			});
 
 		});

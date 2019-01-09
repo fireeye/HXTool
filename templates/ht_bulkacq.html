@@ -283,7 +283,14 @@
 					})
 				}
 				else {
-					bulk_datatable.ajax.reload();	
+					bulk_datatable.ajax.reload(function() {
+						$("div[id^='crate_']").each(function() {
+							$(this).progressNoAnimate();
+						});
+						$("div[id^='prog_']").each(function() {
+							$(this).progressNoAnimate();
+						});
+					});
 				}
 			});
 		});
@@ -399,7 +406,14 @@
 					hxtool_ajax_get_request(myApiEndpoint, myUrl, function() {
 						if (myschedule == "run_now") {
 							setTimeout( function () {
-								bulk_datatable.ajax.reload();
+								bulk_datatable.ajax.reload(function() {
+									$("div[id^='crate_']").each(function() {
+										$(this).progressNoAnimate();
+									});
+									$("div[id^='prog_']").each(function() {
+										$(this).progressNoAnimate();
+									});
+								});
 								updateChartJS(chartjs_searches, "/api/v1/acquisition/bulk/chartjs_acquisitions?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);
 							}, 1000 );
 						}
@@ -412,7 +426,14 @@
 					hxtool_ajax_post_request(myApiEndpoint, data, function() {
 						if (myschedule == "run_now") {
 							setTimeout( function () {
-								bulk_datatable.ajax.reload();
+								bulk_datatable.ajax.reload(function() {
+									$("div[id^='crate_']").each(function() {
+										$(this).progressNoAnimate();
+									});
+									$("div[id^='prog_']").each(function() {
+										$(this).progressNoAnimate();
+									});
+								});
 								updateChartJS(chartjs_searches, "/api/v1/acquisition/bulk/chartjs_acquisitions?startDate=" + getHistoricDate(7) + "&endDate=" + currentDate);
 							}, 1000 );
 						}
