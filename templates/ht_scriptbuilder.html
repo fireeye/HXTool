@@ -103,7 +103,7 @@
 			$(myObj).append('<div class="auditParameterPlaceholder">');
 			newdiv = $(myObj).children(":last");
 			if (req_state == "optional") {
-				$(newdiv).append($('<div>', {class: 'auditParameterTitleOptional', html: objData['name'] + " " + "<i class='far fa-trash-alt fa-sm fa-fw auditParameterRemove' aria-hidden='true'></i>"}));
+				$(newdiv).append($('<div>', {class: 'auditParameterTitleOptional', html: objData['name'] + " " + "<button class='fe-btn fe-btn--sm fe-btn--hxtool-main-remove auditParameterRemove'>remove<i class='far fa-trash-alt fa-sm fa-fw' aria-hidden='true'></i></button>"}));
 			}
 			else {
 				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
@@ -122,7 +122,7 @@
 			$(myObj).append('<div class="auditParameterPlaceholder">');
 			newdiv = $(myObj).children(":last");
 			if (req_state == "optional") {
-				$(newdiv).append($('<div>', {class: 'auditParameterTitleOptional', html: objData['name'] + " " + "<i class='far fa-trash-alt fa-sm fa-fw auditParameterRemove' aria-hidden='true'></i>"}));
+				$(newdiv).append($('<div>', {class: 'auditParameterTitleOptional', html: objData['name'] + " " + "<button class='fe-btn fe-btn--sm fe-btn--hxtool-main-remove auditParameterRemove'>remove<i class='far fa-trash-alt fa-sm fa-fw' aria-hidden='true'></i></button>"}));
 			}
 			else {
 				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
@@ -139,18 +139,20 @@
 		if (objData['name'] != false) {
 			$(myObj).append('<div class="auditParameterPlaceholder">');
 			newdiv = $(myObj).children(":last");
+
 			if (req_state == "optional") {
-				$(newdiv).append($('<div>', {class: 'auditParameterTitleOptional', html: objData['name'] + " " + "<i class='far fa-trash-alt fa-sm fa-fw auditParameterRemove' aria-hidden='true'></i>"}));
+				$(newdiv).append($('<div>', {class: 'auditParameterTitleOptional', html: objData['name'] + " " + "<button class='fe-btn fe-btn--sm fe-btn--hxtool-main-remove auditParameterRemove'>remove<i class='far fa-trash-alt fa-sm fa-fw' aria-hidden='true'></i></button>"}));
 			}
 			else {
 				$(newdiv).append($('<div>', {class: 'auditParameterTitle', text: objData['name']}));
 			}
-			$(newdiv).append($('<select>', {class: 'auditSelectInput', id: auditname + "_" + my_uuid + "_" + objData['name']}));
+
+			var myentries = [];
 			for (option in objData['values']) {
-				thiselement = document.getElementById(auditname + "_" + my_uuid + "_" + objData['name']);
-				$(thiselement).append($('<option>', {value:objData['values'][option], text:objData['values'][option]}));
+				myentries.push({"elementText": objData['values'][option], "elementId": objData['values'][option], "elementIcon": "fa-check"});
 			}
-			$(newdiv).append($('<span>', {class: 'hxtool_select_tail', html: '<i class="fe-icon--right fal fa-chevron-up"></i>'}));
+			$(newdiv).append(generateDropDown(myentries[0]['elementText'], auditname + "_" + my_uuid + "_" + objData['name'], myentries[0]['elementText'], entries=myentries, false, false));
+
 			if (repeat) {
 				$(newdiv).append($('<div>', {class: 'fe-btn fe-btn--sm fe-btn--hxtool-main auditRepeat', html: "repeat<i class='fas fa-plus fa-sm fa-fw' style='margin-right: 2px;' aria-hidden='true'></i>"}));
 			}
@@ -203,6 +205,11 @@
 							else {
 								myParams.push({"name": myParamName, "value": $(mitem).val()});
 							}
+						}
+						else if ($(mitem).attr("class") == "fe-dropdown") {
+							myParamArr = $(mitem).find("button").attr("id").split("_");
+							myParamName = myParamArr[2];
+							myParams.push({"name": myParamName, "value": $(mitem).find("button").data("id")});
 						}
 					});
 				}
@@ -325,32 +332,31 @@
 </script>
 
 {{ htPanel.widgetHeader("Script Builder", elementAdditionalBodyClass="hxtool_panel_scriptbuilder", panelIcon="fa-building") }}
-<div class='inputArea'>
+	<div>
 
-	{{ htInput.widget("script name", elementTitle="Script name", elementHint="Enter a name", elementId="scriptName", elementWidth="400") }}
+		{{ htInput.widget("script name", elementTitle="Script name", elementHint="Enter a name", elementId="scriptName", elementWidth="400") }}
 
-	<h3 class='hxtool_typography_h3'>Platform</h3>
-	{{ htDropdown.widgetHeader("Microsoft Windows", "platform", "win") }}
-	{{ htDropdown.widgetItem("Microsoft Windows", "win", elementIcon="fab fa-windows") }}
-	{{ htDropdown.widgetItem("Apple MacOS", "osx", elementIcon="fab fa-apple") }}
-	{{ htDropdown.widgetItem("Linux", "linux", elementIcon="fab fa-linux") }}
-	{{ htDropdown.widgetFooter(elementLabel="Select the target platform") }}
+		<h3 class='hxtool_typography_h3'>Platform</h3>
+		{{ htDropdown.widgetHeader("Microsoft Windows", "platform", "win") }}
+		{{ htDropdown.widgetItem("Microsoft Windows", "win", elementIcon="fab fa-windows") }}
+		{{ htDropdown.widgetItem("Apple MacOS", "osx", elementIcon="fab fa-apple") }}
+		{{ htDropdown.widgetItem("Linux", "linux", elementIcon="fab fa-linux") }}
+		{{ htDropdown.widgetFooter(elementLabel="Select the target platform") }}
 
-	<h3 class='hxtool_typography_h3'>Audit modules</h3>
-	{{ htDropdown.widgetHeader("Select audit module", "add_audit", "false", elementAdditionalClass="hxtool_dynamic-dropdown") }}
-	{{ htDropdown.widgetFooter(elementLabel="Select an audit module to add it to the script") }}
+		<h3 class='hxtool_typography_h3'>Audit modules</h3>
+		{{ htDropdown.widgetHeader("Select audit module", "add_audit", "false", elementAdditionalClass="hxtool_dynamic-dropdown") }}
+		{{ htDropdown.widgetFooter(elementLabel="Select an audit module to add it to the script") }}
 
-	<div id='scriptArea' style='margin-top: 15px; margin-bottom: 15px;'>
-		<ul id='tabMenu' class='tabMenu' style='float: left; width: 180px; list-style-type: none; margin: 0; padding: 0;'>
-		</ul>
-		<div id='scriptItems' style='float: left; width: 900px;'>
+		<div id='scriptArea' style='margin-top: 15px; margin-bottom: 15px;'>
+			<ul id='tabMenu' class='tabMenu' style='float: left; width: 180px; list-style-type: none; margin: 0;'>
+			</ul>
+			<div id='scriptItems' class='hxtool_scriptbuilder_scriptarea' style='float: left; width: 980px;'>
+			</div>
+			<div style='clear: both;'></div>
 		</div>
-		<div style='clear: both;'></div>
+		<button id='generateScript' class="fe-btn fe-btn--md fe-btn--hxtool-main-master" aria-label="Click"><span> Create script </span></button>
 	</div>
-	
-	<button id='generateScript' class="fe-btn fe-btn--md fe-btn--hxtool-main-master" aria-label="Click"><span> Create script </span></button>
-    
-</div>
+
 {{ htPanel.widgetFooter() }}
 
 

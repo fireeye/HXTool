@@ -49,7 +49,7 @@
 .hxtool_panel_scriptbuilder {
 	width: 1200px;
 	height: calc(100vh - 120px);
-	overflow-y: auto;
+	overflow-y: visible;
 }
 
 .hxtool_panel_stackinganalyze {
