@@ -20,17 +20,22 @@
 			});
 			myhtml += "</select>";
 			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
-			$(targetelement).html(myhtml);
+
+			var myentries = [];
+			$.each(data, function(index, field) {
+				myentries.push({"elementText": index, "elementId": index, "elementIcon": "fa-check"});
+			});
 
 			// Check if we need to populate fields
 			if (myGroup) {
 				// Set the group
-				$(targetelement).find('select').val(myGroup).change();
+				$(targetelement).html(generateDropDown(myGroup, "group_" + myguid, myGroup, entries=myentries, false, false));
 				getFields(data, myGroup, $(targetelement).next(), myguid, myField, myOperator);
 			}
 			else {
 				// Load fields into next cell
-				getFields(data, $(targetelement).find('select').find("option:first-child").val(), $(targetelement).next(), myguid);
+				$(targetelement).html(generateDropDown(myentries[0]['elementText'], "group_" + myguid, myentries[0]['elementId'], entries=myentries, false, false));
+				getFields(data, $(targetelement).find('button').data('id'), $(targetelement).next(), myguid);
 			}
 		}
 
@@ -41,70 +46,70 @@
 			});
 			myhtml += "</select>";
 			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
-			$(targetelement).html(myhtml);
+
+			var myentries = [];
+			$.each(data[mytype], function(index, field) {
+				myentries.push({"elementText": field.name, "elementId": field.type, "elementIcon": "fa-check"});
+			});
 
 			if (myField) {
 				// Set the field
-				$(targetelement).find('select').val(myField).change();
-				getOperators($(targetelement).find('select').find(":selected").data('type'), $(targetelement).next(), myguid, myOperator);
+				$(targetelement).html(generateDropDown(myField, "field_" + myguid, "false", entries=myentries, false, false));
+				$(targetelement).find(".fe-dropdown__list-container").find("li").each(function() {
+					if (myField == $(this).find(".fe-dropdown__item-link-text").html()) {
+						myNextField = $(this).find(".fe-dropdown__item-link-text").data("id");
+					}
+				});
+				$(targetelement).find("button").data("id", myNextField);
+				getOperators(myNextField, $(targetelement).next(), myguid);
 			}
 			else {
-				getOperators($(targetelement).find('select').find("option:first-child").data('type'), $(targetelement).next(), myguid);
+				$(targetelement).html(generateDropDown(myentries[0]['elementText'], "field_" + myguid, myentries[0]['elementId'], entries=myentries, false, false));
+				getOperators($(targetelement).find(".fe-dropdown__list-container").find("li").first().find(".fe-dropdown__item-link-text").data("id"), $(targetelement).next(), myguid);
 			}
 		}
 
 		function getOperators(mytype, targetelement, myguid, myOperator) {
-			var myhtml = "<select id='operator_" + myguid + "'>";
-			if (mytype == "text") {
-				myhtml += "<option value='contains'>contains";
-				myhtml += "<option value='equal'>equal";
-				myhtml += "<option value='matches'>matches";
-				myhtml += "<option value='starts-with'>starts-with";
-				myhtml += "<option value='ends-with'>ends-with";
-			}
-			if (mytype == "integer") {
-				myhtml += "<option value='equal'>equal";
-				myhtml += "<option value='greater-than'>greater-than";
-				myhtml += "<option value='less-than'>less-than";
-				myhtml += "<option value='between'>between";
-			}
-			if (mytype == "md5") {
-				myhtml += "<option value='equal'>equal";
-			}
-			if (mytype == "range") {
-				myhtml += "<option value='between'>between";
-			}
-			myhtml += "</select>";
-			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
-			$(targetelement).html(myhtml);
+			myops = {};
+			myops['text'] = ["contains", "equal", "matches", "starts-with", "ends-with"];
+			myops['integer'] = ["equal", "greater-than", "less-than", "between"];
+			myops['md5'] = ["md5"];
+			myops['range'] = ["between"];
+
+			var myentries = [];
+			$.each( myops[mytype], function( key, value ) {
+				myentries.push({"elementText": value, "elementId": value, "elementIcon": "fa-check"});
+			});
 
 			if (myOperator) {
-				// Set the operator
-				$(targetelement).find('select').val(myOperator).change();
+				$(targetelement).html(generateDropDown(myOperator, "operator_" + myguid, myOperator, entries=myentries, false, false));
+			}
+			else {
+				$(targetelement).html(generateDropDown(myentries[0]['elementText'], "operator_" + myguid, myentries[0]['elementId'], entries=myentries, false, false));
 			}
 
 		}
 
 		function addCondition(myguid, condition_type) {
 
+			var myentries = [{"elementText": "Presence condition", "elementId": "presence", "elementIcon": "fa-check"}, {"elementText": "Execution condition", "elementId": "execution", "elementIcon": "fa-check"}]
+
 			// Set the condition type
 			if (condition_type) {
 				if (condition_type == "presence") {
-					mytypehtml = "<select style='margin-top: 6px; margin-left: 16px;' id='ioctype'><option value='presence' selected>presence<option value='execution'>execution</select>";
+					mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
 				}
 				else {
-					mytypehtml = "<select style='margin-top: 6px; margin-left: 16px;' id='ioctype'><option value='presence'>presence<option value='execution' selected>execution</select>";
+					mytypehtml = generateDropDown("execution condition", "ioctype", "execution", entries=myentries, false, false);
 				}
 				
 			}
 			else {
-				mytypehtml = "<select style='margin-top: 6px; margin-left: 16px;' id='ioctype'><option value='presence'>presence<option value='execution'>execution</select>";
+				mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
 			}
-
-			mytypehtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
-			
+		
 			// Append row to table
-			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>Condition for detecting<br>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove conditionDeleteButton\'>remove<i class=\'fe-icon--right far fa-trash\'></i></button></td></tr>');
+			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove conditionDeleteButton\'>remove<i class=\'fe-icon--right far fa-trash\'></i></button></td></tr>');
 		}
 
 		function addElement(myguid, optionalElement) {
@@ -170,18 +175,26 @@
 
 			// Import event space
 			{% if eventspace %}
-				var eventspace = JSON.parse({{eventspace|tojson|safe}});
+				eventspace = JSON.parse({{eventspace|tojson|safe}});
 			{% endif %}
 
 			// IF edit mode we will need to import all the conditions
 			{% if ioccategory %}			
 				var ioccategory = JSON.parse({{ioccategory|tojson|safe}});
-				$('#cats').val(ioccategory).change();
 			{% endif %}
 
 			{% if platform %}
 				var platform = JSON.parse({{platform|tojson|safe}});
-				$('#indicator_platform').val(platform).change();
+				$('#indicator_platform').data("id", platform);
+				if (platform == "win") {
+					$('#indicator_platform').html("Microsoft Windows" + "<i class='fe-icon--right fal fa-chevron-up'></i>");
+				}
+				else if (platform == "osx") {
+					$('#indicator_platform').html("Apple MacOS" + "<i class='fe-icon--right fal fa-chevron-up'></i>");
+				}
+				else {
+					$('#indicator_platform').html("All" + "<i class='fe-icon--right fal fa-chevron-up'></i>");
+				}
 			{% endif %}
 
 			{% if mypre %}
@@ -194,12 +207,30 @@
 				renderConditions(myexecution, 'execution', eventspace);
 			{% endif %}
 
+			// Render categories
+			hxtool_ajax_get_request("/api/v1/indicator_category/list", "", function(setResponse) {
+				myCategoryResponse = JSON.parse(setResponse['api_response']);
+				mycats = [];
+				$.each(myCategoryResponse['data']['entries'], function( index, value ) {
+					mycats.push({"elementText": value['uri_name'], "elementId": value['uri_name'], "elementIcon": "fa-check"});
+					if ( typeof ioccategory === 'undefined' ) {
+						if (value['uri_name'] == "Custom") { catsDefault = value['uri_name']; catsDefaultName = value['uri_name']; }
+					}
+					else {
+						if (value['uri_name'] == ioccategory) { catsDefault = value['uri_name']; catsDefaultName = value['uri_name']; }
+					}
+				});
+				$("#categoryContainer").html(generateDropDown(catsDefaultName, "cats", catsDefault, entries=mycats, false, false));
+			});
+
 			// Adds new condition row
 			$('#add_cond').click(function() {
 
 				if (typeof $('#ioctable').find('tr').last().attr('id') !== 'undefined') {
 					if ($('#ioctable').find('tr').last().attr('id').startsWith('condition_') ) {
-						enableStatusBarLive("Add elements to your condition before adding a new condition", 200, "ht_statusbar_notifyRed");
+						$("#hxtoolMessageBody").html("Add elements to your condition before adding a new condition");
+						$("#hxtoolMessage").show();
+
 					}
 					else {
 						// Last row is not a new condition
@@ -237,19 +268,18 @@
 				removeElements($(this));
 			});
 
-			$('body').on('change','select',function(){
+			$("#ioctable").on('click', '.fe-dropdown__item-link', function() {
 
-				// Get the guid from the row
-				myguid = ($(this).parent().parent().data('id'));
+				myguid = ($(this).closest("tr").data('id'));
 
-				// Trigger on change in group selector and load new dropdown into column 2
-				if ($(this).attr('id').startsWith('group_')) {
-					getFields(eventspace, $(this).val(), $(this).closest("td").next(), myguid);
+				if($(this).closest("td").find("button").attr("id").startsWith("group_")) {
+					getFields(eventspace, $(this).find("span").next().data("id"), $(this).closest("td").next(), myguid);
 				}
-				// Trigger on change in field selector and load new dropdown into column 3
-				if ($(this).attr('id').startsWith('field_')) {
-					getOperators($(this).find(':selected').data('type'), $(this).closest("td").next(), myguid);
+
+				if($(this).closest("td").find("button").attr("id").startsWith("field_")) {
+					getOperators($(this).find("span").next().data("id"), $(this).closest("td").next(), myguid);
 				}
+
 			});
 
 			// User clicked the submit button
@@ -259,8 +289,8 @@
 
 				data['name'] = $('#indicator_name').val();
 				data['description'] = $('#indicatorDesc').val();
-				data['category'] = $('#cats').val();
-				data['platform'] = $('#indicator_platform').val();
+				data['category'] = $('#cats').data("id");
+				data['platform'] = $('#indicator_platform').data("id");
 
 				// Need to add original name and category if we are in edit mode
 				if ($('#myTitle').data('id') == "edit") {
@@ -274,17 +304,17 @@
 				$("#ioctable tr:gt(0)").each(function () {
 
 					if ($(this).attr('id').startsWith('condition_')) {
-						myioctype = $(this).find('td:eq(0)').find('select').val();
+						myioctype = $(this).find('td:eq(0)').find('button').data("id");
 						currguid = $(this).data('id') + "_" + myioctype;
 						data[currguid] = [];
 					}
 
 					if ($(this).attr('id').startsWith('element_')) {
 						currguid = $(this).data('id') + "_" + myioctype;
-						var mygroup = $(this).find('td:eq(0)').find('select').val();
-						var myfield = $(this).find('td:eq(1)').find('select').val();
-						var mytype = $(this).find('td:eq(1)').find('select').find(":selected").data('type');
-						var myoper = $(this).find('td:eq(2)').find('select').val();
+						var mygroup = $(this).find('td:eq(0)').find('button').data("id");
+						var myfield = $(this).find('td:eq(1)').find('button').text().replace(/\s+/g, '');
+						var mytype = $(this).find('td:eq(1)').find('button').data("id");
+						var myoper = $(this).find('td:eq(2)').find('button').data("id");
 
 						if ($(this).find('td:eq(3)').find('input').is(':checked'))
 							{ myneg = true; }
@@ -315,7 +345,8 @@
 
 					}
 					else {
-						enableStatusBarLive("Enter an indicator name!", 200, "ht_statusbar_notifyRed");
+						$("#hxtoolMessageBody").html("Enter a rule name!");
+						$("#hxtoolMessage").show();
 					}
 				}
 				// Post new indicator edit request (edit mode)
@@ -329,7 +360,8 @@
 						});
 					}
 					else {
-						enableStatusBarLive("Enter an indicator name!", 200, "ht_statusbar_notifyRed");
+						$("#hxtoolMessageBody").html("Enter a rule name!");
+						$("#hxtoolMessage").show();
 					}
 				}
 			});
@@ -344,23 +376,22 @@
 	{% endif %}
 
 	{{ htPanel.widgetHeader("Rule settings", panelDisplay="inline-block", panelIcon="fa-external-link-square") }}
-		<h3 class='hxtool_typography_h3'>Rule name</h3>
+		<h4 class='hxtool_typography_h3'>Rule name</h4>
 		<input style='margin-bottom: 7px; width: 650px;' class='fe-input' type='text' id='indicator_name' name='indicator_name' value='{% if iocname %}{{iocname|safe}}{% endif %}'>
 
-		<h3 class='hxtool_typography_h3'>Rule description</h3>
+		<h4 class='hxtool_typography_h3'>Rule description</h4>
 		<textarea id='indicatorDesc' style='height: 100px;' class='indicatorDescription fe-input'>{% if mydescription %}{{mydescription|safe}}{% endif %}</textarea>
 
-		<h3 class='hxtool_typography_h3'>Rule category</h3>
-		{% if categories %}{{categories|safe}}{% endif %}
-		<span style='margin-left: -4px;' class='hxtool_select_tail'><i class="fe-icon--right fas fa-chevron-up"></i></span>
+		<h4 class='hxtool_typography_h3'>Rule category</h4>
+		<div id='categoryContainer'></div>
 
-		<h3 class='hxtool_typography_h3'>Platform</h3>
-		<select id='indicator_platform'>
-			<option value='win'>Microsoft Windows
-			<option value='osx'>Apple MacOS
-			<option value='all'>All
-		</select>
-		<span style='margin-left: -4px;' class='hxtool_select_tail'><i class="fe-icon--right fas fa-chevron-up"></i></span>
+		<h4 class='hxtool_typography_h3'>Platform</h4>
+		{{ htDropdown.widgetHeader("Microsoft Windows", "indicator_platform", "win") }}
+		{{ htDropdown.widgetItem("Microsoft Windows", "win", elementIcon="fab fa-windows") }}
+		{{ htDropdown.widgetItem("Apple MacOS", "osx", elementIcon="fab fa-apple") }}
+		{{ htDropdown.widgetItem("All", "all", elementIcon="fab fa-globe") }}
+		{{ htDropdown.widgetFooter() }}
+
 		{% if iocname %}
 			<div style='width: 650px; font-style: italic; font-size: 11px; margin-top: 10px;'>Note: Due to limitations in the HX API indicator conditions cannot be edited. When you use HXTool to edit an indicator a new indicator will be created and the old indicator will be removed. Make sure to backup your indicators before proceeding</div>
 		{% endif %}

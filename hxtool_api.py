@@ -762,7 +762,6 @@ def hxtool_api_indicators_export(hx_api_object):
 
 
 	if len(iocList.keys()) == 1:
-		print(list(iocList.keys())[0])
 		iocfname = iocList[list(iocList.keys())[0]]['name'] + ".ioc"
 	else:
 		iocfname = "multiple_indicators.ioc"
@@ -898,7 +897,7 @@ def hxtool_api_indicators_edit(hx_api_object):
 				if not ret:
 					# Condition was not added successfully set state to False to prevent the original indicator from being removed
 					myState = False
-					return('', 500)
+					return('Failed to create condition', 500)
 		# Everything is OK
 		if myState:
 			# Remove the original indicator

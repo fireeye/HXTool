@@ -723,7 +723,7 @@
 	</div>
 
 	<!-- Script source -->
-	<h3 class='hxtool_typography_h3'>Script source</h3>
+	<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Script source</h3>
 	<div class='hxtool_panel_wrapper'>
 
 		{{ htRadio.widgetHeader("From HXTool", "hxtool", "datasource-a", "datasource", elementChecked="true") }}
@@ -778,15 +778,17 @@
 
 <!-- Triage Acquisition -->
 {{ htModal.widgetHeader("New Triage Acquisition", modalId="triageNewPopup") }}
-	<h3 class='hxtool_typography_h3'>Triage mode</h3>
-	{{ htRadio.widgetHeader("Standard", "standard", "triagemode-a", "triagemode", elementChecked="true") }}
-	{{ htRadio.widgetHeader("Around 1 hour ago", "1", "triagemode-b", "triagemode", elementChecked="false") }}
-	{{ htRadio.widgetHeader("Around 2 hours ago", "2", "triagemode-c", "triagemode", elementChecked="false") }}
-	{{ htRadio.widgetHeader("Around 4 hours ago", "4", "triagemode-d", "triagemode", elementChecked="false") }}
-	{{ htRadio.widgetHeader("Around 8 hours ago", "8", "triagemode-e", "triagemode", elementChecked="false") }}
-	{{ htRadio.widgetHeader("Around timestamp", "timestamp", "triagemode-f", "triagemode", elementChecked="false") }}
-	<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px; width: 150px;'>
-		<input type='text' class="fe-input" id='triage_timestamp' name='triage_timestamp'>
+	<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Triage mode</h3>
+	<div class='hxtool_panel_wrapper'>
+		{{ htRadio.widgetHeader("Standard", "standard", "triagemode-a", "triagemode", elementChecked="true") }}
+		{{ htRadio.widgetHeader("Around 1 hour ago", "1", "triagemode-b", "triagemode", elementChecked="false") }}
+		{{ htRadio.widgetHeader("Around 2 hours ago", "2", "triagemode-c", "triagemode", elementChecked="false") }}
+		{{ htRadio.widgetHeader("Around 4 hours ago", "4", "triagemode-d", "triagemode", elementChecked="false") }}
+		{{ htRadio.widgetHeader("Around 8 hours ago", "8", "triagemode-e", "triagemode", elementChecked="false") }}
+		{{ htRadio.widgetHeader("Around timestamp", "timestamp", "triagemode-f", "triagemode", elementChecked="false") }}
+		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px; width: 150px;'>
+			<input type='text' class="fe-input" id='triage_timestamp' name='triage_timestamp'>
+		</div>
 	</div>
 {{ htModal.widgetMiddle() }}
 	<button class="fe-btn fe-btn--md fe-btn--secondary" id="triageCancel" aria-label="Cancel"><span> Cancel </span></button>

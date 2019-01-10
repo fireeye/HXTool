@@ -463,7 +463,7 @@
 		</div>
 
 		<!-- IOC SOURCE -->
-		<h3 class='hxtool_typography_h3'>Indicator source</h3>
+		<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Indicator source</h3>
 		<div class='hxtool_panel_wrapper'>
 
 			{{ htRadio.widgetHeader("From HXTool", "hxtool", "iocsource", "iocsource", elementChecked="true") }}
@@ -485,7 +485,7 @@
 		</div>
 
 		<!-- Host Set selection -->
-		<h3 class='hxtool_typography_h3'>Hostset</h3>
+		<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Hostset</h3>
 		<div class='hxtool_panel_wrapper'>
 			<div class="fe-dropdown">
 				<button id='esHostset' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> select a hostset <i class="fe-icon--right fal fa-chevron-up"></i></button>
@@ -501,7 +501,7 @@
 
 		<!-- SKIP UNSUPPORTED TERMS -->
 		<div id='skipterms' style='display: none;'>
-			<h3 class='hxtool_typography_h3'>Skip unsupported terms</h3>
+			<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Skip unsupported terms</h3>
 			<div class='hxtool_panel_wrapper'>
 				{{ htDropdown.widgetHeader("selection", "esSkipterms", "__hxtool_not_set") }}
 				{{ htDropdown.widgetItem("True", "true", elementIcon="fa-check") }}
@@ -511,7 +511,7 @@
 		</div>
 
 		<!-- SCHEDULER -->
-		<h3 class='hxtool_typography_h3'>Scheduler</h3>
+		<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Scheduler</h3>
 		<div class='hxtool_panel_wrapper'>
 			{{ htRadio.widgetHeader("Run now", "run_now", "schedule-a", "schedule", elementChecked="true") }}
 			{{ htRadio.widgetHeader("Run at a specific date/time", "run_at", "schedule-b", "schedule", elementChecked="false") }}
