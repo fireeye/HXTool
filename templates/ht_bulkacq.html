@@ -128,15 +128,6 @@
 			},
 			"columnDefs": [	
 				{
-				 "targets": [ 0, 2 ],
-				 render: function ( data, type, row, meta ) {
-				 	if(type === 'display') {
-				 		data = '<a style="margin: 0;" class="fe-radio__label" href="/bulkdetails?id=' + row.DT_RowId + '">' + data + '</a>';
-				 	}
-				 	return data;
-				 }
-				},
-				{
 				 "targets": 1,
 				 render: function ( data, type, row, meta ) {
 				 	return (datatables_parseAcquisitionState(data));

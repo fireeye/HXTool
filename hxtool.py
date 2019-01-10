@@ -220,21 +220,6 @@ def rtioc(hx_api_object):
 		return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, eventspace=eventspace)
 
 
-@app.route('/bulkdetails', methods = ['GET'])
-@valid_session_required
-def bulkdetails(hx_api_object):
-	if request.args.get('id'):
-
-		(ret, response_code, response_data) = hx_api_object.restListBulkHosts(request.args.get('id'))
-		if ret:
-			bulktable = formatBulkHostsTable(response_data)
-		else:
-			abort(Response("Failed to retrieve bulk acquisition details from the controller, response code: {}, response data: {}".format(response_code, response_data)))
-		return render_template('ht_bulk_dd.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bulktable=bulktable)
-	else:
-		abort(404)
-
-
 # TODO: These two functions should be merged at some point
 @app.route('/bulkdownload', methods = ['GET'])
 @valid_session_required
@@ -292,12 +277,6 @@ def download_multi_file_single(hx_api_object):
 		else:
 			return "HX controller responded with code {0}: {1}".format(response_code, response_data)
 	abort(404)		
-
-##### NEED TO IMPLEMENT THIS IN AN API CALL FOR BULK ACQ
-#if request.args.get('action') == "stopdownload":
-#ret = app.hxtool_db.bulkDownloadUpdate(request.args.get('id'), stopped = True)
-#app.logger.info(format_activity_log(msg="bulk acquisition action", action="stop download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
-#return redirect("/bulkacq", code=302)
 
 ### Scripts
 @app.route('/scripts', methods=['GET'])
