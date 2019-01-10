@@ -530,7 +530,7 @@
 
 
 	<!-- Script source -->
-	<h3 class='hxtool_typography_h3'>Script source</h3>
+	<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Script source</h3>
 	<div class='hxtool_panel_wrapper'>
 
 		{{ htRadio.widgetHeader("From HXTool", "hxtool", "bulksource-a", "bulksource", elementChecked="true") }}
@@ -552,7 +552,7 @@
 	</div>
 
 	<!-- Host Set selection -->
-	<h3 class='hxtool_typography_h3'>Hostset</h3>
+	<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Hostset</h3>
 	<div class='hxtool_panel_wrapper'>
 		{{ htDropdown.widgetHeader("select a hostset", "bulkHostset", "false") }}
 			{% if hostsets %} {{hostsets|safe}} {% endif %}
@@ -560,7 +560,7 @@
 	</div>
 
 	<!-- SCHEDULER -->
-	<h3 class='hxtool_typography_h3'>Scheduler</h3>
+	<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Scheduler</h3>
 	<div class='hxtool_panel_wrapper'>
 		{{ htRadio.widgetHeader("Run now", "run_now", "schedule-a", "schedule", elementChecked="true") }}
 		{{ htRadio.widgetHeader("Run at a specific date/time", "run_at", "schedule-b", "schedule", elementChecked="false") }}
@@ -586,7 +586,7 @@
 	</div>
 
 	<!-- Task profile -->
-	<h3 class='hxtool_typography_h3'>Task-processor profile</h3>
+	<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Task-processor profile</h3>
 	<div class='hxtool_panel_wrapper'>
 		{{ htDropdown.widgetHeader("No profile", "taskprocessorId", "false") }}
 			{% if taskprofiles %} {{taskprofiles|safe}} {% endif %}
