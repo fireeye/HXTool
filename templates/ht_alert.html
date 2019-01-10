@@ -21,11 +21,11 @@
 		if ($('#filtertable_hash').val() != "") {
 			myurl += "&md5hash=" + $('#filtertable_hash').val();
 		}
-		if ($('#filtertable_source').find(":selected").val() != "all") {
-			myurl += "&source=" + $('#filtertable_source').find(":selected").val();	
+		if ($('#filtertable_source').data("id") != "all") {
+			myurl += "&source=" + $('#filtertable_source').data("id");	
 		}
-		if ($('#filtertable_resolution').find(":selected").val() != "all") {
-			myurl += "&resolution=" + $('#filtertable_resolution').find(":selected").val();	
+		if ($('#filtertable_resolution').data("id") != "all") {
+			myurl += "&resolution=" + $('#filtertable_resolution').data("id");	
 		}
 		return(myurl)
 	}
@@ -406,7 +406,7 @@
 		<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-top' id='refresh'>refresh</button>
 	</div>
 	<div class="fe-panel__body">
-		<table class='hxtool_alerts_filter' style='width: 100%;'>
+		<table class='hxtool_alerts_filter'>
 			<tr>
 				<th>
 					<label for="" class="fe-input-label caption">Endpoint IP/Hostname</label>
@@ -426,7 +426,6 @@
 			</tr>
 			<tr>
 				<td>
-
 					<input class='hxtool_input_small fe-input' id='filtertable_hostname' type='text' style='width: 100%;'>
 				</td>
 				<td>
@@ -436,14 +435,32 @@
 					<input class='hxtool_input_small fe-input' id='filtertable_hash' type='text' style='width: 100%;'>
 				</td>
 				<td>
+					{{ htDropdown.widgetHeader("All", "filtertable_source", "all") }}
+					{{ htDropdown.widgetItem("All", "all", elementIcon="fa-check") }}
+					{{ htDropdown.widgetItem("Indicator", "ioc", elementIcon="fa-check") }}
+					{{ htDropdown.widgetItem("Exploit Guard", "exd", elementIcon="fa-check") }}
+					{{ htDropdown.widgetItem("Malware", "mal", elementIcon="fa-check") }}
+					{{ htDropdown.widgetFooter() }}
+					<!--
 					<select class='hxtool_input_select fe-input' id='filtertable_source'>
 						<option value='all' SELECTED>All
 						<option value='ioc'>IOC - Indicator
 						<option value='exd'>EXD - Exploit Guard
 						<option value='mal'>MAL - Anti-virus
 					</select>
+				-->
 				</td>
 				<td>
+					{{ htDropdown.widgetHeader("All", "filtertable_resolution", "all") }}
+					{{ htDropdown.widgetItem("All", "all", elementIcon="fa-check") }}
+					{{ htDropdown.widgetItem("Alert", "ALERT", elementIcon="fa-check") }}
+					{{ htDropdown.widgetItem("Block", "BLOCK", elementIcon="fa-check") }}
+					{{ htDropdown.widgetItem("Partial Block", "PARTIAL_BLOCK", elementIcon="fa-check") }}
+					{{ htDropdown.widgetItem("Active threat", "ACTIVE_THREAT", elementIcon="fa-check") }}
+					{{ htDropdown.widgetItem("Quarantined", "QUARANTINED", elementIcon="fa-check") }}
+					{{ htDropdown.widgetItem("Cleaned", "CLEANED", elementIcon="fa-check") }}
+					{{ htDropdown.widgetFooter() }}
+					<!--
 					<select class='hxtool_input_select fe-input' id='filtertable_resolution'>
 						<option value='all' SELECTED>All
 						<option value='ALERT'>Alert
@@ -453,6 +470,7 @@
 						<option value='QUARANTINED'>Quarantined
 						<option value='CLEANED'>Cleaned
 					</select>
+				-->
 				</td>
 			</tr>
 		</table>

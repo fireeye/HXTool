@@ -90,6 +90,27 @@
 	text-align: left;
 }
 
+.hxtool_alerts_filter th:nth-child(1) {
+	width: 300px;
+}
+
+.hxtool_alerts_filter th:nth-child(2) {
+	width: 300px;
+}
+
+.hxtool_alerts_filter th:nth-child(3) {
+	width: 400px;
+}
+
+.hxtool_alerts_filter th:nth-child(4) {
+	width: 150px;
+}
+
+.hxtool_alerts_filter th:nth-child(5) {
+	width: 150px;
+}
+
+
 /* Dashboard grid table */
 
 .hxtool_table_dashboard {
