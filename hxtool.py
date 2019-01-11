@@ -455,7 +455,7 @@ def app_init(debug = False):
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
 	
-	db_write_cache_size = 10
+	db_write_cache_size = 1
 	# If we're debugging use a static key
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
