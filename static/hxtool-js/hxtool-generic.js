@@ -62,3 +62,27 @@ var getUrlParameter = function getUrlParameter(sParam) {
     }
 };
 
+function hxtoolGenerateNestedTable(myData) {
+	var r = "<table class='hxtool_table_host_alert hxtool_table'>";
+	r += "<tbody>";
+	$.each( myData, function( index, value ) {
+		r += "<tr>";
+		r += "<td class='hxtool_host_info_cell'>" + index + "</td>";
+		r += "<td>";
+		if (isObject(value)) {
+			r += hxtoolGenerateNestedTable(value);
+		}
+		else {
+			r += value;
+		}
+		r += "</td>";
+		r += "</tr>";
+	});
+	r += "</tbody>";
+	r += "</table>";
+	return(r);
+}
+
+function isObject(obj) {
+	return obj === Object(obj);
+}

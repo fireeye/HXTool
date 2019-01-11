@@ -45,7 +45,6 @@ def hxtool_api_hostsets_list(hx_api_object):
 		(r, rcode) = create_api_response(ret, response_code, response_data)
 		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
-
 @ht_api.route('/api/v{0}/getHealth'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def getHealth(hx_api_object):
@@ -58,6 +57,13 @@ def getHealth(hx_api_object):
 	else:
 		myHealth['status'] = "FAIL"
 		return(app.response_class(response=json.dumps(myHealth), status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/version/get'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_version_get(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restGetControllerVersion()
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
 ################

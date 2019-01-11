@@ -318,7 +318,12 @@ def stacking(hx_api_object):
 @valid_session_required
 def stackinganalyze(hx_api_object):
 	return render_template('ht_stacking_analyze.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-			
+
+@app.route('/sysinfo', methods=['GET'])
+@valid_session_required
+def sysinfo(hx_api_object):
+	return render_template('ht_sysinfo.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
 ### Settings
 @app.route('/settings', methods=['GET', 'POST'])
 @valid_session_required
