@@ -69,6 +69,14 @@ def hxtool_api_version_get(hx_api_object):
 ################
 # Acquisitions #
 ################
+@ht_api.route('/api/v{0}/acquisition/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_remove(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restDeleteFile(request.args.get('url'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
 @ht_api.route('/api/v{0}/acquisition/get'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_acquisition_get(hx_api_object):
@@ -382,8 +390,16 @@ def hxtool_api_alerts_remove(hx_api_object):
 @valid_session_required
 def hxtool_api_alerts_get(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restGetAlertID(request.args.get('id'))
-	(r, rcode) = create_api_response(ret, response_code, response_data)
-	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+	# Workaround for matching condition which isn't a part of the response
+	if response_data['data']['source'] == "IOC":
+		(cret, cresponse_code, cresponse_data) = hx_api_object.restGetConditionDetails(response_data['data']['condition']['_id'])
+		if ret:
+			response_data['data']['condition']['tests'] = cresponse_data['data']['tests']
+			(r, rcode) = create_api_response(ret, response_code, response_data)
+			return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+	else:
+		(r, rcode) = create_api_response(ret, response_code, response_data)
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))			
 
 
 #####################
@@ -718,6 +734,17 @@ def hxtool_api_indicator_category_new(hx_api_object):
 		"retention_policy": HXAPI.compat_str(request.args.get('retention_policy')),
 	}
 	(ret, response_code, response_data) = hx_api_object.restCreateCategory(request.args.get('name'), category_options=mycategory_options)
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
+##############
+# Conditions #
+##############
+@ht_api.route('/api/v{0}/conditions/get'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_conditions_get(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restGetConditionDetails(request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
