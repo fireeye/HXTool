@@ -100,6 +100,6 @@ class bulk_download_task_module(task_module):
 				self.logger.info("Bulk download {} is stopped.".format(bulk_acquisition_id))
 				self.parent_task.stop()
 		except Exception as e:
-			self.logger.error(e)
+			self.logger.error(pretty_exceptions(e))
 		finally:	
 			return(ret, result)		

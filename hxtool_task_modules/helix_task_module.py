@@ -106,5 +106,5 @@ class helix_task_module(task_module):
 					os.remove(os.path.realpath(bulk_download_path))			
 				return(True, None)
 		except Exception as e:
-			self.logger.error(e)
+			self.logger.error(pretty_exceptions(e))
 			return(False, None)

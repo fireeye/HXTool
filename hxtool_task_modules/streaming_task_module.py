@@ -116,5 +116,5 @@ class streaming_task_module(task_module):
 				
 			return(ret, None)
 		except Exception as e:
-			self.logger.error(e)
+			self.logger.error(pretty_exceptions(e))
 			return(False, None)

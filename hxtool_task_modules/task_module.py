@@ -3,7 +3,8 @@
 
 import hxtool_global
 from hx_lib import *
-from hx_audit import *	
+from hx_audit import *
+from hxtool_util import *	
 	
 class task_module(object):
 	def __init__(self, parent_task):

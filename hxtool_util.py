@@ -9,6 +9,7 @@ import datetime
 import re
 import colorsys
 import logging
+import traceback
 
 try:
 	from flask import request, session, redirect, url_for
@@ -169,6 +170,10 @@ def _time_replace(m):
 		return HXAPI.hx_strftime(r)
 	return None
 
+def pretty_exceptions(e):
+	return "{} in {}".format(e, traceback.print_stack())
+	
+	
 class TemporaryFileLock(object):
 	def __init__(self, file_path, file_name = 'lock_file'):
 		self.file_name = os.path.join(file_path, file_name)
