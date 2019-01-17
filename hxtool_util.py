@@ -199,7 +199,18 @@ class TemporaryFileLock(object):
 from hxtool_scheduler import *
 from hxtool_task_modules import *
 	
-def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, schedule = None, comment = None, download = True, task_profile = None, skip_base64 = False):
+def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hxtool_host_list_id = None, start_time = None, schedule = None, comment = None, download = True, task_profile = None, skip_base64 = False):
+	if int(hostset_id) > 0:
+		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset_id)
+		if ret:
+			hosts = response_data['data']['entries']
+	elif hxtool_host_list_id:
+		pass
+		
+	if len(hosts) == 0:
+		hxtool_global.get_logger().warn("Host list for bulk acquisition {} is empty. Bailing!".format(comment))
+		return None
+
 	bulk_download_eid = None
 	task_list = []
 	
@@ -218,12 +229,10 @@ def submit_bulk_job(hx_api_object, hostset_id, script_xml, start_time = None, sc
 	# in order to retrieve the hosts targeted for the job.
 	if download:
 		bulk_download_eid = hxtool_global.hxtool_db.bulkDownloadCreate(session['ht_profileid'], hostset_id = hostset_id, task_profile = task_profile)
-		
-		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset_id)
 		bulk_acquisition_hosts = {}
 		_task_profile = None
-		for host in response_data['data']['entries']:
-			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host ['hostname']}
+		for host in hosts:
+			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host['hostname']}
 			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 
 															'Bulk Acquisition Download: {}'.format(host['hostname']), 
 															parent_id = bulk_acquisition_task.task_id, 

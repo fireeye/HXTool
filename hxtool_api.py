@@ -570,9 +570,9 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 		task_profile = request.args.get('taskprocessor', None)
 		should_download = True
 
-	submit_bulk_job(hx_api_object, 
-					int(request.args.get('bulkhostset')), 
+	submit_bulk_job(hx_api_object,  
 					bulk_acquisition_script, 
+					hostset_id = int(request.args.get('bulkhostset')),
 					start_time = start_time, 
 					schedule = schedule, 
 					task_profile = task_profile, 
@@ -616,9 +616,9 @@ def hxtool_api_acquisition_bulk_new_file(hx_api_object):
 		task_profile = request.form.get('taskprocessor', None)
 		should_download = True
 
-	submit_bulk_job(hx_api_object, 
-					int(request.form['bulkhostset']), 
+	submit_bulk_job(hx_api_object,  
 					HXAPI.compat_str(bulk_acquisition_script), 
+					hostset_id = int(request.form['bulkhostset']),
 					start_time = start_time, 
 					schedule = schedule, 
 					task_profile = task_profile, 
@@ -963,7 +963,7 @@ def hxtool_api_stacking_new(hx_api_object):
 		with open(combine_app_path('scripts', stack_type['script']), 'r') as f:
 			script_xml = f.read()
 			hostset_id = int(request.form['stackhostset'])
-			bulk_download_eid = submit_bulk_job(hx_api_object, hostset_id, script_xml, task_profile = "stacking")
+			bulk_download_eid = submit_bulk_job(hx_api_object, script_xml, hostset_id = hostset_id, task_profile = "stacking")
 			ret = hxtool_global.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
@@ -1032,7 +1032,7 @@ def hxtool_api_acquisition_multi_file_listing(hx_api_object):
 	except re.error:
 		return(app.response_class(response=json.dumps("FAIL"), status=404, mimetype='application/json'))
 	if script_xml:
-		bulk_download_eid = submit_bulk_job(hx_api_object, hostset, HXAPI.compat_str(script_xml), task_profile = "file_listing")
+		bulk_download_eid = submit_bulk_job(hx_api_object, HXAPI.compat_str(script_xml), hostset_id = hostset, task_profile = "file_listing")
 		ret = app.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, depth, display_name, api_mode=use_api_mode)
 		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 	else:
