@@ -21,9 +21,9 @@
 	function parseTableData(myIndex, myValue) {
 		var r = ""
 
-		var myTimestampFields = ["Event at", "Matched at", "Reported at", "Earliest detection time", "creation-time", "modification-time", "access-time", "fileWriteEvent/timestamp"];
+		var myTimestampFields = ["Event at", "Matched at", "Reported at", "Earliest detection time", "creation-time", "modification-time", "access-time", "fileWriteEvent/timestamp", "imageLoadEvent/timestamp", "processEvent/timestamp", "regKeyEvent/timestamp", "dnsLookupEvent/timestamp", "ipv4NetworkEvent/timestamp", "urlMonitorEvent/timestamp"];
 
-		if (["md5sum", "sha1sum", "sha256sum", "fileWriteEvent/md5"].indexOf(myIndex) >= 0 && myValue.length > 31) {
+		if (["md5sum", "sha1sum", "sha256sum", "fileWriteEvent/md5", "processEvent/md5"].indexOf(myIndex) >= 0 && myValue.length > 31) {
 			r += "<i style='color: #11a962; margin-right: 6px;' class='fas fa-hashtag'></i>" + myValue;
 			r += "<div style='float: right;'>";
 			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://www.virustotal.com/#/file/" + myValue + "/detection' aria-label='show'><span>vt<i class='fe-icon--right far fa-external-link'></i></span></button>";
@@ -39,7 +39,7 @@
 				r += "<i style='color: #11a962; margin-right: 6px;' class='fas fa-check'></i>" + myValue;
 			}
 		}
-		else if (["fileWriteEvent/fullPath", "file-path"].indexOf(myIndex) >= 0) {
+		else if (["fileWriteEvent/fullPath", "file-path", "imageLoadEvent/fullPath"].indexOf(myIndex) >= 0) {
 			r += myValue;
 			r += "<div style='float: right;'>";
 			r += "<button class='hxtool_host_alert_goAcquire fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-id='" + myValue + "' aria-label='acquire'><span>acquire<i class='fe-icon--right far fa-download'></i></span></button>";
@@ -217,11 +217,11 @@
 
 			r += "<h5 class='hxtool_alert_header'>Infected Object</h5>";
 			myObjType = myAlert['event_values']['detections']['detection'][0]['infected-object']['object-type'];
-			r += generateTable(myAlert['event_values']['detections']['detection'][0]['infected-object'][myObjType + '-object']);
+			r += generateNestedTable(myAlert['event_values']['detections']['detection'][0]['infected-object'][myObjType + '-object']);
 
 			r += "<h5 class='hxtool_alert_header'>Actioned Object</h5>";
 			myAObjType = myAlert['event_values']['detections']['detection'][0]['action']['actioned-object']['object-type'];
-			r += generateTable(myAlert['event_values']['detections']['detection'][0]['action']['actioned-object'][myAObjType + '-object']);
+			r += generateNestedTable(myAlert['event_values']['detections']['detection'][0]['action']['actioned-object'][myAObjType + '-object']);
 
 			r += "<h5 class='hxtool_alert_header'>Action results</h5>";
 			r += generateTable({
