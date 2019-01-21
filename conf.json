@@ -16,7 +16,7 @@
 	},
    "network":{  
       "ssl":"enabled",
-      "port":8081,
+      "port":8080,
       "listen_address":"0.0.0.0",
 	  "session_timeout":30
    },
@@ -31,6 +31,6 @@
    "headers":{
    },
    "cookies":{
-      "XFIRE_HMAC_SESSION": "9Ikq0Bc6TmYxMeoiVOoqsbEzo6nBdAUlikwBh1GpnnG1grtcZfHaFUm0JXvbPMH5"
+      "XFIRE_HMAC_SESSION": "4nEn5XXPFfQya6QYmSoRsik6PoE7Uk9LWPgN3xUZjsvHjelNZQm5j6YtJiJBlVBJ"
    }
 }

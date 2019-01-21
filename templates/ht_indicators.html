@@ -82,15 +82,15 @@
 					 render: function ( data, type, row, meta ) {
 					 	r = "";
 					 	myId = String(row.category_id);
-					 	r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view<i class='fe-icon--right far fa-eye'></i></button>";
+					 	r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-url='" + row.url + "'>view<i class='fe-icon--right far fa-eye'></i></button>";
 					 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete") {
-					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='edit' data-id='" + row.DT_RowId + "'>edit<i class='fe-icon--right far fa-edit'></i></button>";
+					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='edit' data-url='" + row.url + "' data-id='" + row.DT_RowId + "'>edit<i class='fe-icon--right far fa-edit'></i></button>";
 					 	}
 					 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete" || myEditPolicies[myId] == "delete") {
-					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-category='" + row.category_name + "' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-url='" + row.url + "' data-category='" + row.category_name + "' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
 					 	}
 					 	if (row.category_name != "Custom") {
-					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='clone' data-id='" + row.DT_RowId + "'>clone<i class='fe-icon--right far fa-clone'></i></button>";
+					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='clone' data-url='" + row.url + "' data-id='" + row.DT_RowId + "'>clone<i class='fe-icon--right far fa-clone'></i></button>";
 					 	}
 					 	return (r);
 					 }
@@ -103,21 +103,21 @@
 
 		$("#iocTable").on("click", ".iocAction", function() {
 			if ($(this).data("type") == "edit") {
-				location.href = "/rtioc?indicator=" + $(this).data("id");
+				location.href = "/rtioc?indicator=" + $(this).data("url");
 			}
 			if ($(this).data("type") == "clone") {
-				location.href = "/rtioc?indicator=" + $(this).data("id") + "&clone=true";
+				location.href = "/rtioc?indicator=" + $(this).data("url") + "&clone=true";
 			}
 			if ($(this).data("type") == "remove") {
 				myrow = $(this).closest("tr");
-				hxtool_ajax_get_request("/api/v1/indicators/remove", "id=" + $(this).data("id") + "&category=" + $(this).data("category"), function() {
+				hxtool_ajax_get_request("/api/v1/indicators/remove", "url=" + $(this).data("url"), function() {
 					myrow.fadeOut(200, function() {
 						ioc_datatable.row(myrow).remove().draw();
 					});
 				});
 			}
 			if ($(this).data("type") == "view") {
-				hxtool_ajax_get_request("/api/v1/indicators/get/conditions", "uuid=" + $(this).data("id"), function(myConditionsResponse) {
+				hxtool_ajax_get_request("/api/v1/indicators/get/conditions", "uuid=" + $(this).data("id") + "&url=" + $(this).data("url"), function(myConditionsResponse) {
 					myConditions = JSON.parse(myConditionsResponse['api_response']);
 
 					// First empty the container

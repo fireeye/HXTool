@@ -21,9 +21,9 @@
 	function parseTableData(myIndex, myValue) {
 		var r = ""
 
-		var myTimestampFields = ["Event at", "Matched at", "Reported at", "Earliest detection time", "creation-time", "modification-time", "access-time", "fileWriteEvent/timestamp"];
+		var myTimestampFields = ["Event at", "Matched at", "Reported at", "Earliest detection time", "creation-time", "modification-time", "access-time", "fileWriteEvent/timestamp", "imageLoadEvent/timestamp", "processEvent/timestamp", "regKeyEvent/timestamp", "dnsLookupEvent/timestamp", "ipv4NetworkEvent/timestamp", "urlMonitorEvent/timestamp"];
 
-		if (["md5sum", "sha1sum", "sha256sum", "fileWriteEvent/md5"].indexOf(myIndex) >= 0 && myValue.length > 31) {
+		if (["md5sum", "sha1sum", "sha256sum", "fileWriteEvent/md5", "processEvent/md5"].indexOf(myIndex) >= 0 && myValue.length > 31) {
 			r += "<i style='color: #11a962; margin-right: 6px;' class='fas fa-hashtag'></i>" + myValue;
 			r += "<div style='float: right;'>";
 			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://www.virustotal.com/#/file/" + myValue + "/detection' aria-label='show'><span>vt<i class='fe-icon--right far fa-external-link'></i></span></button>";
@@ -39,7 +39,7 @@
 				r += "<i style='color: #11a962; margin-right: 6px;' class='fas fa-check'></i>" + myValue;
 			}
 		}
-		else if (["fileWriteEvent/fullPath", "file-path"].indexOf(myIndex) >= 0) {
+		else if (["fileWriteEvent/fullPath", "file-path", "imageLoadEvent/fullPath"].indexOf(myIndex) >= 0) {
 			r += myValue;
 			r += "<div style='float: right;'>";
 			r += "<button class='hxtool_host_alert_goAcquire fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-id='" + myValue + "' aria-label='acquire'><span>acquire<i class='fe-icon--right far fa-download'></i></span></button>";
@@ -150,6 +150,24 @@
 		var r = "";
 
 		if (myAlert['source'] == "IOC") {
+			r += "<h5 class='hxtool_alert_header'>Matching condition</h5>";
+			r += "<div class='clt' style='font-size: 12px;'>";
+			r += "<ul><li>or<ul>";
+			r += "<li>and<ul>";
+			$.each(myAlert['condition']['tests'], function(ckey, cvalue) {
+				r += "<li>";
+				if (cvalue['negate'] == true) {
+					r += "<span style='color: #ea475b; font-weight: bold;'>not </span>";
+				}
+				r += "<strong>" + cvalue['token'] + "</strong> " + cvalue['operator'] + " " + cvalue['value'];
+				if (cvalue['preservecase'] == true) {
+					r += "<span style='color: #59dc90;'> (case sensitive)</span>";
+				}
+				r += "</li>";
+			});
+			r += "</ul></li>";
+			r += "</ul></li></div>";
+
 			r += "<h5 class='hxtool_alert_header'>Indicator Alert</h5>";
 			r += generateTable({
 				"Indicator": myAlert['indicator']['display_name'],
@@ -164,7 +182,6 @@
 
 			r += "<h5 class='hxtool_alert_header'>Event data</h5>";
 			r += generateTable(myAlert['event_values']);
-
 			return(r);
 		}
 		else if (myAlert['source'] == "EXD") {
@@ -200,11 +217,11 @@
 
 			r += "<h5 class='hxtool_alert_header'>Infected Object</h5>";
 			myObjType = myAlert['event_values']['detections']['detection'][0]['infected-object']['object-type'];
-			r += generateTable(myAlert['event_values']['detections']['detection'][0]['infected-object'][myObjType + '-object']);
+			r += generateNestedTable(myAlert['event_values']['detections']['detection'][0]['infected-object'][myObjType + '-object']);
 
 			r += "<h5 class='hxtool_alert_header'>Actioned Object</h5>";
 			myAObjType = myAlert['event_values']['detections']['detection'][0]['action']['actioned-object']['object-type'];
-			r += generateTable(myAlert['event_values']['detections']['detection'][0]['action']['actioned-object'][myAObjType + '-object']);
+			r += generateNestedTable(myAlert['event_values']['detections']['detection'][0]['action']['actioned-object'][myAObjType + '-object']);
 
 			r += "<h5 class='hxtool_alert_header'>Action results</h5>";
 			r += generateTable({
@@ -347,12 +364,12 @@
 
 		});
 
-		// Update info every 10 seconds
+		// Update info every 15 seconds
 		doUpdate = setInterval(function () {
 			setContainmentInfo(myAgentId);
 			hostAcq_datatable.ajax.reload();
 			hostAlert_datatable.ajax.reload();
-		}, 10 * 1000);
+		}, 20 * 1000);
 
 		// Get configuration
 		hxtool_ajax_get_request("/api/v1/hosts/config", "id=" + myAgentId, function(myhost) {
@@ -575,7 +592,12 @@
 				$("#hostContentPanel").find(".panelContentClass").html(parseHostAcquisition(acq['data']));
 
 				myUrlArr = myUrl.split("/");
-				$("#hostContentPanel").find(".panelContentClass").append("<button class='acqDownload fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='" + myUrlArr[5] + "' data-id='" + myUrl + "' aria-label='download'><span> download </span></button>")
+				$("#hostContentPanel").find(".panelContentClass").append("<button class='acqDownload fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='" + myUrlArr[5] + "' data-id='" + myUrl + "' aria-label='download'><span>download<i class='fe-icon--right far fa-download'></i></span></button>");
+
+				if (myUrlArr[5] != "bulk") {
+					myAcqRemoveUrl = myUrl.substring(11);
+					$("#hostContentPanel").find(".panelContentClass").append("<button class='acqRemove fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='" + myUrlArr[5] + "' data-id='" + myAcqRemoveUrl + "' aria-label='remove'><span>remove<i class='fe-icon--right far fa-ban'></i></span></button>");
+				}
 
 				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAcqDetailsButton fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' aria-label='show'><span> show all acquisition details </span></button>");
 				$("#hostContentPanel").find(".panelContentClass").append("<div style='display: none;' class='acqAllDetails'></div>");
@@ -585,7 +607,6 @@
 
 		
 		$('#hostContentPanel').on('click','.acqDownload',function() {
-
 			if ($(this).data("type") == "files" || $(this).data("type") == "bulk") {
 				location.href = "/api/v1/acquisition/download?id=" + $(this).data("id") + ".zip";
 			}
@@ -595,8 +616,18 @@
 			else {
 				location.href = "/api/v1/acquisition/download?id=" + $(this).data("id") + ".mans";
 			}
-			
 		});
+
+		$('#hostContentPanel').on('click','.acqRemove',function() {
+			myrowUrl = $(this).data("id");
+			hxtool_ajax_get_request("/api/v1/acquisition/remove", "url=" + $(this).data("id"), function(resMyRemove) {
+				$("#hostContentPanel").find(".panelContentClass").html("");
+				hostAcq_datatable.row("#/hx/api/v3/" + myrowUrl).remove().draw();
+			});
+		});
+
+
+
 	});
 </script>
 

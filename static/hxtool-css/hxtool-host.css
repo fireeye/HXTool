@@ -147,7 +147,11 @@
 	margin-right: 6px;
 }
 
-.acqDownload {
+.acqRemove {
+	margin-left: 6px;
+}
+
+.allAcqDetailsButton {
 	display: block;
-	margin-bottom: 12px;
+	margin-top: 24px;
 }

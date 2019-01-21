@@ -45,7 +45,6 @@ def hxtool_api_hostsets_list(hx_api_object):
 		(r, rcode) = create_api_response(ret, response_code, response_data)
 		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
-
 @ht_api.route('/api/v{0}/getHealth'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def getHealth(hx_api_object):
@@ -59,10 +58,25 @@ def getHealth(hx_api_object):
 		myHealth['status'] = "FAIL"
 		return(app.response_class(response=json.dumps(myHealth), status=200, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/version/get'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_version_get(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restGetControllerVersion()
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 
 ################
 # Acquisitions #
 ################
+@ht_api.route('/api/v{0}/acquisition/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_acquisition_remove(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restDeleteFile(request.args.get('url'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
 @ht_api.route('/api/v{0}/acquisition/get'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_acquisition_get(hx_api_object):
@@ -376,8 +390,16 @@ def hxtool_api_alerts_remove(hx_api_object):
 @valid_session_required
 def hxtool_api_alerts_get(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restGetAlertID(request.args.get('id'))
-	(r, rcode) = create_api_response(ret, response_code, response_data)
-	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+	# Workaround for matching condition which isn't a part of the response
+	if response_data['data']['source'] == "IOC":
+		(cret, cresponse_code, cresponse_data) = hx_api_object.restGetConditionDetails(response_data['data']['condition']['_id'])
+		if ret:
+			response_data['data']['condition']['tests'] = cresponse_data['data']['tests']
+			(r, rcode) = create_api_response(ret, response_code, response_data)
+			return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+	else:
+		(r, rcode) = create_api_response(ret, response_code, response_data)
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))			
 
 
 #####################
@@ -717,12 +739,23 @@ def hxtool_api_indicator_category_new(hx_api_object):
 
 
 ##############
+# Conditions #
+##############
+@ht_api.route('/api/v{0}/conditions/get'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_conditions_get(hx_api_object):
+	(ret, response_code, response_data) = hx_api_object.restGetConditionDetails(request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
+##############
 # Indicators #
 ##############
 @ht_api.route('/api/v{0}/indicators/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_indicators_remove(hx_api_object):
-	(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(request.args.get('category'), request.args.get('id'))
+	(ret, response_code, response_data) = hx_api_object.restGetUrl(request.args.get('url'), method="DELETE")
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
@@ -730,13 +763,9 @@ def hxtool_api_indicators_remove(hx_api_object):
 @ht_api.route('/api/v{0}/indicators/get/conditions'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_indicators_get_conditions(hx_api_object):
-	uuid = request.args.get('uuid')
-
-	(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ "uri_name": uuid })
-	category = response_data['data']['entries'][0]['category']['uri_name']
-
-	(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(category, uuid, 'presence')
-	(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(category, uuid, 'execution')
+	url = request.args.get('url')
+	(ret, response_code, condition_class_presence) = hx_api_object.restGetUrl(url + '/conditions/presence')
+	(ret, response_code, condition_class_execution) = hx_api_object.restGetUrl(url + '/conditions/execution')
 
 	myconditions = { "presence": condition_class_presence, "execution": condition_class_execution }
 
@@ -1406,7 +1435,8 @@ def datatable_indicators(hx_api_object):
 		for indicator in response_data['data']['entries']:
 			mydata['data'].append({
 				"DT_RowId": indicator['_id'],
-				"display_name": indicator['display_name'],
+				"url": indicator['url'],
+				"display_name": indicator['name'],
 				"active_since": indicator['active_since'],
 				"category_name": indicator['category']['name'],
 				"created_by": indicator['created_by'],
@@ -2044,11 +2074,14 @@ def chartjs_malwarecontent(hx_api_object):
 			for host in response_data['data']['entries']:
 				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
 				if sret and 'malware' in sresponse_data['data'].keys():
-					if 'content' in sresponse_data['data']['malware']['av'].keys():
-						if not sresponse_data['data']['malware']['av']['content']['version'] in myContent.keys():
-							myContent[sresponse_data['data']['malware']['av']['content']['version']] = 1
+					if 'av' in sresponse_data['data']['malware'].keys():
+						if 'content' in sresponse_data['data']['malware']['av'].keys():
+							if not sresponse_data['data']['malware']['av']['content']['version'] in myContent.keys():
+								myContent[sresponse_data['data']['malware']['av']['content']['version']] = 1
+							else:
+								myContent[sresponse_data['data']['malware']['av']['content']['version']] += 1
 						else:
-							myContent[sresponse_data['data']['malware']['av']['content']['version']] += 1
+							myContent['none'] += 1
 					else:
 						myContent['none'] += 1
 				else:
@@ -2097,11 +2130,14 @@ def chartjs_malwareengine(hx_api_object):
 			for host in response_data['data']['entries']:
 				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
 				if sret and 'malware' in sresponse_data['data'].keys():
-					if 'content' in sresponse_data['data']['malware']['av'].keys():
-						if not sresponse_data['data']['malware']['av']['engine']['version'] in myContent.keys():
-							myContent[sresponse_data['data']['malware']['av']['engine']['version']] = 1
+					if 'av' in sresponse_data['data']['malware'].keys():
+						if 'content' in sresponse_data['data']['malware']['av'].keys():
+							if not sresponse_data['data']['malware']['av']['engine']['version'] in myContent.keys():
+								myContent[sresponse_data['data']['malware']['av']['engine']['version']] = 1
+							else:
+								myContent[sresponse_data['data']['malware']['av']['engine']['version']] += 1
 						else:
-							myContent[sresponse_data['data']['malware']['av']['engine']['version']] += 1
+							myContent['none'] += 1
 					else:
 						myContent['none'] += 1
 				else:

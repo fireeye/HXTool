@@ -51,60 +51,6 @@
 			}
 		}
 
-		function showPopup(height, width, url, elementToRestrict, includeWidthRestriction=false) {
-			$('#shader').popupshow();
-			$('#ht_popup_div').css({height : height });
-			$('#ht_popup_div').css({width : width });
-			$('#ht_popup_div').realcenter();
-			$('#ht_popup_div').load(url, function( response, status, xhr ) {
-				$('#ht_popup_div').show(200);
-				// Force passed div to fit inside the popup
-				if ('#' + elementToRestrict) {
-					$('#' + elementToRestrict).css('height', height - 30);
-					$('#' + elementToRestrict).css('overflowY', 'auto');
-					if (includeWidthRestriction) {
-						$('#' + elementToRestrict).css('width', width);
-						$('#' + elementToRestrict).css('overflowX', 'auto');
-					}
-				}
-				$('#popupCancel').click(function(e) {
-					$('#ht_popup_div').hide();
-					$('#ht_popup_div').empty();
-					$('#shader').hide();
-				});
-			});
-		}
-
-		function showStatusBar(text, showTimer, hideTimer, duration) {
-			$("#ht_statusbar_td").html(text);
-			$("#ht_statusbar_tr").show(showTimer);
-			setTimeout(function() { $("#ht_statusbar_tr").hide(hideTimer); }, duration);
-		}
-		
-		function enableStatusBar(text, showTimer, myClass) {
-			$("#ht_statusbar_div").html(text);
-			$("#ht_statusbar_div").addClass(myClass);
-			$("#ht_statusbar_div").slideDown(showTimer);
-		}
-
-		function enableStatusBarLive(text, showTimer, myClass) {
-			$("#ht_statusbar_div").html(text);
-			$("#ht_statusbar_div").addClass(myClass);
-			$("#ht_statusbar_div").slideDown(showTimer, function() {
-				setTimeout(function(){
-					$("#ht_statusbar_div").slideUp(showTimer, function() {
-						$("#ht_statusbar_div").html("");
-					});
-				}, 3000);
-			});
-		}
-		
-		function disableStatusBar(hideTimer) {
-			$("#ht_statusbar_div").slideUp(hideTimer, function() {
-					$("#ht_statusbar_div").html("");
-			});
-		}
-
 		function getQueryParam(param) {
 			var ret = '';
 			location.search.substr(1)
@@ -142,24 +88,12 @@
  			this.show();
 			return this;
 		}
-
-		$(document).on("keypress", "#findhost", function(e) {
-			if (e.which == 13) {
-				window.location.href = "/hosts?q=" + $("#findhost").val();
-			}
-		});
 		
 		$(document).ready(function() {
 			hxtool_doc_ready();		
 		});
 	</script>
 	</body>
-
-	<!-- LEGACY REMOVE -->
-	<div class='ht_statusbar_div' id='ht_statusbar_div'></div>
-	<div class='ht_popup_div' id='ht_popup_div'></div>
-	<div class='hxtool_shader' id='hxtool_shader' style='display: none;'>&nbsp;</div>
-
 
 	<!-- TOP NAV BAR -->
 	<header class="fe-top-nav fe-top-nav__topnav">
@@ -228,12 +162,6 @@
 					</div>
 				</li>
 				<li class="fe-top-nav__bar-nav-items">
-					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" data-link='/scheduler' aria-label="item 6">
-						<i class='fas fa-calendar-alt' aria-hidden='true'></i>
-						<span>scheduler</span>
-					</button>
-				</li>
-				<li class="fe-top-nav__bar-nav-items">
 					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 7">
 						<i class='fas fa-toolbox' aria-hidden='true'></i>
 						<span>admin</span>
@@ -241,6 +169,7 @@
 					</button>
 					<div class='hxtool_topnav_dropdown'>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/channels'>custom configuration channels</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scheduler'>scheduler</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/settings'>hxtool settings</button><br>
 					</div>
 				</li>
@@ -254,7 +183,7 @@
 				<a aria-label="search in topnav" id="hxtool_topnavSearch" class="fe-top-nav__action-item" data-clicked='false' role="button" tabindex="0" aria-expanded="false">
 					<i class="fe-icon--center fas fa-search fa-2x"></i>
 				</a>
-				<a aria-label="info in topnav" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
+				<a aria-label="info in topnav" class="fe-top-nav__action-item" href="/sysinfo" role="button" tabindex="0" aria-expanded="false">
 					<i class="fe-icon--center fas fa-info-circle fa-2x"></i>
 				</a>
 				<a id="hxtoolLogout" aria-label="logout" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">

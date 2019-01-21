@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - System information{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+
+		hxtool_ajax_get_request("/api/v1/version/get", "", function(res) {
+			myVersion = JSON.parse(res['api_response']);
+			$("#hxVersionContainer").append(hxtoolGenerateNestedTable(myVersion['data']));
+		});
+
+		sessionVersion = "{{session['hx_version']}}";
+		sessionIp = "{{session['hx_ip']}}";
+		sessionUser = "{{session['ht_user']}}";
+
+		hxToolInfo = {
+			"HX_lib reported version": sessionVersion,
+			"Username": sessionUser,
+			"Controller IP": sessionIp,
+		};
+
+		$("#hxtoolVersionContainer").append(hxtoolGenerateNestedTable(hxToolInfo));
+
+	});
+
+</script>
+
+{{ htPanel.widgetHeader("System information", panelIcon="fa-info") }}
+	<h4 class='hxtool_typography_h3'>FireEye Endpoint Security Controller</h4>
+	<div id='hxVersionContainer'></div>
+
+	<h4 class='hxtool_typography_h3'>HXTool</h4>
+	<div id='hxtoolVersionContainer'></div>
+
+{{ htPanel.widgetFooter() }}
+
+{% endblock %}

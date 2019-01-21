@@ -188,24 +188,27 @@ def rtioc(hx_api_object):
 
 	if request.args.get('indicator'):
 
-		uuid = request.args.get('indicator')
+		url = request.args.get('indicator')
 
 		(ret, response_code, response_data) = hx_api_object.restListCategories()
 		categories = formatCategoriesSelect(response_data)
 
-		(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ 'uri_name': uuid })
+		#(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ 'uri_name': uuid })
+		(ret, response_code, response_data) = hx_api_object.restGetUrl(url)
 		if ret:
-			iocname = response_data['data']['entries'][0]['name']
-			myiocuri = response_data['data']['entries'][0]['uri_name']
-			ioccategory = response_data['data']['entries'][0]['category']['uri_name']
-			mydescription = response_data['data']['entries'][0]['description']
-			if len(response_data['data']['entries'][0]['platforms']) == 1:
-				platform = response_data['data']['entries'][0]['platforms'][0]
+			iocname = response_data['data']['name']
+			myiocuri = response_data['data']['uri_name']
+			ioccategory = response_data['data']['category']['uri_name']
+			mydescription = response_data['data']['description']
+			if len(response_data['data']['platforms']) == 1:
+				platform = response_data['data']['platforms'][0]
 			else:
 				platform = "all"
 
-			(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, uuid, 'presence')
-			(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, uuid, 'execution')
+			#(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, uuid, 'presence')
+			#(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, uuid, 'execution')
+			(ret, response_code, condition_class_presence) = hx_api_object.restGetUrl(url + "/conditions/presence")
+			(ret, response_code, condition_class_execution) = hx_api_object.restGetUrl(url + "/conditions/execution")
 
 			mypre = json.dumps(condition_class_presence['data']['entries'])
 			myexec = json.dumps(condition_class_execution['data']['entries'])
@@ -318,7 +321,12 @@ def stacking(hx_api_object):
 @valid_session_required
 def stackinganalyze(hx_api_object):
 	return render_template('ht_stacking_analyze.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
-			
+
+@app.route('/sysinfo', methods=['GET'])
+@valid_session_required
+def sysinfo(hx_api_object):
+	return render_template('ht_sysinfo.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
 ### Settings
 @app.route('/settings', methods=['GET', 'POST'])
 @valid_session_required
@@ -450,7 +458,7 @@ def app_init(debug = False):
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
 	
-	db_write_cache_size = 10
+	db_write_cache_size = 1
 	# If we're debugging use a static key
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
