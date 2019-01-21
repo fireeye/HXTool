@@ -188,24 +188,27 @@ def rtioc(hx_api_object):
 
 	if request.args.get('indicator'):
 
-		uuid = request.args.get('indicator')
+		url = request.args.get('indicator')
 
 		(ret, response_code, response_data) = hx_api_object.restListCategories()
 		categories = formatCategoriesSelect(response_data)
 
-		(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ 'uri_name': uuid })
+		#(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ 'uri_name': uuid })
+		(ret, response_code, response_data) = hx_api_object.restGetUrl(url)
 		if ret:
-			iocname = response_data['data']['entries'][0]['name']
-			myiocuri = response_data['data']['entries'][0]['uri_name']
-			ioccategory = response_data['data']['entries'][0]['category']['uri_name']
-			mydescription = response_data['data']['entries'][0]['description']
-			if len(response_data['data']['entries'][0]['platforms']) == 1:
-				platform = response_data['data']['entries'][0]['platforms'][0]
+			iocname = response_data['data']['name']
+			myiocuri = response_data['data']['uri_name']
+			ioccategory = response_data['data']['category']['uri_name']
+			mydescription = response_data['data']['description']
+			if len(response_data['data']['platforms']) == 1:
+				platform = response_data['data']['platforms'][0]
 			else:
 				platform = "all"
 
-			(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, uuid, 'presence')
-			(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, uuid, 'execution')
+			#(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, uuid, 'presence')
+			#(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, uuid, 'execution')
+			(ret, response_code, condition_class_presence) = hx_api_object.restGetUrl(url + "/conditions/presence")
+			(ret, response_code, condition_class_execution) = hx_api_object.restGetUrl(url + "/conditions/execution")
 
 			mypre = json.dumps(condition_class_presence['data']['entries'])
 			myexec = json.dumps(condition_class_execution['data']['entries'])
