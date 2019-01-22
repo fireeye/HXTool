@@ -255,13 +255,13 @@ def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hx
 			# The bulk_acquisition_task_module passes the host_id and host_name values to these modules
 			if task_profile:
 				if task_profile == 'stacking':
-					#app.logger.debug("Using stacking task module.")
+					hxtool_global.get_logger().debug("Using stacking task module.")
 					download_and_process_task.add_step(stacking_task_module, kwargs = {
 																'delete_bulk_download' : True
 															})
 					comment = "HXTool Stacking Acquisition"										
 				elif task_profile == 'file_listing':
-					#app.logger.debug("Using file listing task module.")
+					hxtool_global.get_logger().debug("Using file listing task module.")
 					download_and_process_task.add_step(file_listing_task_module, kwargs = {
 																'delete_bulk_download' : False
 															})
@@ -274,7 +274,7 @@ def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hx
 						#TODO: once task profile page params are dynamic, remove static mappings
 						for task_module_params in _task_profile['params']:						
 							if task_module_params['module'] == 'ip':
-								#app.logger.debug("Using taskmodule 'ip' with parameters: protocol {}, ip {}, port {}".format(task_module_params['protocol'], task_module_params['targetip'], task_module_params['targetport']))
+								hxtool_global.get_logger().debug("Using taskmodule 'ip' with parameters: protocol {}, ip {}, port {}".format(task_module_params['protocol'], task_module_params['targetip'], task_module_params['targetport']))
 								download_and_process_task.add_step(streaming_task_module, kwargs = {
 																	'stream_host' : task_module_params['targetip'],
 																	'stream_port' : task_module_params['targetport'],
@@ -283,7 +283,7 @@ def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hx
 																	'delete_bulk_download' : False
 																})
 							elif task_module_params['module'] == 'file':
-								#app.logger.debug("Using taskmodule 'file' with parameters: filepath {}".format(task_module_params['filepath']))
+								hxtool_global.get_logger().debug("Using taskmodule 'file' with parameters: filepath {}".format(task_module_params['filepath']))
 								download_and_process_task.add_step(file_write_task_module, kwargs = {
 																	'file_name' : task_module_params['filepath'],
 																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
