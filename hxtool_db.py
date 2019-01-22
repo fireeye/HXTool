@@ -194,6 +194,7 @@ class hxtool_db:
 				r = self._db.table('bulk_download').insert({'profile_id' : profile_id, 
 															'hostset_id' : int(hostset_id),
 															'hostset_name' : hostset_name,
+															'hosts'	: [],
 															'task_profile' : task_profile,
 															'stopped' : False,
 															'complete' : False,
