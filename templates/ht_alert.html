@@ -110,8 +110,12 @@
 						myStateText = "Unknown";
 					}
 
-					myAnno = "<h5 style='margin-bottom: 6px;'><span style='color: " + myStateColor + ";'>[" + myStateText + "]</span> On " + val['create_timestamp'] + " " + val['create_user'] + " wrote</h5>";
-					myAnno += "<textarea type='text' class='fe-input' style='height: 80px; margin-bottom: 12px;'>" + val['annotation'] + "</textarea>";
+					myAnno = "<h5 style='margin-bottom: 6px;'><span style='color: " + myStateColor + ";'>" + myStateText + "</span> On " + val['create_timestamp'] + " " + val['create_user'] + " wrote</h5>";
+					if (val['annotation'] != "") {
+						myAnno += "<textarea type='text' class='fe-input' style='height: 120px; margin-bottom: 12px;'>";
+						myAnno += val['annotation'];
+						myAnno += "</textarea>";
+					}
 
 					$("#annotateViewText").append(myAnno);
 				});
@@ -290,7 +294,7 @@
 				},
 				{
 				 "targets": 10,
-				 "width": "90px",
+				 "width": "110px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		data = "<button class='showannotation fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' id='showannotation_" + row.DT_RowId + "'>show (" + data + ")</button>";
