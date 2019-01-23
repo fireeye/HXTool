@@ -566,7 +566,6 @@
 			hxtool_ajax_get_request("/api/v1/alerts/get", "id=" + $(this).attr("id"), function(myalert) {
 
 				var alert = JSON.parse(myalert['api_response']);
-				console.log(alert);
 
 				// First clear the content panel
 				$("#hostContentPanel").find(".panelContentClass").html("<div style='text-align: right; margin-bottom: -16px;' id='thisAlertButton'></div>");
