@@ -566,12 +566,15 @@
 			hxtool_ajax_get_request("/api/v1/alerts/get", "id=" + $(this).attr("id"), function(myalert) {
 
 				var alert = JSON.parse(myalert['api_response']);
+				console.log(alert);
 
 				// First clear the content panel
-				$("#hostContentPanel").find(".panelContentClass").html("");
+				$("#hostContentPanel").find(".panelContentClass").html("<div style='text-align: right; margin-bottom: -16px;' id='thisAlertButton'></div>");
+
+				$("#hostContentPanel").find(".panelContentClass").find("#thisAlertButton").append("<button class='alertRemove fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-id='" + alert['data']['_id'] + "' aria-label='show'><span>remove alert<i class='fe-icon--right far fa-ban'></i></span></button>");
 
 				// Load alert template into content panel
-				$("#hostContentPanel").find(".panelContentClass").html(parseHostAlert(alert['data']));
+				$("#hostContentPanel").find(".panelContentClass").append(parseHostAlert(alert['data']));
 				
 				// Show all alert data
 				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAlertDetailsButton fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' aria-label='show'><span> show all alert details </span></button>");
@@ -586,18 +589,20 @@
 				var acq = JSON.parse(myacq['api_response']);
 
 				// First clear the content panel
-				$("#hostContentPanel").find(".panelContentClass").html("");
+				$("#hostContentPanel").find(".panelContentClass").html("<div style='text-align: right; margin-bottom: -16px;' id='thisAcqButton'></div>");
 
-				// Load acquisition template into content panel
-				$("#hostContentPanel").find(".panelContentClass").html(parseHostAcquisition(acq['data']));
-
+				// Then add buttons
 				myUrlArr = myUrl.split("/");
-				$("#hostContentPanel").find(".panelContentClass").append("<button class='acqDownload fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='" + myUrlArr[5] + "' data-id='" + myUrl + "' aria-label='download'><span>download<i class='fe-icon--right far fa-download'></i></span></button>");
+				$("#hostContentPanel").find(".panelContentClass").find("#thisAcqButton").append("<button class='acqDownload fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='" + myUrlArr[5] + "' data-id='" + myUrl + "' aria-label='download'><span>download<i class='fe-icon--right far fa-download'></i></span></button>");
 
 				if (myUrlArr[5] != "bulk") {
 					myAcqRemoveUrl = myUrl.substring(11);
-					$("#hostContentPanel").find(".panelContentClass").append("<button class='acqRemove fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='" + myUrlArr[5] + "' data-id='" + myAcqRemoveUrl + "' aria-label='remove'><span>remove<i class='fe-icon--right far fa-ban'></i></span></button>");
+					$("#hostContentPanel").find(".panelContentClass").find("#thisAcqButton").append("<button class='acqRemove fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='" + myUrlArr[5] + "' data-id='" + myAcqRemoveUrl + "' aria-label='remove'><span>remove<i class='fe-icon--right far fa-ban'></i></span></button>");
 				}
+
+				// Load acquisition template into content panel
+				$("#hostContentPanel").find(".panelContentClass").append(parseHostAcquisition(acq['data']));
+
 
 				$("#hostContentPanel").find(".panelContentClass").append("<button class='allAcqDetailsButton fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' aria-label='show'><span> show all acquisition details </span></button>");
 				$("#hostContentPanel").find(".panelContentClass").append("<div style='display: none;' class='acqAllDetails'></div>");
@@ -626,6 +631,13 @@
 			});
 		});
 
+		$('#hostContentPanel').on('click','.alertRemove',function() {
+			myrowID = $(this).data("id");
+			hxtool_ajax_get_request("/api/v1/alerts/remove", "id=" + $(this).data("id"), function(resMyRemove) {
+				$("#hostContentPanel").find(".panelContentClass").html("");
+				hostAlert_datatable.row("#" + myrowID).remove().draw();
+			});
+		});
 
 
 	});
