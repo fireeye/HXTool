@@ -779,15 +779,17 @@ def hxtool_api_indicators_export(hx_api_object):
 	iocList = json.loads(request.args.get('indicators'))
 	for uuid, ioc in iocList.items():
 		(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], uuid, 'execution')
-		for item in response_data['data']['entries']:
-			if not 'execution' in iocList[uuid].keys():
-				iocList[uuid]['execution'] = []
-			iocList[uuid]['execution'].append(item['tests'])
+		if ret:
+			for item in response_data['data']['entries']:
+				if not 'execution' in iocList[uuid].keys():
+					iocList[uuid]['execution'] = []
+				iocList[uuid]['execution'].append(item['tests'])
 		(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], uuid, 'presence')
-		for item in response_data['data']['entries']:
-			if not 'presence' in iocList[uuid].keys():
-				iocList[uuid]['presence'] = []
-			iocList[uuid]['presence'].append(item['tests'])
+		if ret:
+			for item in response_data['data']['entries']:
+				if not 'presence' in iocList[uuid].keys():
+					iocList[uuid]['presence'] = []
+				iocList[uuid]['presence'].append(item['tests'])
 
 
 	if len(iocList.keys()) == 1:

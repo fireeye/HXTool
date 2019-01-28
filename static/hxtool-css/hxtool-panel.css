@@ -66,3 +66,7 @@
 	max-height: calc(50vh - 125px);
 	overflow-y: auto;
 }
+
+.hxtool_panel_dashboard_lastalerts {
+	overflow-y: auto;
+}

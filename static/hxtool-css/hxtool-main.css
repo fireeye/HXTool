@@ -105,6 +105,13 @@ select {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+.fe-btn--hxtool-main-disabled {
+  background-color: #555555;
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+  opacity: 0.2;
+}
+
 .fe-btn--hxtool-main-remove {
   background-color: #ea475b;
   color: rgba(255, 255, 255, 0.9);
