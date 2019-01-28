@@ -118,6 +118,12 @@ select {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+.fe-btn--hxtool-main-link {
+  background-color: #0a6d3f;
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 .fe-btn--hxtool-main-top {
   background-color: rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.9);
@@ -144,6 +150,12 @@ select {
 
 .fe-btn--hxtool-main-remove:hover, .fe-btn--hxtool-main-remove:focus, .fe-btn--hxtool-main-remove.focus {
   background-color: #ff7b88;
+  color: rgba(255, 255, 255, 1.0);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.fe-btn--hxtool-main-link:hover, .fe-btn--hxtool-main-link:focus, .fe-btn--hxtool-main-link.focus {
+  background-color: #11a962;
   color: rgba(255, 255, 255, 1.0);
   border-color: rgba(255, 255, 255, 0.1);
 }
