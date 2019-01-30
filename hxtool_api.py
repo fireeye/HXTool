@@ -74,6 +74,7 @@ def hxtool_api_version_get(hx_api_object):
 def hxtool_api_acquisition_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteFile(request.args.get('url'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="acquisition", action="remove", host=request.args.get('url'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
@@ -96,6 +97,7 @@ def hxtool_api_acquisition_download(hx_api_object):
 			flask_response = Response(iter_chunk(response_data))
 			flask_response.headers['Content-Type'] = response_data.headers['Content-Type']
 			flask_response.headers['Content-Disposition'] = response_data.headers['Content-Disposition']
+			app.logger.info(format_activity_log(msg="acquisition", action="download", host=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			return flask_response
 		else:
 			(r, rcode) = create_api_response(ret, response_code, response_data)
@@ -121,6 +123,7 @@ def hxtool_api_acquisition_new(hx_api_object):
 
 	(ret, response_code, response_data) = hx_api_object.restNewAcquisition(myAgentID, myScriptName, myscript, skip_base64=do_skip_base64)
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="acquisition", action="new", host=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
@@ -148,6 +151,7 @@ def hxtool_api_acquisition_file(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restAcquireFile(request.args.get('id'), filePath, fileName, mode)
 
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="file acquisition", action="new", host=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/acquisition/triage'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -163,6 +167,7 @@ def hxtool_api_acquisition_triage(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restAcquireTriage(request.args.get('id'), request.args.get('timestamp'))
 
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="triage acquisition", action="new", host=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
@@ -175,6 +180,7 @@ def hxtool_api_acquisition_triage(hx_api_object):
 def hxtool_api_enterprise_search_stop(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restCancelJob('searches', request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="enterprise search", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 # Remove
@@ -183,6 +189,7 @@ def hxtool_api_enterprise_search_stop(hx_api_object):
 def hxtool_api_enterprise_search_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteJob('searches', request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="enterprise search", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 # New search from openioc store
@@ -231,6 +238,7 @@ def hxtool_api_enterprise_search_new_db(hx_api_object):
 									})
 	hxtool_global.hxtool_scheduler.add(enterprise_search_task)
 
+	app.logger.info(format_activity_log(msg="enterprise search", action="new", user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 # New search from file
@@ -280,6 +288,7 @@ def hxtool_api_enterprise_search_new_file(hx_api_object):
 									})
 	hxtool_global.hxtool_scheduler.add(enterprise_search_task)
 
+	app.logger.info(format_activity_log(msg="enterprise search", action="new", user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
@@ -311,21 +320,24 @@ def hxtool_api_hosts_sysinfo(hx_api_object):
 @valid_session_required
 def hxtool_api_hosts_contain(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restRequestContainment(request.args.get('id'))
-	(r, rcode) = create_api_response(response_data = response_data)	
+	(r, rcode) = create_api_response(response_data = response_data)
+	app.logger.info(format_activity_log(msg="host action", action="containment request", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/hosts/uncontain'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_hosts_uncontain(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restRemoveContainment(request.args.get('id'))
-	(r, rcode) = create_api_response(response_data = response_data)	
+	(r, rcode) = create_api_response(response_data = response_data)
+	app.logger.info(format_activity_log(msg="host action", action="uncontain", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/hosts/contain/approve'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_hosts_contain_approve(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restApproveContainment(request.args.get('id'))
-	(r, rcode) = create_api_response(response_data = response_data)	
+	(r, rcode) = create_api_response(response_data = response_data)
+	app.logger.info(format_activity_log(msg="host action", action="containment approval", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/hosts/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -333,6 +345,7 @@ def hxtool_api_hosts_contain_approve(hx_api_object):
 def hxtool_api_hosts_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteHostByID(request.args.get('id'))
 	(r, rcode) = create_api_response(response_data = response_data)	
+	app.logger.info(format_activity_log(msg="host action", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
@@ -351,6 +364,7 @@ def hxtool_api_openioc_view(hx_api_object):
 def hxtool_api_openioc_remove(hx_api_object):
 	hxtool_global.hxtool_db.oiocDelete(request.args.get('id'))
 	(r, rcode) = create_api_response()
+	app.logger.info(format_activity_log(msg="openioc action", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/openioc/upload'.format(HXTOOL_API_VERSION), methods=['POST'])
@@ -361,6 +375,7 @@ def hxtool_api_openioc_upload(hx_api_object):
 	rawioc = fc.read()
 	hxtool_global.hxtool_db.oiocCreate(request.form['iocname'], HXAPI.b64(rawioc), session['ht_user'])
 	(r, rcode) = create_api_response(ret=True)
+	app.logger.info(format_activity_log(msg="openioc action", action="new", name=request.form['iocname'], user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/openioc/download'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -373,6 +388,7 @@ def hxtool_api_openioc_download(hx_api_object):
 	buffer.write(json.dumps(HXAPI.b64(myiocData['ioc'], decode=True, decode_string=True)).encode(default_encoding))
 	buffer.seek(0)
 
+	app.logger.info(format_activity_log(msg="openioc action", action="download", name=myiocData['iocname'], user=session['ht_user'], controller=session['hx_ip']))
 	return send_file(buffer, attachment_filename=myiocData['iocname'] + ".ioc", as_attachment=True)
 
 
@@ -384,6 +400,7 @@ def hxtool_api_openioc_download(hx_api_object):
 def hxtool_api_alerts_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteJob('alerts', request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="alert action", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/alerts/get'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -410,6 +427,7 @@ def hxtool_api_alerts_get(hx_api_object):
 def hxtool_api_annotation_add(hx_api_object):
 	hxtool_global.hxtool_db.alertCreate(session['ht_profileid'], request.form['id'])
 	hxtool_global.hxtool_db.alertAddAnnotation(session['ht_profileid'], request.form['id'], request.form['text'], request.form['state'], session['ht_user'])
+	app.logger.info(format_activity_log(msg="annotation action", action="new", id=request.form['id'], user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
@@ -435,6 +453,7 @@ def hxtool_api_scheduler_remove(hx_api_object):
 
 	hxtool_global.hxtool_scheduler.remove(key_to_delete)
 
+	app.logger.info(format_activity_log(msg="scheduler action", action="remove", id=task['task_id'], user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/scheduler_health'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -482,6 +501,7 @@ def scheduler_tasks(hx_api_object):
 def hxtool_api_taskprofile_remove(hx_api_object):
 	app.hxtool_db.taskProfileDelete(request.args.get('id'))
 	(r, rcode) = create_api_response(ret=True)
+	app.logger.info(format_activity_log(msg="task profile action", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/taskprofile/new'.format(HXTOOL_API_VERSION), methods=['POST'])
@@ -490,6 +510,7 @@ def hxtool_api_taskprofile_new(hx_api_object):
 	mydata = request.get_json(silent=True)
 	hxtool_global.hxtool_db.taskProfileAdd(mydata['name'], session['ht_user'], mydata['params'])
 	(r, rcode) = create_api_response(ret=True)
+	app.logger.info(format_activity_log(msg="task profile action", action="new", name=mydata['name'], user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
@@ -503,6 +524,7 @@ def hxtool_api_taskprofile_new(hx_api_object):
 def hxtool_api_acquisition_bulk_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="bulk acquisition action", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 # Stop
@@ -511,6 +533,7 @@ def hxtool_api_acquisition_bulk_remove(hx_api_object):
 def hxtool_api_acquisition_bulk_stop(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="bulk acquisition action", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 # Stop download
@@ -552,11 +575,10 @@ def hxtool_api_acquisition_bulk_download(hx_api_object):
 		app.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts, bulk_acquisition_id = int(request.args.get('id')))
 	
 		hxtool_global.hxtool_scheduler.add_list(task_list)
-		
-		logger.info('Bulk acquisition action DOWNLOAD - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-		logger.info(format_activity_log(msg="bulk acquisition action", action="download", id=request.args.get('id'), hostset=hostset_id, user=session['ht_user'], controller=session['hx_ip']))
+
+		app.logger.info(format_activity_log(msg="bulk acquisition action", action="download", id=request.args.get('id'), hostset=hostset_id, user=session['ht_user'], controller=session['hx_ip']))
 	else:
-		logger.warn("No host entries were returned for bulk acquisition: {}. Did you just start the job? If so, wait for the hosts to be queued up.".format(request.args.get('id')))
+		app.logger.warn(format_activity_log(msg="bulk acquisition action", action="download", error="No host entries were returned for bulk acquisition", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
@@ -601,7 +623,7 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 					download = should_download,
 					skip_base64 = skip_base64,
 					comment=request.args.get('displayname'))
-	logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+	app.logger.info(format_activity_log(msg="bulk acquisition action", action="new", user=session['ht_user'], controller=session['hx_ip']))
 	
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
@@ -647,7 +669,7 @@ def hxtool_api_acquisition_bulk_new_file(hx_api_object):
 					download = should_download,
 					skip_base64 = skip_base64,
 					comment=request.form['displayname'])
-	logger.info('New bulk acquisition - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+	app.logger.info(format_activity_log(msg="bulk acquisition action", action="new", user=session['ht_user'], controller=session['hx_ip']))
 
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
@@ -660,6 +682,7 @@ def hxtool_api_acquisition_bulk_new_file(hx_api_object):
 def hxtool_api_scripts_remove(hx_api_object):
 	hxtool_global.hxtool_db.scriptDelete(request.args.get('id'))
 	(r, rcode) = create_api_response(ret=True)
+	app.logger.info(format_activity_log(msg="script action", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/scripts/upload'.format(HXTOOL_API_VERSION), methods=['POST'])
@@ -670,6 +693,7 @@ def hxtool_api_scripts_upload(hx_api_object):
 	rawscript = fc.read()
 	hxtool_global.hxtool_db.scriptCreate(request.form['scriptname'], HXAPI.b64(rawscript), session['ht_user'])
 	(r, rcode) = create_api_response(ret=True)
+	app.logger.info(format_activity_log(msg="script action", action="new", name=request.form['scriptname'], user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/scripts/builder'.format(HXTOOL_API_VERSION), methods=['POST'])
@@ -693,6 +717,7 @@ def hxtool_api_scripts_download(hx_api_object):
 	buffer.write(HXAPI.b64(myscriptData['script'], decode=True, decode_string=True).encode(default_encoding))
 	buffer.seek(0)
 
+	app.logger.info(format_activity_log(msg="script action", action="download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return send_file(buffer, attachment_filename=myscriptData['scriptname'] + ".json", as_attachment=True)
 
 
@@ -717,6 +742,7 @@ def hxtool_api_indicator_category_get_edit_policies(hx_api_object):
 def hxtool_api_indicator_category_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteCategory(request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="rule category action", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/indicator_category/list'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -735,6 +761,7 @@ def hxtool_api_indicator_category_new(hx_api_object):
 	}
 	(ret, response_code, response_data) = hx_api_object.restCreateCategory(request.args.get('name'), category_options=mycategory_options)
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="rule category action", action="new", name=request.args.get('name'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
@@ -757,6 +784,7 @@ def hxtool_api_conditions_get(hx_api_object):
 def hxtool_api_indicators_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restGetUrl(request.args.get('url'), method="DELETE")
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="rule action", action="remove", name=request.args.get('url'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
@@ -800,7 +828,7 @@ def hxtool_api_indicators_export(hx_api_object):
 	buffer = BytesIO()
 	buffer.write(json.dumps(iocList, indent=4, ensure_ascii=False).encode(default_encoding))
 	buffer.seek(0)
-	app.logger.info('Indicator(s) exported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+	app.logger.info(format_activity_log(msg="rule action", action="export", name=iocfname, user=session['ht_user'], controller=session['hx_ip']))
 	return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
 
 @ht_api.route('/api/v{0}/indicators/import'.format(HXTOOL_API_VERSION), methods=['POST'])
@@ -819,7 +847,7 @@ def hxtool_api_indicators_import(hx_api_object):
 			# As it turns out, filtering by name also returns partial matches. However the exact match seems to be the 1st result
 			category_exists = (len(response_data['data']['entries']) == 1 and response_data['data']['entries'][0]['name'].lower() == iocs[iockey]['category'].lower())
 			if not category_exists:
-				app.logger.info('Adding new IOC category as part of import: %s - User: %s@%s:%s', iocs[iockey]['category'], session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				app.logger.info(format_activity_log(msg="rule action", action="new", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 				(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(iocs[iockey]['category']))
 				category_exists = ret
 			
@@ -840,11 +868,11 @@ def hxtool_api_indicators_import(hx_api_object):
 							data = """{"tests":""" + data + """}"""
 							(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
 			
-					app.logger.info('New indicator imported - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+					app.logger.info(format_activity_log(msg="rule action", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 			else:
-				app.logger.warn('Unable to create category for indicator import - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+				app.logger.warn(format_activity_log(msg="rule action fail", reason="unable to create category", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 		else:
-			app.logger.warn('Unable to import indicator - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			app.logger.info(format_activity_log(msg="rule action", reason="unable to import indicator", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
@@ -882,13 +910,14 @@ def hxtool_api_indicators_new(hx_api_object):
 				if not ret:
 					# Remove the indicator if condition push was unsuccessful
 					(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(mydata['category'], ioc_guid)
-					return ('', 500)
+					return ('failed to create indicator conditions, check your conditions', 500)
 		# All OK
-		app.logger.info(format_activity_log(msg="new real-time indicator created", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
+		app.logger.info(format_activity_log(msg="rule action", action="new", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
 		return ('', 204)
 	else:
 		# Failed to create indicator
-		return ('', 500)
+		app.logger.warn(format_activity_log(msg="rule action", action="new", reason="failed to create indicator", user=session['ht_user'], controller=session['hx_ip']))
+		return ('failed to create indicator', 500)
 
 
 @ht_api.route('/api/v{0}/indicators/edit'.format(HXTOOL_API_VERSION), methods=['POST'])
@@ -928,16 +957,17 @@ def hxtool_api_indicators_edit(hx_api_object):
 				if not ret:
 					# Condition was not added successfully set state to False to prevent the original indicator from being removed
 					myState = False
-					return('Failed to create condition', 500)
+					return('failed to create indicator conditions, check your conditions', 500)
 		# Everything is OK
 		if myState:
 			# Remove the original indicator
 			(ret, response_code, response_data) = hx_api_object.restDeleteIndicator(myOriginalCategory, myOriginalURI)
-		app.logger.info(format_activity_log(msg="real-time indicator was edited", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
+
+		app.logger.info(format_activity_log(msg="rule action", action="edit", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
 		return('', 204)
 	else:
 		# Failed to create indicator
-		return('',500)
+		return('failed to create indicator',500)
 
 
 #################################
@@ -959,6 +989,7 @@ def hxtool_api_ccc_new(hx_api_object):
 		)
 
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="custom configuration", action="new", name=mydata['name'], user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/ccc/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -966,6 +997,7 @@ def hxtool_api_ccc_new(hx_api_object):
 def hxtool_api_ccc_remove(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restDeleteConfigChannel(request.args.get('id'))
 	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="custom configuration", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/ccc/get'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -996,6 +1028,7 @@ def hxtool_api_stacking_new(hx_api_object):
 			hostset_id = int(request.form['stackhostset'])
 			bulk_download_eid = submit_bulk_job(hx_api_object, script_xml, hostset_id = hostset_id, task_profile = "stacking")
 			ret = hxtool_global.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
+			app.logger.info(format_activity_log(msg="stacking", action="new", hostsetid=hostset_id, type=request.form['stack_type'], user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/stacking/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -1010,6 +1043,7 @@ def hxtool_api_stacking_remove(hx_api_object):
 			
 		hxtool_global.hxtool_db.stackJobDelete(stack_job.eid)
 		(r, rcode) = create_api_response(ret, response_code, response_data)
+		app.logger.info(format_activity_log(msg="stacking", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/stacking/stop'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -1024,6 +1058,7 @@ def hxtool_api_stacking_stop(hx_api_object):
 			hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_job.eid, stopped = True)
 
 			(r, rcode) = create_api_response(ret, response_code, response_data)
+			app.logger.info(format_activity_log(msg="stacking", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
@@ -1065,6 +1100,7 @@ def hxtool_api_acquisition_multi_file_listing(hx_api_object):
 	if script_xml:
 		bulk_download_eid = submit_bulk_job(hx_api_object, HXAPI.compat_str(script_xml), hostset_id = hostset, task_profile = "file_listing")
 		ret = app.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, depth, display_name, api_mode=use_api_mode)
+		app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="new", hostset_id=hostset, user=session['ht_user'], controller=session['hx_ip']))
 		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 	else:
 		return(app.response_class(response=json.dumps("FAIL"), status=404, mimetype='application/json'))
@@ -1080,6 +1116,7 @@ def hxtool_api_acquisition_multi_file_listing_stop(hx_api_object):
 		if ret:
 			hxtool_global.hxtool_db.fileListingStop(file_listing_job.eid)
 			hxtool_global.hxtool_db.bulkDownloadUpdate(file_listing_job['bulk_download_eid'], stopped = True)
+			app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
@@ -1093,6 +1130,7 @@ def hxtool_api_acquisition_multi_file_listing_remove(hx_api_object):
 			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
 		hxtool_global.hxtool_db.bulkDownloadDelete(file_listing_job['bulk_download_eid'])
 		hxtool_global.hxtool_db.fileListingDelete(file_listing_job.eid)
+		app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
@@ -1105,7 +1143,7 @@ def hxtool_api_acquisition_multi_mf_stop(hx_api_object):
 		#TODO: Stop each file acquisition or handle solely in remove?
 		if success:
 			hxtool_global.hxtool_db.multiFileStop(mf_job.eid)
-			app.logger.info(format_activity_log(msg="multif-file job", action="stop", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
+			app.logger.info(format_activity_log(msg="multi-file acquisition", action="stop", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/acquisition/multi/mf/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -1126,8 +1164,7 @@ def hxtool_api_acquisition_multi_mf_remove(hx_api_object):
 				success = False		
 		if success:
 			hxtool_global.hxtool_db.multiFileDelete(mf_job.eid)
-			#app.logger.info('MultiFile Job ID {0} action REMOVE - User: {1}@{2}:{3}'.format( mf_job.eid, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port))
-			app.logger.info(format_activity_log(msg="multif-file job", action="delete", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
+			app.logger.info(format_activity_log(msg="multi-file acquisition", action="remove", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
@@ -1195,8 +1232,7 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 						#TODO: Handle fail
 						pass
 			if file_jobs:
-				#app.logger.info('New Multi-File Download requested (profile %s) - User: %s@%s:%s', profile_id, session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-				app.logger.info(format_activity_log(msg="new multi-file download", action="requested", user=session['ht_user'], controller=session['hx_ip']))
+				app.logger.info(format_activity_log(msg="multi-file acquisition", action="new", user=session['ht_user'], controller=session['hx_ip']))
 				return redirect("/multifile", code=302)
 
 ##############
@@ -1504,14 +1540,17 @@ def datatable_alerts_host(hx_api_object):
 		if ret:
 			for alert in response_data['data']['entries']:
 				if alert['source'] == "IOC":
-					if alert['indicator']['display_name']:
-						tname = alert['indicator']['display_name']
-					else:
-						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
-						if cret:
-							tname = cresponse_data['data']['entries'][0]['name']
+					if alert['indicator']:
+						if 'display_name' in alert['indicator']:
+							tname = alert['indicator']['display_name']
 						else:
-							tname = "N/A"
+							(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+							if cret:
+								tname = cresponse_data['data']['entries'][0]['name']
+							else:
+								tname = "N/A"
+					else:
+						tname = "N/A"
 				elif alert['source'] == "EXD":
 					tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
 				elif alert['source'] == "MAL":
