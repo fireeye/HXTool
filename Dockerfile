@@ -6,6 +6,7 @@ VOLUME /opt/hxtool/bulkdownload /opt/hxtool/log
 COPY requirements.txt ./
 RUN apk add --no-cache libstdc++ \ 
 && apk add --no-cache --virtual .build-dependencies build-base gcc abuild binutils binutils-doc gcc-doc \
+&& pip install numpy --no-cache-dir \
 && pip install --no-cache-dir -r requirements.txt \
 && find /usr/local/lib/python3.6/site-packages/pandas -type f -name *.so -exec strip {} \; \
 && find /usr/local/lib/python3.6/site-packages/numpy -type f -name *.so -exec strip {} \; \
