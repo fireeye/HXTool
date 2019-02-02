@@ -1,0 +1,501 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Agent Dashboard{% endblock %}
+{% block content %}
+
+<script>
+
+		function displayContent(event, array){
+			if(array[0]){
+
+				var canvas_name = event['srcElement']['id'];
+				var field = event['srcElement']['id'].replace("chartjs_", "");
+				//console.log(field);
+				myobj = window[canvas_name];
+
+				var clickedElementindex = array[0]["_index"]
+				var label = myobj.data.labels[clickedElementindex];
+				var value = myobj.data.datasets[0].data[clickedElementindex];
+
+				$("#agentContentPopup").find(".fe-modal__header").find("h4").html("Summary for " + field);
+				$("#agentContentPopup").find(".fe-modal__header").find("h4").append("<i id='popupSpinner' style='margin-left: 12px; color: #11a962;' class='fas fa-spinner fa-spin'></i>");
+
+				$("#agentContentHeader").html("Query: " + field + " equal " + label + "<br>");
+				$("#agentContentHeader").append("Results limited to 5000 rows due to browser limitations, use export for all results");
+
+				$.fn.dataTable.ext.errMode = 'none';
+				if (typeof agentContentPopup_datatable === 'object')  {
+					agentContentPopup_datatable.destroy();
+				}
+
+				if (field == "os_product_name") {
+					tfield = "os.product_name";
+				}
+				else {
+					tfield = field;
+				}
+
+				$(".csvButton").data("url", "/api/v1/datatable/agentstatus/csv?pattern=" + label + "&field=" + tfield);
+
+				agentContentPopup_datatable = $('#agentContentTable').DataTable( {
+					"ajax": "/api/v1/datatable/agentstatus?pattern=" + label + "&field=" + tfield,
+					"paging":   false,
+					"ordering": false,
+					"info":     false,
+					"searching": false,
+					"dom": '<"hxtool_datatables_popup_buttons"B>frtip',
+					"buttons": [
+						{ extend: "copy", className: "fe-btn" },
+						{ extend: "csv", className: "fe-btn" },
+						{ extend: "excel", className: "fe-btn" }
+					],
+					"columns": [
+						{ "data": "hostname", title: "Hostname" },
+						{ "data": "DT_RowId", title: "Agent ID" },
+						{ "data": field, title: field }
+					],
+					"columnDefs": [
+						{
+						 "targets": 0,
+						 render: function ( data, type, row, meta ) {
+							data = '<a class="hostLink" href="/hostview?host=' + encodeURIComponent(row.DT_RowId) + '">' + data + '</a>';
+							return(data);
+						 }
+						},
+						{"className": "hxtool_table_cell_center", "targets": [0, 1, 2]}
+					],
+					"initComplete": function(settings, json) {
+						$("#popupSpinner").remove();
+  					}
+				});
+
+				$("#agentContentPopup").show();
+			}
+		}
+
+        $(document).ready(function() {
+
+			Chart.defaults.global.defaultFontColor = 'rgba(255, 255, 255, 0.8)';
+			Chart.defaults.global.defaultFontFamily = 'Open Sans';
+
+			// ChartJS - Agent version
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_agentstatus?field=agent_version",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						onClick: displayContent,
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_agent_version").css("cursor", el[0] ? "pointer" : "default");
+							},
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_agent_version').getContext('2d');
+				window.chartjs_agent_version = new Chart(ctx, config);
+			});
+
+			// ChartJS - Domain
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_agentstatus?field=domain",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						onClick: displayContent,
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_domain").css("cursor", el[0] ? "pointer" : "default");
+							},
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_domain').getContext('2d');
+				window.chartjs_domain = new Chart(ctx, config);
+			});
+
+			// ChartJS - Timezone
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_agentstatus?field=timezone",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						onClick: displayContent,
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_timezone").css("cursor", el[0] ? "pointer" : "default");
+							},
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_timezone').getContext('2d');
+				window.chartjs_timezone = new Chart(ctx, config);
+			});
+
+			// ChartJS - containenment state
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_agentstatus?field=containment_state",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						onClick: displayContent,
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_containment_state").css("cursor", el[0] ? "pointer" : "default");
+							},
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_containment_state').getContext('2d');
+				window.chartjs_containment_state = new Chart(ctx, config);
+			});
+
+			// ChartJS - Containment queued
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_agentstatus?field=containment_queued",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						onClick: displayContent,
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_containment_queued").css("cursor", el[0] ? "pointer" : "default");
+							},
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_containment_queued').getContext('2d');
+				window.chartjs_containment_queued = new Chart(ctx, config);
+			});
+
+			// ChartJS - containment software missing
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_agentstatus?field=containment_missing_software",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						onClick: displayContent,
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_containment_missing_software").css("cursor", el[0] ? "pointer" : "default");
+							},
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_containment_missing_software').getContext('2d');
+				window.chartjs_containment_missing_software = new Chart(ctx, config);
+			});
+
+			// ChartJS - Reported clone
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_agentstatus?field=reported_clone",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						onClick: displayContent,
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_reported_clone").css("cursor", el[0] ? "pointer" : "default");
+							},
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_reported_clone').getContext('2d');
+				window.chartjs_reported_clone = new Chart(ctx, config);
+			});
+
+			// ChartJS - OS product
+			var jsonData = $.ajax({
+				url: "/api/v1/chartjs_agentstatus?field=os.product_name",
+				dataType: 'json',
+			}).done(function (myChartData) {
+
+				var config = {
+					type: 'pie',
+					data: myChartData,
+				
+					options: {
+						onClick: displayContent,
+						responsive: true,
+						maintainAspectRatio: false,
+						title: {
+							display: false
+						},
+						legend: {
+							display: true,
+							position: 'right'
+						},						
+						hover: {
+							onHover: function(e, el) {
+								$("#chartjs_os_product_name").css("cursor", el[0] ? "pointer" : "default");
+							},
+							mode: 'nearest',
+							intersect: true
+						}
+					}
+				}
+
+				var ctx = document.getElementById('chartjs_os_product_name').getContext('2d');
+				window.chartjs_os_product_name = new Chart(ctx, config);
+			});
+
+		$(document).on("click", ".agentContentDismiss", function() {
+			$("#agentContentPopup").hide();
+		});
+
+		$(document).on("click", ".agentEngineDismiss", function() {
+			$("#agentEnginePopup").hide();
+		});
+
+		$(document).on("click", ".agentStatusDismiss", function() {
+			$("#agentStatusPopup").hide();
+		});
+
+		$(document).on("click", ".csvButton", function() {
+			location.href = $(this).data("url");
+		});
+
+
+        });
+</script>
+
+<!-- Agent Content popup -->
+{{ htModal.widgetHeader("", modalId="agentContentPopup", modalSize="medium") }}
+	<div style='margin-bottom: 6px;' id="agentContentHeader"></div>
+	<button class='csvButton fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main'>export to csv (unrestricted)</button><br><br>
+	<table id="agentContentTable" class='hxtool_table' style='width: 100%;'></table>
+{{ htModal.widgetMiddle() }}
+	<button class="agentContentDismiss fe-btn fe-btn--md fe-btn--secondary" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
+<!-- DASH GRID -->
+<div class="agentdash-grid-container">
+  <div class="agentcell1">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-bar"></i>Agent version</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_agent_version" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+
+  </div>
+  <div class="agentcell2">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-pie"></i>Agent domain</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_domain" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+
+  </div>
+  <div class="agentcell3">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-pie"></i>Agent timezone</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_timezone" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+
+  </div>
+  <div class="agentcell4">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-pie"></i>Agent containment state</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_containment_state" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+  </div>
+  <div class="agentcell5">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-pie"></i>Agent containment queued</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_containment_queued" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+  </div>
+  <div class="agentcell6">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-pie"></i>Agent containment software missing</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_containment_missing_software" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+  </div>
+  <div class="agentcell7">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-pie"></i>Agent clones</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_reported_clone" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+  </div>
+  <div class="agentcell8">
+
+	<div class="hxtool_panel_dashboard fe-panel">
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i style='color: #11a962;' class="fe-icon--left fas fa-chart-pie"></i>Agent Operating system</div>
+		</div>
+	
+		<div class="hxtool_panel_dashboard_child fe-panel__body">
+			<canvas id="chartjs_os_product_name" class='hxtool_chartjs_canvas'></canvas>
+		</div>
+	</div>
+
+  </div>
+</div>
+
+
+{% endblock %}

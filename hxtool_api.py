@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import random
+import csv
 from io import BytesIO
+from io import StringIO
 from xml.sax.saxutils import escape as xmlescape
 from string import Template
 
@@ -1351,6 +1354,77 @@ def datatable_ccc(hx_api_object):
 
 	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
+
+@ht_api.route('/api/v{0}/datatable/agentstatus/csv'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_agentstatus_csv(hx_api_object):
+	mydata = {}
+	mydata['data'] = []
+
+	myField = request.args.get('field')
+	myPattern = request.args.get('pattern')
+
+	(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(limit=200000, filter_term={ myField: myPattern })
+
+	for host in hresponse_data['data']['entries']:
+		if '.' in myField:
+			item1, item2 = myField.split(".")
+			mydata['data'].append({
+				"DT_RowId": host['_id'],
+				"hostname": host['hostname'],
+				item1 + "_" + item2: host[item1][item2]
+				})
+		else:
+			mydata['data'].append({
+				"DT_RowId": host['_id'],
+				"hostname": host['hostname'],
+				myField: host[myField]
+				})
+
+	csvkeys = mydata['data'][0].keys()
+	writer_file =  StringIO()
+	writer = csv.DictWriter(writer_file, csvkeys, dialect='excel', delimiter=',')
+	writer.writeheader()
+	writer.writerows(mydata['data'])
+
+	mem = BytesIO()
+	mem.write(writer_file.getvalue().encode('utf-8'))
+	mem.seek(0)
+	writer_file.close()
+
+	return send_file(mem, attachment_filename="kaka.csv", as_attachment=True)
+
+
+@ht_api.route('/api/v{0}/datatable/agentstatus'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_agentstatus(hx_api_object):
+	mydata = {}
+	mydata['data'] = []
+
+	myField = request.args.get('field')
+	myPattern = request.args.get('pattern')
+
+	(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(limit=5000, filter_term={ myField: myPattern })
+
+	for host in hresponse_data['data']['entries']:
+		if '.' in myField:
+			item1, item2 = myField.split(".")
+			mydata['data'].append({
+				"DT_RowId": host['_id'],
+				"hostname": host['hostname'],
+				item1 + "_" + item2: host[item1][item2]
+				})
+		else:
+			mydata['data'].append({
+				"DT_RowId": host['_id'],
+				"hostname": host['hostname'],
+				myField: host[myField]
+				})
+
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
+
+
 @ht_api.route('/api/v{0}/datatable/avcontent'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def datatable_avcontent_detail(hx_api_object):
@@ -2098,6 +2172,44 @@ def datatable_es_result(hx_api_object):
 ###########
 # ChartJS #
 ###########
+
+@ht_api.route('/api/v{0}/chartjs_agentstatus'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def chartjs_agentstatus(hx_api_object):
+
+	(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
+
+	myField = request.args.get('field')
+	myData = {}
+
+	for host in response_data['data']['entries']:
+		if "." in myField:
+			item1, item2 = myField.split(".")
+			if host[item1][item2] not in myData.keys():
+				myData[host[item1][item2]] = 0
+			myData[host[item1][item2]] += 1
+		else:
+			if host[myField] not in myData.keys():
+				myData[host[myField]] = 0
+			myData[host[myField]] += 1
+
+	myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
+	random.shuffle(myPattern)
+
+	rData = {}
+	rData['labels'] = list(myData.keys())
+	rData['datasets'] = []
+	rData['datasets'].append({
+		"label": myField,
+		"backgroundColor": myPattern,
+		"borderColor": "#0d1a2b",
+		"borderWidth": 5,
+		"data": list(myData.values())
+		})
+
+	return(app.response_class(response=json.dumps(rData), status=200, mimetype='application/json'))
+
+
 
 @ht_api.route('/api/v{0}/chartjs_malwarecontent'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required

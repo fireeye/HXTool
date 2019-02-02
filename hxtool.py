@@ -81,6 +81,13 @@ def dashboard(hx_api_object):
 def dashboardav(hx_api_object):
 	return render_template('ht_dashboard-av.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### Agent Dashboard
+@app.route('/dashboard-agent', methods=['GET'])
+@valid_session_required
+def dashboardagent(hx_api_object):
+	return render_template('ht_dashboard-agent.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+
 ### New host drilldown page
 @app.route('/hostview', methods=['GET'])
 @valid_session_required

@@ -69,4 +69,31 @@
 
 .avcell3 { grid-area: avcell3; }
 
+/* Agent dashboard */
+
+.agentdash-grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas: "agentcell1 agentcell2 agentcell3" "agentcell4 agentcell5 agentcell6" "agentcell7 agentcell8 agentcell8";
+  margin: 12px;
+  height: 92vh;
+}
+
+.agentcell1 { grid-area: agentcell1; padding-right: 12px;}
+
+.agentcell2 { grid-area: agentcell2; padding-right: 12px;}
+
+.agentcell3 { grid-area: agentcell3; }
+
+.agentcell4 { grid-area: agentcell4; padding-right: 12px; padding-top: 12px;}
+
+.agentcell5 { grid-area: agentcell5; padding-right: 12px; padding-top: 12px;}
+
+.agentcell6 { grid-area: agentcell6; padding-top: 12px;}
+
+.agentcell7 { grid-area: agentcell7; padding-right: 12px; padding-top: 12px;}
+
+.agentcell8 { grid-area: agentcell8; padding-top: 12px;}
+
 
