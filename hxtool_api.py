@@ -1392,7 +1392,7 @@ def datatable_agentstatus_csv(hx_api_object):
 	mem.seek(0)
 	writer_file.close()
 
-	return send_file(mem, attachment_filename="kaka.csv", as_attachment=True)
+	return send_file(mem, attachment_filename="agent_statistics_" + myField + ".csv", as_attachment=True)
 
 
 @ht_api.route('/api/v{0}/datatable/agentstatus'.format(HXTOOL_API_VERSION), methods=['GET'])
