@@ -1058,7 +1058,58 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 
-			
+
+	##########
+	# Policies
+	##########
+	
+	def restListPolicies(self, limit=DEFAULT_LIMIT, offset=0, search_term=None, sort_term=None, filter_term={}):
+		
+		endpoint_url = "policies"
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}		
+		if search_term:
+			params['search'] = search_term
+		if sort_term:
+			params['sort'] = sort_term
+		params.update(filter_term)
+
+		request = self.build_request(self.build_api_route(endpoint_url), params = params)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
+	def restGetPolicy(self, policy_id):
+		
+		request = self.build_request(self.build_api_route("policies/{0}".format(policy_id)))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
+	def restCreatePolicy(self, policy_json):
+		
+		request = self.build_request(self.build_api_route("policies"), method = 'POST', data = json.dumps(policy_json))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+	
+		
+	def restModifyPolicy(self, policy_id, policy_json):
+	
+		request = self.build_request(self.build_api_route("policies/{0}".format(policy_id)), method = 'PUT', data = json.dumps(policy_json))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
+	def restDeletePolicy(self, policy_id):
+		
+		request = self.build_request(self.build_api_route("policies/{0}".format(policy_id)), method = 'DELETE')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
 	####
 	# Generic functions
 	####
