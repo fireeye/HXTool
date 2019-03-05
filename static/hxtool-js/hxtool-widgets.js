@@ -16,7 +16,7 @@ function generateDropDown(elementValue, elementId, elementDefault, entries=[{}],
 	r += "<div class='fe-dropdown";
 	if (elementAdditionalClass != false) { r += " " + elementAdditionalClass; }
 	r += "'>";
-		r += '<button type="button" id="' + elementId + '" data-id="' + elementDefault + '" class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> ' + elementValue + ' <i class="fe-icon--right fal fa-chevron-up"></i></button>';
+		r += '<button type="button" id="' + elementId + '" data-id="' + elementDefault + '" class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> ' + elementValue + ' <i class="fe-icon--right fas fa-chevron-up"></i></button>';
 		r += '<div class="fe-dropdown__list-container">';
 			r += '<ul class="fe-dropdown__list fe-list">';
 

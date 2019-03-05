@@ -24,7 +24,7 @@
 			$.each(myprofiles.data, function() {
 				$("#profile").next("div").find("ul").append("<li class='fe-dropdown__item'><a class='fe-dropdown__item-link'><span class='fe-dropdown__item-link-left-section'><i style='margin-top: 2px;' class='fas fa-check fa-lg'></i></span><span class='fe-dropdown__item-link-text' data-id='" + this.profile_id + "'>" + this.hx_name + "</span></a></li>");
 			});
-			$("#profile").html(" " + myprofiles.data[0]['hx_name'] + " <i class='fe-icon--right fal fa-chevron-up'></i>");
+			$("#profile").html(" " + myprofiles.data[0]['hx_name'] + " <i class='fe-icon--right fas fa-chevron-up'></i>");
 			$("#profile").data("id", myprofiles.data[0]['profile_id'])
 		});
 	}
@@ -179,7 +179,7 @@
 					<div class="fe-modal__header">
 						<h4 class="fe-modal__title">Message</h4>
 						<button class="fe-modal-close" name="button" type="button">
-							<i class="fe-icon--center fal fa-times"></i>
+							<i class="fe-icon--center fas fa-times"></i>
 						</button>
 					</div>
 				</div>

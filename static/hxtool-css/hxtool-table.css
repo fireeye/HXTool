@@ -37,6 +37,10 @@
 	border-bottom: 1px solid rgba(15, 184, 220, 0.1);
 }
 
+.hxtool_table tbody tr:hover {
+	background: rgba(255,255,255,0.1);
+}
+
 /* Zebra striping?
 .hxtool_table tbody tr:nth-child(odd) {
 	background: rgba(0,0,0,0.2);

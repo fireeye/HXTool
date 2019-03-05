@@ -54,14 +54,14 @@ def formatProfCredsInfo(has_creds):
 	x = ""
 	
 	if has_creds:
-		x += "<h4>Background processing credentials are set</h4><button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' id='unset'>unset<i class='fe-icon--right far fa-ban'></i></button>"
+		x += "<h4>Background processing credentials are set</h4><button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' id='unset'>unset<i class='fe-icon--right fas fa-ban'></i></button>"
 	else:
 		x += "<form method='POST'>"
 		x += "<h4 class='hxtool_typography_h4'>Username</h4>"
 		x += "<input class='fe-input' name='bguser' type='text'>"
 		x += "<h4 class='hxtool_typography_h4'>Password</h4>"
 		x += "<input class='fe-input' name='bgpass' type='password'>"
-		x += "<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-master' style='margin-top: 15px;' type='submit'>set<i class='fe-icon--right far fa-check'></i></button>"
+		x += "<button class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-master' style='margin-top: 15px;' type='submit'>set<i class='fe-icon--right fas fa-check'></i></button>"
 		x += "</form>"
 	
 	return(x)

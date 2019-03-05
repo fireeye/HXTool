@@ -71,9 +71,9 @@
 			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ "title": "id", "data": "DT_RowId" },
@@ -469,7 +469,7 @@
 			{{ htRadio.widgetHeader("From HXTool", "hxtool", "iocsource", "iocsource", elementChecked="true") }}
 			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
 				<div class="fe-dropdown">
-					<button id='esIocDb' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> Select an indicator <i class="fe-icon--right fal fa-chevron-up"></i></button>
+					<button id='esIocDb' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> Select an indicator <i class="fe-icon--right fas fa-chevron-up"></i></button>
 					<div class="fe-dropdown__list-container">
 						<ul class="fe-dropdown__list fe-list">
 							{% if openiocs %} {{ openiocs|safe }} {% endif %}
@@ -488,7 +488,7 @@
 		<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Hostset</h3>
 		<div class='hxtool_panel_wrapper'>
 			<div class="fe-dropdown">
-				<button id='esHostset' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> select a hostset <i class="fe-icon--right fal fa-chevron-up"></i></button>
+				<button id='esHostset' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> select a hostset <i class="fe-icon--right fas fa-chevron-up"></i></button>
 				<div class="fe-dropdown__list-container">
 					<ul class="fe-dropdown__list fe-list">
 						{% if hostsets %} {{hostsets|safe}} {% endif %}

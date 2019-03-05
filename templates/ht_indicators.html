@@ -45,9 +45,9 @@
 				"processing": false,
 				"dom": '<"hxtool_datatables_buttons"B>frtip',
 				"buttons": [
-					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-					{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+					{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 				],
 				"columns": [
 					{ title: "", "data": "DT_RowId" },
@@ -87,19 +87,19 @@
 					 render: function ( data, type, row, meta ) {
 					 	r = "";
 					 	myId = String(row.category_id);
-					 	r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-url='" + row.url + "'>view<i class='fe-icon--right far fa-eye'></i></button>";
-				 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='clone' data-url='" + row.url + "' data-id='" + row.DT_RowId + "'>clone<i class='fe-icon--right far fa-clone'></i></button>";
+					 	r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-url='" + row.url + "'>view<i class='fe-icon--right fas fa-eye'></i></button>";
+				 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='clone' data-url='" + row.url + "' data-id='" + row.DT_RowId + "'>clone<i class='fe-icon--right fas fa-clone'></i></button>";
 					 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete") {
-					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='edit' data-url='" + row.url + "' data-id='" + row.DT_RowId + "'>edit<i class='fe-icon--right far fa-edit'></i></button>";
+					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='edit' data-url='" + row.url + "' data-id='" + row.DT_RowId + "'>edit<i class='fe-icon--right fas fa-edit'></i></button>";
 					 	}
 					 	else {
-					 		r += "<button style='margin-right: 6px;' class='fe-btn fe-btn--sm fe-btn--hxtool-main-disabled'>edit<i class='fe-icon--right far fa-edit'></i></button>";
+					 		r += "<button style='margin-right: 6px;' class='fe-btn fe-btn--sm fe-btn--hxtool-main-disabled'>edit<i class='fe-icon--right fas fa-edit'></i></button>";
 					 	}
 					 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete" || myEditPolicies[myId] == "delete") {
-					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-url='" + row.url + "' data-category='" + row.category_name + "' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-url='" + row.url + "' data-category='" + row.category_name + "' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
 					 	}
 					 	else {
-					 		r += "<button style='margin-right: 6px;' class='fe-btn fe-btn--sm fe-btn--hxtool-main-disabled'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+					 		r += "<button style='margin-right: 6px;' class='fe-btn fe-btn--sm fe-btn--hxtool-main-disabled'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
 					 	}
 					 	return (r);
 					 }

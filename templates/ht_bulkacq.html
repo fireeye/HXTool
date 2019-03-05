@@ -75,9 +75,9 @@
 			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ "title": "id", "data": "DT_RowId" },
@@ -191,20 +191,20 @@
 				 		if (data === parseInt(data, 10)) {
 					 		myid = data;
 					 		data = "";
-					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='stop' data-id='" + myid + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
-					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + myid + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='stop' data-id='" + myid + "'>stop<i class='fe-icon--right fas fa-ban'></i></button>";
+					 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + myid + "'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
 					 		if (row.downloadrate == "N/A") {
-						 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='download' data-id='" + myid + "'>download<i class='fe-icon--right far fa-download'></i></button>";
+						 		data += "<button style='margin-right: 6px;' class='bulkAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='download' data-id='" + myid + "'>download<i class='fe-icon--right fas fa-download'></i></button>";
 						 	}
 						 	else {
-						 		data += "<button style='margin-right: 6px;' class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-disabled'>download<i class='fe-icon--right far fa-download'></i></button>";
+						 		data += "<button style='margin-right: 6px;' class='fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-disabled'>download<i class='fe-icon--right fas fa-download'></i></button>";
 						 	}
 					 	}
 					 	else if (data == "file_listing") {
-					 		data = "<button style='margin-right: 6px;' class='bulkLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-link' data-type='multi'>multifile<i class='fe-icon--right far fa-external-link'></i></button>";
+					 		data = "<button style='margin-right: 6px;' class='bulkLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-link' data-type='multi'>multifile<i class='fe-icon--right fas fa-external-link'></i></button>";
 					 	}
 					 	else if (data == "stacking") {
-					 		data = "<button style='margin-right: 6px;' class='bulkLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-link' data-type='stacking'>stacking<i class='fe-icon--right far fa-external-link'></i></button>";
+					 		data = "<button style='margin-right: 6px;' class='bulkLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-link' data-type='stacking'>stacking<i class='fe-icon--right fas fa-external-link'></i></button>";
 					 	}
 				 	}
 				 	return data;
@@ -535,7 +535,7 @@
 		{{ htRadio.widgetHeader("From HXTool", "hxtool", "bulksource-a", "bulksource", elementChecked="true") }}
 		<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>
 			<div class="fe-dropdown">
-				<button id='bulkScriptDb' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> Select an acquisition script <i class="fe-icon--right fal fa-chevron-up"></i></button>
+				<button id='bulkScriptDb' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> Select an acquisition script <i class="fe-icon--right fas fa-chevron-up"></i></button>
 				<div class="fe-dropdown__list-container">
 					<ul class="fe-dropdown__list fe-list">
 						{% if scripts %} {{scripts|safe}} {% endif %}

@@ -64,9 +64,9 @@
 			"info":     false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ "data": "scriptname", title: "Name" },
@@ -82,9 +82,9 @@
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
 				 		//data = "<input type='button' data-script='" + row.script + "' value='view' id='view_" + data + "' class='tableActionButton viewbutton'><a href='/scripts?action=delete&id=" + data + "' class='tableActionButton'>delete</a>";
-				 		data = '<button style="margin-right: 6px;" data-script="' + row.script + '" class="script_view fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main"> view <i class="fe-icon--right far fa-eye"></i></button>';
-				 		data += '<button style="margin-right: 6px;" data-id="' + row.script_id + '" class="script_download fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main"> download <i class="fe-icon--right far fa-download"></i></button>'
-				 		data += '<button style="margin-right: 6px;" data-id="' + row.script_id + '" class="script_remove fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove"> remove <i class="fe-icon--right far fa-trash"></i></button>';
+				 		data = '<button style="margin-right: 6px;" data-script="' + row.script + '" class="script_view fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main"> view <i class="fe-icon--right fas fa-eye"></i></button>';
+				 		data += '<button style="margin-right: 6px;" data-id="' + row.script_id + '" class="script_download fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main"> download <i class="fe-icon--right fas fa-download"></i></button>'
+				 		data += '<button style="margin-right: 6px;" data-id="' + row.script_id + '" class="script_remove fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove"> remove <i class="fe-icon--right fas fa-trash"></i></button>';
 				 	}
 				 	return data;
 				 }

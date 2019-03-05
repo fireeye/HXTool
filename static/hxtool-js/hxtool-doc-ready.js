@@ -101,7 +101,7 @@ function hxtool_doc_ready() {
 	});
 
 	$(document).on("click", ".fe-dropdown__item-link", function(e) {
-		$(this).closest("div").parent().find("button").html($(this).find(".fe-dropdown__item-link-text").html() + "<i class='fe-icon--right fal fa-chevron-up'></i>");
+		$(this).closest("div").parent().find("button").html($(this).find(".fe-dropdown__item-link-text").html() + "<i class='fe-icon--right fas fa-chevron-up'></i>");
 		$(this).closest("div").parent().find("button").data("id", $(this).find(".fe-dropdown__item-link-text").data("id") );
 		$(this).closest("div").fadeTo( "fast", 0, function() {
 			$(".fe-dropdown__list-container").hide();

@@ -195,9 +195,9 @@
 			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ "title": "", "data": "platform" },
@@ -307,8 +307,8 @@
 				 "width": "240px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
-				 		data = "<button class='addannotation fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' style='margin-right: 6px;' id='annotate_" + row.DT_RowId + "'>annotate<i class='fe-icon--right far fa-comments'></i></button>";
-				 		data += "<button class='alertAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+				 		data = "<button class='addannotation fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' style='margin-right: 6px;' id='annotate_" + row.DT_RowId + "'>annotate<i class='fe-icon--right fas fa-comments'></i></button>";
+				 		data += "<button class='alertAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
 				 	}
 				 	return data;
 				 }
