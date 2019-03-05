@@ -22,9 +22,9 @@
 				"processing": false,
 				"dom": '<"hxtool_datatables_buttons"B>frtip',
 				"buttons": [
-					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-					{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+					{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 				],
 				"columns": [
 					{ title: "ID", "data": "DT_RowId" },
@@ -76,9 +76,9 @@
 					 "width": "280px",
 					 render: function ( data, type, row, meta ) {
 					 	r = "";
-					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='analyze' data-id='" + row.DT_RowId + "'>analyze<i class='fe-icon--right far fa-eye'></i></button>";
-					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
-					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='analyze' data-id='" + row.DT_RowId + "'>analyze<i class='fe-icon--right fas fa-eye'></i></button>";
+					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right fas fa-ban'></i></button>";
+					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
 					 	return (r);
 					 }
 					}

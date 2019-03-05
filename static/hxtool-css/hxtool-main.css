@@ -56,12 +56,16 @@ select {
 
 ::-webkit-scrollbar-track
 {
-  background: #0d1a2b;
+  background: inherit;
 }
 
 ::-webkit-scrollbar-thumb
 {
-  background: rgba(15, 184, 220, 0.4);
+  background: #006b8c;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
 }
 
 .mainPlaceHolder {

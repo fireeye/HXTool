@@ -57,6 +57,11 @@ function datatables_parseAcquisitionType(data) {
 		data += "<i class='fas fa-database fa-md fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Bulk</b>";
 		data += "</span>";
 	}
+	else if (data == "diag") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-diagnoses fa-md fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Diagnostics</b>";
+		data += "</span>";
+	}
 	else {
 		data = data;
 	}
@@ -84,6 +89,11 @@ function host_parseAcquisitionType(data) {
 		data += "<i class='fas fa-database fa-sm fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Bulk</b>";
 		data += "</span>";
 	}
+	else if (data == "diag") {
+		data = "<span class='htLayoutIconWrapper'>";
+		data += "<i class='fas fa-diagnoses fa-sm fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Diagnostics</b>";
+		data += "</span>";
+	}
 	else {
 		data = data;
 	}
@@ -98,7 +108,7 @@ function datatables_parseAcquisitionState(data) {
 	}
 	else if (data == "RUNNING") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fal fa-cog fa-md fa-spin' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
+		data += "<i class='fas fa-md fa-spin fa-circle-notch' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
 		data += "</span>";
 	}
 	else if (data == "COMPLETE") {
@@ -135,7 +145,7 @@ function host_parseAcquisitionState(data) {
 	}
 	else if (data == "RUNNING") {
 		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fal fa-cog fa-sm fa-spin' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
+		data += "<i class='fas fa-sm fa-spin fa-circle-notch' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
 		data += "</span>";
 	}
 	else if (data == "COMPLETE") {

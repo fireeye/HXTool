@@ -1,7 +1,7 @@
 /* HXTool Top Navigation bar */
 
 .hxtool_topnav_dropdown {
-	background: rgba(0, 0, 0, 0.6);
+	background: rgba(0, 0, 0, 0.6) !important;
 	position: absolute;
 	box-shadow: 0 0.5px 5px 0 rgba(0, 0, 0, 0.25);
 	display: none;
@@ -10,7 +10,15 @@
 
 .hxtool_topnav_dropdown_child {
 	width: 100%;
+	color: #0fb8dc;
 	text-align: left;
+	background: transparent;
+	border: 0;
+}
+
+.hxtool_topnav_dropdown_child:hover {
+	background: rgba(0, 0, 0, 0.6);
+	color: #66ebff !important;
 }
 
 .hxtool_topnav_left_container-left {
@@ -23,3 +31,14 @@
 	float: right;
 	text-align: right;
 }
+
+.hxtool_topnav_mainbutton {
+	background: transparent;
+	color: #0fb8dc;
+	border: 0;
+}
+
+.hxtool_topnav_mainbutton:hover {
+	background: rgba(0, 0, 0, 0.6);
+	color: #66ebff !important;
+}	

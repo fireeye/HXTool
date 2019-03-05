@@ -19,7 +19,7 @@
 				myhtml += "<option name='" + index + "'>" + index;
 			});
 			myhtml += "</select>";
-			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
+			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fas fa-chevron-up'></i></span>";
 
 			var myentries = [];
 			$.each(data, function(index, field) {
@@ -45,7 +45,7 @@
 				myhtml += "<option data-type='" + field.type + "' value='" + field.name + "'>" + field.name;
 			});
 			myhtml += "</select>";
-			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fal fa-chevron-up'></i></span>";
+			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fas fa-chevron-up'></i></span>";
 
 			var myentries = [];
 			$.each(data[mytype], function(index, field) {
@@ -109,16 +109,16 @@
 			}
 		
 			// Append row to table
-			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove conditionDeleteButton\'>remove<i class=\'fe-icon--right far fa-trash\'></i></button></td></tr>');
+			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove conditionDeleteButton\'>remove<i class=\'fe-icon--right fas fa-trash\'></i></button></td></tr>');
 		}
 
 		function addElement(myguid, optionalElement) {
 			//Append row to table
 			if (optionalElement == undefined) {
-				$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove elementDeleteButton\'>remove<i class=\'fe-icon--right far fa-trash\'></i></button></td></tr>');
+				$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove elementDeleteButton\'>remove<i class=\'fe-icon--right fas fa-trash\'></i></button></td></tr>');
 			}
 			else {
-				$('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove elementDeleteButton\'>remove<i class=\'fe-icon--right far fa-trash\'></i></button></td></tr>').insertAfter($(optionalElement)).closest('tr');
+				$('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove elementDeleteButton\'>remove<i class=\'fe-icon--right fas fa-trash\'></i></button></td></tr>').insertAfter($(optionalElement)).closest('tr');
 			}
 		}
 
@@ -187,13 +187,13 @@
 				var platform = JSON.parse({{platform|tojson|safe}});
 				$('#indicator_platform').data("id", platform);
 				if (platform == "win") {
-					$('#indicator_platform').html("Microsoft Windows" + "<i class='fe-icon--right fal fa-chevron-up'></i>");
+					$('#indicator_platform').html("Microsoft Windows" + "<i class='fe-icon--right fas fa-chevron-up'></i>");
 				}
 				else if (platform == "osx") {
-					$('#indicator_platform').html("Apple MacOS" + "<i class='fe-icon--right fal fa-chevron-up'></i>");
+					$('#indicator_platform').html("Apple MacOS" + "<i class='fe-icon--right fas fa-chevron-up'></i>");
 				}
 				else {
-					$('#indicator_platform').html("All" + "<i class='fe-icon--right fal fa-chevron-up'></i>");
+					$('#indicator_platform').html("All" + "<i class='fe-icon--right fas fa-chevron-up'></i>");
 				}
 			{% endif %}
 
@@ -417,7 +417,7 @@
 		</table>
 
 		<div style='text-align: center; padding-top: 6px;'>
-			<button id='add_cond' class='fe-btn fe-btn--sm fe-btn--hxtool-main'>add condition<i class='fe-icon--right far fa-plus'></i></button>
+			<button id='add_cond' class='fe-btn fe-btn--sm fe-btn--hxtool-main'>add condition<i class='fe-icon--right fas fa-plus'></i></button>
 		</div>
 	{{ htPanel.widgetFooter() }}
 

@@ -58,12 +58,12 @@
 }
 
 .hxtool_host_alert_table tbody tr:hover {
-	background: rgba(255,255,255,0.2);
+	background: rgba(255,255,255,0.1);
 	cursor: pointer;
 }
 
 .hxtool_host_acq_table tbody tr:hover {
-	background: rgba(255,255,255,0.2);
+	background: rgba(255,255,255,0.1);
 	cursor: pointer;
 }
 

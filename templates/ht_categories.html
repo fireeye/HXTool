@@ -15,9 +15,9 @@
 			"processing": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ title: "Name", "data": "name" },
@@ -34,7 +34,7 @@
 				 "targets": 6,
 				 "width": "140px",
 				 render: function ( data, type, row, meta ) {
-				 	r = "<button style='margin-right: 6px;' class='categoryRemove fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-id='" + row.uri_name + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+				 	r = "<button style='margin-right: 6px;' class='categoryRemove fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-id='" + row.uri_name + "'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
 				 	return (r);
 				 }
 				}

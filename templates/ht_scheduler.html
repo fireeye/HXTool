@@ -23,9 +23,9 @@
 			"searching": true,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 			],
 			"columns": [
 				{ title: "profile", "data": "profile" },
@@ -71,7 +71,7 @@
 				render: function ( data, type, row, meta ) {
 					myhtml = "";
 					if (row.immutable == false) {
-						myhtml = "<button class='schedulerAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-id='" + data + "' data-type='remove'>delete<i class='fe-icon--right far fa-trash'></i></button>";
+						myhtml = "<button class='schedulerAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-id='" + data + "' data-type='remove'>delete<i class='fe-icon--right fas fa-trash'></i></button>";
 					}
 					return myhtml;
 					}

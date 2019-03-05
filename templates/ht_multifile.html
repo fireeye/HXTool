@@ -68,9 +68,9 @@ table.nested_table tr:hover {
 			"paging": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 			],
 			"ajax": "/api/v1/datatable_multi_filelisting",
 			"columns": [
@@ -101,9 +101,9 @@ table.nested_table tr:hover {
 				 "targets": 7,
 				 render: function ( data, type, row, meta ) {
 				 	r = "";
-				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view<i class='fe-icon--right far fa-eye'></i></button>";
-				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
-				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view<i class='fe-icon--right fas fa-eye'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right fas fa-ban'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='flistAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
 				 	return (r);
 				 }
 				}
@@ -125,10 +125,10 @@ table.nested_table tr:hover {
 					'<td style="width:150px;">'+d.files[i].hostname+'</td>'+
 					'<td>'+d.files[i].path+'</td>';
 				if(d.files[i].downloaded) {
-					file_table +='<td style="width:132px";><button style="margin-right: 6px;"" class="mDownload fe-btn fe-btn--sm fe-btn--hxtool-main" data-url="/download_file?mf_id=' + d.id + "&acq_id=" + d.files[i]['acquisition_id'] + '">download<i class="fe-icon--right far fa-download"></i></button></td>';
+					file_table +='<td style="width:132px";><button style="margin-right: 6px;"" class="mDownload fe-btn fe-btn--sm fe-btn--hxtool-main" data-url="/download_file?mf_id=' + d.id + "&acq_id=" + d.files[i]['acquisition_id'] + '">download<i class="fe-icon--right fas fa-download"></i></button></td>';
 				}
 				else {
-					file_table +='<td style="width:132px";><button style="margin-right: 6px;"" class="fe-btn fe-btn--sm fe-btn--hxtool-main">waiting<i class="fe-icon--right far fa-clock"></i></button></td>';
+					file_table +='<td style="width:132px";><button style="margin-right: 6px;"" class="fe-btn fe-btn--sm fe-btn--hxtool-main">waiting<i class="fe-icon--right fas fa-clock"></i></button></td>';
 				}
 				file_table += '</tr>';
 			}
@@ -139,9 +139,9 @@ table.nested_table tr:hover {
 			"paging": false,
 			"dom": '<"hxtool_datatables_buttons"B>frtip',
 			"buttons": [
-				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right far fa-copy'></i>" },
-				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right far fa-file'></i>" },
-				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right far fa-file-excel'></i>" }
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 			],
 			"ajax": "/api/v1/datatable_multi_multifile",
 			"columns": [
@@ -183,8 +183,8 @@ table.nested_table tr:hover {
 				 "targets": 9,
 				 render: function ( data, type, row, meta ) {
 				 	r = "";
-				 	r += "<button style='margin-right: 6px;' class='mAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right far fa-ban'></i></button>";
-				 	r += "<button style='margin-right: 6px;' class='mAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right far fa-trash'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='mAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right fas fa-ban'></i></button>";
+				 	r += "<button style='margin-right: 6px;' class='mAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
 				 	return (r);
 				 }
 				}
