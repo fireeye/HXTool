@@ -326,7 +326,7 @@ table.nested_table tr:hover {
 	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="createFileListing"> New file listing <i style='color: #11a962;' class="fe-icon--right fas fa-search-plus"></i></button>
 {{ htPanelNoHeader.widgetFooter() }}
 
-{{ htModal.widgetHeader("Multi-file Listing Acquisition Request", modalId="flistPopup", modalSize="medium") }}
+{{ htModal.widgetHeader("Multi-file Listing Acquisition Request", modalId="flistPopup", modalSize="medium", modalOverflow="true") }}
 	{{ htInput.widget("my new listing", elementTitle="Name", elementHint="", elementId="listing_name", elementWidth="100%;") }}
 	{{ htInput.widget("c:\\temp", elementTitle="File Listing Path", elementHint="", elementId="listing_path", elementWidth="100%;") }}
 	{{ htInput.widget("regular expression", elementTitle="File Listing Regex", elementHint="", elementId="listing_regex", elementWidth="100%;") }}
