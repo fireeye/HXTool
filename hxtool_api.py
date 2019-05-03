@@ -199,6 +199,9 @@ def hxtool_api_enterprise_search_remove(hx_api_object):
 @ht_api.route('/api/v{0}/enterprise_search/new/db'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def hxtool_api_enterprise_search_new_db(hx_api_object):
+	
+	if request.form['sweephostset'] == "false":
+		return(app.response_class(response=json.dumps("Please select a host set."), status=400, mimetype='application/json'))
 
 	ioc_script = app.hxtool_db.oiocGet(request.args.get('ioc'))
 
@@ -248,7 +251,10 @@ def hxtool_api_enterprise_search_new_db(hx_api_object):
 @ht_api.route('/api/v{0}/enterprise_search/new/file'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
 def hxtool_api_enterprise_search_new_file(hx_api_object):
-
+	
+	if request.form['sweephostset'] == "false":
+		return(app.response_class(response=json.dumps("Please select a host set."), status=400, mimetype='application/json'))
+		
 	fc = request.files['ioc']
 	ioc_script = fc.read()
 
@@ -591,6 +597,9 @@ def hxtool_api_acquisition_bulk_download(hx_api_object):
 @valid_session_required
 def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 
+	if request.form['bulkhostset'] == "false":
+		return(app.response_class(response=json.dumps("Please select a host set."), status=400, mimetype='application/json'))
+
 	start_time = None
 	interval = None
 	schedule = None
@@ -634,6 +643,9 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 @ht_api.route('/api/v{0}/acquisition/bulk/new/file'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
 def hxtool_api_acquisition_bulk_new_file(hx_api_object):
+
+	if request.form['bulkhostset'] == "false":
+		return(app.response_class(response=json.dumps("Please select a host set."), status=400, mimetype='application/json'))
 
 	start_time = None
 	interval = None
