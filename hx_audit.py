@@ -170,9 +170,9 @@ class AuditPackage:
 								result_dict = {
 									audit_item : itm
 								}
-								itm.clear()
 								result_dict.update(d)
 								yield result_dict
+								itm.clear()
 								result_dict.clear()
 			return
 	
