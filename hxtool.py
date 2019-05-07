@@ -554,7 +554,7 @@ if __name__ == "__main__":
 			debug_mode = True
 		elif sys.argv[1] == '--clear-sessions':
 			print("Clearing sessions from the database and exiting.")
-			hxtool_db = hxtool_db('hxtool.db')
+			hxtool_db = hxtool_db(combine_app_path('hxtool.db'))
 			for s in hxtool_db.sessionList():
 				hxtool_db.sessionDelete(s['session_id'])
 			hxtool_db.close()
