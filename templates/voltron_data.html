@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Analysis data{% endblock %}
+{% block navlocation %}Analysis data{% endblock %}
+{% block content %}
+
+<script>
+
+	$(document).ready(function() {
+		
+		$.fn.dataTable.ext.errMode = 'none';
+		var host_datatable = $('#dataTable').DataTable( {
+			"ajax": "/api/v1/analysis/data",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": true,
+			"processing": false,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
+			],
+			"columns": [
+				{ title: "", "data": "bulk_acquisition_id" },
+				{ title: "Bulk ID", "data": "bulk_acquisition_id" },
+				{ title: "From", "data": "starttime" },
+				{ title: "To", "data": "stoptime" },
+				{ title: "# Records", "data": "events" }
+			],
+			"columnDefs": [	
+				{
+				 "targets": 0,
+				 render: function ( data, type, row, meta ) {
+					r = "<input id='" + data + "_check' type='checkbox' />";
+				 	return (r);
+				 }
+				},
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3]}
+			]
+		});
+		$('div.dataTables_filter input').addClass("fe-input");
+
+	});
+
+</script>
+
+{{ htPanel.widgetHeader("Analysis data", panelIcon="fa-desktop") }}
+	<table style='width: 100%;' id='dataTable' class='hxtool_table'></table>
+{{ htPanel.widgetFooter() }}
+
+
+{% endblock %}

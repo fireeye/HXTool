@@ -69,6 +69,13 @@ def nl2br(eval_ctx, value):
 		result = Markup(result)
 	return result
 
+#### NON PROD
+@app.route('/analysis_data', methods=['GET'])
+@valid_session_required
+def analysis_data(hx_api_object):
+	return render_template('voltron_data.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+#############
+
 ### Dashboard page
 @app.route('/', methods=['GET'])
 @valid_session_required
@@ -482,6 +489,11 @@ def app_init(debug = False):
 	
 	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
 	hxtool_global.hxtool_config = app.hxtool_config
+
+	# Enable X15 integration if config options are present
+	if hxtool_global.hxtool_config['x15']:
+		from hxtool_x15_db import hxtool_x15
+		hxtool_global.hxtool_x15_object = hxtool_x15()
 	
 	# Initialize the scheduler
 	hxtool_global.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
