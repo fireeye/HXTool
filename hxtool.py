@@ -484,7 +484,7 @@ def app_init(debug = False):
 		app.logger.setLevel(logging.INFO)
 	
 	# Init DB
-	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger, write_cache_size = db_write_cache_size)
+	app.hxtool_db = hxtool_db(combine_app_path('hxtool.db'), logger = app.logger, write_cache_size = db_write_cache_size)
 	hxtool_global.hxtool_db = app.hxtool_db
 	
 	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
