@@ -127,6 +127,7 @@ class AuditPackage:
 							# Find the payload item element tag
 							(event, elem) = xml_iterator.next()
 							payload_item_tag = elem.tag
+							d['generator_item_name'] = payload_item_tag
 							
 							for event, elem in xml_iterator:							
 								if elem.tag == payload_item_tag and event == "end":
@@ -156,6 +157,7 @@ class AuditPackage:
 						for e in audit_json:
 							if not e.startswith("@"):
 								audit_item = e
+								d['generator_item_name'] = e
 								break
 								
 						if batch_mode:
