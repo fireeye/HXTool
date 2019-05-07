@@ -2801,6 +2801,62 @@ def stack_job_results(hx_api_object, stack_job_eid):
 	ht_data_model = hxtool_data_models(stack_job['stack_type'])
 	return ht_data_model.stack_data(stack_job['results'])	
 
+#######################
+### X15 INTEGRATION ###
+#######################
+
+@ht_api.route('/api/v{0}/analysis/data'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def x15_analysis_data(hx_api_object):
+
+	if hasattr(hxtool_global, 'hxtool_x15_object'):
+		myres = {"data": hxtool_global.hxtool_x15_object.getAudits()}
+		return(json.dumps(myres))
+	else:
+		return make_response_by_code(400)
+
+@ht_api.route('/api/v{0}/analysis/auditmodules'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def x15_analysis_auditmodules(hx_api_object):
+
+	if hasattr(hxtool_global, 'hxtool_x15_object'):
+		myids = [int(x) for x in request.args.get('id').split(",")]
+		myres = {"data": hxtool_global.hxtool_x15_object.getAuditModules(myids)}
+		return(json.dumps(myres))
+	else:
+		return make_response_by_code(400)
+
+@ht_api.route('/api/v{0}/analysis/auditdata'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def x15_analysis_auditdata(hx_api_object):
+
+	generatorMeta = {
+		"eventbuffer": "eventitem"
+	}
+
+	if hasattr(hxtool_global, 'hxtool_x15_object'):
+		mygenerators = request.args.get('generators').split(",")
+		myids = [int(x) for x in request.args.get('id').split(",")]
+		
+		myres = {"data": hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids)}
+
+		#myres = {"data": []}
+
+		#for event in hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids):
+			
+			#print(event[generatorMeta[event['generator']]])
+
+
+			#myres['data'].append({
+			#	"" : event[generatorMeta[event['generator']]]
+			#})
+
+		return(json.dumps(myres))
+	else:
+		return make_response_by_code(400)
+
+#######################
+
 
 def create_api_response(ret = True, response_code = 200, response_data = False):
 

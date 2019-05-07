@@ -25,8 +25,15 @@
       "key":"hxtool.key"
    },
    "background_processor":{  
-      "poll_interval":30,
+     "poll_interval":30,
 	  "poll_threads":4
+   },
+   "x15":{
+      "host": "192.168.1.40",
+      "port": 15432,
+      "user": "admin",
+      "password": "admin",
+      "db": "HXTool"
    },
    "headers":{
    },
