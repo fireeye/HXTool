@@ -79,7 +79,7 @@ class AuditPackage:
 						return result
 		return None
 
-	def get_audit(self, payload_name=None, generator=None, destination_path=None):
+	def get_audit(self, payload_name=None, generator=None, destination_path=None, open_only=False):
 		if not payload_name and not generator:
 			raise ValueError("You must specify payload_name or generator.")
 		if payload_name and payload_name not in self.package.namelist():
@@ -92,6 +92,9 @@ class AuditPackage:
 		if destination_path:
 			self.package.extract(payload_name, destination_path)
 			return None
+			
+		if open_only:
+			return self.package.open(payload_name)
 		
 		return self.package.read(payload_name).decode('utf-8')	
 		
@@ -107,27 +110,46 @@ class AuditPackage:
 			if self.parsable_mime_type(result['type']):
 				d['timestamps'] = result['timestamps']
 				
-				payload = self.get_audit(payload_name = result['payload'])
+				payload = self.get_audit(payload_name = result['payload'], open_only = True)
 				
 				if payload:
 					if result['type'] == 'application/xml':							
-						xml_et = ET.fromstring(payload)
-						payload = None
+						payload_item_tag = None
+						batch_dict = {'results' : []}
+						xml_iterator = ET.iterparse(payload, events = ["start", "end"])
 						
-						if xml_et.tag == 'itemList':
+						(event, elem) = xml_iterator.next()	
+						if elem.tag == "itemList" and event == "start":
+							if len(elem) == 0:
+								# Empty payload
+								return
+							
+							# Find the payload item element tag
+							(event, elem) = xml_iterator.next()
+							payload_item_tag = elem.tag
+							
+							for event, elem in xml_iterator:							
+								if elem.tag == payload_item_tag and event == "end":
+									result_dict = self.xml_to_dict(elem)
+							
+									# Free memory used by the elements
+									elem.clear()
+									
+									if batch_mode:
+										batch_dict['results'].append(result_dict)
+									else:
+										result_dict.update(d)
+										yield result_dict									
+										# Free memory used by the result dictionary
+										result_dict.clear()
+							
 							if batch_mode:
-								result_dict = {
-									'results' : self.xml_to_dict(xml_et)['itemList']
-								}
-								result_dict.update(d)
-								yield result_dict
-							else:
-								for itm in xml_et:
-									result_dict = self.xml_to_dict(itm)
-									result_dict.update(d)
-									yield result_dict
+								batch_dict.update(d)
+								yield batch_dict
+								batch_dict.clear()
+							
 					elif result['type'] == 'application/json':
-						audit_json = json.loads(payload)
+						audit_json = json.load(payload)
 						payload = None
 						
 						audit_item = None
@@ -142,13 +164,16 @@ class AuditPackage:
 							}
 							result_dict.update(d)
 							yield result_dict
+							result_dict.clear()
 						else:
 							for itm in audit_json[audit_item]:
 								result_dict = {
 									audit_item : itm
 								}
+								itm.clear()
 								result_dict.update(d)
 								yield result_dict
+								result_dict.clear()
 			return
 	
 	def xml_to_dict(self, element):
