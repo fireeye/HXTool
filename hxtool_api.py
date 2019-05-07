@@ -2838,20 +2838,25 @@ def x15_analysis_auditdata(hx_api_object):
 		mygenerators = request.args.get('generators').split(",")
 		myids = [int(x) for x in request.args.get('id').split(",")]
 		
-		myres = {"data": hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids)}
-
+		#myres = {"data": hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids)}
+		myres = hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids)
 		#myres = {"data": []}
 
-		#for event in hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids):
+		#import demjson
+
+		for event in hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids):
 			
-			#print(event[generatorMeta[event['generator']]])
+			print(event[next(iter(event))])
+			#print((event[generatorMeta[event['generator']]]))
 
 
 			#myres['data'].append({
 			#	"" : event[generatorMeta[event['generator']]]
 			#})
 
+		#print(myres)
 		return(json.dumps(myres))
+		#return(myres)
 	else:
 		return make_response_by_code(400)
 
