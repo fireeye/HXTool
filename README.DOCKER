@@ -1,2 +1,5 @@
-To build a Docker image from the HXTool source, do the following:
-1. Run 'docker build -t hxtool:latest .'
+To build a Docker image from the HXTool source, execute the following: 
+docker build -t hxtool:latest .
+
+To run HXTool cnce the image build process is complete, execute the following:
+docker run -p 8080:8080 -d hxtool:latest
