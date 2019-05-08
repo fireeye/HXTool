@@ -2846,7 +2846,8 @@ def x15_analysis_auditdata(hx_api_object):
 
 		for event in hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids):
 			
-			print(event[next(iter(event))])
+			myjson = json.loads(event[next(iter(event))])
+
 			#print((event[generatorMeta[event['generator']]]))
 
 
