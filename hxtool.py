@@ -484,7 +484,7 @@ def app_init(debug = False):
 		app.logger.setLevel(logging.INFO)
 	
 	# Init DB
-	app.hxtool_db = hxtool_db('hxtool.db', logger = app.logger, write_cache_size = db_write_cache_size)
+	app.hxtool_db = hxtool_db(combine_app_path('hxtool.db'), logger = app.logger, write_cache_size = db_write_cache_size)
 	hxtool_global.hxtool_db = app.hxtool_db
 	
 	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
@@ -554,7 +554,7 @@ if __name__ == "__main__":
 			debug_mode = True
 		elif sys.argv[1] == '--clear-sessions':
 			print("Clearing sessions from the database and exiting.")
-			hxtool_db = hxtool_db('hxtool.db')
+			hxtool_db = hxtool_db(combine_app_path('hxtool.db'))
 			for s in hxtool_db.sessionList():
 				hxtool_db.sessionDelete(s['session_id'])
 			hxtool_db.close()
@@ -570,7 +570,7 @@ if __name__ == "__main__":
 			r = f("Do you want to proceed (Y/N)?")
 			if r.strip().lower() == 'y':
 				print("Clearing saved tasks from the database and exiting.")
-				hxtool_db = hxtool_db('hxtool.db')
+				hxtool_db = hxtool_db(combine_app_path('hxtool.db'))
 				for t in hxtool_db.taskList():
 					hxtool_db.taskDelete(t['profile_id'], t['task_id'])
 				hxtool_db.close()
