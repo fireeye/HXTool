@@ -57,7 +57,7 @@ class AuditPackage:
 			if sysinfo_audit:
 				sysinfo_result = self.get_audit(payload_name = sysinfo_audit['payload'])
 				if sysinfo_audit['type'] == 'application/xml':
-					self.hostname = ET.fromstring(sysinfo_result).find('.//hostname').text
+					self.hostname = ET.fromstring(sysinfo_result, parser = ET.XMLParser(encoding = 'utf-8')).find('.//hostname').text
 				elif sysinfo_audit['type'] == 'application/json':
 					self.hostname = json.loads(sysinfo_result)['SystemInfoItem'][0]['hostname']
 					
@@ -116,16 +116,16 @@ class AuditPackage:
 					if result['type'] == 'application/xml':							
 						payload_item_tag = None
 						batch_dict = {'results' : []}
-						xml_iterator = ET.iterparse(payload, events = ["start", "end"])
+						xml_iterator = ET.iterparse(payload, events = ["start", "end"], parser = ET.XMLParser(encoding = 'utf-8'))
 						
-						(event, elem) = xml_iterator.next()	
+						(event, elem) = next(xml_iterator)	
 						if elem.tag == "itemList" and event == "start":
 							if len(elem) == 0:
 								# Empty payload
 								return
 							
 							# Find the payload item element tag
-							(event, elem) = xml_iterator.next()
+							(event, elem) = next(xml_iterator)
 							payload_item_tag = elem.tag
 							d['generator_item_name'] = payload_item_tag
 							
