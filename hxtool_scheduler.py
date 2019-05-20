@@ -184,6 +184,10 @@ class hxtool_scheduler_task:
 
 	def _calculate_next_run(self):
 		self.next_run = None
+		
+		# Bail out if we've failed and should stop running further
+		if self.state == TASK_STATE_FAILED and self.stop_on_fail:
+			return
 	
 		if self._defer_signal:
 			# Add some random seconds to the interval to keep the task threads from deadlocking
@@ -318,10 +322,7 @@ class hxtool_scheduler_task:
 							self.state = TASK_STATE_FAILED
 							break
 				
-				if not (self.state == TASK_STATE_FAILED and self.stop_on_fail):
-					self._calculate_next_run()
-				else:
-					self.next_run = None
+				self._calculate_next_run()
 				
 				if self.next_run:
 					self.last_run_state = self.state
