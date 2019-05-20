@@ -1065,10 +1065,10 @@ def hxtool_api_stacking_remove(hx_api_object):
 @valid_session_required
 def hxtool_api_stacking_stop(hx_api_object):
 	stack_job = hxtool_global.hxtool_db.stackJobGet(stack_job_eid = request.args.get('id'))
-	bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
 	if stack_job:
-		(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
-		if ret:
+		bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
+		if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
+			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
 			hxtool_global.hxtool_db.stackJobStop(stack_job_eid = stack_job.eid)
 			hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_job.eid, stopped = True)
 

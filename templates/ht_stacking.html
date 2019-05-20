@@ -75,9 +75,13 @@
 					 "targets": 8,
 					 "width": "280px",
 					 render: function ( data, type, row, meta ) {
+						disable_stop_button = "";
+						if (!(row.bulk_acquisition_id > 0)) {
+							disable_stop_button = "disabled ";
+						}
 					 	r = "";
 					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='analyze' data-id='" + row.DT_RowId + "'>analyze<i class='fe-icon--right fas fa-eye'></i></button>";
-					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right fas fa-ban'></i></button>";
+					 	r += "<button " + disable_stop_button + "style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='stop' data-id='" + row.DT_RowId + "'>stop<i class='fe-icon--right fas fa-ban'></i></button>";
 					 	r += "<button style='margin-right: 6px;' class='stackAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
 					 	return (r);
 					 }
