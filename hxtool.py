@@ -583,7 +583,7 @@ if __name__ == "__main__":
 	logger = logging.getLogger('werkzeug')
 	if logger:
 		logger.setLevel(app.logger.level)
-		request_log_handler = logging.handlers.RotatingFileHandler('log/access.log', maxBytes=50000, backupCount=5)
+		request_log_handler = logging.handlers.RotatingFileHandler(combine_app_path('log/access.log'), maxBytes=50000, backupCount=5)
 		request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
 		request_log_handler.setFormatter(request_log_formatter)	
 		logger.addHandler(request_log_handler)
