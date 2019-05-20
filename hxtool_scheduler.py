@@ -289,7 +289,7 @@ class hxtool_scheduler_task:
 								if arg_i['name'] in self.stored_result.keys():
 									kwargs[arg_i['name']] = self.stored_result[arg_i['name']]
 								elif arg_i['required']:
-									self.logger.error("Module {} requires argument {} that was not found! Bailing!".format(arg_i['name'], module.__module__))
+									self.logger.error("Module {} requires argument {} that was not found! Bailing!".format(module.__module__, arg_i['name']))
 									ret = False
 									self.state = TASK_STATE_FAILED
 									break
