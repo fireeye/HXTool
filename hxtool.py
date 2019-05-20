@@ -554,7 +554,7 @@ if __name__ == "__main__":
 			debug_mode = True
 		elif sys.argv[1] == '--clear-sessions':
 			print("Clearing sessions from the database and exiting.")
-			hxtool_db = hxtool_db(combine_app_path('hxtool.db'))
+			hxtool_db = hxtool_db('hxtool.db')
 			for s in hxtool_db.sessionList():
 				hxtool_db.sessionDelete(s['session_id'])
 			hxtool_db.close()
@@ -563,14 +563,14 @@ if __name__ == "__main__":
 		elif sys.argv[1] == '--clear-saved-tasks':
 			print("WARNING! WARNING! WARNING!")
 			print("This will clear ALL saved tasks in the database for ALL profiles!")
-			if raw_input:
+			try:
 				f = raw_input
-			else:
+			except NameError:
 				f = input
 			r = f("Do you want to proceed (Y/N)?")
 			if r.strip().lower() == 'y':
 				print("Clearing saved tasks from the database and exiting.")
-				hxtool_db = hxtool_db(combine_app_path('hxtool.db'))
+				hxtool_db = hxtool_db('hxtool.db')
 				for t in hxtool_db.taskList():
 					hxtool_db.taskDelete(t['profile_id'], t['task_id'])
 				hxtool_db.close()
