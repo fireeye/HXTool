@@ -318,7 +318,8 @@ class hxtool_scheduler_task:
 							self.state = TASK_STATE_FAILED
 							break
 				
-				self._calculate_next_run()
+				if not (self.state == TASK_STATE_FAILED and self.stop_on_fail):
+					self._calculate_next_run()
 				
 				if self.next_run:
 					self.last_run_state = self.state
