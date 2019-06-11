@@ -454,9 +454,9 @@ def logout_task_sessions():
 
 def sigint_handler(signum, frame):
 	app.logger.info("Caught SIGINT, exiting...")
-	logout_task_sessions()
 	if hxtool_global.hxtool_scheduler:
 		hxtool_global.hxtool_scheduler.stop()
+	logout_task_sessions()	
 	if hxtool_global.hxtool_db:
 		hxtool_global.hxtool_db.close()
 	exit(0)	
@@ -554,7 +554,7 @@ if __name__ == "__main__":
 			debug_mode = True
 		elif sys.argv[1] == '--clear-sessions':
 			print("Clearing sessions from the database and exiting.")
-			hxtool_db = hxtool_db(combine_app_path('hxtool.db'))
+			hxtool_db = hxtool_db('hxtool.db')
 			for s in hxtool_db.sessionList():
 				hxtool_db.sessionDelete(s['session_id'])
 			hxtool_db.close()
@@ -563,14 +563,14 @@ if __name__ == "__main__":
 		elif sys.argv[1] == '--clear-saved-tasks':
 			print("WARNING! WARNING! WARNING!")
 			print("This will clear ALL saved tasks in the database for ALL profiles!")
-			if raw_input:
+			try:
 				f = raw_input
-			else:
+			except NameError:
 				f = input
 			r = f("Do you want to proceed (Y/N)?")
 			if r.strip().lower() == 'y':
 				print("Clearing saved tasks from the database and exiting.")
-				hxtool_db = hxtool_db(combine_app_path('hxtool.db'))
+				hxtool_db = hxtool_db('hxtool.db')
 				for t in hxtool_db.taskList():
 					hxtool_db.taskDelete(t['profile_id'], t['task_id'])
 				hxtool_db.close()
@@ -583,7 +583,7 @@ if __name__ == "__main__":
 	logger = logging.getLogger('werkzeug')
 	if logger:
 		logger.setLevel(app.logger.level)
-		request_log_handler = logging.handlers.RotatingFileHandler('log/access.log', maxBytes=50000, backupCount=5)
+		request_log_handler = logging.handlers.RotatingFileHandler(combine_app_path('log/access.log'), maxBytes=50000, backupCount=5)
 		request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
 		request_log_handler.setFormatter(request_log_formatter)	
 		logger.addHandler(request_log_handler)

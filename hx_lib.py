@@ -139,22 +139,21 @@ class HXAPI:
 		response_data = None
 		
 		try:
-			response = self._session.send(request, stream = stream)
+			with self._session.send(request, stream = stream) as response:
 
-			if not response.ok:
-				response.raise_for_status()
+				if not response.ok:
+					response.raise_for_status()
+				
+				if not response.encoding:
+					response.encoding = self.default_encoding
 			
-			if not response.encoding:
-				response.encoding = self.default_encoding
-		
-			# The HX API documentations states that the controller will include a new
-			# token in the response when the existing token is nearing expiration.
-			if 'X-FeApi-Token' in response.headers:
-				self.set_token(response.headers.get('X-FeApi-Token'))
-		
-			content_type = response.headers.get('Content-Type')
-			if content_type:
-				if 'json' in content_type:
+				# The HX API documentations states that the controller will include a new
+				# token in the response when the existing token is nearing expiration.
+				if 'X-FeApi-Token' in response.headers:
+					self.set_token(response.headers.get('X-FeApi-Token'))
+			
+				content_type = response.headers.get('Content-Type', None)
+				if content_type is not None and 'json' in content_type.lower():
 					if multiline_json:
 						line_count = 0
 						response_data = []
@@ -166,24 +165,24 @@ class HXAPI:
 								break
 					else:
 						response_data = response.json()
-				elif 'text' in content_type:
-					response_data = response.text
-			else:
-				response_data = response.content
-					
-			return(True, response.status_code, response_data, response.headers)	
-		except (requests.HTTPError, requests.ConnectionError) as e:
-			if hasattr(e, 'response') and e.response is not None:
-				# TODO: Maybe return based on Content-Type
-
-				# Check if error message is content type JSON
-				content_type = response.headers.get('Content-Type')
-				if content_type and 'json' in content_type:
-					e_response_data = json.loads(e.response.text)
 				else:
-					e_response_data = e.response.text
+					response_data = response.text
+					if response_data.startswith('{'):
+						self.logger.info("Possible JSON in response without corresponding Content-Type header.")
+						
+				return(True, response.status_code, response_data, response.headers)	
+		except (requests.exceptions.ChunkedEncodingError, requests.HTTPError, requests.ConnectionError) as e:
+			if hasattr(e, 'response') and e.response is not None:
+				response = e.response
+			
+				# Check if error message is content type JSON
+				content_type = response.headers.get('Content-Type', None)
+				if content_type is not None and 'json' in content_type.lower():
+					response_data = response.json()
+				else:
+					response_data = response.text
 
-				return(False, e.response.status_code, e_response_data, e.response.headers)
+				return(False, response.status_code, response_data, response.headers)
 			return(False, None, e, None)
 		
 		

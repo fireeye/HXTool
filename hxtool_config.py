@@ -9,8 +9,6 @@ import sys, logging, logging.handlers, socket
 import hxtool_global
 from hxtool_util import *
 
-#TODO: Add config documentation
-
 class hxtool_config:
 	"""
 	Default hard coded config
