@@ -1,29 +1,27 @@
 {
-   "log_handlers":{
-	   "rotating_file_handler":{
-		  "file":"log/hxtool.log",
-		  "max_bytes":50000,
-		  "backup_count":5,
-		  "level":"info",
-          "format":"[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s"
-	   }
+	"log_handlers": {
+		"rotating_file_handler": {
+			"file": "log/hxtool.log",
+			"max_bytes": 50000,
+			"backup_count": 5,
+			"level": "info",
+			"format": "[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s"
+		}
 	},
-   "network":{  
-      "ssl":"enabled",
-      "port":8080,
-      "listen_address":"0.0.0.0",
-	  "session_timeout":30
-   },
-   "ssl":{ 
-      "cert":"hxtool.crt",
-      "key":"hxtool.key"
-   },
-   "background_processor":{  
-     "poll_interval":30,
-	  "poll_threads":4
-   },
-   "headers":{
-   },
-   "cookies":{
-   }
+	"network": {
+		"ssl": "enabled",
+		"port": 8080,
+		"listen_address": "0.0.0.0",
+		"session_timeout": 30
+	},
+	"ssl": {
+		"cert": "hxtool.crt",
+		"key": "hxtool.key"
+	},
+	"background_processor": {
+		"poll_interval": 30,
+		"poll_threads": 4
+	},
+	"headers": {},
+	"cookies": {}
 }
