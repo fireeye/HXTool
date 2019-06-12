@@ -2686,9 +2686,9 @@ def chartjs_events_distribution(hx_api_object):
 
 		mydata['datasets'].append({
 			"label": "Alert count",
-			"backgroundColor": "rgba(0, 203, 190, 0.6)",
-			"borderColor": "rgba(0, 203, 190, 0.5)",
-			"borderWidth": 3,
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderColor": "#8fffc1",
+			"borderWidth": 0.5,
 			"data": [myDataIOC, myDataEXD, myDataMAL]
 		})
 
@@ -2732,9 +2732,9 @@ def chartjs_inactive_hosts_per_hostset(hx_api_object):
 
 		mydata['datasets'].append({
 			"label": "Missing hosts",
-			"backgroundColor": "rgba(0, 203, 190, 0.6)",
-			"borderColor": "rgba(0, 203, 190, 0.5)",
-			"borderWidth": 3,
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderColor": "#8fffc1",
+			"borderWidth": 0.5,
 			"data": tempData
 		})	
 
