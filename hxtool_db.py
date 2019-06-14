@@ -406,8 +406,8 @@ class hxtool_db:
 	def sessionCreate(self, session_id):
 		with self._lock:
 			return self._db.table('session').insert({'session_id' 		: session_id,
-													'session_data'		: None,
-													'update_timestamp'	: None})
+													'session_data'		: {},
+													'update_timestamp'	: HXAPI.dt_to_str(datetime.datetime.utcnow())})
 	
 	def sessionList(self):
 		with self._lock:
