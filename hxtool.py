@@ -462,7 +462,7 @@ def sigint_handler(signum, frame):
 	exit(0)	
 
 
-def app_init(debug = False):
+def app_init(debug = False, use_write_cache = True):
 	hxtool_global.initialize()
 	
 	hxtool_global.app_instance_path = app.root_path
@@ -472,7 +472,10 @@ def app_init(debug = False):
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
 	
-	db_write_cache_size = 1
+	db_write_cache_size = 0
+	if use_write_cache:
+		db_write_cache_size = 1
+		
 	# If we're debugging use a static key
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
@@ -610,5 +613,5 @@ if __name__ == "__main__":
 				port=app.hxtool_config['network']['port'])
 	
 else:
-	# Running under gunicorn/mod_wsgi
-	app_init(False)
+	# Running under gunicorn/mod_wsgi - disable the write cache
+	app_init(debug = False, use_write_cache = False)

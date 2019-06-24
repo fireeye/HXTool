@@ -25,7 +25,6 @@ class hxtool_db:
 		self.logger = logger
 		# If we can't open the DB file, rename the existing one
 		try:
-			# Drop the cache size so we write session data properly
 			CachingMiddleware.WRITE_CACHE_SIZE = write_cache_size
 			self._db = tinydb.TinyDB(db_file, storage=CachingMiddleware(JSONStorage))
 		except ValueError:
