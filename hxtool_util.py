@@ -289,6 +289,14 @@ def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hx
 																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
 																	'delete_bulk_download' : False
 																})
+							elif task_module_params['module'] == 'helix':
+								hxtool_global.get_logger().debug("Using taskmodule 'helix' with parameters: helix_url {}, helix_apikey: {}".format(task_module_params['helix_url'], task_module_params['helix_apikey']))
+								download_and_process_task.add_step(helix_task_module, kwargs = {
+																	'url' : task_module_params['helix_url'],
+																	'apikey' : task_module_params['helix_apikey'],
+																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
+																	'delete_bulk_download' : False
+																})
 			task_list.append(download_and_process_task)
 		
 		hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts)
