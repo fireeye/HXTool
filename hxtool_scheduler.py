@@ -288,6 +288,12 @@ class hxtool_scheduler_task:
 				for module, func, args, kwargs in self.steps:
 					self.logger.debug("Have module: {}, function: {}".format(module.__module__, func))
 					if getattr(module, 'hxtool_task_module', lambda: False)():
+						if module.enabled == False:
+							self.logger.error("Module {} is disabled!".format(module.__module__))
+							ret = False
+							self.state = TASK_STATE_FAILED
+							break
+							
 						for arg_i in module.input_args():
 							if not kwargs.get(arg_i['name'], None):
 								if arg_i['name'] in self.stored_result.keys():
