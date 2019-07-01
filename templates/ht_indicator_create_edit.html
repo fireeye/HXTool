@@ -192,6 +192,9 @@
 				else if (platform == "osx") {
 					$('#indicator_platform').html("Apple MacOS" + "<i class='fe-icon--right fas fa-chevron-up'></i>");
 				}
+				else if (platform == "linux") {
+					$('#indicator_platform').html("Linux" + "<i class='fe-icon--right fas fa-chevron-up'></i>");
+				}
 				else {
 					$('#indicator_platform').html("All" + "<i class='fe-icon--right fas fa-chevron-up'></i>");
 				}
@@ -389,6 +392,7 @@
 		{{ htDropdown.widgetHeader("Microsoft Windows", "indicator_platform", "win") }}
 		{{ htDropdown.widgetItem("Microsoft Windows", "win", elementIcon="fa-windows") }}
 		{{ htDropdown.widgetItem("Apple MacOS", "osx", elementIcon="fa-apple") }}
+		{{ htDropdown.widgetItem("Linux", "linux", elementIcon="fa-linux") }}
 		{{ htDropdown.widgetItem("All", "all", elementIcon="fas fa-globe") }}
 		{{ htDropdown.widgetFooter() }}
 
