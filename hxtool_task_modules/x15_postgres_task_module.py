@@ -125,8 +125,8 @@ class x15_postgres_task_module(task_module):
 					buffer = StringIO()
 					json.dump(audit_object, buffer)
 					x15_cursor.copy_expert(x15_query, buffer)
+					x15_connection.commit()
 				
-				x15_connection.commit()
 				x15_connection.close()
 				
 				ret = True								
