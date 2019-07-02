@@ -171,8 +171,7 @@ def _time_replace(m):
 	return None
 
 def pretty_exceptions(e):
-	return "{} in {}".format(e, traceback.print_stack())
-	
+	return "{} in {}".format(e, traceback.format_exc())
 	
 class TemporaryFileLock(object):
 	def __init__(self, file_path, file_name = 'lock_file'):
