@@ -296,6 +296,16 @@ def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hx
 																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
 																	'delete_bulk_download' : False
 																})
+							elif task_module_params['module'] == 'x15':
+								hxtool_global.get_logger().debug("Using taskmodule 'x15' with parameters: x15_host: {}, x15_port: {}, x15_database: {}, x15_table: {}, x15_user: {}, x15_password: {}".format(task_module_params['x15_host'], task_module_params['x15_port'], task_module_params['x15_database'], task_module_params['x15_table'], task_module_params['x15_user'], "********"))
+								task_module_args = {
+									'batch_mode' : False, # Hardcode per-event as X15 might not handle large lists well
+									'delete_bulk_download' : False
+								}
+								task_module_args.update(task_module_params)
+								del task_module_args['module']
+								download_and_process_task.add_step(x15_postgres_task_module, kwargs = task_module_args)
+																
 			task_list.append(download_and_process_task)
 		
 		hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts)
