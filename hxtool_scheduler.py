@@ -64,8 +64,11 @@ class hxtool_scheduler:
 	def _run_task(self, task):
 		task.set_state(TASK_STATE_QUEUED)
 		self.logger.debug("Executing task with id: %s, name: %s.", task.task_id, task.name)
-		task.run()
-			
+		try:
+			ret = task.run()
+		except Exception as e:
+			self.logger.error(pretty_exceptions(e))
+		
 	def start(self):
 		self._poll_thread.start()
 		self.logger.info("Task scheduler started.")
