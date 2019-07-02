@@ -305,8 +305,9 @@ class hxtool_scheduler_task:
 									break
 				
 					if self.state != TASK_STATE_FAILED:
+						self.logger.debug("Begin execute {}.{}".format(module.__module__, func))
 						result = getattr(module, func)(*args, **kwargs)
-						
+						self.logger.debug("End execute {}.{}".format(module.__module__, func))
 						if isinstance(result, tuple) and len(result) > 1:
 							ret = result[0]
 							# Store the result - make sure it is of type dict
