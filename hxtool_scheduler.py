@@ -68,6 +68,7 @@ class hxtool_scheduler:
 			ret = task.run()
 		except Exception as e:
 			self.logger.error(pretty_exceptions(e))
+			task.set_state(TASK_STATE_FAILED)
 		
 	def start(self):
 		self._poll_thread.start()
