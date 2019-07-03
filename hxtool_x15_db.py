@@ -26,5 +26,5 @@ class hxtool_x15:
 		return(self.cur.fetchall())
 
 	def getAuditData(self, generators, bulk_list):
-		self.cur.execute("SELECT * FROM eventdata WHERE bulk_acquisition_id IN %(bulkids)s AND generator IN %(generators)s LIMIT 1", {"bulkids": tuple(bulk_list), "generators": tuple(generators)})
+		self.cur.execute("SELECT eventitem::string as eventitem FROM eventdata WHERE bulk_acquisition_id IN %(bulkids)s AND generator IN %(generators)s LIMIT 1", {"bulkids": tuple(bulk_list), "generators": tuple(generators)})
 		return(self.cur.fetchall())				

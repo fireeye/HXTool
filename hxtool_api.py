@@ -2686,9 +2686,9 @@ def chartjs_events_distribution(hx_api_object):
 
 		mydata['datasets'].append({
 			"label": "Alert count",
-			"backgroundColor": "rgba(0, 203, 190, 0.6)",
-			"borderColor": "rgba(0, 203, 190, 0.5)",
-			"borderWidth": 3,
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderColor": "#8fffc1",
+			"borderWidth": 0.5,
 			"data": [myDataIOC, myDataEXD, myDataMAL]
 		})
 
@@ -2732,9 +2732,9 @@ def chartjs_inactive_hosts_per_hostset(hx_api_object):
 
 		mydata['datasets'].append({
 			"label": "Missing hosts",
-			"backgroundColor": "rgba(0, 203, 190, 0.6)",
-			"borderColor": "rgba(0, 203, 190, 0.5)",
-			"borderWidth": 3,
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderColor": "#8fffc1",
+			"borderWidth": 0.5,
 			"data": tempData
 		})	
 
@@ -2838,20 +2838,26 @@ def x15_analysis_auditdata(hx_api_object):
 		mygenerators = request.args.get('generators').split(",")
 		myids = [int(x) for x in request.args.get('id').split(",")]
 		
-		myres = {"data": hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids)}
-
+		#myres = {"data": hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids)}
+		myres = hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids)
 		#myres = {"data": []}
 
-		#for event in hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids):
+		#import demjson
+
+		for event in hxtool_global.hxtool_x15_object.getAuditData(mygenerators, myids):
 			
-			#print(event[generatorMeta[event['generator']]])
+			myjson = json.loads(event[next(iter(event))])
+
+			#print((event[generatorMeta[event['generator']]]))
 
 
 			#myres['data'].append({
 			#	"" : event[generatorMeta[event['generator']]]
 			#})
 
+		#print(myres)
 		return(json.dumps(myres))
+		#return(myres)
 	else:
 		return make_response_by_code(400)
 
