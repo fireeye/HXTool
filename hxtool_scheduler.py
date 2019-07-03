@@ -67,7 +67,7 @@ class hxtool_scheduler:
 		
 	def start(self):
 		self._poll_thread.start()
-		self.logger.info("Task scheduler started.")
+		self.logger.info("Task scheduler started with %s threads.", self.thread_count)
 		
 	def stop(self):
 		self.logger.debug('stop() enter.')
