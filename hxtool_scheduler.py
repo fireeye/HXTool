@@ -59,7 +59,7 @@ class hxtool_scheduler:
 		while not self._stop_event.is_set():
 			with self._lock:
 				self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()], self.thread_count)
-			self._stop_event.wait(.01)
+			self._stop_event.wait(.1)
 	
 	def _run_task(self, task):
 		task.set_state(TASK_STATE_QUEUED)
