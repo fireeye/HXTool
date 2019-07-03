@@ -29,6 +29,7 @@
 			],
 			"columns": [
 				{ title: "profile", "data": "profile" },
+				{ title: "profile_name", "data": "profile_name" },
 				{ title: "child states", "data": "child_states" },
 				{ title: "name", "data": "name" },
 				{ title: "enabled", "data": "enabled" },
@@ -39,9 +40,9 @@
 				{ title: "action", "data": "action" }
 			],
 			"columnDefs": [	
-				{ "className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8] },
+				{ "className": "hxtool_table_cell_center", "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] },
 				{
-				"targets": [ 3, 6 ], 
+				"targets": [ 4, 7 ], 
 				render: function ( data, type, row, meta ) {
 					if (data == true) {
 						data = "<i class='fas fa-check fa-1x fa-fw' style='color: green; margin-right: 2px;' aria-hidden='true'></i> Yes";
@@ -53,7 +54,7 @@
 					}
 				},
 				{
-				"targets": [ 1 ], 
+				"targets": [ 2 ], 
 				render: function ( data, type, row, meta ) {
 					mychildren = "";
 
@@ -67,7 +68,7 @@
 					}
 				},
 				{
-				"targets": [ 8 ], 
+				"targets": [ 9 ], 
 				render: function ( data, type, row, meta ) {
 					myhtml = "";
 					if (row.immutable == false) {

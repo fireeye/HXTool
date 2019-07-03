@@ -489,6 +489,7 @@ def scheduler_tasks(hx_api_object):
 			mytasks['data'].append({
 				"DT_RowId": task['task_id'],
 				"profile": task['profile_id'],
+				"profile_name": task['profile_name'],
 				"child_states": json.dumps(taskstates),
 				"name": task['name'],
 				"enabled": task['enabled'],

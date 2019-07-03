@@ -161,6 +161,7 @@ class hxtool_scheduler_task:
 		self.logger = logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
+		self.profile_name = "Unknown"
 		self.task_id = task_id or str(secure_uuid4())
 		self.parent_id = parent_id
 		self.wait_for_parent = wait_for_parent
@@ -187,6 +188,9 @@ class hxtool_scheduler_task:
 		self._stop_signal = False
 		self._defer_signal = False
 		
+		profile = hxtool_global.hxtool_db.profileGet(self.profile_id)
+		if profile is not None:
+			self.profile_name = profile['hx_name']
 
 	def _calculate_next_run(self):
 		self.next_run = None
@@ -402,6 +406,7 @@ class hxtool_scheduler_task:
 	def serialize(self, include_module_data = True):
 		r = {
 			'profile_id' : self.profile_id,
+			'profile_name' : self.profile_name,
 			'task_id' : self.task_id,
 			'name' : self.name,
 			'schedule' : self.schedule,
