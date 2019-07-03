@@ -9,11 +9,6 @@ import random
 from multiprocessing.pool import ThreadPool
 from multiprocessing import cpu_count
 
-try:
-	import Queue as queue
-except ImportError:
-	import queue
-
 import hxtool_global
 from hx_lib import HXAPI
 import hxtool_task_modules
