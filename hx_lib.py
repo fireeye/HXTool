@@ -153,6 +153,10 @@ class HXAPI:
 				self.set_token(response.headers.get('X-FeApi-Token'))
 		
 			content_type = response.headers.get('Content-Type', None)
+			
+			if content_type is not None and 'Accept' in request.headers and not (request.headers['Accept'].lower() in content_type.lower()):
+				self.logger.info("Request Accept header '%s' does not match response Content-Type '%s'", request.headers['Accept'].lower(), content_type.lower())
+			
 			if content_type is not None and 'json' in content_type.lower():
 				if multiline_json:
 					line_count = 0
