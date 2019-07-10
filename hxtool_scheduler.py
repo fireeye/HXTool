@@ -51,10 +51,10 @@ class hxtool_scheduler:
 		self.logger.info("Task scheduler initialized.")
 
 	def _scan_task_queue(self):
-		while not self._stop_event.is_set():
+		while not self._stop_event.wait(.1):
 			with self._lock:
-				self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()], int(self.thread_count / 1.5))
-			self._stop_event.wait(.1)
+				self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()])
+			
 	
 	def _run_task(self, task):
 		task.set_state(TASK_STATE_QUEUED)
@@ -70,11 +70,13 @@ class hxtool_scheduler:
 		self.logger.info("Task scheduler started with %s threads.", self.thread_count)
 		
 	def stop(self):
-		self.logger.debug('stop() enter.')
+		self.logger.debug("stop() enter.")
 		self._stop_event.set()
+		self.logger.debug("Closing the task thread pool.")
 		self.task_threads.close()
+		self.logger.debug("Waiting for running threads to terminate.")
 		self.task_threads.join()	
-		self.logger.debug('stop() exit.')
+		self.logger.debug("stop() exit.")
 	
 	def signal_child_tasks(self, parent_task_id, parent_task_state, parent_stored_result):
 		with self._lock:
