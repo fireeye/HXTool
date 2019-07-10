@@ -5,57 +5,7 @@
 
 <script>
 
-	function renderInterval(intervalType) {
-
-		out = "";
-
-		if (intervalType == "month") {
-			out += " on the ";
-			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' id='intervalDay'>";
-			for (var i=1; i < 32; i += 1){
-				out += "<option value='" + i + "'>" + i;
-			}
-			out += "</select>";
-			out += " ";
-		}
-
-		if (intervalType == "week") {
-			out += " on ";
-			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' id='intervalWeek'>";
-			out += "<option value='0'>Monday";
-			out += "<option value='1'>Tuesday";
-			out += "<option value='2'>Wednesday";
-			out += "<option value='3'>Thursday";
-			out += "<option value='4'>Friday";
-			out += "<option value='5'>Saturday";
-			out += "<option value='6'>Sunday";
-			out += "</select>";
-			out += " ";
-		}
-
-		if (intervalType == "day" || intervalType == "week" || intervalType == "month") {
-			out += " at the ";
-			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' id='intervalHour'>";
-			for (var i=0; i < 24; i += 1){
-				out += "<option value='" + i + "'>" + i;
-			}
-			out += "</select>";
-			out += " hour ";
-		}
-
-		if (intervalType == "hour" || intervalType == "day" || intervalType == "week" || intervalType == "month") {
-			out += " on the ";
-			out += "<select class='fe-btn fe-btn--sm fe-btn--primary active' id='intervalMin'>";
-			for (var i=0; i < 60; i += 1){
-				out += "<option value='" + i + "'>" + i;
-			}
-			out += "</select>";
-			out += " minute ";
-		}
-
-		$("#intervalSettings").html(out);
-	}
-
+	
 	$(document).ready(function() {
 
 		var fullDate = new Date()
@@ -177,27 +127,6 @@
 		});
 		$('div.dataTables_filter input').addClass("fe-input");
 
-		$('body').on('change','select',function(){
-
-			if ($(this).attr('id') == "intervalMetric") {
-				renderInterval($(this).val());
-			}
-		});
-
-		jQuery('#scheduled_timestamp').daterangepicker({
-			singleDatePicker: true,
-			autoApply: true,
-			timePicker: true,
-			timePicker24Hour: true,
-			buttonClasses: "fe-btn fe-btn--md",
-			applyButtonClasses: "fe-btn--primary",
-			cancelButtonClasses: "fe-btn--secondary",
-			locale: {
-				format: 'YYYY-MM-DD hh:mm:ss',
-				firstDay: 1
-			}
-		});
-
 		setInterval( function () {
 			es_datatable.ajax.reload(function() {
 				$("div[id^='crate_']").each(function() {
@@ -244,99 +173,46 @@
 			myschedule = $("input[name='schedule']:checked").val();
 			mydisplayname = $("#displayname").val();
 
+			var data = new FormData()
+			
 			// Set the endpoint and IOC Data
 			if (mymode == "hxtool") {
 				myApiEndpoint = "/api/v1/enterprise_search/new/db";
-				myioc = $("#esIocDb").data("id");
+				data.append("ioc", $("#esIocDb").data("id"));
 			}
 			else if (mymode == "file") {
 				myApiEndpoint = "/api/v1/enterprise_search/new/file";
-				var data = new FormData();
 				$.each($('#esIocFile').prop('files'), function(key, value) {
 					data.append("ioc", value);
 				});
 			}
-
-			// Grab settings and contstruct URL / Form
-			if (myschedule == "run_now" && mymode == "hxtool") {
-				myUrl = "sweephostset=" + myhostsetid + "&esskipterms=" + myskipterms + "&ioc=" + myioc + "&displayname=" + mydisplayname;
+			
+			data.append("sweephostset", myhostsetid);
+			data.append("esskipterms", myskipterms);
+			data.append("displayname", mydisplayname);
+			
+			data.append("schedule", myschedule);
+			if (myschedule == "run_at") {
+				data.append("run_at_value", $("#run_at_value").val());
 			}
-			else if (myschedule == "run_now" && mymode == "file") {
-				data.append("sweephostset", myhostsetid);
-				data.append("esskipterms", myskipterms);
-				data.append("displayname", mydisplayname);
-			}
-			else if (myschedule == "run_at" && mymode == "hxtool") {
-				scheduled_timestamp = $("#scheduled_timestamp").val();
-				myUrl = "sweephostset=" + myhostsetid + "&esskipterms=" + myskipterms + "&ioc=" + myioc + "&displayname=" + mydisplayname + "&schedule=" + myschedule + "&scheduled_timestamp=" + scheduled_timestamp;
-			}
-			else if (myschedule == "run_at" && mymode == "file") {
-				scheduled_timestamp = $("#scheduled_timestamp").val();
-				data.append("sweephostset", myhostsetid);
-				data.append("esskipterms", myskipterms);
-				data.append("displayname", mydisplayname);
-				data.append("schedule", myschedule);
-				data.append("scheduled_timestamp", scheduled_timestamp);
-			}
-			else if (myschedule == "run_interval" && mymode == "hxtool") {
-				baseUrl = "sweephostset=" + myhostsetid + "&esskipterms=" + myskipterms + "&ioc=" + myioc + "&displayname=" + mydisplayname + "&schedule=" + myschedule;
-
-				intervalMin = $("#intervalMin").val()
-				intervalHour = $("#intervalHour").val()
-				intervalDay = $("#intervalDay").val()
-				intervalWeek = $("#intervalWeek").val()
-				intervalMetric = $("#intervalMetric").val()
-
-				if (intervalMetric == "min") {
-					myUrl = baseUrl;
-				}
-				else if (intervalMetric == "hour") {
-					myUrl = baseUrl + "&intervalMin=" + intervalMin;
-				}
-				else if (intervalMetric == "day") {
-					myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour;
-				}
-				else if (intervalMetric == "week") {
-					myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour + "&intervalWeek=" + intervalWeek;
-				}
-				else if (intervalMetric == "month") {
-					myUrl = baseUrl + "&intervalMin=" + intervalMin + "&intervalHour=" + intervalHour + "&intervalDay=" + intervalDay;
-				}
-			}
-			else if (myschedule == "run_interval" && mymode == "file") {
-				data.append("sweephostset", myhostsetid);
-				data.append("esskipterms", myskipterms);
-				data.append("displayname", mydisplayname);
-				data.append("schedule", myschedule);
-
-				intervalMin = $("#intervalMin").val()
-				intervalHour = $("#intervalHour").val()
-				intervalDay = $("#intervalDay").val()
-				intervalWeek = $("#intervalWeek").val()
-				intervalMetric = $("#intervalMetric").val()
-
-				if (intervalMetric == "hour") {
-					data.append("intervalMin", intervalMin);
-				}
-				else if (intervalMetric == "day") {
-					data.append("intervalMin", intervalMin);
-					data.append("intervalHour", intervalHour);
-				}
-				else if (intervalMetric == "week") {
-					data.append("intervalMin", intervalMin);
-					data.append("intervalHour", intervalHour);
-					data.append("intervalWeek", intervalWeek);
-				}
-				else if (intervalMetric == "month") {
-					data.append("intervalMin", intervalMin);
-					data.append("intervalHour", intervalHour);
-					data.append("intervalDay", intervalDay);
-				}
+			else if (myschedule == "run_interval") {
+				data.append("interval_value", $("#interval_value").val());
+				data.append("interval_unit", $("#interval_unit").val());
+				data.append("interval_start", $("#interval_start").val());
+				data.append("interval_start_value", $("#interval_start_value").val());
 			}
 
 			// Send the request
 			$("#esNewPopup").hide();
 			if (mymode == "hxtool") {
+				var params = [];
+				for(var pair of data.entries()) {
+					params.push({
+						"name" : pair[0],
+						"value" : pair[1]
+					});
+				}
+				myUrl = $.param(params);
 				hxtool_ajax_get_request(myApiEndpoint, myUrl, function() {
 					if (myschedule == "run_now") {
 						setTimeout( function () {
@@ -487,17 +363,10 @@
 		<!-- Host Set selection -->
 		<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Hostset</h3>
 		<div class='hxtool_panel_wrapper'>
-			<div class="fe-dropdown">
-				<button id='esHostset' data-id='__hxtool_not_set' class="fe-btn fe-btn--sm fe-btn--hxtool-main-dropdown"> select a hostset <i class="fe-icon--right fas fa-chevron-up"></i></button>
-				<div class="fe-dropdown__list-container">
-					<ul class="fe-dropdown__list fe-list">
-						{% if hostsets %} {{hostsets|safe}} {% endif %}
-					</ul>
-				</div>
-			</div>
-			<br>
-			<span class="fe-input-hint-text">Select the target host set</span><br>
-		</div>			
+			{{ htDropdown.widgetHeader("select a hostset", "esHostset", "false") }}
+				{% if hostsets %} {{hostsets|safe}} {% endif %}
+			{{ htDropdown.widgetFooter(elementLabel="Select the target host set") }}
+		</div>
 
 		<!-- SKIP UNSUPPORTED TERMS -->
 		<div id='skipterms' style='display: none;'>
@@ -511,30 +380,7 @@
 		</div>
 
 		<!-- SCHEDULER -->
-		<h3 class='hxtool_typography_h3 hxtool_typography_underline'>Scheduler</h3>
-		<div class='hxtool_panel_wrapper'>
-			{{ htRadio.widgetHeader("Run now", "run_now", "schedule-a", "schedule", elementChecked="true") }}
-			{{ htRadio.widgetHeader("Run at a specific date/time", "run_at", "schedule-b", "schedule", elementChecked="false") }}
-			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px; width: 150px;'>
-				<input type='text' class="fe-input" id='scheduled_timestamp' name='scheduled_timestamp'>
-			</div>
-
-			{{ htRadio.widgetHeader("Run on an interval", "run_interval", "schedule-c", "schedule", elementChecked="false") }}
-			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>				
-				<span>
-					Every 
-					<select class="hxtool_input_select fe-input" name='intervalMetric' id='intervalMetric' style='width: 150px; display: inline-block;'>
-						<option value='min'>Minute
-						<option value='hour'>Hour
-						<option value='day'>Day
-						<option value='week'>Week
-						<option value='month'>Month
-					</select>
-				</span>
-				<br><br>
-				<span id='intervalSettings'></span>
-			</div>
-		</div>
+		{{ htSchedule.widgetHeader() }}
 
 	{{ htModal.widgetMiddle() }}
 		<button class="fe-btn fe-btn--md fe-btn--secondary" id="esCancel" aria-label="Cancel"><span> Cancel </span></button>

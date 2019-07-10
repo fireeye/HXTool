@@ -196,67 +196,37 @@ class hxtool_scheduler_task:
 		if self.state == TASK_STATE_FAILED and self.stop_on_fail:
 			return
 	
+		# Reset microseconds to keep things from drifting
+		now = datetime.datetime.utcnow().replace(microsecond=1)
+	
 		if self._defer_signal:
 			# Add some random seconds to the interval to keep the task threads from deadlocking
 			self.next_run = (self.last_run + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
 		# We've never run before because we we're waiting on the parent task to complete
 		elif not self.last_run and self.parent_id and self.parent_complete:
 			# Add some random seconds to the interval to keep the task threads from deadlocking
-			self.next_run = (datetime.datetime.utcnow() + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
-		elif self.schedule and ((not self.end_time) or (self.end_time and (self.end_time < datetime.datetime.utcnow()))):
-			if self.schedule.get('day_of_month', None):
-				n_month = self.last_run.month
-				n_year = self.last_run.year
-				if n_month == 12:
-					n_month = 1
-					n_year += 1
-				else:
-					n_month += 1
-				self.next_run = self.last_run.replace(year = n_year, month = n_month)	
-			else:
-				if self.schedule.get('day_of_week', None):
-					self.next_run = self.last_run + datetime.timedelta(days = 7)
-				elif self.schedule.get('hours', None):
-					self.next_run = self.last_run + datetime.timedelta(hours = self.schedule['hours'])
-				elif self.schedule.get('minutes', None): 
-					self.next_run = self.last_run + datetime.timedelta(minutes = self.schedule['minutes'])			
+			self.next_run = (now + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
+		elif self.schedule and ((not self.end_time) or (self.end_time and (self.end_time < now))):
+			self.next_run = self.last_run + datetime.timedelta(
+				weeks = self.schedule['weeks'],
+				days = self.schedule['days'],
+				hours = self.schedule['hours'],
+				minutes = self.schedule['minutes'],
+				seconds = self.schedule['seconds']
+			)
 
-	def set_schedule(self, minutes = None, hours = None, day_of_week = None, day_of_month = None):
+	def set_schedule(self, seconds = 0, minutes = 0, hours = 0, days = 0, weeks = 0):
 		with self._lock:
 			self.schedule = {
-				'minutes' : int(minutes) if minutes else None,
-				'hours' : int(hours) if hours else None,
-				'day_of_week' : int(day_of_week) if day_of_week else None,
-				'day_of_month' : int(day_of_month) if day_of_month else None
+				'seconds' : int(seconds),
+				'minutes' : int(minutes),
+				'hours' : int(hours),
+				'days' : int(days),
+				'weeks': int(weeks)
 			}
 			
-			# Reset microseconds to keep things from drifting
-			now = datetime.datetime.utcnow().replace(microsecond=1)
-		
-			# First figure out the delta to the start time 
-			# For hours and minutes, use a relative value (i.e. current time + hours + minutes), whereas for
-			# day of week and day of month, use absolute values for hour and minute.
-		
-			n_seconds = 0	
-			n_minutes = self.schedule['minutes'] or 0
-			n_hours = self.schedule['hours'] or 0
-			n_days = 0
-			
-			if day_of_week or day_of_month:
-				n_seconds = (60 - now.second)
-				n_minutes = (59 - now.minute) + n_minutes
-				n_hours = (23 - now.hour) + n_hours	
-			if day_of_week:
-				n_days = (6 - now.weekday()) + self.schedule['day_of_week']
-			if day_of_month:
-				n_days = (datetime.date(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, self.schedule['day_of_month']) - now.date()).days - 1
-		
-			self.next_run = now + datetime.timedelta(seconds = n_seconds, minutes = n_minutes, hours = n_hours, days = n_days)
-			# TODO: we shouldn't clobber this in a case of where we change an existing tasks schedule
-			self.start_time = self.next_run
-	
 	def should_run(self):
-		return (self.next_run and
+		return (self.next_run is not None and
 				self.enabled and  
 				self.state == TASK_STATE_SCHEDULED and
 				(self.parent_complete if self.parent_id and self.wait_for_parent else True) and	
@@ -454,7 +424,6 @@ class hxtool_scheduler_task:
 		schedule = d.get('schedule', None)
 		if schedule:
 			task.set_schedule(**schedule)
-		else:
 			task._calculate_next_run()
 		for s in d['steps']:
 			# I hate this
