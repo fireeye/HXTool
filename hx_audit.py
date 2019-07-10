@@ -160,6 +160,9 @@ class AuditPackage:
 								d['generator_item_name'] = e
 								break
 								
+						if audit_item is None:
+							raise Exception("The audit payload '{}' for generator '{}' is empty. Please manually inspect the audit package: {}".format(result['payload'], audit['generator'], self.package.filename)) 
+						
 						if batch_mode:
 							result_dict = {
 								'results' : [{audit_item : _} for _ in audit_json[audit_item]]

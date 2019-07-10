@@ -489,6 +489,7 @@ def scheduler_tasks(hx_api_object):
 			mytasks['data'].append({
 				"DT_RowId": task['task_id'],
 				"profile": task['profile_id'],
+				"profile_name": task['profile_name'],
 				"child_states": json.dumps(taskstates),
 				"name": task['name'],
 				"enabled": task['enabled'],
@@ -1936,10 +1937,20 @@ def datatable_acqs(hx_api_object):
 					if acq['type'] != "bulk":
 						(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(acq['host']['_id'])
 						if ret:
+							request_user = "N/A"
+							acq_url = None
+							if 'url' in acq['acq']:
+								acq_url = acq['acq']['url']
+							else:
+								acq_url = "/hx/api/v3/acqs/{}/{}".format(acq['type'], HXAPI.compat_str(acq['acq']['_id']))
+							(a_ret, a_response_code, a_response_data) = hx_api_object.restGetUrl(acq_url)
+							if a_ret:
+								request_user = a_response_data['data']['request_actor']['username']
 							myacqs['data'].append({
 								"DT_RowId": acq['acq']['_id'],
 								"type": acq['type'],
 								"request_time": acq['request_time'],
+								"request_user": request_user,
 								"state": acq['state'],
 								"hostname": hresponse_data['data']['hostname'] + "___" + hresponse_data['data']['_id'],
 								"domain": hresponse_data['data']['domain'],

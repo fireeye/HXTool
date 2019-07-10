@@ -26,6 +26,7 @@
 				{ "title": "Domain", "data": "domain" },
 				{ "title": "OS", "data": "product_name" },
 				{ "title": "Requested", "data": "request_time" },
+				{ "title": "Requested By", "data": "request_user" },
 				{ "title": "Containment", "data": "containment_state" },
 				{ "title": "Last poll", "data": "last_poll_timestamp" },
 				{ "title": "Type", "data": "type" },
@@ -54,35 +55,35 @@
 				 }
 				},
 				{
-				 "targets": 5,
+				 "targets": 6,
 				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_parseContainmentState(data));
 				 }
 				},
 				{
-				 "targets": 6,
+				 "targets": 7,
 				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_Timestamp(data));
 				 }
 				},
 				{
-				 "targets": 7,
+				 "targets": 8,
 				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_parseAcquisitionType(data));
 				 }
 				},
 				{
-				 "targets": 8,
+				 "targets": 9,
 				 "width": "150px",
 				 render: function ( data, type, row, meta ) {
 				 	return(datatables_parseAcquisitionState(data));
 				 }
 				},
 				{
-				 "targets": 9,
+				 "targets": 10,
 				 "width": "260px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
@@ -105,7 +106,7 @@
 				 	return data;
 				 }
 				},
-				{"className": "hxtool_table_cell_center", "targets": [0, 2, 3, 4, 5, 6, 8, 9]}
+				{"className": "hxtool_table_cell_center", "targets": [0, 2, 3, 4, 5, 6, 8, 9, 10]}
 			]
 		});
 		$('div.dataTables_filter input').addClass("fe-input");

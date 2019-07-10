@@ -9,11 +9,6 @@ import random
 from multiprocessing.pool import ThreadPool
 from multiprocessing import cpu_count
 
-try:
-	import Queue as queue
-except ImportError:
-	import queue
-
 import hxtool_global
 from hx_lib import HXAPI
 import hxtool_task_modules
@@ -51,24 +46,28 @@ class hxtool_scheduler:
 		self._poll_thread = threading.Thread(target = self._scan_task_queue, name = "PollThread")
 		self._stop_event = threading.Event()
 		# Allow for thread oversubscription based on CPU count
-		self.thread_count = thread_count or (cpu_count() * 2)
+		self.thread_count = thread_count or (cpu_count() * 4)
 		self.task_threads = ThreadPool(self.thread_count)
 		self.logger.info("Task scheduler initialized.")
 
 	def _scan_task_queue(self):
 		while not self._stop_event.is_set():
 			with self._lock:
-				self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()], self.thread_count)
-			self._stop_event.wait(.01)
+				self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()], int(self.thread_count / 1.5))
+			self._stop_event.wait(.1)
 	
 	def _run_task(self, task):
 		task.set_state(TASK_STATE_QUEUED)
 		self.logger.debug("Executing task with id: %s, name: %s.", task.task_id, task.name)
-		task.run()
-			
+		try:
+			ret = task.run()
+		except Exception as e:
+			self.logger.error(pretty_exceptions(e))
+			task.set_state(TASK_STATE_FAILED)
+		
 	def start(self):
 		self._poll_thread.start()
-		self.logger.info("Task scheduler started.")
+		self.logger.info("Task scheduler started with %s threads.", self.thread_count)
 		
 	def stop(self):
 		self.logger.debug('stop() enter.')
@@ -117,7 +116,9 @@ class hxtool_scheduler:
 
 	def move_to_history(self, task_id):
 		with self._lock:
-			self.history_queue[task_id] = self.task_queue.pop(task_id).metadata()
+			# Prevent erroring out from a race condition where the task is pending deletion
+			if task_id in self.task_queue:
+				self.history_queue[task_id] = self.task_queue.pop(task_id).metadata()
 		if len(self.history_queue) > MAX_HISTORY_QUEUE_LENGTH:
 			self.history_queue.popitem()
 	
@@ -155,6 +156,7 @@ class hxtool_scheduler_task:
 		self.logger = logger
 		self._lock = threading.Lock()
 		self.profile_id = profile_id
+		self.profile_name = "Unknown"
 		self.task_id = task_id or str(secure_uuid4())
 		self.parent_id = parent_id
 		self.wait_for_parent = wait_for_parent
@@ -181,6 +183,9 @@ class hxtool_scheduler_task:
 		self._stop_signal = False
 		self._defer_signal = False
 		
+		profile = hxtool_global.hxtool_db.profileGet(self.profile_id)
+		if profile is not None:
+			self.profile_name = profile['hx_name']
 
 	def _calculate_next_run(self):
 		self.next_run = None
@@ -288,6 +293,12 @@ class hxtool_scheduler_task:
 				for module, func, args, kwargs in self.steps:
 					self.logger.debug("Have module: {}, function: {}".format(module.__module__, func))
 					if getattr(module, 'hxtool_task_module', lambda: False)():
+						if module.enabled == False:
+							self.logger.error("Module {} is disabled!".format(module.__module__))
+							ret = False
+							self.state = TASK_STATE_FAILED
+							break
+							
 						for arg_i in module.input_args():
 							if not kwargs.get(arg_i['name'], None):
 								if arg_i['name'] in self.stored_result.keys():
@@ -299,8 +310,9 @@ class hxtool_scheduler_task:
 									break
 				
 					if self.state != TASK_STATE_FAILED:
+						self.logger.debug("Begin execute {}.{}".format(module.__module__, func))
 						result = getattr(module, func)(*args, **kwargs)
-						
+						self.logger.debug("End execute {}.{}".format(module.__module__, func))
 						if isinstance(result, tuple) and len(result) > 1:
 							ret = result[0]
 							# Store the result - make sure it is of type dict
@@ -389,6 +401,7 @@ class hxtool_scheduler_task:
 	def serialize(self, include_module_data = True):
 		r = {
 			'profile_id' : self.profile_id,
+			'profile_name' : self.profile_name,
 			'task_id' : self.task_id,
 			'name' : self.name,
 			'schedule' : self.schedule,

@@ -33,7 +33,7 @@ class hxtool_session(CallbackDict, SessionMixin):
 		self.id = str(hmac.new(self.secret, os.urandom(32), digestmod=hashlib.sha256).hexdigest())	
 		
 	def load(self, id, session_record):	
-		if session_record:
+		if session_record is not None:
 			self.logger.debug("Loading saved session data.")
 			# Set accessed to True for set/update so we don't loop into on_update()
 			self.accessed = True
@@ -70,7 +70,7 @@ class hxtool_session_interface(SessionInterface):
 			cached_session = self.session_cache.get(session_id)
 			if not cached_session:					
 				session_record = app.hxtool_db.sessionGet(session_id)
-				if session_record:
+				if session_record is not None:
 					session.load(session_id, session_record)
 					self.logger.debug("We have an existing database session with id: {0}".format(session.id))
 			else:

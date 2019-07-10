@@ -471,20 +471,19 @@ def app_init(debug = False):
 	console_log = logging.StreamHandler(sys.stdout)
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
 	app.logger.addHandler(console_log)
-	
-	db_write_cache_size = 1
+			
 	# If we're debugging use a static key
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
 		app.logger.setLevel(logging.DEBUG)
 		app.logger.debug("Running in debugging mode.")
-		db_write_cache_size = 1
 	else:
 		app.secret_key = crypt_generate_random(32)
 		app.logger.setLevel(logging.INFO)
 	
 	# Init DB
-	app.hxtool_db = hxtool_db(combine_app_path('hxtool.db'), logger = app.logger, write_cache_size = db_write_cache_size)
+	# Disable the write cache altogether - too many issues reported with it enabled.
+	app.hxtool_db = hxtool_db(combine_app_path('hxtool.db'), logger = app.logger, write_cache_size = 0)
 	hxtool_global.hxtool_db = app.hxtool_db
 	
 	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
@@ -611,4 +610,4 @@ if __name__ == "__main__":
 	
 else:
 	# Running under gunicorn/mod_wsgi
-	app_init(False)
+	app_init(debug = False)
