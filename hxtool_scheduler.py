@@ -307,6 +307,9 @@ class hxtool_scheduler_task:
 							break
 				
 				
+				if self.state < TASK_STATE_STOPPED:
+					self.state = TASK_STATE_COMPLETE
+				
 				# Support test harness
 				if hasattr(hxtool_global, 'hxtool_scheduler'):
 					hxtool_global.hxtool_scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
@@ -319,8 +322,6 @@ class hxtool_scheduler_task:
 					if not self._defer_signal:
 						# Reset parent_complete for recurring tasks
 						self.parent_complete = False
-				elif self.state < TASK_STATE_STOPPED:
-					self.state = TASK_STATE_COMPLETE
 		else:
 			self.set_state(TASK_STATE_STOPPED)
 		
