@@ -216,20 +216,8 @@ def hxtool_api_enterprise_search_new_db(hx_api_object):
 	if 'displayname' in request.args.keys():
 		mydisplayname = request.args.get("displayname")
 
-	start_time = None
-	schedule = None
-	if 'schedule' in request.args.keys():
-		if request.args.get('schedule') == 'run_at':
-			start_time = HXAPI.dt_from_str(request.args.get('scheduled_timestamp'))
-		
-		if request.args.get('schedule') == 'run_interval':
-			schedule = {
-				'minutes' : request.args.get('intervalMin', None),
-				'hours'  : request.args.get('intervalHour', None),
-				'day_of_week' : request.args.get('intervalWeek', None),
-				'day_of_month' : request.args.get('intervalDay', None)
-			}	
-
+	(start_time, schedule) = parse_schedule(request.args)
+	
 	enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task", start_time = start_time)
 	
 	if schedule:
@@ -269,19 +257,7 @@ def hxtool_api_enterprise_search_new_file(hx_api_object):
 	if 'displayname' in request.form.keys():
 		mydisplayname = request.form.get("displayname")
 
-	start_time = None
-	schedule = None
-	if 'schedule' in request.form.keys():
-		if request.form.get('schedule') == 'run_at':
-			start_time = HXAPI.dt_from_str(request.form.get('scheduled_timestamp'))
-		
-		if request.form.get('schedule') == 'run_interval':
-			schedule = {
-				'minutes' : request.form.get('intervalMin', None),
-				'hours'  : request.form.get('intervalHour', None),
-				'day_of_week' : request.form.get('intervalWeek', None),
-				'day_of_month' : request.form.get('intervalDay', None)
-			}	
+	(start_time, schedule) = parse_schedule(request.form)	
 
 	enterprise_search_task = hxtool_scheduler_task(session['ht_profileid'], "Enterprise Search Task", start_time = start_time)
 	
@@ -601,22 +577,8 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 	if 'bulkhostset' not in request.args or request.args['bulkhostset'] == "false":
 		return(app.response_class(response=json.dumps("Please select a host set."), status=400, mimetype='application/json'))
 
-	start_time = None
-	interval = None
-	schedule = None
+	(start_time, schedule) = parse_schedule(request.args)
 	
-	if 'schedule' in request.args.keys():
-		if request.args.get('schedule') == 'run_at':
-			start_time = HXAPI.dt_from_str(request.args.get('scheduled_timestamp'))
-		
-		if request.args.get('schedule') == 'run_interval':
-			schedule = {
-				'minutes' : request.args.get('intervalMin', None),
-				'hours'  : request.args.get('intervalHour', None),
-				'day_of_week' : request.args.get('intervalWeek', None),
-				'day_of_month' : request.args.get('intervalDay', None)
-			}
-
 	should_download = False
 	
 	bulk_acquisition_script = app.hxtool_db.scriptGet(request.args.get('bulkscript'))['script']
@@ -648,22 +610,8 @@ def hxtool_api_acquisition_bulk_new_file(hx_api_object):
 	if 'bulkhostset' not in request.form or request.form['bulkhostset'] == "false":
 		return(app.response_class(response=json.dumps("Please select a host set."), status=400, mimetype='application/json'))
 
-	start_time = None
-	interval = None
-	schedule = None
+	(start_time, schedule) = parse_schedule(request.form)
 	
-	if 'schedule' in request.form.keys():
-		if request.form['schedule'] == 'run_at':
-			start_time = HXAPI.dt_from_str(request.form['scheduled_timestamp'])
-		
-		if request.form['schedule'] == 'run_interval':
-			schedule = {
-				'minutes' : request.form.get('intervalMin', None),
-				'hours'  : request.form.get('intervalHour', None),
-				'day_of_week' : request.form.get('intervalWeek', None),
-				'day_of_month' : request.form.get('intervalDay', None)
-			}
-
 	bulk_acquisition_script = None
 	skip_base64 = False
 	should_download = False

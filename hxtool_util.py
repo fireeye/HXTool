@@ -220,12 +220,7 @@ def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hx
 	
 	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending', start_time = start_time)
 	if schedule:
-		bulk_acquisition_task.set_schedule(
-			minutes = schedule.get('minutes', None),
-			hours = schedule.get('hours', None),
-			day_of_week = schedule.get('day_of_week', None),
-			day_of_month = schedule.get('day_of_month', None)
-		)
+		bulk_acquisition_task.set_schedule(**schedule)
 	
 	# So it turns out theres a nasty race condition that was happening here:
 	# the call to restListBulkHosts() was returning no hosts because the bulk
@@ -325,4 +320,35 @@ def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hx
 	
 	return bulk_download_eid
 	
+def parse_schedule(request_params):
+	start_time = None
+	schedule = None
+	
+	schedule_type = request_params.get('schedule', None)
+	if schedule_type:
+		if schedule_type == "run_at":
+			start_time = HXAPI.dt_from_str(request_params['run_at_value'])
+		elif schedule_type == "run_interval":
+			schedule = {}
+			
+			interval_value = int(request_params['interval_value'])
+			interval_unit = request_params['interval_unit']
+			
+			if interval_unit == "second":
+				schedule['seconds'] = interval_value
+			elif interval_unit == "minute":
+				schedule['minutes'] = interval_value
+			elif interval_unit == "hour":
+				schedule['hours'] = interval_value	
+			elif interval_unit == "day":
+				schedule['days'] = interval_value
+			elif interval_unit == "week":
+				schedule['weeks'] = interval_value
+			elif interval_unit == "month":
+				schedule['months'] = interval_value
+				
+			if request_params['interval_start'] == "interval_start_at":
+				start_time = HXAPI.dt_from_str(request_params['interval_start_value'])
 
+	return (start_time, schedule)
+	
