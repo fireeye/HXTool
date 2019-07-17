@@ -229,9 +229,23 @@ class HXAPI:
 	###################
 	## Generic GET
 	###################
-	def restGetUrl(self, url, method = 'GET'):
-
-		request = self.build_request(url, method = method)
+	def restGetUrl(self, url, method = 'GET', include_params=False, limit=DEFAULT_LIMIT, offset=0, share_mode=None, sort_term=None, search_term=None, filter_term={}, query_terms = {}):
+		params = {}
+		if include_params:
+			params = {
+				'limit' : limit,
+				'offset' : offset
+			}		
+			if share_mode:
+				params['share_mode'] = share_mode
+			if search_term:
+				params['search'] = search_term
+			if sort_term:
+				params['sort'] = sort_term
+			params.update(filter_term)
+			params.update(query_terms)
+		
+		request = self.build_request(url, method = method, params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
