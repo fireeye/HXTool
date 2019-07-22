@@ -267,7 +267,6 @@ def download(hx_api_object):
 			(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
 		if ret:
 			#app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
-			print(response_data.headers)
 			app.logger.info(format_activity_log(msg="acquisition download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			flask_response = Response(iter_chunk(response_data))
 			flask_response.headers['Content-Type'] = response_data.headers['Content-Type']
@@ -418,7 +417,7 @@ def login():
 					session['hx_version'] = hx_api_object.hx_version
 					session['hx_int_version'] = int(''.join(str(i) for i in hx_api_object.hx_version))
 					session['hx_ip'] = hx_api_object.hx_host
-					app.logger.info(format_activity_log(msg="user logged in", user=session['ht_user'], controller=session['hx_ip']))
+					hxtool_global.get_logger(__name__).info(format_activity_log(msg="user logged in", user=session['ht_user'], controller=session['hx_ip']))
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
 						redirect_uri = "/"
@@ -435,7 +434,7 @@ def logout():
 		if 'ht_api_object' in session:
 			hx_api_object = HXAPI.deserialize(session['ht_api_object'])
 			hx_api_object.restLogout()
-			app.logger.info(format_activity_log(msg="user logged out", user=session['ht_user'], controller=session['hx_ip']))
+			hxtool_global.get_logger(__name__).info(format_activity_log(msg="user logged out", user=session['ht_user'], controller=session['hx_ip']))
 			hx_api_object = None	
 		session.clear()
 	return redirect("/login", code=302)
@@ -453,7 +452,7 @@ def logout_task_sessions():
 
 
 def sigint_handler(signum, frame):
-	app.logger.info("Caught SIGINT, exiting...")
+	hxtool_global.get_logger(__name__).info("Caught SIGINT, exiting...")
 	if hxtool_global.hxtool_scheduler:
 		hxtool_global.hxtool_scheduler.stop()
 	logout_task_sessions()	
@@ -485,10 +484,12 @@ def app_init(debug = False):
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
 		app.logger.setLevel(logging.DEBUG)
+		hxtool_global.get_logger().setLevel(logging.DEBUG)
 		app.logger.debug("Running in debugging mode.")
 	else:
 		app.secret_key = crypt_generate_random(32)
 		app.logger.setLevel(logging.INFO)
+		hxtool_global.get_logger().setLevel(logging.INFO)
 	
 	# Init DB
 	# Disable the write cache altogether - too many issues reported with it enabled.
@@ -501,7 +502,7 @@ def app_init(debug = False):
 		hxtool_global.hxtool_x15_object = hxtool_x15()
 	
 	# Initialize the scheduler
-	hxtool_global.hxtool_scheduler = hxtool_scheduler(logger = app.logger)
+	hxtool_global.hxtool_scheduler = hxtool_scheduler()
 	hxtool_global.hxtool_scheduler.start()
 	
 	app.task_api_key = 'Z\\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
@@ -532,16 +533,16 @@ def app_init(debug = False):
 				decrypted_background_password = None
 				hxtool_global.hxtool_scheduler.add(api_login_task)
 			except UnicodeDecodeError:
-				app.logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+				hxtool_global.get_logger(__name__).error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 		else:
-			app.logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+			hxtool_global.get_logger(__name__).info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 	
 	# Load tasks from the database after the task API sessions have been initialized
 	hxtool_global.hxtool_scheduler.load_from_database()
 	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
-	app.session_interface = hxtool_session_interface(app, logger = app.logger, expiration_delta=app.hxtool_config['network']['session_timeout'])
+	app.session_interface = hxtool_session_interface(app, expiration_delta=app.hxtool_config['network']['session_timeout'])
 
 	set_svg_mimetype()
 	
@@ -589,12 +590,12 @@ if __name__ == "__main__":
 		logger.addHandler(request_log_handler)
 
 	# Start
-	app.logger.info('Application starting')
+	hxtool_global.get_logger(__name__).info('Application starting')
 	
 
 	
 	# TODO: This should really be after app.run, but you cannot run code after app.run, so we'll leave this here for now.
-	app.logger.info("Application is running. Please point your browser to http{0}://{1}:{2}. Press Ctrl+C/Ctrl+Break to exit.".format(
+	hxtool_global.get_logger(__name__).info("Application is running. Please point your browser to http{0}://{1}:{2}. Press Ctrl+C/Ctrl+Break to exit.".format(
 																							's' if app.hxtool_config['network']['ssl'] == 'enabled' else '',
 																							app.hxtool_config['network']['listen_address'], 
 																							app.hxtool_config['network']['port']))
