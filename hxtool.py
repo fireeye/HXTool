@@ -244,9 +244,9 @@ def bulkdownload(hx_api_object):
 	if request.args.get('id'):
 		(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
 		if ret:
-			#app.logger.info('Bulk acquisition download - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
-			#app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
-			app.logger.info(format_activity_log(msg="bulk acquisition download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
+			#hxtool_global.get_logger(__name__).info('Bulk acquisition download - User: %s@%s:%s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port)
+			#hxtool_global.get_logger(__name__).info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
+			hxtool_global.get_logger(__name__).info(format_activity_log(msg="bulk acquisition download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			flask_response = Response(iter_chunk(response_data))
 			flask_response.headers['Content-Type'] = response_data.headers['Content-Type']
 			flask_response.headers['Content-Disposition'] = response_data.headers['Content-Disposition']
@@ -266,8 +266,8 @@ def download(hx_api_object):
 		else:
 			(ret, response_code, response_data) = hx_api_object.restDownloadFile(request.args.get('id'))
 		if ret:
-			#app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
-			app.logger.info(format_activity_log(msg="acquisition download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
+			#hxtool_global.get_logger(__name__).info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('id'))
+			hxtool_global.get_logger(__name__).info(format_activity_log(msg="acquisition download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			flask_response = Response(iter_chunk(response_data))
 			flask_response.headers['Content-Type'] = response_data.headers['Content-Type']
 			flask_response.headers['Content-Disposition'] = response_data.headers['Content-Disposition']
@@ -287,8 +287,8 @@ def download_multi_file_single(hx_api_object):
 			if file_records and file_records[0]:
 				# TODO: should multi_file be hardcoded?
 				path = combine_app_path(download_directory_base(), hx_api_object.hx_host, 'multi_file', request.args.get('mf_id'), '{}_{}.zip'.format(file_records[0]['hostname'], request.args.get('acq_id')))
-				#app.logger.info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('acq_id'))
-				app.logger.info(format_activity_log(msg="multi-file acquisition download", id=request.args.get('acq_id'), user=session['ht_user'], controller=session['hx_ip']))
+				#hxtool_global.get_logger(__name__).info('Acquisition download - User: %s@%s:%s - URL: %s', session['ht_user'], hx_api_object.hx_host, hx_api_object.hx_port, request.args.get('acq_id'))
+				hxtool_global.get_logger(__name__).info(format_activity_log(msg="multi-file acquisition download", id=request.args.get('acq_id'), user=session['ht_user'], controller=session['hx_ip']))
 				return send_file(path, attachment_filename=os.path.basename(path), as_attachment=True)
 		else:
 			return "HX controller responded with code {0}: {1}".format(response_code, response_data)
@@ -351,7 +351,7 @@ def settings(hx_api_object):
 		key = crypt_pbkdf2_hmacsha256(salt, app.task_api_key)
 		encrypted_password = crypt_aes(key, iv, request.form['bgpass'])
 		out = app.hxtool_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
-		app.logger.info(format_activity_log(msg="background processing credentials action", action="set", profile=session['ht_profileid'], user=session['ht_user'], controller=session['hx_ip']))
+		hxtool_global.get_logger(__name__).info(format_activity_log(msg="background processing credentials action", action="set", profile=session['ht_profileid'], user=session['ht_user'], controller=session['hx_ip']))
 		hxtool_global.task_hx_api_sessions[session['ht_profileid']] = HXAPI(hx_api_object.hx_host, 
 																			hx_port = hx_api_object.hx_port, 
 																			proxies = app.hxtool_config['network'].get('proxies'), 
@@ -361,16 +361,16 @@ def settings(hx_api_object):
 																			default_encoding = default_encoding)																
 		(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[session['ht_profileid']].restLogin(request.form['bguser'], request.form['bgpass'], auto_renew_token = True)
 		if ret:
-			app.logger.info("Successfully initialized task API session for profile {}".format(session['ht_profileid']))
+			hxtool_global.get_logger(__name__).info("Successfully initialized task API session for profile {}".format(session['ht_profileid']))
 		else:
-			app.logger.error("Failed to initialized task API session for profile {}".format(session['ht_profileid']))
+			hxtool_global.get_logger(__name__).error("Failed to initialized task API session for profile {}".format(session['ht_profileid']))
 	if request.args.get('unset'):
 		out = app.hxtool_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
 		hx_api_object = hxtool_global.task_hx_api_sessions.get(session['ht_profileid'])
 		if hx_api_object and hx_api_object.restIsSessionValid():
 			(ret, response_code, response_data) = hx_api_object.restLogout()
 			del hxtool_global.task_hx_api_sessions[session['ht_profileid']]
-		app.logger.info(format_activity_log(msg="background processing credentials action", action="delete", user=session['ht_user'], controller=session['hx_ip']))
+		hxtool_global.get_logger(__name__).info(format_activity_log(msg="background processing credentials action", action="delete", user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/settings", code=302)
 	
 	bgcreds = formatProfCredsInfo((app.hxtool_db.backgroundProcessorCredentialGet(session['ht_profileid']) is not None))
@@ -478,17 +478,14 @@ def app_init(debug = False):
 	# Initialize configured log handlers
 	for log_handler in app.hxtool_config.log_handlers():
 		hxtool_global.get_logger().addHandler(log_handler)
-		app.logger.addHandler(log_handler)
 	
 	# If we're debugging use a static key
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
-		app.logger.setLevel(logging.DEBUG)
 		hxtool_global.get_logger().setLevel(logging.DEBUG)
-		app.logger.debug("Running in debugging mode.")
+		hxtool_global.get_logger(__name__).debug("Running in debug mode.")
 	else:
 		app.secret_key = crypt_generate_random(32)
-		app.logger.setLevel(logging.INFO)
 		hxtool_global.get_logger().setLevel(logging.INFO)
 	
 	# Init DB
@@ -583,7 +580,7 @@ if __name__ == "__main__":
 	# WSGI request log - when not running under gunicorn or mod_wsgi
 	logger = logging.getLogger('werkzeug')
 	if logger:
-		logger.setLevel(app.logger.level)
+		logger.setLevel(logging.INFO)
 		request_log_handler = logging.handlers.RotatingFileHandler(combine_app_path('log/access.log'), maxBytes=50000, backupCount=5)
 		request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
 		request_log_handler.setFormatter(request_log_formatter)	
