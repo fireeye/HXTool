@@ -470,8 +470,17 @@ def app_init(debug = False):
 	# Log early init/failures to stdout
 	console_log = logging.StreamHandler(sys.stdout)
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
+	hxtool_global.get_logger().addHandler(console_log)
 	app.logger.addHandler(console_log)
-			
+	
+	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
+	hxtool_global.hxtool_config = app.hxtool_config
+	
+	# Initialize configured log handlers
+	for log_handler in app.hxtool_config.log_handlers():
+		hxtool_global.get_logger().addHandler(log_handler)
+		app.logger.addHandler(log_handler)
+	
 	# If we're debugging use a static key
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
@@ -485,9 +494,6 @@ def app_init(debug = False):
 	# Disable the write cache altogether - too many issues reported with it enabled.
 	app.hxtool_db = hxtool_db(combine_app_path('hxtool.db'), logger = app.logger, write_cache_size = 0)
 	hxtool_global.hxtool_db = app.hxtool_db
-	
-	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
-	hxtool_global.hxtool_config = app.hxtool_config
 
 	# Enable X15 integration if config options are present
 	if hxtool_global.hxtool_config['x15']:
@@ -532,11 +538,6 @@ def app_init(debug = False):
 	
 	# Load tasks from the database after the task API sessions have been initialized
 	hxtool_global.hxtool_scheduler.load_from_database()
-	
-	
-	# Initialize configured log handlers
-	for log_handler in app.hxtool_config.log_handlers():
-		app.logger.addHandler(log_handler)
 	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
