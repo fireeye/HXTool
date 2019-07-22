@@ -15,7 +15,7 @@ from hxtool_scheduler import *
 
 
 class hxtool_session(CallbackDict, SessionMixin):
-	def __init__(self, app_secret, logger):
+	def __init__(self, app_secret, logger = hxtool_global.get_logger(__name__)):
 		def on_update(self):	
 			if self.accessed == False:
 				self.modified = True
