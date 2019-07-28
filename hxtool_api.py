@@ -756,8 +756,8 @@ def hxtool_api_indicators_remove(hx_api_object):
 @valid_session_required
 def hxtool_api_indicators_get_conditions(hx_api_object):
 	url = request.args.get('url')
-	(ret, response_code, condition_class_presence) = hx_api_object.restGetUrl(url + '/conditions/presence')
-	(ret, response_code, condition_class_execution) = hx_api_object.restGetUrl(url + '/conditions/execution')
+	(ret, response_code, condition_class_presence) = hx_api_object.restGetUrl(url + '/conditions/presence', include_params = True)
+	(ret, response_code, condition_class_execution) = hx_api_object.restGetUrl(url + '/conditions/execution', include_params = True)
 
 	myconditions = { "presence": condition_class_presence, "execution": condition_class_execution }
 
