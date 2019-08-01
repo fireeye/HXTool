@@ -2667,7 +2667,7 @@ def chartjs_inactive_hosts_per_hostset(hx_api_object):
 	if ret:
 		for hostset in response_data['data']['entries']:
 			(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(query_terms = {'host_sets._id' : hostset['_id']})
-			if ret:
+			if hret:
 				now = datetime.datetime.utcnow()
 				hcount = 0
 				for host in hresponse_data['data']['entries']:
