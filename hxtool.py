@@ -472,7 +472,7 @@ def app_init(debug = False):
 	hxtool_global.get_logger().addHandler(console_log)
 	app.logger.addHandler(console_log)
 	
-	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
+	app.hxtool_config = hxtool_config(combine_app_path(hxtool_global.data_path, 'conf.json'), logger = app.logger)
 	hxtool_global.hxtool_config = app.hxtool_config
 	
 	# Initialize configured log handlers
@@ -490,7 +490,7 @@ def app_init(debug = False):
 	
 	# Init DB
 	# Disable the write cache altogether - too many issues reported with it enabled.
-	app.hxtool_db = hxtool_db(combine_app_path('hxtool.db'), logger = app.logger, write_cache_size = 0)
+	app.hxtool_db = hxtool_db(combine_app_path(hxtool_global.data_path, 'hxtool.db'), logger = app.logger, write_cache_size = 0)
 	hxtool_global.hxtool_db = app.hxtool_db
 
 	# Enable X15 integration if config options are present
@@ -581,7 +581,7 @@ if __name__ == "__main__":
 	logger = logging.getLogger('werkzeug')
 	if logger:
 		logger.setLevel(logging.INFO)
-		request_log_handler = logging.handlers.RotatingFileHandler(combine_app_path('log/access.log'), maxBytes=50000, backupCount=5)
+		request_log_handler = logging.handlers.RotatingFileHandler(combine_app_path(hxtool_global.log_path, 'access.log'), maxBytes=50000, backupCount=5)
 		request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
 		request_log_handler.setFormatter(request_log_formatter)	
 		logger.addHandler(request_log_handler)
