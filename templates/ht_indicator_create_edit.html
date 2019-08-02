@@ -61,11 +61,11 @@
 					}
 				});
 				$(targetelement).find("button").data("id", myNextField);
-				getOperators(myNextField, $(targetelement).next(), myguid);
+				getOperators(myNextField, $(targetelement).next(), myguid, myOperator);
 			}
 			else {
 				$(targetelement).html(generateDropDown(myentries[0]['elementText'], "field_" + myguid, myentries[0]['elementId'], entries=myentries, false, false));
-				getOperators($(targetelement).find(".fe-dropdown__list-container").find("li").first().find(".fe-dropdown__item-link-text").data("id"), $(targetelement).next(), myguid);
+				getOperators($(targetelement).find(".fe-dropdown__list-container").find("li").first().find(".fe-dropdown__item-link-text").data("id"), $(targetelement).next(), myguid, myOperator);
 			}
 		}
 
