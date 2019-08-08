@@ -119,17 +119,15 @@ class hxtool_scheduler:
 	def move_to_history(self, task_id):
 		with self._lock:
 			# Prevent erroring out from a race condition where the task is pending deletion
-			if task_id in self.task_queue:
-				self.history_queue[task_id] = self.task_queue.pop(task_id).metadata()
+			t = self.task_queue.pop(task_id, None)
+            if t is not None:
+				self.history_queue[task_id] = t.metadata()
 		if len(self.history_queue) > MAX_HISTORY_QUEUE_LENGTH:
 			self.history_queue.popitem()
 	
 	def tasks(self):
 		# Shallow copy to avoid locking
-		if type(self.task_queue.values()) is list:
-			q = self.task_queue.values()[:]
-		else:
-			q = list(self.task_queue.values())
+		q = list(self.task_queue.values())
 		return [_.metadata() for _ in q] + list(self.history_queue.values())
 	
 	# Load queued tasks from the database
@@ -336,7 +334,7 @@ class hxtool_scheduler_task:
 		return ret
 
 	def parent_state_callback(self, parent_task_id, parent_state, parent_stored_result):
-		if self.parent_id and self.parent_id == parent_task_id:
+		if self.parent_id == parent_task_id:
 			self.logger.debug("parent_state_callback(): task_id = {}, parent_id = {}, parent_state = {}".format(self.task_id, parent_task_id, parent_state))
 			if parent_state == TASK_STATE_COMPLETE:
 				self.logger.debug("Received signal that parent task is complete.")
