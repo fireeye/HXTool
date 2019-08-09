@@ -120,7 +120,7 @@ class hxtool_scheduler:
 		with self._lock:
 			# Prevent erroring out from a race condition where the task is pending deletion
 			t = self.task_queue.pop(task_id, None)
-            if t is not None:
+			if t is not None:
 				self.history_queue[task_id] = t.metadata()
 		if len(self.history_queue) > MAX_HISTORY_QUEUE_LENGTH:
 			self.history_queue.popitem()
