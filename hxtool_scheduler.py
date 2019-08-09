@@ -52,11 +52,17 @@ class hxtool_scheduler:
 
 	def _scan_task_queue(self):
 		while not self._stop_event.wait(.1):
+			ret = None
 			with self._lock:
-				self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()])
-			
-	
+				ret = self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()])
+				while True:
+					try:
+						ret.next()
+					except StopIteration:
+						break
+					
 	def _run_task(self, task):
+		ret = None
 		task.set_state(TASK_STATE_QUEUED)
 		self.logger.debug("Executing task with id: %s, name: %s.", task.task_id, task.name)
 		try:
@@ -64,7 +70,9 @@ class hxtool_scheduler:
 		except Exception as e:
 			self.logger.error(pretty_exceptions(e))
 			task.set_state(TASK_STATE_FAILED)
-		
+		finally:
+			return ret
+			
 	def start(self):
 		self._poll_thread.start()
 		self.logger.info("Task scheduler started with %s threads.", self.thread_count)
@@ -173,7 +181,7 @@ class hxtool_scheduler_task:
 		if parent_id and wait_for_parent:
 			self.next_run = None
 		else:
-			self.next_run = next_run or self.start_time			
+			self.next_run = next_run or self.start_time
 		self.stop_on_fail = stop_on_fail
 		self.steps = []
 		self.stored_result = {}
