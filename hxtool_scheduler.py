@@ -20,6 +20,7 @@ TASK_STATE_RUNNING = 2
 TASK_STATE_COMPLETE = 3
 TASK_STATE_STOPPED = 4
 TASK_STATE_FAILED = 5
+TASK_STATE_PENDING_DELETION = 6
 
 task_state_description = {
 	TASK_STATE_SCHEDULED: "Scheduled",
@@ -27,7 +28,8 @@ task_state_description = {
 	TASK_STATE_RUNNING	: "Running",
 	TASK_STATE_COMPLETE : "Complete",
 	TASK_STATE_STOPPED	: "Stopped",
-	TASK_STATE_FAILED	: "Failed"
+	TASK_STATE_FAILED	: "Failed",
+	TASK_STATE_PENDING_DELETION	: "Pending Deletion"
 }
 
 
@@ -108,20 +110,30 @@ class hxtool_scheduler:
 			for t in tasks:
 				self.add(t)
 		
-	def remove(self, task_id):
+	def remove(self, task_id, delete_children=True):
 		if task_id:
 			with self._lock:
-				if task_id in self.history_queue:
-						del self.history_queue[task_id]
-						
+				if delete_children:
+					for child_task in list(map(lambda t: t['parent_id'] == task_id, self.task_queue.values())):
+						self.task_queue[child_task['task_id']].stop()
+						self.task_queue[child_task['task_id']].set_state(TASK_STATE_PENDING_DELETION)
+						del self.task_queue[child_task['task_id']]
+						self.logger.debug("Deleting task_id = {} from DB".format(child_task['task_id']))
+						hxtool_global.hxtool_db.taskDelete(child_task.profile_id, child_task['task_id'])
+					
+					for child_task in list(map(lambda t: t['parent_id'] == task_id, self.history_queue.values())):
+						del self.history_queue[child_task['task_id']]
+							
 				t = self.task_queue.get(task_id, None)
 				if t and not t.immutable:
 					t.stop()
 					del self.task_queue[task_id]
 					self.logger.debug("Deleting task_id = {} from DB".format(task_id))
 					hxtool_global.hxtool_db.taskDelete(t.profile_id, task_id)
-			t = None
-	
+					t = None
+				elif task_id in self.history_queue:
+						del self.history_queue[task_id]		
+				
 	def get(self, task_id):
 		with self._lock:
 			return self.task_queue.get(task_id, None)
@@ -236,7 +248,7 @@ class hxtool_scheduler_task:
 		return (self.next_run is not None and
 				self.enabled and  
 				self.state == TASK_STATE_SCHEDULED and
-				(self.parent_complete if self.parent_id and self.wait_for_parent else True) and	
+				(self.parent_complete if (self.parent_id and self.wait_for_parent) else True) and
 				datetime.datetime.utcnow() >= self.next_run)
 					
 	def add_step(self, module, func = "run", args = (), kwargs = {}):
@@ -317,8 +329,7 @@ class hxtool_scheduler_task:
 				if self.state < TASK_STATE_STOPPED:
 					self.state = TASK_STATE_COMPLETE
 				
-				# Support test harness
-				if hasattr(hxtool_global, 'hxtool_scheduler'):
+				if not self.parent_id:
 					hxtool_global.hxtool_scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
 				
 				self._calculate_next_run()
@@ -332,7 +343,8 @@ class hxtool_scheduler_task:
 		else:
 			self.set_state(TASK_STATE_STOPPED)
 		
-		if self.state != TASK_STATE_SCHEDULED and self._stored:
+		# Don't delete when task state is TASK_STATE_PENDING_DELETION as the remove() function handles that
+		if self.state != TASK_STATE_SCHEDULED and self.state != TASK_STATE_PENDING_DELETION and self._stored:
 			self.logger.debug("Deleting task_id = {} from DB".format(self.task_id))
 			hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
 			self.set_stored(stored = False)
@@ -352,13 +364,13 @@ class hxtool_scheduler_task:
 					self.parent_complete = True
 					# Now that the parent is complete set the next run
 					self._calculate_next_run()
+					# Make sure we store the updated state
+					self.store()
 			elif parent_state == TASK_STATE_STOPPED:
 				self.stop()
+				self.set_state(TASK_STATE_STOPPED)
 			elif parent_state == TASK_STATE_FAILED:
 				self.set_state(TASK_STATE_FAILED)
-			
-			# Make sure we store the updated state
-			self.store()
 			
 			self.logger.debug("name = {}, next_run = {}".format(self.name, self.next_run))
 
