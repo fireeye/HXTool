@@ -432,9 +432,9 @@ def hxtool_api_annotation_alert_view(hx_api_object):
 def hxtool_api_scheduler_remove(hx_api_object):
 	key_to_delete = request.args.get('id')
 
-	for task in hxtool_global.hxtool_scheduler.tasks():
-		if task['parent_id'] == key_to_delete:
-			hxtool_global.hxtool_scheduler.remove(task['task_id'])
+	#for task in hxtool_global.hxtool_scheduler.tasks():
+	#	if task['parent_id'] == key_to_delete:
+	#		hxtool_global.hxtool_scheduler.remove(task['task_id'])
 
 	hxtool_global.hxtool_scheduler.remove(key_to_delete)
 
@@ -1871,6 +1871,7 @@ def datatable_openioc(hx_api_object):
 def datatable_taskprofiles(hx_api_object):
 	if request.method == 'GET':
 		mytaskprofiles = app.hxtool_db.taskProfileList()
+		# TODO: filter passwords and keys in task params
 		return(app.response_class(response=json.dumps(mytaskprofiles), status=200, mimetype='application/json'))
 
 
