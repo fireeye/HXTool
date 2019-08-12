@@ -542,6 +542,27 @@ def app_init(debug = False):
 	app.session_interface = hxtool_session_interface(app, expiration_delta=app.hxtool_config['network']['session_timeout'])
 
 	set_svg_mimetype()
+
+# Version specific upgrade code goes here
+def hxtool_upgrade():
+	files_to_move = ['hxtool.db', 'conf.json', 'hxtool.key', 'hxtool.crt']
+	base_path = os.path.dirname(sys.argv[0])
+	for file in files_to_move:
+		if os.path.isfile(os.path.join(base_path, file)):
+			if os.path.isfile(os.path.join(base_path, hxtool_global.data_path, file)):
+				try:
+					f = raw_input
+				except NameError:
+					f = input
+				r = f("{} already exists in {}, do you want to overwrite it? (Note that this might be a default file that you can safely overwrite) (Y/N)?".format(file, hxtool_global.data_path))
+				if r.strip().lower() != 'y':
+					continue
+			print("UPGRADE: Moving {} to the data folder".format(file))
+			os.rename(os.path.join(base_path, file), os.path.join(base_path, hxtool_global.data_path, file))
+		
+
+#Run upgrade code before everything else
+hxtool_upgrade()
 	
 debug_mode = False
 if __name__ == "__main__":
