@@ -7,7 +7,7 @@ import datetime
 import calendar
 import random
 from multiprocessing.pool import ThreadPool
-from multiprocessing import cpu_count
+from multiprocessing import cpu_count, TimeoutError
 
 import hxtool_global
 from hx_lib import HXAPI
@@ -55,14 +55,16 @@ class hxtool_scheduler:
 			ret = None
 			with self._lock:
 				ret = self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()])
-				while True:
+				while True and not self._stop_event:
 					try:
+						# Right now we wait forever for a task
+						# ultimately, we need a timeout value
 						ret.next()
 					except StopIteration:
 						break
 					
 	def _run_task(self, task):
-		ret = None
+		ret = False
 		task.set_state(TASK_STATE_QUEUED)
 		self.logger.debug("Executing task with id: %s, name: %s.", task.task_id, task.name)
 		try:
@@ -135,8 +137,7 @@ class hxtool_scheduler:
 	
 	def tasks(self):
 		# Shallow copy to avoid locking
-		q = list(self.task_queue.values())
-		return [_.metadata() for _ in q] + list(self.history_queue.values())
+		return [_.metadata() for _ in list(self.task_queue.values())] + list(self.history_queue.values())
 	
 	# Load queued tasks from the database
 	def load_from_database(self):
