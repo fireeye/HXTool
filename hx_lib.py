@@ -177,6 +177,10 @@ class HXAPI:
 			return(True, response.status_code, response_data, response.headers)	
 		except (requests.exceptions.ChunkedEncodingError, requests.HTTPError, requests.ConnectionError) as e:
 			if hasattr(e, 'response') and e.response is not None:
+				# If we get a 401, invalidate the token forcing a re-login
+				if response.status_code == 401:
+					self.set_token(None)
+				
 				response = e.response
 			
 				# Check if error message is content type JSON
