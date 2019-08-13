@@ -114,14 +114,14 @@ class hxtool_scheduler:
 		if task_id:
 			with self._lock:
 				if delete_children:
-					for child_task in list(map(lambda t: t['parent_id'] == task_id, self.task_queue.values())):
-						self.task_queue[child_task['task_id']].stop()
-						self.task_queue[child_task['task_id']].set_state(TASK_STATE_PENDING_DELETION)
-						del self.task_queue[child_task['task_id']]
-						self.logger.debug("Deleting task_id = {} from DB".format(child_task['task_id']))
-						hxtool_global.hxtool_db.taskDelete(child_task.profile_id, child_task['task_id'])
+					for child_task in list(filter(lambda t: t.parent_id == task_id, self.task_queue.values())):
+						self.task_queue[child_task.task_id].stop()
+						self.task_queue[child_task.task_id].set_state(TASK_STATE_PENDING_DELETION)
+						del self.task_queue[child_task.task_id]
+						self.logger.debug("Deleting task_id = {} from DB".format(child_task.task_id))
+						hxtool_global.hxtool_db.taskDelete(child_task.profile_id, child_task.task_id)
 					
-					for child_task in list(map(lambda t: t['parent_id'] == task_id, self.history_queue.values())):
+					for child_task in list(filter(lambda t: t['parent_id'] == task_id, self.history_queue.values())):
 						del self.history_queue[child_task['task_id']]
 							
 				t = self.task_queue.get(task_id, None)
@@ -132,7 +132,7 @@ class hxtool_scheduler:
 					hxtool_global.hxtool_db.taskDelete(t.profile_id, task_id)
 					t = None
 				elif task_id in self.history_queue:
-						del self.history_queue[task_id]		
+						del self.history_queue[task_id]
 				
 	def get(self, task_id):
 		with self._lock:
