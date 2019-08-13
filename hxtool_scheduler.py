@@ -278,6 +278,8 @@ class hxtool_scheduler_task:
 				
 				# Reset microseconds to keep from drifting too badly
 				self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
+				# Clear this, otherwise the task view looks confusing
+				self.next_run = None
 				
 				for module, func, args, kwargs in self.steps:
 					self.logger.debug("Have module: {}, function: {}".format(module.__module__, func))
