@@ -267,6 +267,7 @@ class hxtool_scheduler_task:
 	def run(self):
 		self._stop_signal = False
 		self._defer_signal = False
+		self._pending_deletion_signal = False
 		ret = False
 		
 		if self.enabled:
@@ -341,11 +342,10 @@ class hxtool_scheduler_task:
 			self.set_state(TASK_STATE_STOPPED)
 		
 		# Don't delete when task state is TASK_STATE_PENDING_DELETION as the remove() function handles that
-		if self.state != TASK_STATE_SCHEDULED and self.state != TASK_STATE_PENDING_DELETION and self._stored:
-			self.logger.debug("Deleting task_id = {} from DB".format(self.task_id))
-			hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
-			self.set_stored(stored = False)
-			hxtool_global.hxtool_scheduler.move_to_history(self.task_id)
+		if self.state != TASK_STATE_SCHEDULED and self._stored:
+			self.unstore()
+			if self.state != TASK_STATE_PENDING_DELETION:
+				hxtool_global.hxtool_scheduler.move_to_history(self.task_id)
 		else:
 			self.store()
 				
@@ -374,9 +374,17 @@ class hxtool_scheduler_task:
 				
 	def stop(self):
 		self._stop_signal = True
-	
+		if self.state != TASK_STATE_RUNNING:
+			self.set_state(TASK_STATE_STOPPED)
+			
 	def defer(self):
 		self._defer_signal = True
+	
+	def remove(self):
+		self._pending_deletion_signal = True
+		if self.state != TASK_STATE_RUNNING:
+			self.set_state(TASK_STATE_PENDING_DELETION)
+			self.unstore()
 			
 	def store(self):
 		if not (self.immutable or self._stored):
