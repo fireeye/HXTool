@@ -301,31 +301,32 @@ class hxtool_scheduler_task:
 									self.state = TASK_STATE_FAILED
 									break
 				
-					if self.state != TASK_STATE_FAILED:
-						self.logger.debug("Begin execute {}.{}".format(module.__module__, func))
-						result = getattr(module, func)(*args, **kwargs)
-						self.logger.debug("End execute {}.{}".format(module.__module__, func))
-						if isinstance(result, tuple) and len(result) > 1:
-							ret = result[0]
-							# Store the result - make sure it is of type dict
-							if isinstance(result[1], dict):
-								# Use update so we don't clobber existing values
-								self.stored_result.update(result[1])
-							elif result[1] != None:
-								self.logger.error("Task module {} returned a value that was not a dictionary or None. Discarding the result.".format(module.__module__))
-						else:
-							ret = result
-						
-						
-						if self._defer_signal:
-							break
-						elif self._stop_signal:
-							self.state = TASK_STATE_STOPPED
-							break
-						elif not ret and self.stop_on_fail:
-							self.state = TASK_STATE_FAILED
-							break
-				
+					self.logger.debug("Begin execute {}.{}".format(module.__module__, func))
+					result = getattr(module, func)(*args, **kwargs)
+					self.logger.debug("End execute {}.{}".format(module.__module__, func))
+					if isinstance(result, tuple) and len(result) > 1:
+						ret = result[0]
+						# Store the result - make sure it is of type dict
+						if isinstance(result[1], dict):
+							# Use update so we don't clobber existing values
+							self.stored_result.update(result[1])
+						elif result[1] is not None:
+							self.logger.error("Task module {} returned a value that was not a dictionary or None. Discarding the result.".format(module.__module__))
+					else:
+						ret = result
+					
+					
+					if self._defer_signal:
+						break
+					elif self._stop_signal:
+						self.state = TASK_STATE_STOPPED
+						break
+					elif self._pending_deletion_signal:
+						self.state = TASK_STATE_PENDING_DELETION
+						break
+					elif not ret and self.stop_on_fail:
+						self.state = TASK_STATE_FAILED
+						break
 				
 				if self.state < TASK_STATE_STOPPED:
 					self.state = TASK_STATE_COMPLETE
