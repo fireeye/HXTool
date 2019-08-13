@@ -57,13 +57,17 @@ class hxtool_scheduler:
 			ret = None
 			with self._lock:
 				ret = self.task_threads.imap_unordered(self._run_task, [_ for _ in self.task_queue.values() if _.should_run()])
-				while True and not self._stop_event:
+			if ret:
+				while not self._stop_event.is_set():
 					try:
-						# Right now we wait forever for a task
-						# ultimately, we need a timeout value
 						ret.next()
+					except TimeoutError:
+						continue
 					except StopIteration:
 						break
+					except Exception as e:
+						self.logger.error(pretty_exceptions(e))
+						continue
 					
 	def _run_task(self, task):
 		ret = False
