@@ -208,8 +208,10 @@ class hxtool_scheduler_task:
 		self.next_run = None
 		
 		# Bail out if we've failed and should stop running further
-		if self.state == TASK_STATE_FAILED and self.stop_on_fail:
+		if self.state == TASK_STATE_PENDING_DELETION or (self.state == TASK_STATE_FAILED and self.stop_on_fail):
 			return
+		elif self.state == TASK_STATE_QUEUED or self.state == TASK_STATE_RUNNING:
+			self.logger.critical("Task ID {} calculating next run while still running, this should never happen!".format(self.task_id))
 	
 		# Reset microseconds to keep things from drifting
 		now = datetime.datetime.utcnow().replace(microsecond=1)
