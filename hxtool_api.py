@@ -432,9 +432,9 @@ def hxtool_api_annotation_alert_view(hx_api_object):
 def hxtool_api_scheduler_remove(hx_api_object):
 	key_to_delete = request.args.get('id')
 
-	for task in hxtool_global.hxtool_scheduler.tasks():
-		if task['parent_id'] == key_to_delete:
-			hxtool_global.hxtool_scheduler.remove(task['task_id'])
+	#for task in hxtool_global.hxtool_scheduler.tasks():
+	#	if task['parent_id'] == key_to_delete:
+	#		hxtool_global.hxtool_scheduler.remove(task['task_id'])
 
 	hxtool_global.hxtool_scheduler.remove(key_to_delete)
 
@@ -848,7 +848,7 @@ def hxtool_api_indicators_new(hx_api_object):
 	mydata = json.loads(request.form.get('rule'))
 
 	if mydata['platform'] == "all":
-		chosenplatform = ['win', 'osx']
+		chosenplatform = ['win', 'osx', 'linux']
 	else:
 		chosenplatform = [mydata['platform']]
 
@@ -1413,6 +1413,8 @@ def datatable_avcontent_detail(hx_api_object):
 					"content_version": myversion
 					})
 
+	del hresponse_data
+
 	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
 
@@ -1443,6 +1445,8 @@ def datatable_avengine_detail(hx_api_object):
 					"engine_version": myversion
 					})
 
+	del hresponse_data
+
 	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/datatable/avstatus'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -1470,6 +1474,8 @@ def datatable_avstatus_detail(hx_api_object):
 					"agentid": host['_id'],
 					"state": mystate
 					})
+
+	del hresponse_data
 
 	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
@@ -1871,6 +1877,7 @@ def datatable_openioc(hx_api_object):
 def datatable_taskprofiles(hx_api_object):
 	if request.method == 'GET':
 		mytaskprofiles = app.hxtool_db.taskProfileList()
+		# TODO: filter passwords and keys in task params
 		return(app.response_class(response=json.dumps(mytaskprofiles), status=200, mimetype='application/json'))
 
 
@@ -2164,6 +2171,8 @@ def chartjs_agentstatus(hx_api_object):
 				myData[host[myField]] = 0
 			myData[host[myField]] += 1
 
+	del response_data
+
 	myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
 	random.shuffle(myPattern)
 
@@ -2210,7 +2219,9 @@ def chartjs_malwarecontent(hx_api_object):
 						myContent['none'] += 1
 				else:
 					myContent['none'] += 1
-
+		
+		del response_data
+		
 		dataset = []
 		mylist = []
 		for ckey, cval in myContent.items():
@@ -2267,6 +2278,8 @@ def chartjs_malwareengine(hx_api_object):
 				else:
 					myContent['none'] += 1
 
+		del response_data
+
 		dataset = []
 		mylist = []
 		for ckey, cval in myContent.items():
@@ -2315,6 +2328,8 @@ def chartjs_malwarestatus(hx_api_object):
 						myContent[sresponse_data['data']['MalwareProtectionStatus']] += 1
 				else:
 					myContent['none'] += 1
+
+		del response_data
 
 		dataset = []
 		mylist = []
@@ -2455,7 +2470,9 @@ def chartjs_hosts_initial_agent_checkin(hx_api_object):
 		for host in response_data['data']['entries']:
 			if host['initial_agent_checkin'][0:10] in mycount.keys():
 				mycount[host['initial_agent_checkin'][0:10]] += 1
-
+		
+		del response_data
+		
 		myGraphData = []
 		for key, stats in mycount.items():
 			myhosts['labels'].append(key)
@@ -2667,13 +2684,16 @@ def chartjs_inactive_hosts_per_hostset(hx_api_object):
 	if ret:
 		for hostset in response_data['data']['entries']:
 			(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts(query_terms = {'host_sets._id' : hostset['_id']})
-			if ret:
+			if hret:
 				now = datetime.datetime.utcnow()
 				hcount = 0
 				for host in hresponse_data['data']['entries']:
 					x = (HXAPI.gt(host['last_poll_timestamp']))
 					if (int((now - x).total_seconds())) > int(request.args.get('seconds')):
 						hcount += 1
+				
+				del hresponse_data
+				
 				myhosts.append({"hostset": hostset['name'], "count": hcount})
 
 		# Return the Vega Data

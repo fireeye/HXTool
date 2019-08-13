@@ -97,7 +97,7 @@ class bulk_download_task_module(task_module):
 				else:
 					self.logger.warn("No task API session for profile: {}".format(self.parent_task.profile_id))
 			else:
-				self.logger.info("Bulk download {} is stopped.".format(bulk_acquisition_id))
+				self.logger.info("Bulk download is stopped.")
 				self.parent_task.stop()
 		except Exception as e:
 			self.logger.error(pretty_exceptions(e))

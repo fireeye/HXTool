@@ -12,6 +12,6 @@ RUN apk add --no-cache libstdc++ \
 && apk del .build-dependencies \
 && rm -rf /root/.cache
 COPY . /opt/hxtool
-VOLUME /opt/hxtool/bulkdownload /opt/hxtool/log
+VOLUME /opt/hxtool/data /opt/hxtool/bulkdownload /opt/hxtool/log
 EXPOSE 8080/tcp
 ENTRYPOINT ["python", "hxtool.py"]

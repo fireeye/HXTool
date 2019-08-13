@@ -472,7 +472,7 @@ def app_init(debug = False):
 	hxtool_global.get_logger().addHandler(console_log)
 	app.logger.addHandler(console_log)
 	
-	app.hxtool_config = hxtool_config(combine_app_path('conf.json'), logger = app.logger)
+	app.hxtool_config = hxtool_config(combine_app_path(hxtool_global.data_path, 'conf.json'), logger = app.logger)
 	hxtool_global.hxtool_config = app.hxtool_config
 	
 	# Initialize configured log handlers
@@ -490,7 +490,7 @@ def app_init(debug = False):
 	
 	# Init DB
 	# Disable the write cache altogether - too many issues reported with it enabled.
-	app.hxtool_db = hxtool_db(combine_app_path('hxtool.db'), logger = app.logger, write_cache_size = 0)
+	app.hxtool_db = hxtool_db(combine_app_path(hxtool_global.data_path, 'hxtool.db'), logger = app.logger, write_cache_size = 0)
 	hxtool_global.hxtool_db = app.hxtool_db
 
 	# Enable X15 integration if config options are present
@@ -542,9 +542,33 @@ def app_init(debug = False):
 	app.session_interface = hxtool_session_interface(app, expiration_delta=app.hxtool_config['network']['session_timeout'])
 
 	set_svg_mimetype()
+
+# Version specific upgrade code goes here
+def hxtool_upgrade():
+	files_to_move = ['hxtool.db', 'conf.json', 'hxtool.key', 'hxtool.crt']
+	base_path = os.path.dirname(sys.argv[0])
+	for file in files_to_move:
+		if os.path.isfile(os.path.join(base_path, file)):
+			if os.path.isfile(os.path.join(base_path, hxtool_global.data_path, file)):
+				try:
+					f = raw_input
+				except NameError:
+					f = input
+				r = f("{} already exists in {}, do you want to overwrite it? (Note that this might be a default file that you can safely overwrite) (Y/N)?".format(file, hxtool_global.data_path))
+				if r.strip().lower() != 'y':
+					continue
+			print("UPGRADE: Moving {} to the data folder".format(file))
+			os.rename(os.path.join(base_path, file), os.path.join(base_path, hxtool_global.data_path, file))
+		
+
+#Run upgrade code before everything else
+hxtool_upgrade()
 	
 debug_mode = False
 if __name__ == "__main__":
+	hxtool_global.initialize()
+	hxtool_global.app_instance_path = "."
+	
 	signal.signal(signal.SIGINT, sigint_handler)
 	
 	if len(sys.argv) == 2:
@@ -552,7 +576,7 @@ if __name__ == "__main__":
 			debug_mode = True
 		elif sys.argv[1] == '--clear-sessions':
 			print("Clearing sessions from the database and exiting.")
-			hxtool_db = hxtool_db('hxtool.db')
+			hxtool_db = hxtool_db(combine_app_path(hxtool_global.data_path, 'hxtool.db'))
 			for s in hxtool_db.sessionList():
 				hxtool_db.sessionDelete(s['session_id'])
 			hxtool_db.close()
@@ -568,7 +592,7 @@ if __name__ == "__main__":
 			r = f("Do you want to proceed (Y/N)?")
 			if r.strip().lower() == 'y':
 				print("Clearing saved tasks from the database and exiting.")
-				hxtool_db = hxtool_db('hxtool.db')
+				hxtool_db = hxtool_db(combine_app_path(hxtool_global.data_path, 'hxtool.db'))
 				for t in hxtool_db.taskList():
 					hxtool_db.taskDelete(t['profile_id'], t['task_id'])
 				hxtool_db.close()
@@ -581,7 +605,7 @@ if __name__ == "__main__":
 	logger = logging.getLogger('werkzeug')
 	if logger:
 		logger.setLevel(logging.INFO)
-		request_log_handler = logging.handlers.RotatingFileHandler(combine_app_path('log/access.log'), maxBytes=50000, backupCount=5)
+		request_log_handler = logging.handlers.RotatingFileHandler(combine_app_path(hxtool_global.log_path, 'access.log'), maxBytes=50000, backupCount=5)
 		request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
 		request_log_handler.setFormatter(request_log_formatter)	
 		logger.addHandler(request_log_handler)

@@ -139,7 +139,9 @@ class HXAPI:
 		response_data = None
 		
 		try:
+			self.logger.debug("Sending request, awaiting response")
 			response = self._session.send(request, stream = stream)
+			self.logger.debug("Have response.")
 
 			if not response.ok:
 				response.raise_for_status()
@@ -186,7 +188,9 @@ class HXAPI:
 
 				return(False, response.status_code, response_data, response.headers)
 			return(False, None, e, None)
-		
+		finally:
+			if response:
+				response.close()
 		
 
 	def set_token(self, token):

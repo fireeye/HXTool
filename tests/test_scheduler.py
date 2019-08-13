@@ -9,6 +9,7 @@ import logging
 sys.path.append('../')
 
 from hxtool_scheduler import *
+import hxtool_global
 
 class test_scheduler:
 	
@@ -17,7 +18,8 @@ class test_scheduler:
 		self.ht_scheduler.logger.addHandler(logging.StreamHandler(sys.stdout))
 		self.ht_scheduler.logger.setLevel(logging.DEBUG)
 		
-		
+		hxtool_global.hxtool_scheduler = self.ht_scheduler
+	
 	def run_test(self):	
 		print("Testing hxtool_scheduler...")
 		self.ht_scheduler.start()

@@ -7,6 +7,8 @@ import logging
 
 hxtool_schema_version = 40
 root_logger_name = "hxtool"
+data_path = "data"
+log_path = "log"
 
 def initialize():
 	global task_hx_api_sessions
