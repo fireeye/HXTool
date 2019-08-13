@@ -396,6 +396,11 @@ class hxtool_scheduler_task:
 		elif self._stored:
 			hxtool_global.hxtool_db.taskUpdate(self.profile_id, self.task_id, self.serialize())
 	
+	def unstore(self):
+		self.logger.debug("Deleting task_id = {} from DB".format(self.task_id))
+		hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
+		self.set_stored(stored = False)
+	
 	def metadata(self):
 		return self.serialize(include_module_data = False)
 		
