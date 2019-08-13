@@ -57,7 +57,7 @@ class hxtool_scheduler:
 			if ret:
 				while not self._stop_event.is_set():
 					try:
-						ret.next()
+						ret.next(timeout=.1)
 					except TimeoutError:
 						continue
 					except StopIteration:
