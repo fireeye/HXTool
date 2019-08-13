@@ -33,9 +33,6 @@ task_state_description = {
 }
 
 
-# Special task indicator that we need to exit now
-SIGINT_TASK_ID = -1
-
 MAX_HISTORY_QUEUE_LENGTH = 1000
 		
 # Note: scheduler resolution is a little less than a second
