@@ -848,7 +848,7 @@ def hxtool_api_indicators_new(hx_api_object):
 	mydata = json.loads(request.form.get('rule'))
 
 	if mydata['platform'] == "all":
-		chosenplatform = ['win', 'osx']
+		chosenplatform = ['win', 'osx', 'linux']
 	else:
 		chosenplatform = [mydata['platform']]
 
