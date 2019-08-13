@@ -432,13 +432,9 @@ def hxtool_api_annotation_alert_view(hx_api_object):
 def hxtool_api_scheduler_remove(hx_api_object):
 	key_to_delete = request.args.get('id')
 
-	#for task in hxtool_global.hxtool_scheduler.tasks():
-	#	if task['parent_id'] == key_to_delete:
-	#		hxtool_global.hxtool_scheduler.remove(task['task_id'])
+	hxtool_global.hxtool_scheduler.remove(key_to_delete, delete_children=True)
 
-	hxtool_global.hxtool_scheduler.remove(key_to_delete)
-
-	app.logger.info(format_activity_log(msg="scheduler action", action="remove", id=task['task_id'], user=session['ht_user'], controller=session['hx_ip']))
+	app.logger.info(format_activity_log(msg="scheduler action", action="remove", id=key_to_delete, user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/scheduler_health'.format(HXTOOL_API_VERSION), methods=['GET'])
