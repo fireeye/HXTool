@@ -129,7 +129,7 @@ class hxtool_scheduler:
 					del self.task_queue[task_id]
 					t = None
 				elif task_id in self.history_queue:
-						del self.history_queue[task_id]
+					del self.history_queue[task_id]
 				
 	def get(self, task_id):
 		with self._lock:
