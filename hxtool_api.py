@@ -1413,6 +1413,8 @@ def datatable_avcontent_detail(hx_api_object):
 					"content_version": myversion
 					})
 
+	del hresponse_data
+
 	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
 
@@ -1443,6 +1445,8 @@ def datatable_avengine_detail(hx_api_object):
 					"engine_version": myversion
 					})
 
+	del hresponse_data
+
 	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/datatable/avstatus'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -1470,6 +1474,8 @@ def datatable_avstatus_detail(hx_api_object):
 					"agentid": host['_id'],
 					"state": mystate
 					})
+
+	del hresponse_data
 
 	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
@@ -2165,6 +2171,8 @@ def chartjs_agentstatus(hx_api_object):
 				myData[host[myField]] = 0
 			myData[host[myField]] += 1
 
+	del response_data
+
 	myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
 	random.shuffle(myPattern)
 
@@ -2211,7 +2219,9 @@ def chartjs_malwarecontent(hx_api_object):
 						myContent['none'] += 1
 				else:
 					myContent['none'] += 1
-
+		
+		del response_data
+		
 		dataset = []
 		mylist = []
 		for ckey, cval in myContent.items():
@@ -2268,6 +2278,8 @@ def chartjs_malwareengine(hx_api_object):
 				else:
 					myContent['none'] += 1
 
+		del response_data
+
 		dataset = []
 		mylist = []
 		for ckey, cval in myContent.items():
@@ -2316,6 +2328,8 @@ def chartjs_malwarestatus(hx_api_object):
 						myContent[sresponse_data['data']['MalwareProtectionStatus']] += 1
 				else:
 					myContent['none'] += 1
+
+		del response_data
 
 		dataset = []
 		mylist = []
@@ -2456,7 +2470,9 @@ def chartjs_hosts_initial_agent_checkin(hx_api_object):
 		for host in response_data['data']['entries']:
 			if host['initial_agent_checkin'][0:10] in mycount.keys():
 				mycount[host['initial_agent_checkin'][0:10]] += 1
-
+		
+		del response_data
+		
 		myGraphData = []
 		for key, stats in mycount.items():
 			myhosts['labels'].append(key)
@@ -2675,6 +2691,9 @@ def chartjs_inactive_hosts_per_hostset(hx_api_object):
 					x = (HXAPI.gt(host['last_poll_timestamp']))
 					if (int((now - x).total_seconds())) > int(request.args.get('seconds')):
 						hcount += 1
+				
+				del hresponse_data
+				
 				myhosts.append({"hostset": hostset['name'], "count": hcount})
 
 		# Return the Vega Data
