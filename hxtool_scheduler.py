@@ -115,24 +115,18 @@ class hxtool_scheduler:
 		if task_id:
 			with self._lock:
 				if delete_children:
-					for child_task in self.task_queue.values():
-						if child_task.parent_id == task_id:
-							child_task.stop()
-							chile_task.set_state(TASK_STATE_PENDING_DELETION)
-							del self.task_queue[child_task.task_id]
-							self.logger.debug("Deleting task_id = {} from DB".format(child_task.task_id))
-							hxtool_global.hxtool_db.taskDelete(child_task.profile_id, child_task.task_id)
+					# We need to make a shallow copy so we don't modify the task_queue while iterating over it
+					for child_task_id in [_.task_id for _ in self.task_queue.values() if _.parent_id == task_id]:
+						self.task_queue[child_task_id].remove()
+						del self.task_queue[child_task_id]
 							
-					for child_task in self.history_queue.values():
-						if child_task['parent_id'] == task_id:
-							del self.history_queue[child_task['task_id']]
+					for child_task_id in [_['task_id'] for _ in self.history_queue.values() if _['parent_id'] == task_id]:
+						del self.history_queue[child_task_id]
 							
 				t = self.task_queue.get(task_id, None)
 				if t and not t.immutable:
-					t.stop()
+					t.remove()
 					del self.task_queue[task_id]
-					self.logger.debug("Deleting task_id = {} from DB".format(task_id))
-					hxtool_global.hxtool_db.taskDelete(t.profile_id, task_id)
 					t = None
 				elif task_id in self.history_queue:
 						del self.history_queue[task_id]
