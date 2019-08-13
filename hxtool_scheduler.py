@@ -137,7 +137,6 @@ class hxtool_scheduler:
 
 	def move_to_history(self, task_id):
 		with self._lock:
-			# Prevent erroring out from a race condition where the task is pending deletion
 			t = self.task_queue.pop(task_id, None)
 			if t is not None:
 				self.history_queue[task_id] = t.metadata()
