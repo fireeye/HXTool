@@ -47,7 +47,7 @@ class file_acquisition_task_module(task_module):
 		result = {}
 		try:
 			hx_api_object = self.get_task_api_object()	
-			if hx_api_object and hx_api_object.restIsSessionValid():
+			if hx_api_object:
 				self.logger.debug("Processing multi file acquisition job: {0}.".format(multi_file_eid))
 				download_directory = make_download_directory(hx_api_object.hx_host, multi_file_eid, job_type = 'multi_file')
 				(ret, response_code, response_data) = hx_api_object.restFileAcquisitionById(file_acquisition_id)

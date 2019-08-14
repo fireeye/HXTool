@@ -79,7 +79,7 @@ class bulk_acquisition_task_module(task_module):
 		if script:
 			result = {}
 			hx_api_object = self.get_task_api_object()	
-			if hx_api_object and hx_api_object.restIsSessionValid():
+			if hx_api_object:
 				if skip_base64:
 					script = HXAPI.b64(script, decode = True, decode_string = True)
 				script = set_time_macros(script)
