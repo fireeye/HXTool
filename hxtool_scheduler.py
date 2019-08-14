@@ -57,7 +57,7 @@ class hxtool_scheduler:
 			if ret:
 				while not self._stop_event.is_set():
 					try:
-						ret.next()
+						ret.next(timeout=.1)
 					except TimeoutError:
 						continue
 					except StopIteration:
@@ -115,27 +115,21 @@ class hxtool_scheduler:
 		if task_id:
 			with self._lock:
 				if delete_children:
-					for child_task in self.task_queue.values():
-						if child_task.parent_id == task_id:
-							child_task.stop()
-							chile_task.set_state(TASK_STATE_PENDING_DELETION)
-							del self.task_queue[child_task.task_id]
-							self.logger.debug("Deleting task_id = {} from DB".format(child_task.task_id))
-							hxtool_global.hxtool_db.taskDelete(child_task.profile_id, child_task.task_id)
+					# We need to make a shallow copy so we don't modify the task_queue while iterating over it
+					for child_task_id in [_.task_id for _ in self.task_queue.values() if _.parent_id == task_id]:
+						self.task_queue[child_task_id].remove()
+						del self.task_queue[child_task_id]
 							
-					for child_task in self.history_queue.values():
-						if child_task['parent_id'] == task_id:
-							del self.history_queue[child_task['task_id']]
+					for child_task_id in [_['task_id'] for _ in self.history_queue.values() if _['parent_id'] == task_id]:
+						del self.history_queue[child_task_id]
 							
 				t = self.task_queue.get(task_id, None)
 				if t and not t.immutable:
-					t.stop()
+					t.remove()
 					del self.task_queue[task_id]
-					self.logger.debug("Deleting task_id = {} from DB".format(task_id))
-					hxtool_global.hxtool_db.taskDelete(t.profile_id, task_id)
 					t = None
 				elif task_id in self.history_queue:
-						del self.history_queue[task_id]
+					del self.history_queue[task_id]
 				
 	def get(self, task_id):
 		with self._lock:
@@ -143,7 +137,6 @@ class hxtool_scheduler:
 
 	def move_to_history(self, task_id):
 		with self._lock:
-			# Prevent erroring out from a race condition where the task is pending deletion
 			t = self.task_queue.pop(task_id, None)
 			if t is not None:
 				self.history_queue[task_id] = t.metadata()
@@ -215,8 +208,10 @@ class hxtool_scheduler_task:
 		self.next_run = None
 		
 		# Bail out if we've failed and should stop running further
-		if self.state == TASK_STATE_FAILED and self.stop_on_fail:
+		if self.state == TASK_STATE_PENDING_DELETION or (self.state == TASK_STATE_FAILED and self.stop_on_fail):
 			return
+		elif self.state == TASK_STATE_QUEUED or self.state == TASK_STATE_RUNNING:
+			self.logger.critical("Task ID {} calculating next run while still running, this should never happen!".format(self.task_id))
 	
 		# Reset microseconds to keep things from drifting
 		now = datetime.datetime.utcnow().replace(microsecond=1)
@@ -273,6 +268,7 @@ class hxtool_scheduler_task:
 	def run(self):
 		self._stop_signal = False
 		self._defer_signal = False
+		self._pending_deletion_signal = False
 		ret = False
 		
 		if self.enabled:
@@ -283,6 +279,8 @@ class hxtool_scheduler_task:
 				
 				# Reset microseconds to keep from drifting too badly
 				self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
+				# Clear this, otherwise the task view looks confusing
+				self.next_run = None
 				
 				for module, func, args, kwargs in self.steps:
 					self.logger.debug("Have module: {}, function: {}".format(module.__module__, func))
@@ -303,31 +301,32 @@ class hxtool_scheduler_task:
 									self.state = TASK_STATE_FAILED
 									break
 				
-					if self.state != TASK_STATE_FAILED:
-						self.logger.debug("Begin execute {}.{}".format(module.__module__, func))
-						result = getattr(module, func)(*args, **kwargs)
-						self.logger.debug("End execute {}.{}".format(module.__module__, func))
-						if isinstance(result, tuple) and len(result) > 1:
-							ret = result[0]
-							# Store the result - make sure it is of type dict
-							if isinstance(result[1], dict):
-								# Use update so we don't clobber existing values
-								self.stored_result.update(result[1])
-							elif result[1] != None:
-								self.logger.error("Task module {} returned a value that was not a dictionary or None. Discarding the result.".format(module.__module__))
-						else:
-							ret = result
-						
-						
-						if self._defer_signal:
-							break
-						elif self._stop_signal:
-							self.state = TASK_STATE_STOPPED
-							break
-						elif not ret and self.stop_on_fail:
-							self.state = TASK_STATE_FAILED
-							break
-				
+					self.logger.debug("Begin execute {}.{}".format(module.__module__, func))
+					result = getattr(module, func)(*args, **kwargs)
+					self.logger.debug("End execute {}.{}".format(module.__module__, func))
+					if isinstance(result, tuple) and len(result) > 1:
+						ret = result[0]
+						# Store the result - make sure it is of type dict
+						if isinstance(result[1], dict):
+							# Use update so we don't clobber existing values
+							self.stored_result.update(result[1])
+						elif result[1] is not None:
+							self.logger.error("Task module {} returned a value that was not a dictionary or None. Discarding the result.".format(module.__module__))
+					else:
+						ret = result
+					
+					
+					if self._defer_signal:
+						break
+					elif self._stop_signal:
+						self.state = TASK_STATE_STOPPED
+						break
+					elif self._pending_deletion_signal:
+						self.state = TASK_STATE_PENDING_DELETION
+						break
+					elif not ret and self.stop_on_fail:
+						self.state = TASK_STATE_FAILED
+						break
 				
 				if self.state < TASK_STATE_STOPPED:
 					self.state = TASK_STATE_COMPLETE
@@ -347,11 +346,10 @@ class hxtool_scheduler_task:
 			self.set_state(TASK_STATE_STOPPED)
 		
 		# Don't delete when task state is TASK_STATE_PENDING_DELETION as the remove() function handles that
-		if self.state != TASK_STATE_SCHEDULED and self.state != TASK_STATE_PENDING_DELETION and self._stored:
-			self.logger.debug("Deleting task_id = {} from DB".format(self.task_id))
-			hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
-			self.set_stored(stored = False)
-			hxtool_global.hxtool_scheduler.move_to_history(self.task_id)
+		if self.state != TASK_STATE_SCHEDULED and self._stored:
+			self.unstore()
+			if self.state != TASK_STATE_PENDING_DELETION:
+				hxtool_global.hxtool_scheduler.move_to_history(self.task_id)
 		else:
 			self.store()
 				
@@ -380,9 +378,17 @@ class hxtool_scheduler_task:
 				
 	def stop(self):
 		self._stop_signal = True
-	
+		if self.state != TASK_STATE_RUNNING:
+			self.set_state(TASK_STATE_STOPPED)
+			
 	def defer(self):
 		self._defer_signal = True
+	
+	def remove(self):
+		self._pending_deletion_signal = True
+		if self.state != TASK_STATE_RUNNING:
+			self.set_state(TASK_STATE_PENDING_DELETION)
+			self.unstore()
 			
 	def store(self):
 		if not (self.immutable or self._stored):
@@ -390,6 +396,11 @@ class hxtool_scheduler_task:
 			self.set_stored()
 		elif self._stored:
 			hxtool_global.hxtool_db.taskUpdate(self.profile_id, self.task_id, self.serialize())
+	
+	def unstore(self):
+		self.logger.debug("Deleting task_id = {} from DB".format(self.task_id))
+		hxtool_global.hxtool_db.taskDelete(self.profile_id, self.task_id)
+		self.set_stored(stored = False)
 	
 	def metadata(self):
 		return self.serialize(include_module_data = False)

@@ -14,7 +14,8 @@ class task_module(object):
 	
 	def get_task_api_object(self):
 		if self.parent_task.profile_id in hxtool_global.task_hx_api_sessions:
-			return hxtool_global.task_hx_api_sessions[self.parent_task.profile_id]
+			if hxtool_global.task_hx_api_sessions[self.parent_task.profile_id].restIsSessionValid():
+				return hxtool_global.task_hx_api_sessions[self.parent_task.profile_id]
 		return None
 	
 	def yield_audit_results(self, bulk_download_path, batch_mode, host_name, agent_id, bulk_acquisition_id = None):
