@@ -222,10 +222,6 @@ def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hx
 	if schedule:
 		bulk_acquisition_task.set_schedule(**schedule)
 	
-	# So it turns out theres a nasty race condition that was happening here:
-	# the call to restListBulkHosts() was returning no hosts because the bulk
-	# acquisition hadn't been queued up yet. So instead, we walk the host set
-	# in order to retrieve the hosts targeted for the job.
 	if download:
 		bulk_download_eid = hxtool_global.hxtool_db.bulkDownloadCreate(session['ht_profileid'], hostset_id = hostset_id, task_profile = task_profile)
 		bulk_acquisition_hosts = {}
