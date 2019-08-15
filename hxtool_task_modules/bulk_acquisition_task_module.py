@@ -82,14 +82,17 @@ class bulk_acquisition_task_module(task_module):
 			if hx_api_object:
 				if skip_base64:
 					script = HXAPI.b64(script, decode = True, decode_string = True)
-				script = set_time_macros(script)
-				(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script, hostset_id = hostset_id, comment = comment, skip_base64 = False)
+				script, has_macros = set_time_macros(script)
+				if not has_macros and self.parent_task.last_run and self.parent_task.stored_result.get('bulk_acquisition_id', 0) > 1:
+					(ret, response_code, response_data) = hx_api_object.restRefreshBulkAcq(self.parent_task.stored_result['bulk_acquisition_id'])
+				else:	
+					(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script, hostset_id = hostset_id, comment = comment, skip_base64 = False)
 				if ret and '_id' in response_data['data']:
 					result['bulk_acquisition_id'] = response_data['data']['_id']
 					self.parent_task.name = "Bulk Acquisition ID: {}".format(response_data['data']['_id'])
 					self.logger.info("Bulk acquisition ID {} submitted successfully.".format(response_data['data']['_id']))
 					if download and bulk_download_eid:
-						hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_eid, bulk_acquisition_id = response_data['data']['_id'])
+						hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_eid, bulk_acquisition_id = response_data['data']['_id'], hosts = {})
 						result['bulk_download_eid'] = bulk_download_eid
 				else:
 					self.logger.error("Bulk acquisition submission failed. Response code: {}, response data: {}".format(response_code, response_data))

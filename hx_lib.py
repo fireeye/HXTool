@@ -672,6 +672,13 @@ class HXAPI:
 		
 		return(ret, response_code, response_data)
 		
+	def restRefreshBulkAcq(self, bulk_acquisition_id):
+		
+		request = self.build_request(self.build_api_route('acqs/bulk/{0}/actions/refresh'.format(bulk_acquisition_id)), method = 'POST', data = json.dumps(data))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
 	# List normal acquisitions
 	def restListAcquisitions(self):
 
