@@ -7,6 +7,7 @@ from .task_module import *
 # HXTool packages modules here
 from .task_api_session_module import *
 from .bulk_acquisition_task_module import *
+from .bulk_download_monitor_task_module import *
 from .bulk_download_task_module import *
 from .enterprise_search_task_module import *
 from .stacking_task_module import *
