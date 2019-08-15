@@ -46,7 +46,7 @@ class bulk_acquisition_task_module(task_module):
 				'type' : bool,
 				'required' : False,
 				'user_supplied' : True,
-				'description' : "Specifies whether we should create a bulk download job after this bulk acquisition is submitted."
+				'description' : "Specifies whether we should update a bulk download job after this bulk acquisition is submitted."
 			},
 			{
 				'name' : 'bulk_download_eid',
