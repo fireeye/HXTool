@@ -154,8 +154,9 @@ def set_svg_mimetype():
 		mimetypes.add_type('image/svg+xml', '.svg')
 				
 def set_time_macros(s):
-	return re.sub('--\#\{(now|\-(\d{1,5})(m|h))\}--', _time_replace, s, re.I) 
-
+	(s, n) = re.subn('--\#\{(now|\-(\d{1,5})(m|h))\}--', _time_replace, s, re.I) 
+	return s, n > 0
+	
 def _time_replace(m):
 	if m:
 		now_time = datetime.datetime.utcnow()
