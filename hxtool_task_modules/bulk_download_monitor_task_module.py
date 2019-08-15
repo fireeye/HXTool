@@ -149,6 +149,7 @@ class bulk_download_monitor_task_module(task_module):
 							self.logger.error("No task API session for profile: {}".format(self.parent_task.profile_id))
 				else:
 					self.logger.warning("Bulk download database entry {} is marked as stopped.".format(bulk_download_eid))
+					self.parent_task.stop()
 			else:
 				self.logger.error("Bulk download database entry {} doesn't exist.".format(bulk_download_eid))
 				self.parent_task.stop()
