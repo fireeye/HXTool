@@ -79,7 +79,7 @@ class bulk_download_task_module(task_module):
 						full_path = os.path.join(download_directory, get_download_filename(host_name, agent_id))
 						(ret, response_code, response_data) = hx_api_object.restDownloadFile(response_data['data']['result']['url'], full_path)
 						if ret:
-							hxtool_global.hxtool_db.bulkDownloadUpdateHost(bulk_download_eid, agent_id)
+							hxtool_global.hxtool_db.bulkDownloadUpdateHost(bulk_download_eid, agent_id, downloaded = True)
 							self.logger.debug("Bulk download for host {} successfully downloaded to {}".format(host_name, full_path))
 							result['bulk_acquisition_id'] = bulk_download_job['bulk_acquisition_id']
 							result['bulk_download_path'] = full_path
