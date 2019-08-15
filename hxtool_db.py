@@ -543,10 +543,13 @@ class hxtool_db:
 				
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
-			if type(dict_values) is dict:
-				element[dict_name][dict_key].update(dict_values)
-			else:
+			if not dict_key in element[dict_name]:
 				element[dict_name][dict_key] = dict_values
+			else:
+				if type(dict_values) is dict:
+					element[dict_name][dict_key].update(dict_values)
+				else:
+					element[dict_name][dict_key] = dict_values
 			if update_timestamp and 'update_timestamp' in element:
 					element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())		
 		return transform
