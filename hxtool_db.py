@@ -217,29 +217,29 @@ class hxtool_db:
 			return self._db.table('bulk_download').search((tinydb.Query()['profile_id'] == profile_id))
 	
 	def bulkDownloadUpdate(self, bulk_download_eid, bulk_acquisition_id = None, hosts = None, stopped = None, complete = None):
+		d = {'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}
+		
+		if bulk_acquisition_id is not None:
+			d['bulk_acquisition_id'] = bulk_acquisition_id
+		if hosts is not None:
+			d['hosts'] = hosts
+		if stopped is not None:
+			d['stopped'] = stopped
+		if complete is not None:
+			d['complete'] = complete
+
 		with self._lock:
-			d = {'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}
-			
-			if bulk_acquisition_id:
-				d['bulk_acquisition_id'] = bulk_acquisition_id
-			if hosts:
-				d['hosts'] = hosts
-			if stopped:
-				d['stopped'] = stopped
-			if complete:
-				d['complete'] = complete
-				
 			return self._db.table('bulk_download').update(d, eids = [int(bulk_download_eid)])
 			
-	def bulkDownloadUpdateHost(self, bulk_download_eid, host_id, downloaded = None, hostname=None):
-		with self._lock:
-			d = {}
+	def bulkDownloadUpdateHost(self, bulk_download_eid, host_id, downloaded = None, hostname = None):
+		d = {}
 			
-			if downloaded:
-				d['downloaded'] = downloaded
-			if hostname:
-				d['hostname'] = hostname
-				
+		if downloaded is not None:
+			d['downloaded'] = downloaded
+		if hostname is not None:
+			d['hostname'] = hostname
+		
+		with self._lock:
 			return self._db.table('bulk_download').update(self._db_update_nested_dict('hosts', host_id, d), eids = [int(bulk_download_eid)])
 	
 	def bulkDownloadDeleteHost(self, bulk_download_eid, host_id):
