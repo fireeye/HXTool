@@ -59,7 +59,7 @@ class file_listing_task_module(task_module):
 			if file_listing and 'api_mode' in file_listing['cfg'] and file_listing['cfg']['api_mode']:
 				generator = 'w32apifiles'
 			with AuditPackage(bulk_download_path) as audit_pkg:
-				audit_data = audit_pkg.get_audit(generator = generator)
+				audit_data = audit_pkg.get_audit(generator = generator, open_only=True)
 				if audit_data:
 					files = get_audit_records(audit_data, generator, 'FileItem', hostname=host_name)
 					if files:

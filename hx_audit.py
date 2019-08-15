@@ -10,8 +10,8 @@ def get_mime_type(generator):
 def get_audit_records(audit_data, generator, item_name, fields=None, post_process=None, **static_values):
 	items = []
 	mime_type = get_mime_type(generator)
-	if mime_type == 'application/xml':		
-		xml_items = ET.fromstring(audit_data).findall('./{0}'.format(item_name))
+	if mime_type == 'application/xml':
+		xml_items = ET.parse(audit_data).findall('./{0}'.format(item_name))
 		for xml_item in xml_items:
 			item = dict(static_values)
 			for e in xml_item:
