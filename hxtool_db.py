@@ -349,7 +349,7 @@ class hxtool_db:
 																			
 	def multiFileStop(self, multi_file_id):
 		with self._lock:
-			return self._db.table('multi_file').update({'stopped' : True, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, eids = [int(multi_file_id)])		
+			return self._db.table('multi_file').update({'stopped' : True, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, eids = [int(multi_file_id)])
 	
 	def multiFileDelete(self, multi_file_id):
 		with self._lock:
@@ -583,5 +583,5 @@ class hxtool_db:
 					i[k] = v
 					break
 			if update_timestamp and 'update_timestamp' in element:
-				element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())		
+				element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())
 		return transform
