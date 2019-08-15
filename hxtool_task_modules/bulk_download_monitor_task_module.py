@@ -61,6 +61,8 @@ class bulk_download_monitor_task_module(task_module):
 								if not bulk_download_job['hosts'].get(bulk_host['host']['_id'], None):
 									# Set wait_for_parent to False, as the parent is already complete
 									# if we've gotten to this point - and the task won't get a callback.
+									hxtool_global.hxtool_db.bulkDownloadUpdateHost(bulk_download_eid, bulk_host['host']['_id'], hostname = bulk_host['host']['hostname'], downloaded = False)
+									
 									download_and_process_task = hxtool_scheduler_task(
 																	self.parent_task.profile_id, 
 																	'Bulk Acquisition Download: {}'.format(bulk_host['host']['_id']), 
@@ -137,7 +139,7 @@ class bulk_download_monitor_task_module(task_module):
 									
 									download_and_process_task.stored_result = self.parent_task.stored_result
 									hxtool_global.hxtool_scheduler.add(download_and_process_task)
-									hxtool_global.hxtool_db.bulkDownloadUpdateHost(bulk_download_eid, bulk_host['host']['_id'], hostname = bulk_host['host']['hostname'], downloaded = False)
+									
 							
 							self.parent_task.defer()
 							ret = True
