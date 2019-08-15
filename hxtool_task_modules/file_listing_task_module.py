@@ -68,6 +68,8 @@ class file_listing_task_module(task_module):
 						ret = True
 					else:
 						self.logger.warn("File Listing: No audit data for {} from bulk download job {}".format(host_name, bulk_download_eid))
+					audit_data.close()
+					
 		except Exception as e:
 			self.logger.error(pretty_exceptions(e))
 		finally:

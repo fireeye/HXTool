@@ -65,9 +65,15 @@ class stacking_task_module(task_module):
 							ret = True
 						else:
 							self.logger.warn("Stacking: No audit data for {}".format(host_name))
-									
+						
+						# Explicitly close
+						audit_data.close()
+					
 				if ret and delete_bulk_download:
-					os.remove(os.path.realpath(bulk_download_path))
+					try:
+						os.remove(os.path.realpath(bulk_download_path))
+					except:
+						self.logger.warn("Failed to remove {}".format(os.path.realpath(bulk_download_path)))
 					
 			else:
 				self.logger.error("bulk_download_path is empty!")
