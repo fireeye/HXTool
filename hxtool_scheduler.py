@@ -149,20 +149,23 @@ class hxtool_scheduler:
 	
 	# Load queued tasks from the database
 	def load_from_database(self):
-		if self.status():
-			tasks = hxtool_global.hxtool_db.taskList()
-			for task_entry in tasks:
-				p_id = task_entry.get('parent_id', None)
-				if p_id and (not task_entry['parent_complete'] and not hxtool_global.hxtool_db.taskGet(task_entry['profile_id'], p_id)):
-					self.logger.warn("Deleting orphan task {}, {}".format(task_entry['name'], task_entry['task_id']))
-					hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['task_id'])
-				else:
-					task = hxtool_scheduler_task.deserialize(task_entry)
-					task.set_stored()
-					# Set should_store to False as we've already been stored, and we skip a needless update
-					self.add(task, should_store = False)
-		else:
-			self.logger.warn("Task scheduler must be running before loading queued tasks from the database.")
+		try:
+			if self.status():
+				tasks = hxtool_global.hxtool_db.taskList()
+				for task_entry in tasks:
+					p_id = task_entry.get('parent_id', None)
+					if p_id and (not task_entry['parent_complete'] and not hxtool_global.hxtool_db.taskGet(task_entry['profile_id'], p_id)):
+						self.logger.warn("Deleting orphan task {}, {}".format(task_entry['name'], task_entry['task_id']))
+						hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['task_id'])
+					else:
+						task = hxtool_scheduler_task.deserialize(task_entry)
+						task.set_stored()
+						# Set should_store to False as we've already been stored, and we skip a needless update
+						self.add(task, should_store = False)
+			else:
+				self.logger.warn("Task scheduler must be running before loading queued tasks from the database.")
+		except Exception as e:
+			self.logger.error("Failed to load saved tasks from the database. Error: {}".format(pretty_exceptions(e)))
 	
 	def status(self):
 		return self._poll_thread.is_alive()
