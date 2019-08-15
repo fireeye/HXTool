@@ -101,5 +101,6 @@ class bulk_download_task_module(task_module):
 				self.parent_task.stop()
 		except Exception as e:
 			self.logger.error(pretty_exceptions(e))
+			ret = False
 		finally:
 			return(ret, result)
