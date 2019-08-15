@@ -395,7 +395,7 @@ class hxtool_db:
 	def stackJobAddResult(self, profile_id, bulk_download_eid, hostname, result):
 		with self._lock:
 			e_id = self._db.table('stacking').update(self._db_append_to_list('results', result), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == int(bulk_download_eid)))
-			return self._db.table('stacking').update(self._db_update_dict_in_list('hosts', hostname, 'processed', True), eids = [e_id])
+			return self._db.table('stacking').update(self._db_update_dict_in_list('hosts', 'hostname', hostname, 'processed', True), eids = e_id)
 			
 	def stackJobUpdateIndex(self, profile_id, bulk_download_eid, last_index):
 		with self._lock:
