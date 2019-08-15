@@ -11,7 +11,7 @@ from multiprocessing import cpu_count, TimeoutError
 
 import hxtool_global
 from hx_lib import HXAPI
-import hxtool_task_modules
+#import hxtool_task_modules
 from hxtool_util import *
 
 TASK_STATE_SCHEDULED = 0
