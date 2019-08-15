@@ -303,7 +303,7 @@ class hxtool_scheduler_task:
 									ret = False
 									self.state = TASK_STATE_FAILED
 									break
-					if ret:
+					if self.state != TASK_STATE_FAILED:
 						self.logger.debug("Begin execute {}.{}".format(module.__module__, func))
 						result = getattr(module, func)(*args, **kwargs)
 						self.logger.debug("End execute {}.{}".format(module.__module__, func))
