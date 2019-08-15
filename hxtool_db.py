@@ -231,13 +231,16 @@ class hxtool_db:
 				
 			return self._db.table('bulk_download').update(d, eids = [int(bulk_download_eid)])
 			
-	def bulkDownloadAddHost(self, bulk_download_eid, host_id, host_name):
+	def bulkDownloadUpdateHost(self, bulk_download_eid, host_id, downloaded = None, hostname=None):
 		with self._lock:
-			return self._db.table('bulk_download').update(('hosts', self._db_update_nested_dict, host_id, { 'downloaded' : False, 'host_name' : host_name })eids = [int(bulk_download_eid)])
-	
-	def bulkDownloadUpdateHost(self, bulk_download_eid, host_id):
-		with self._lock:
-			return self._db.table('bulk_download').update(self._db_update_nested_dict('hosts', host_id, {'downloaded' : True}), eids = [int(bulk_download_eid)])
+			d = {}
+			
+			if downloaded:
+				d['downloaded'] = downloaded
+			if hostname:
+				d['hostname'] = hostname
+				
+			return self._db.table('bulk_download').update(self._db_update_nested_dict('hosts', host_id, d), eids = [int(bulk_download_eid)])
 	
 	def bulkDownloadDeleteHost(self, bulk_download_eid, host_id):
 		with self._lock:
