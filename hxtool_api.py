@@ -1215,7 +1215,9 @@ def datatable_multi_filelisting(hx_api_object):
 		bulk_download = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = job['bulk_download_eid'])
 		if bulk_download:
 			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
-			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
+			job_progress = 0
+			if hosts_completed > 0:
+				job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
 			if 'display_name' not in job:
 				job['display_name'] = 'hostset {0}, path: {1} regex: {2}'.format(bulk_download['hostset_id'] , job['cfg']['path'], job['cfg']['regex'])
 		else:
