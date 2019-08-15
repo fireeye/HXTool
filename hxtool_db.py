@@ -35,7 +35,8 @@ class hxtool_db:
 		self.check_schema()
 		
 	def close(self):
-		if self._db:
+		if self._db is not None:
+			self._db.storage.flush()
 			self._db.close()
 	
 	def __exit__(self, exc_type, exc_value, traceback):
