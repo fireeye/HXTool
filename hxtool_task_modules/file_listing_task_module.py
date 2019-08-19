@@ -59,7 +59,7 @@ class file_listing_task_module(task_module):
 			if file_listing and 'api_mode' in file_listing['cfg'] and file_listing['cfg']['api_mode']:
 				generator = 'w32apifiles'
 			with AuditPackage(bulk_download_path) as audit_pkg:
-				audit_data = audit_pkg.get_audit(generator = generator)
+				audit_data = audit_pkg.get_audit(generator = generator, open_only=True)
 				if audit_data:
 					files = get_audit_records(audit_data, generator, 'FileItem', hostname=host_name)
 					if files:
@@ -68,6 +68,8 @@ class file_listing_task_module(task_module):
 						ret = True
 					else:
 						self.logger.warn("File Listing: No audit data for {} from bulk download job {}".format(host_name, bulk_download_eid))
+					audit_data.close()
+					
 		except Exception as e:
 			self.logger.error(pretty_exceptions(e))
 		finally:

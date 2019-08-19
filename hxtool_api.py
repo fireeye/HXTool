@@ -996,9 +996,10 @@ def hxtool_api_stacking_new(hx_api_object):
 def hxtool_api_stacking_remove(hx_api_object):
 	stack_job = hxtool_global.hxtool_db.stackJobGet(request.args.get('id'))
 	if stack_job:
+		ret = True
 		bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
 		if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
-			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])	
+			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
 			hxtool_global.hxtool_db.bulkDownloadDelete(bulk_download_job.eid)
 			
 		hxtool_global.hxtool_db.stackJobDelete(stack_job.eid)
@@ -1214,7 +1215,9 @@ def datatable_multi_filelisting(hx_api_object):
 		bulk_download = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = job['bulk_download_eid'])
 		if bulk_download:
 			hosts_completed = len([_ for _ in bulk_download['hosts'] if bulk_download['hosts'][_]['downloaded']])
-			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
+			job_progress = 0
+			if hosts_completed > 0:
+				job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
 			if 'display_name' not in job:
 				job['display_name'] = 'hostset {0}, path: {1} regex: {2}'.format(bulk_download['hostset_id'] , job['cfg']['path'], job['cfg']['regex'])
 		else:

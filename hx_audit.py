@@ -10,8 +10,8 @@ def get_mime_type(generator):
 def get_audit_records(audit_data, generator, item_name, fields=None, post_process=None, **static_values):
 	items = []
 	mime_type = get_mime_type(generator)
-	if mime_type == 'application/xml':		
-		xml_items = ET.fromstring(audit_data).findall('./{0}'.format(item_name))
+	if mime_type == 'application/xml':
+		xml_items = ET.parse(audit_data).findall('./{0}'.format(item_name))
 		for xml_item in xml_items:
 			item = dict(static_values)
 			for e in xml_item:
@@ -113,12 +113,12 @@ class AuditPackage:
 				payload = self.get_audit(payload_name = result['payload'], open_only = True)
 				
 				if payload:
-					if result['type'] == 'application/xml':							
+					if result['type'] == 'application/xml':
 						payload_item_tag = None
 						batch_dict = {'results' : []}
 						xml_iterator = ET.iterparse(payload, events = ["start", "end"], parser = ET.XMLParser(encoding = 'utf-8'))
 						
-						(event, elem) = next(xml_iterator)	
+						(event, elem) = next(xml_iterator)
 						if elem.tag == "itemList" and event == "start":
 							if len(elem) == 0:
 								# Empty payload
@@ -129,7 +129,7 @@ class AuditPackage:
 							payload_item_tag = elem.tag
 							d['generator_item_name'] = payload_item_tag
 							
-							for event, elem in xml_iterator:							
+							for event, elem in xml_iterator:
 								if elem.tag == payload_item_tag and event == "end":
 									result_dict = self.xml_to_dict(elem)
 							
@@ -140,7 +140,7 @@ class AuditPackage:
 										batch_dict['results'].append(result_dict)
 									else:
 										result_dict.update(d)
-										yield result_dict									
+										yield result_dict
 										# Free memory used by the result dictionary
 										result_dict.clear()
 							

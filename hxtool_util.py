@@ -26,7 +26,7 @@ except ImportError:
 	print("hxtool requires the 'pycryptodome' module, please install it.")
 	exit(1)
 
-import hxtool_global	
+import hxtool_global
 from hx_lib import *
 
 def get_N_HexCol(N=5):
@@ -154,8 +154,9 @@ def set_svg_mimetype():
 		mimetypes.add_type('image/svg+xml', '.svg')
 				
 def set_time_macros(s):
-	return re.sub('--\#\{(now|\-(\d{1,5})(m|h))\}--', _time_replace, s, re.I) 
-
+	(s, n) = re.subn('--\#\{(now|\-(\d{1,5})(m|h))\}--', _time_replace, s, re.I) 
+	return s, n > 0
+	
 def _time_replace(m):
 	if m:
 		now_time = datetime.datetime.utcnow()
@@ -198,125 +199,50 @@ class TemporaryFileLock(object):
 		
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.release()	
-
-		
-from hxtool_scheduler import *
-from hxtool_task_modules import *
 	
-def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hxtool_host_list_id = None, start_time = None, schedule = None, comment = None, download = True, task_profile = None, skip_base64 = False):
-	if int(hostset_id) > 0:
-		(ret, response_code, response_data) = hx_api_object.restListHostsInHostset(hostset_id)
-		if ret:
-			hosts = response_data['data']['entries']
-	elif hxtool_host_list_id:
-		pass
-		
-	if len(hosts) == 0:
-		hxtool_global.get_logger().warn("Host list for bulk acquisition {} is empty. Bailing!".format(comment))
-		return None
+from hxtool_scheduler import hxtool_scheduler_task
+from hxtool_task_modules import *
 
+def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hxtool_host_list_id = None, start_time = None, schedule = None, comment = "HXTool Bulk Acquisition", download = True, task_profile = None, skip_base64 = False):
 	bulk_download_eid = None
-	task_list = []
 	
 	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending', start_time = start_time)
 	if schedule:
 		bulk_acquisition_task.set_schedule(**schedule)
 	
-	# So it turns out theres a nasty race condition that was happening here:
-	# the call to restListBulkHosts() was returning no hosts because the bulk
-	# acquisition hadn't been queued up yet. So instead, we walk the host set
-	# in order to retrieve the hosts targeted for the job.
 	if download:
 		bulk_download_eid = hxtool_global.hxtool_db.bulkDownloadCreate(session['ht_profileid'], hostset_id = hostset_id, task_profile = task_profile)
-		bulk_acquisition_hosts = {}
-		_task_profile = None
-		for host in hosts:
-			bulk_acquisition_hosts[host['_id']] = {'downloaded' : False, 'hostname' :  host['hostname']}
-			download_and_process_task = hxtool_scheduler_task(session['ht_profileid'], 
-															'Bulk Acquisition Download: {}'.format(host['hostname']), 
-															parent_id = bulk_acquisition_task.task_id, 
-															start_time = bulk_acquisition_task.start_time,
-															defer_interval = hxtool_global.hxtool_config['background_processor']['poll_interval'])
-															
-				
-			download_and_process_task.add_step(bulk_download_task_module, kwargs = {
-														'bulk_download_eid' : bulk_download_eid,
-														'agent_id' : host['_id'],
-														'host_name' : host['hostname']
-													})
-
-			# TODO: remove static parameter mappings for task modules
-			# The bulk_acquisition_task_module passes the host_id and host_name values to these modules
-			if task_profile:
-				if task_profile == 'stacking':
-					hxtool_global.get_logger().debug("Using stacking task module.")
-					download_and_process_task.add_step(stacking_task_module, kwargs = {
-																'delete_bulk_download' : True
-															})
-					comment = "HXTool Stacking Acquisition"										
-				elif task_profile == 'file_listing':
-					hxtool_global.get_logger().debug("Using file listing task module.")
-					download_and_process_task.add_step(file_listing_task_module, kwargs = {
-																'delete_bulk_download' : False
-															})
-					comment = "HXTool Multifile File Listing Acquisition"										
-				else:
-					if not _task_profile:
-						_task_profile = hxtool_global.hxtool_db.taskProfileGet(task_profile)
-						
-					if _task_profile and 'params' in _task_profile:
-						#TODO: once task profile page params are dynamic, remove static mappings
-						for task_module_params in _task_profile['params']:						
-							if task_module_params['module'] == 'ip':
-								hxtool_global.get_logger().debug("Using taskmodule 'ip' with parameters: protocol {}, ip {}, port {}".format(task_module_params['protocol'], task_module_params['targetip'], task_module_params['targetport']))
-								download_and_process_task.add_step(streaming_task_module, kwargs = {
-																	'stream_host' : task_module_params['targetip'],
-																	'stream_port' : task_module_params['targetport'],
-																	'stream_protocol' : task_module_params['protocol'],
-																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
-																	'delete_bulk_download' : False
-																})
-							elif task_module_params['module'] == 'file':
-								hxtool_global.get_logger().debug("Using taskmodule 'file' with parameters: filepath {}".format(task_module_params['filepath']))
-								download_and_process_task.add_step(file_write_task_module, kwargs = {
-																	'file_name' : task_module_params['filepath'],
-																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
-																	'delete_bulk_download' : False
-																})
-							elif task_module_params['module'] == 'helix':
-								hxtool_global.get_logger().debug("Using taskmodule 'helix' with parameters: helix_url {}, helix_apikey: {}".format(task_module_params['helix_url'], task_module_params['helix_apikey']))
-								download_and_process_task.add_step(helix_task_module, kwargs = {
-																	'url' : task_module_params['helix_url'],
-																	'apikey' : task_module_params['helix_apikey'],
-																	'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
-																	'delete_bulk_download' : False
-																})
-							elif task_module_params['module'] == 'x15':
-								hxtool_global.get_logger().debug("Using taskmodule 'x15' with parameters: x15_host: {}, x15_port: {}, x15_database: {}, x15_table: {}, x15_user: {}, x15_password: {}".format(task_module_params['x15_host'], task_module_params['x15_port'], task_module_params['x15_database'], task_module_params['x15_table'], task_module_params['x15_user'], "********"))
-								task_module_args = {
-									'batch_mode' : False, # Hardcode per-event as X15 might not handle large lists well
-									'delete_bulk_download' : False
-								}
-								task_module_args.update(task_module_params)
-								del task_module_args['module']
-								download_and_process_task.add_step(x15_postgres_task_module, kwargs = task_module_args)
-																
-			task_list.append(download_and_process_task)
-		
-		hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_eid, hosts = bulk_acquisition_hosts)
-		
-	bulk_acquisition_task.add_step(bulk_acquisition_task_module, kwargs = {
-									'script' : script_xml,
-									'hostset_id' : hostset_id,
-									'comment' : comment,
-									'skip_base64' : skip_base64,
-									'download' : download,
-									'bulk_download_eid' : bulk_download_eid
-								})
+		bulk_acquisition_monitor_task = hxtool_scheduler_task(
+											session['ht_profileid'], 
+											'Bulk Acquisition Monitor Task', 
+											parent_id = bulk_acquisition_task.task_id,
+											start_time = bulk_acquisition_task.start_time
+										)
 	
-	# Add the child tasks first, otherwise we end up with a nasty race condition
-	hxtool_global.hxtool_scheduler.add_list(task_list)
-	hxtool_global.hxtool_scheduler.add(bulk_acquisition_task)		
+		bulk_acquisition_monitor_task.add_step(
+			bulk_download_monitor_task_module,
+			kwargs = {
+						'bulk_download_eid' : bulk_download_eid,
+						'task_profile' : task_profile
+			}
+		)
+		
+		hxtool_global.hxtool_scheduler.add(bulk_acquisition_monitor_task)
+		
+		
+	bulk_acquisition_task.add_step(
+		bulk_acquisition_task_module, 
+		kwargs = {
+					'script' : script_xml,
+					'hostset_id' : hostset_id,
+					'comment' : comment,
+					'skip_base64' : skip_base64,
+					'download' : download,
+					'bulk_download_eid' : bulk_download_eid
+		}
+	)
+		
+	hxtool_global.hxtool_scheduler.add(bulk_acquisition_task)
 	
 	return bulk_download_eid
 	

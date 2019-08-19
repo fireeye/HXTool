@@ -35,7 +35,8 @@ class hxtool_db:
 		self.check_schema()
 		
 	def close(self):
-		if self._db:
+		if self._db is not None:
+			self._db.storage.flush()
 			self._db.close()
 	
 	def __exit__(self, exc_type, exc_value, traceback):
@@ -193,7 +194,7 @@ class hxtool_db:
 				r = self._db.table('bulk_download').insert({'profile_id' : profile_id, 
 															'hostset_id' : int(hostset_id),
 															'hostset_name' : hostset_name,
-															'hosts'	: [],
+															'hosts'	: {},
 															'task_profile' : task_profile,
 															'stopped' : False,
 															'complete' : False,
@@ -217,23 +218,30 @@ class hxtool_db:
 			return self._db.table('bulk_download').search((tinydb.Query()['profile_id'] == profile_id))
 	
 	def bulkDownloadUpdate(self, bulk_download_eid, bulk_acquisition_id = None, hosts = None, stopped = None, complete = None):
+		d = {'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}
+		
+		if bulk_acquisition_id is not None:
+			d['bulk_acquisition_id'] = bulk_acquisition_id
+		if hosts is not None:
+			d['hosts'] = hosts
+		if stopped is not None:
+			d['stopped'] = stopped
+		if complete is not None:
+			d['complete'] = complete
+
 		with self._lock:
-			d = {'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}
-			
-			if bulk_acquisition_id:
-				d['bulk_acquisition_id'] = bulk_acquisition_id
-			if hosts:
-				d['hosts'] = hosts
-			if stopped:
-				d['stopped'] = stopped
-			if complete:
-				d['complete'] = complete
-				
 			return self._db.table('bulk_download').update(d, eids = [int(bulk_download_eid)])
-	
-	def bulkDownloadUpdateHost(self, bulk_download_eid, host_id):
+			
+	def bulkDownloadUpdateHost(self, bulk_download_eid, host_id, downloaded = None, hostname = None):
+		d = {}
+			
+		if downloaded is not None:
+			d['downloaded'] = downloaded
+		if hostname is not None:
+			d['hostname'] = hostname
+		
 		with self._lock:
-			return self._db.table('bulk_download').update(self._db_update_nested_dict('hosts', host_id, {'downloaded' : True}), eids = [int(bulk_download_eid)])
+			return self._db.table('bulk_download').update(self._db_update_nested_dict('hosts', host_id, d), eids = [int(bulk_download_eid)])
 	
 	def bulkDownloadDeleteHost(self, bulk_download_eid, host_id):
 		with self._lock:
@@ -341,7 +349,7 @@ class hxtool_db:
 																			
 	def multiFileStop(self, multi_file_id):
 		with self._lock:
-			return self._db.table('multi_file').update({'stopped' : True, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, eids = [int(multi_file_id)])		
+			return self._db.table('multi_file').update({'stopped' : True, 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}, eids = [int(multi_file_id)])
 	
 	def multiFileDelete(self, multi_file_id):
 		with self._lock:
@@ -356,7 +364,7 @@ class hxtool_db:
 														'bulk_download_eid' : int(bulk_download_eid), 
 														'stopped' : False,
 														'stack_type' : stack_type,
-														'hosts' : [],		
+														'hosts' : [],
 														'results' : [],
 														'last_index' : None,
 														'last_groupby' : [],
@@ -372,19 +380,22 @@ class hxtool_db:
 		if stack_job_eid:
 			with self._lock:
 				return self._db.table('stacking').get(eid = int(stack_job_eid))
-		elif profile_id and bulk_download_eid:		
+		elif profile_id and bulk_download_eid:
 			with self._lock:
 				return self._db.table('stacking').get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == bulk_download_eid))
-		
+	
 	def stackJobList(self, profile_id):
 		with self._lock:
 			return self._db.table('stacking').search((tinydb.Query()['profile_id'] == profile_id))
 	
+	def stackJobAddHost(self, profile_id, bulk_download_eid, hostname):
+		with self._lock:
+			return self._db.table('stacking').update(self._db_append_to_list('hosts', {'hostname' : hostname, 'processed' : False}), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == int(bulk_download_eid)))
+	
 	def stackJobAddResult(self, profile_id, bulk_download_eid, hostname, result):
 		with self._lock:
 			e_id = self._db.table('stacking').update(self._db_append_to_list('results', result), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == int(bulk_download_eid)))
-			return self._db.table('stacking').update(self._db_append_to_list('hosts', {'hostname' : hostname, 'processed' : True}), eids = e_id)
-			
+			return self._db.table('stacking').update(self._db_update_dict_in_list('hosts', 'hostname', hostname, 'processed', True), eids = e_id)
 			
 	def stackJobUpdateIndex(self, profile_id, bulk_download_eid, last_index):
 		with self._lock:
@@ -536,10 +547,13 @@ class hxtool_db:
 				
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
-			if type(dict_values) is dict:
-				element[dict_name][dict_key].update(dict_values)
-			else:
+			if not dict_key in element[dict_name]:
 				element[dict_name][dict_key] = dict_values
+			else:
+				if type(dict_values) is dict:
+					element[dict_name][dict_key].update(dict_values)
+				else:
+					element[dict_name][dict_key] = dict_values
 			if update_timestamp and 'update_timestamp' in element:
 					element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())		
 		return transform
@@ -569,5 +583,5 @@ class hxtool_db:
 					i[k] = v
 					break
 			if update_timestamp and 'update_timestamp' in element:
-				element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())		
+				element['update_timestamp'] =  HXAPI.dt_to_str(datetime.datetime.utcnow())
 		return transform

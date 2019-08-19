@@ -11,7 +11,7 @@ from multiprocessing import cpu_count, TimeoutError
 
 import hxtool_global
 from hx_lib import HXAPI
-import hxtool_task_modules
+#import hxtool_task_modules
 from hxtool_util import *
 
 TASK_STATE_SCHEDULED = 0
@@ -57,9 +57,9 @@ class hxtool_scheduler:
 			if ret:
 				while not self._stop_event.is_set():
 					try:
-						ret.next(timeout=.1)
+						ret.next(timeout=5)
 					except TimeoutError:
-						continue
+						break
 					except StopIteration:
 						break
 					except Exception as e:
@@ -149,20 +149,23 @@ class hxtool_scheduler:
 	
 	# Load queued tasks from the database
 	def load_from_database(self):
-		if self.status():
-			tasks = hxtool_global.hxtool_db.taskList()
-			for task_entry in tasks:
-				p_id = task_entry.get('parent_id', None)
-				if p_id and (not task_entry['parent_complete'] and not hxtool_global.hxtool_db.taskGet(task_entry['profile_id'], p_id)):
-					self.logger.warn("Deleting orphan task {}, {}".format(task_entry['name'], task_entry['task_id']))
-					hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['task_id'])
-				else:
-					task = hxtool_scheduler_task.deserialize(task_entry)
-					task.set_stored()
-					# Set should_store to False as we've already been stored, and we skip a needless update
-					self.add(task, should_store = False)
-		else:
-			self.logger.warn("Task scheduler must be running before loading queued tasks from the database.")
+		try:
+			if self.status():
+				tasks = hxtool_global.hxtool_db.taskList()
+				for task_entry in tasks:
+					p_id = task_entry.get('parent_id', None)
+					if p_id and (not task_entry['parent_complete'] and not hxtool_global.hxtool_db.taskGet(task_entry['profile_id'], p_id)):
+						self.logger.warn("Deleting orphan task {}, {}".format(task_entry['name'], task_entry['task_id']))
+						hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['task_id'])
+					else:
+						task = hxtool_scheduler_task.deserialize(task_entry)
+						task.set_stored()
+						# Set should_store to False as we've already been stored, and we skip a needless update
+						self.add(task, should_store = False)
+			else:
+				self.logger.warn("Task scheduler must be running before loading queued tasks from the database.")
+		except Exception as e:
+			self.logger.error("Failed to load saved tasks from the database. Error: {}".format(pretty_exceptions(e)))
 	
 	def status(self):
 		return self._poll_thread.is_alive()
@@ -300,20 +303,20 @@ class hxtool_scheduler_task:
 									ret = False
 									self.state = TASK_STATE_FAILED
 									break
-				
-					self.logger.debug("Begin execute {}.{}".format(module.__module__, func))
-					result = getattr(module, func)(*args, **kwargs)
-					self.logger.debug("End execute {}.{}".format(module.__module__, func))
-					if isinstance(result, tuple) and len(result) > 1:
-						ret = result[0]
-						# Store the result - make sure it is of type dict
-						if isinstance(result[1], dict):
-							# Use update so we don't clobber existing values
-							self.stored_result.update(result[1])
-						elif result[1] is not None:
-							self.logger.error("Task module {} returned a value that was not a dictionary or None. Discarding the result.".format(module.__module__))
-					else:
-						ret = result
+					if self.state != TASK_STATE_FAILED:
+						self.logger.debug("Begin execute {}.{}".format(module.__module__, func))
+						result = getattr(module, func)(*args, **kwargs)
+						self.logger.debug("End execute {}.{}".format(module.__module__, func))
+						if isinstance(result, tuple) and len(result) > 1:
+							ret = result[0]
+							# Store the result - make sure it is of type dict
+							if isinstance(result[1], dict):
+								# Use update so we don't clobber existing values
+								self.stored_result.update(result[1])
+							elif result[1] is not None:
+								self.logger.error("Task module {} returned a value that was not a dictionary or None. Discarding the result.".format(module.__module__))
+						else:
+							ret = result
 					
 					
 					if self._defer_signal:

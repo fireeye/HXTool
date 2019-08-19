@@ -587,19 +587,17 @@ class HXAPI:
 
 
 	# List hosts in Bulk acquisition
-	def restListBulkHosts(self, bulk_id, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term=None, share_mode=None, search_term=None):
+	def restListBulkHosts(self, bulk_id, limit=DEFAULT_LIMIT, offset=0, sort_term = {}, filter_term = {}):
 		
 		endpoint_url = "acqs/bulk/{0}/hosts".format(bulk_id)
 		params = {
 			'limit' : limit,
 			'offset' : offset
 		}		
-		if share_mode:
-			params['share_mode'] = share_mode
-		if search_term:
-			params['search'] = search_term
+		
 		if sort_term:
 			params['sort'] = sort_term
+		params.update(filter_term)
 		
 		request = self.build_request(self.build_api_route(endpoint_url), params = params)
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
@@ -670,6 +668,13 @@ class HXAPI:
 			data['comment'] = comment
 	
 		request = self.build_request(self.build_api_route('acqs/bulk'), method = 'POST', data = json.dumps(data))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+		
+	def restRefreshBulkAcq(self, bulk_acquisition_id, state = "ALL"):
+		
+		request = self.build_request(self.build_api_route('acqs/bulk/{0}/actions/refresh?state={1}'.format(bulk_acquisition_id, state)), method = 'POST')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
