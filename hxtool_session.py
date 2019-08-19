@@ -69,7 +69,7 @@ class hxtool_session_interface(SessionInterface):
 		if session_id:
 			cached_session = self.session_cache.get(session_id)
 			if not cached_session:					
-				session_record = app.hxtool_db.sessionGet(session_id)
+				session_record = hxtool_global.hxtool_db.sessionGet(session_id)
 				if session_record is not None:
 					session.load(session_id, session_record)
 					self.logger.debug("We have an existing database session with id: {0}".format(session.id))
@@ -94,12 +94,12 @@ class hxtool_session_interface(SessionInterface):
 		
 		if session.new:
 			session.create()
-			app.hxtool_db.sessionCreate(session.id)
+			hxtool_global.hxtool_db.sessionCreate(session.id)
 			self.logger.debug("Created a new session with id: {0}".format(session.id))
 			session.new = False
 			
 		self.logger.debug("Saving session with id: {0}".format(session.id))
-		app.hxtool_db.sessionUpdate(session.id, session)
+		hxtool_global.hxtool_db.sessionUpdate(session.id, session)
 		session.modified = False
 		
 		self.session_cache[session.id] = session
@@ -111,13 +111,13 @@ class hxtool_session_interface(SessionInterface):
 
 	def delete_session(self, app, session_id):
 		self.logger.debug("Deleting session with id: {0}".format(session_id))
-		app.hxtool_db.sessionDelete(session_id)
+		hxtool_global.hxtool_db.sessionDelete(session_id)
 		if session_id in self.session_cache:
 			del self.session_cache[session_id]
 			
 	def session_reaper(self, app):
 		self.logger.debug("session_reaper() called.")
-		for s in app.hxtool_db.sessionList():
+		for s in hxtool_global.hxtool_db.sessionList():
 			if not s['update_timestamp'] or (datetime.datetime.utcnow() - HXAPI.dt_from_str(s['update_timestamp'])) >= (app.permanent_session_lifetime or datetime.timedelta(minutes=self.expiration_delta)):
 				self.logger.debug("Deleting session id: {} with update_timestamp: {}".format(s['session_id'], s['update_timestamp']))
 				self.delete_session(app, s['session_id'])
