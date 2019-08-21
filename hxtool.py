@@ -100,10 +100,10 @@ def dashboardagent(hx_api_object):
 @app.route('/hostview', methods=['GET'])
 @valid_session_required
 def host_view(hx_api_object):
-	myscripts = app.hxtool_db.scriptList()
+	myscripts = hxtool_global.hxtool_db.scriptList()
 	scripts = formatScriptsFabric(myscripts)
 
-	mytaskprofiles = app.hxtool_db.taskProfileList()
+	mytaskprofiles = hxtool_global.hxtool_db.taskProfileList()
 	taskprofiles = formatTaskprofilesFabric(mytaskprofiles)
 
 	return render_template('ht_host_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), scripts=scripts, taskprofiles=taskprofiles)
@@ -142,10 +142,10 @@ def bulkacq_view(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
 	hostsets = formatHostsetsFabric(response_data)
 
-	myscripts = app.hxtool_db.scriptList()
+	myscripts = hxtool_global.hxtool_db.scriptList()
 	scripts = formatScriptsFabric(myscripts)
 
-	mytaskprofiles = app.hxtool_db.taskProfileList()
+	mytaskprofiles = hxtool_global.hxtool_db.taskProfileList()
 	taskprofiles = formatTaskprofilesFabric(mytaskprofiles)
 
 	return render_template('ht_bulkacq.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, scripts=scripts, taskprofiles=taskprofiles)
@@ -169,7 +169,7 @@ def search(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restListHostsets()
 	hostsets = formatHostsetsFabric(response_data)
 
-	myiocs = app.hxtool_db.oiocList()
+	myiocs = hxtool_global.hxtool_db.oiocList()
 	openiocs = formatOpenIocsFabric(myiocs)
 	
 	return render_template('ht_searchsweep.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), hostsets=hostsets, openiocs=openiocs)
@@ -282,7 +282,7 @@ def download(hx_api_object):
 @valid_session_required
 def download_multi_file_single(hx_api_object):
 	if 'mf_id' in request.args and 'acq_id' in request.args:
-		multi_file = app.hxtool_db.multiFileGetById(request.args.get('mf_id'))
+		multi_file = hxtool_global.hxtool_db.multiFileGetById(request.args.get('mf_id'))
 		if multi_file:
 			file_records = list(filter(lambda f: int(f['acquisition_id']) == int(request.args.get('acq_id')), multi_file['files']))
 			if file_records and file_records[0]:
@@ -320,7 +320,7 @@ def multifile(hx_api_object):
 def file_listing(hx_api_object):
 	#TODO: Modify template and move to Ajax
 	fl_id = request.args.get('id')
-	file_listing = app.hxtool_db.fileListingGetById(fl_id)
+	file_listing = hxtool_global.hxtool_db.fileListingGetById(fl_id)
 	fl_results = file_listing['files']
 	display_fields = ['FullPath', 'Username', 'SizeInBytes', 'Modified', 'Sha256sum'] 
 	return render_template('ht_file_listing.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), file_listing=file_listing, fl_results=fl_results, display_fields=display_fields)
@@ -351,13 +351,13 @@ def settings(hx_api_object):
 		salt = crypt_generate_random(32)
 		key = crypt_pbkdf2_hmacsha256(salt, app.task_api_key)
 		encrypted_password = crypt_aes(key, iv, request.form['bgpass'])
-		out = app.hxtool_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
+		out = hxtool_global.hxtool_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
 		hxtool_global.get_logger(__name__).info(format_activity_log(msg="background processing credentials action", action="set", profile=session['ht_profileid'], user=session['ht_user'], controller=session['hx_ip']))
 		hxtool_global.task_hx_api_sessions[session['ht_profileid']] = HXAPI(hx_api_object.hx_host, 
 																			hx_port = hx_api_object.hx_port, 
-																			proxies = app.hxtool_config['network'].get('proxies'), 
-																			headers = app.hxtool_config['headers'], 
-																			cookies = app.hxtool_config['cookies'], 
+																			proxies = hxtool_global.hxtool_config['network'].get('proxies'), 
+																			headers = hxtool_global.hxtool_config['headers'], 
+																			cookies = hxtool_global.hxtool_config['cookies'], 
 																			logger_name = hxtool_global.get_submodule_logger_name(HXAPI.__name__), 
 																			default_encoding = default_encoding)																
 		(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[session['ht_profileid']].restLogin(request.form['bguser'], request.form['bgpass'], auto_renew_token = True)
@@ -366,7 +366,7 @@ def settings(hx_api_object):
 		else:
 			hxtool_global.get_logger(__name__).error("Failed to initialized task API session for profile {}".format(session['ht_profileid']))
 	if request.args.get('unset'):
-		out = app.hxtool_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
+		out = hxtool_global.hxtool_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
 		hx_api_object = hxtool_global.task_hx_api_sessions.get(session['ht_profileid'])
 		if hx_api_object and hx_api_object.restIsSessionValid():
 			(ret, response_code, response_data) = hx_api_object.restLogout()
@@ -374,7 +374,7 @@ def settings(hx_api_object):
 		hxtool_global.get_logger(__name__).info(format_activity_log(msg="background processing credentials action", action="delete", user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/settings", code=302)
 	
-	bgcreds = formatProfCredsInfo((app.hxtool_db.backgroundProcessorCredentialGet(session['ht_profileid']) is not None))
+	bgcreds = formatProfCredsInfo((hxtool_global.hxtool_db.backgroundProcessorCredentialGet(session['ht_profileid']) is not None))
 	
 	return render_template('ht_settings.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), bgcreds=bgcreds)
 
@@ -398,14 +398,14 @@ def channels(hx_api_object):
 def login():
 	if (request.method == 'POST'):
 		if 'ht_user' in request.form:
-			ht_profile = app.hxtool_db.profileGet(request.form['controllerProfileDropdown'])
+			ht_profile = hxtool_global.hxtool_db.profileGet(request.form['controllerProfileDropdown'])
 			if ht_profile:	
 
 				hx_api_object = HXAPI(ht_profile['hx_host'], 
 									hx_port = ht_profile['hx_port'], 
-									proxies = app.hxtool_config['network'].get('proxies'), 
-									headers = app.hxtool_config['headers'], 
-									cookies = app.hxtool_config['cookies'], 
+									proxies = hxtool_global.hxtool_config['network'].get('proxies'), 
+									headers = hxtool_global.hxtool_config['headers'], 
+									cookies = hxtool_global.hxtool_config['cookies'], 
 									logger_name = hxtool_global.get_submodule_logger_name(HXAPI.__name__), 
 									default_encoding = default_encoding)
 
@@ -473,11 +473,10 @@ def app_init(debug = False):
 	hxtool_global.get_logger().addHandler(console_log)
 	app.logger.addHandler(console_log)
 	
-	app.hxtool_config = hxtool_config(combine_app_path(hxtool_global.data_path, 'conf.json'), logger = app.logger)
-	hxtool_global.hxtool_config = app.hxtool_config
+	hxtool_global.set_hxtool_config(hxtool_config(combine_app_path(hxtool_global.data_path, 'conf.json'), logger = app.logger))
 	
 	# Initialize configured log handlers
-	for log_handler in app.hxtool_config.log_handlers():
+	for log_handler in hxtool_global.hxtool_config.log_handlers():
 		hxtool_global.get_logger().addHandler(log_handler)
 	
 	# If we're debugging use a static key
@@ -491,8 +490,7 @@ def app_init(debug = False):
 	
 	# Init DB
 	# Disable the write cache altogether - too many issues reported with it enabled.
-	app.hxtool_db = hxtool_db(combine_app_path(hxtool_global.data_path, 'hxtool.db'), logger = app.logger, write_cache_size = 0)
-	hxtool_global.hxtool_db = app.hxtool_db
+	hxtool_global.hxtool_db = hxtool_db(combine_app_path(hxtool_global.data_path, 'hxtool.db'), logger = app.logger, write_cache_size = 0)
 
 	# Enable X15 integration if config options are present
 	if hxtool_global.hxtool_config['x15']:
@@ -517,9 +515,9 @@ def app_init(debug = False):
 				decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
 				hxtool_global.task_hx_api_sessions[profile['profile_id']] = HXAPI(profile['hx_host'], 
 																					hx_port = profile['hx_port'], 
-																					proxies = app.hxtool_config['network'].get('proxies'), 
-																					headers = app.hxtool_config['headers'], 
-																					cookies = app.hxtool_config['cookies'], 
+																					proxies = hxtool_global.hxtool_config['network'].get('proxies'), 
+																					headers = hxtool_global.hxtool_config['headers'], 
+																					cookies = hxtool_global.hxtool_config['cookies'], 
 																					logger_name = hxtool_global.get_submodule_logger_name(HXAPI.__name__), 
 																					default_encoding = default_encoding)				
 				api_login_task = hxtool_scheduler_task(profile['profile_id'], "Task API Login - {}".format(profile['hx_host']), immutable = True)
@@ -540,7 +538,7 @@ def app_init(debug = False):
 	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
-	app.session_interface = hxtool_session_interface(app, expiration_delta=app.hxtool_config['network']['session_timeout'])
+	app.session_interface = hxtool_session_interface(app, expiration_delta=hxtool_global.hxtool_config['network']['session_timeout'])
 
 	if hxtool_global.hxtool_config['apicache']:
 		if 'enabled' in hxtool_global.hxtool_config['apicache']:
