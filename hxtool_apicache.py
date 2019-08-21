@@ -64,14 +64,14 @@ class hxtool_api_cache:
 						if ret:
 							hxtool_global.hxtool_db.cacheAddSysinfo(self.profile_id, "sysinfo", host['_id'], response_data['data'])
 
-						self.logger.info("{}: New host added: {}".format(self.profile_id, host['_id']))
+						self.logger.debug("{}: New host added: {}".format(self.profile_id, host['_id']))
 			elif objectType == "alerts":
 				(ret, response_code, response_data) = self.hx_api_object.restGetAlerts(offset=myoffset, limit=self.objects_per_poll)
 				if ret:
 					for alert in response_data['data']['entries']:
 						myoffset += 1
 						hxtool_global.hxtool_db.cacheAdd(self.profile_id, objectType, myoffset, alert)
-						self.logger.info("{}: New alert added: {}".format(self.profile_id, alert['_id']))
+						self.logger.debug("{}: New alert added: {}".format(self.profile_id, alert['_id']))
 		return True
 
 	def apicache_updater(self):
@@ -96,12 +96,12 @@ class hxtool_api_cache:
 					
 					(ret, response_code, response_data) = self.hx_api_object.restGetUrl(restUrl)
 					if ret:
-						self.logger.info("{}: Updating cache entry: {}, id: {}".format(self.profile_id, item['type'], item['contentId']))
+						self.logger.debug("{}: Updating cache entry: {}, id: {}".format(self.profile_id, item['type'], item['contentId']))
 						hxtool_global.hxtool_db.cacheUpdate(item['profile_id'], item['type'], item['offset'], response_data['data'])
 						if item['type'] == "hosts":
 							(sret, sresponse_code, sresponse_data) = self.hx_api_object.restGetHostSysinfo(item['contentId'])
 							if sret:
-								self.logger.info("{}: Updating cache entry sysinfo: {}".format(self.profile_id, item['contentId']))
+								self.logger.debug("{}: Updating cache entry sysinfo: {}".format(self.profile_id, item['contentId']))
 								hxtool_global.hxtool_db.cacheUpdateSysinfo(item['profile_id'], item['type'], item['contentId'], sresponse_data['data'])
 
 
