@@ -45,6 +45,7 @@ from hxtool_data_models import *
 from hxtool_session import *
 from hxtool_scheduler import *
 from hxtool_task_modules import *
+from hxtool_apicache import *
 
 # Import HXTool API Flask blueprint
 from hxtool_api import ht_api
@@ -540,6 +541,16 @@ def app_init(debug = False):
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
 	app.session_interface = hxtool_session_interface(app, expiration_delta=app.hxtool_config['network']['session_timeout'])
+
+	if hxtool_global.hxtool_config['apicache']:
+		if 'enabled' in hxtool_global.hxtool_config['apicache']:
+			if hxtool_global.hxtool_config['apicache']['enabled']:
+				hxtool_global.hxtool_apicache = {}
+				for profile in profiles:
+					if profile['profile_id'] in hxtool_global.task_hx_api_sessions:
+						hxtool_global.hxtool_apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['fetcher_interval'], hxtool_global.hxtool_config['apicache']['updater_interval'], hxtool_global.hxtool_config['apicache']['objects_per_poll'], hxtool_global.hxtool_config['apicache']['max_refresh_per_run'], hxtool_global.hxtool_config['apicache']['refresh_interval'])
+					else:
+						hxtool_global.get_logger(__name__).info("No background credential for {}, not starting apicache".format(profile['profile_id']))
 
 	set_svg_mimetype()
 

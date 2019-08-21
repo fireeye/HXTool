@@ -543,7 +543,56 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('audits').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['audit_id']))
 			
-			
+
+	def cacheDrop(self, profile_id):
+		with self._lock:
+			return self._db.table("ObjectCache").remove((tinydb.Query()['profile_id'] == profile_id))
+
+	def cacheList(self, profile_id, cacheType):
+		with self._lock:
+			return self._db.table('ObjectCache').search((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType))
+
+	def cacheAdd(self, profile_id, cacheType, offset, data):
+		with self._lock:
+			r = self._db.table('ObjectCache').insert({
+				 'profile_id' : profile_id,
+				 'type' : cacheType,
+				 'offset' : int(offset),
+				 'contentId' : data['_id'],
+				 'create_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'data' : data
+				 })
+			return r
+
+	def cacheAddSysinfo(self, profile_id, cacheType, contentId, data):
+		with self._lock:
+			r = self._db.table('ObjectCache').insert({
+				 'profile_id' : profile_id,
+				 'type' : cacheType,
+				 'offset' : 0,
+				 'contentId' : contentId,
+				 'create_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'data' : data
+				 })
+			return r
+
+	def cacheUpdate(self, profile_id, cacheType, offset, data):
+		with self._lock:
+			r = self._db.table('ObjectCache').update({
+				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'data' : data
+				 }, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['offset'] == offset))
+			return r
+
+	def cacheUpdateSysinfo(self, profile_id, cacheType, contentId, data):
+		with self._lock:
+			r = self._db.table('ObjectCache').update({
+				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'data' : data
+				 }, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['contentId'] == contentId))
+			return r			
 				
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
