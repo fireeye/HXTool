@@ -25,14 +25,14 @@ class hxtool_api_cache:
 		#hxtool_global.hxtool_db.cacheDrop(self.profile_id)
 
 		# Schedule fetcher
-		apicache_fetcher_task = hxtool_scheduler_task("System", "Cache fetcher", immutable=True)
+		apicache_fetcher_task = hxtool_scheduler_task("System", "Cache fetcher for " + str(self.profile_id), immutable=True)
 		apicache_fetcher_task.set_schedule(seconds=self.fetcher_interval)
 		apicache_fetcher_task.add_step(self, "apicache_fetcher")
 		hxtool_global.hxtool_scheduler.add(apicache_fetcher_task)
 		self.logger.info("Apicache fetcher started for profile: {}".format(self.profile_id))
 
 		# Schedule updater
-		apicache_updater_task = hxtool_scheduler_task("System", "Cache updater", immutable=True)
+		apicache_updater_task = hxtool_scheduler_task("System", "Cache updater for " + str(self.profile_id), immutable=True)
 		apicache_updater_task.set_schedule(seconds=self.updater_interval)
 		apicache_updater_task.add_step(self, "apicache_updater")
 		hxtool_global.hxtool_scheduler.add(apicache_updater_task)
