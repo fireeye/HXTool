@@ -22,6 +22,10 @@
 
 		$("#hxtoolVersionContainer").append(hxtoolGenerateNestedTable(hxToolInfo));
 
+		hxtool_ajax_get_request("/api/v1/cache/statistics", "", function(cacheStats) {
+			$("#CacheStatContainer").append(hxtoolGenerateNestedTable(cacheStats));
+		});
+
 	});
 
 </script>
@@ -32,6 +36,12 @@
 
 	<h4 class='hxtool_typography_h3'>HXTool</h4>
 	<div id='hxtoolVersionContainer'></div>
+
+{{ htPanel.widgetFooter() }}
+
+{{ htPanel.widgetHeader("API Cache", panelIcon="fa-info") }}
+	<h4 class='hxtool_typography_h3'>Cache statistics</h4>
+	<div id='CacheStatContainer'></div>
 
 {{ htPanel.widgetFooter() }}
 

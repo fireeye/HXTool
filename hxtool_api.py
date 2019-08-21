@@ -2790,6 +2790,40 @@ def stack_job_results(hx_api_object, stack_job_eid):
 	ht_data_model = hxtool_data_models(stack_job['stack_type'])
 	return ht_data_model.stack_data(stack_job['results'])	
 
+
+#####################
+# Cache API calls ###
+#####################
+@ht_api.route('/api/v{0}/cache/statistics'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def cache_statistics(hx_api_object):
+
+	mystats = {}
+
+	if hxtool_global.hxtool_config['apicache']['enabled']:
+		mystats['enabled'] = True
+	else:
+		mystats['enabled'] = False
+
+	cacherecords = hxtool_global.hxtool_db.cacheListAll(session['ht_profileid'])
+	mystats['all_records'] = len(cacherecords)
+	mystats['removed_records'] = 0
+
+	mystats['host'] = 0
+	mystats['sysinfo'] = 0
+	mystats['alert'] = 0
+	mystats['triage'] = 0
+	mystats['file'] = 0
+	mystats['live'] = 0
+	
+	for record in cacherecords:
+		mystats[record['type']] += 1
+		if 'removed' in record:
+			mystats['removed_records'] += 1
+	
+	return(app.response_class(response=json.dumps(mystats), status=200, mimetype='application/json'))
+
+
 #######################
 ### X15 INTEGRATION ###
 #######################

@@ -570,6 +570,11 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table("ObjectCache").remove((tinydb.Query()['profile_id'] == profile_id))
 
+
+	def cacheListAll(self, profile_id):
+		with self._lock:
+			return self._db.table('ObjectCache').search((tinydb.Query()['profile_id'] == profile_id))
+
 	def cacheList(self, profile_id, cacheType):
 		with self._lock:
 			return self._db.table('ObjectCache').search((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType))
