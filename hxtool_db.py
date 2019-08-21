@@ -558,6 +558,14 @@ class hxtool_db:
 					#print("{} - Cache Hit. Last updated: {}".format(cacheType, r['update_timestamp']))
 					return r
 
+	def cacheFlagRemove(self, profile_id, cacheType, offset):
+		with self._lock:
+			r = self._db.table('ObjectCache').update({
+				 'removed_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'removed' : True
+				 }, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['offset'] == offset))
+			return r
+
 	def cacheDrop(self, profile_id):
 		with self._lock:
 			return self._db.table("ObjectCache").remove((tinydb.Query()['profile_id'] == profile_id))
@@ -565,6 +573,10 @@ class hxtool_db:
 	def cacheList(self, profile_id, cacheType):
 		with self._lock:
 			return self._db.table('ObjectCache').search((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType))
+
+	def cacheListUpdate(self, profile_id, cacheType):
+		with self._lock:
+			return self._db.table('ObjectCache').search(~(tinydb.Query()['removed'] == True) & (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType))
 
 	def cacheAdd(self, profile_id, cacheType, offset, data):
 		with self._lock:

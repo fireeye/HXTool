@@ -102,7 +102,7 @@ class hxtool_api_cache:
 
 		for objectType in self.cacheObjects:
 			update_count = 0
-			res = hxtool_global.hxtool_db.cacheList(self.profile_id, objectType)
+			res = hxtool_global.hxtool_db.cacheListUpdate(self.profile_id, objectType)
 
 			for item in res:
 				t = datetime.datetime.now() - datetime.datetime.strptime(item['update_timestamp'], "%Y-%m-%d %H:%M:%S")
@@ -125,13 +125,26 @@ class hxtool_api_cache:
 
 					(ret, response_code, response_data) = self.hx_api_object.restGetUrl(restUrl)
 					if ret:
-						self.logger.debug("{}: Updating cache entry: {}, id: {}".format(self.profile_id, item['type'], item['contentId']))
-						hxtool_global.hxtool_db.cacheUpdate(item['profile_id'], item['type'], item['offset'], response_data['data'])
-						if item['type'] == "host":
-							(sret, sresponse_code, sresponse_data) = self.hx_api_object.restGetHostSysinfo(item['contentId'])
-							if sret:
-								self.logger.debug("{}: Updating cache entry sysinfo: {}".format(self.profile_id, item['contentId']))
-								hxtool_global.hxtool_db.cacheUpdateSysinfo(item['profile_id'], "sysinfo", item['contentId'], sresponse_data['data'])
-
+						if response_code == 200:
+							self.logger.debug("{}: Updating cache entry: {}, id: {}".format(self.profile_id, item['type'], item['contentId']))
+							hxtool_global.hxtool_db.cacheUpdate(item['profile_id'], item['type'], item['offset'], response_data['data'])
+							if item['type'] == "host":
+								(sret, sresponse_code, sresponse_data) = self.hx_api_object.restGetHostSysinfo(item['contentId'])
+								if sret:
+									self.logger.debug("{}: Updating cache entry sysinfo: {}".format(self.profile_id, item['contentId']))
+									hxtool_global.hxtool_db.cacheUpdateSysinfo(item['profile_id'], "sysinfo", item['contentId'], sresponse_data['data'])
+								else:
+									pass
+						else:
+							pass
+					else:
+						if response_code == 404:
+							# Need to flag this entry as deleted since it's not on the controller anymore
+							self.logger.debug("{}: Flagging entry: {}, id: {} as removed".format(self.profile_id, item['type'], item['contentId']))
+							hxtool_global.hxtool_db.cacheFlagRemove(item['profile_id'], item['type'], item['offset'])
+							if item['type'] == "host":
+								hxtool_global.hxtool_db.cacheFlagRemove(item['profile_id'], "sysinfo", item['contentId'])
+						else:
+							pass
 
 		return True
