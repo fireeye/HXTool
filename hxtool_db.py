@@ -543,6 +543,21 @@ class hxtool_db:
 			return self._db.table('audits').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['audit_id']))
 			
 
+	def cacheGet(self, profile_id, cacheType, contentId):
+		with self._lock:
+			r = self._db.table("ObjectCache").get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['contentId'] == contentId))
+			if not r:
+				#print("{} - Cache Miss (no record)".format(cacheType))
+				return False
+			else:
+				t = datetime.datetime.now() - datetime.datetime.strptime(r['update_timestamp'], "%Y-%m-%d %H:%M:%S")
+				if t.seconds > 900:
+					#print("{} - Cache Miss (dirty). Last updated: {}".format(cacheType, r['update_timestamp']))
+					return False
+				else:
+					#print("{} - Cache Hit. Last updated: {}".format(cacheType, r['update_timestamp']))
+					return r
+
 	def cacheDrop(self, profile_id):
 		with self._lock:
 			return self._db.table("ObjectCache").remove((tinydb.Query()['profile_id'] == profile_id))

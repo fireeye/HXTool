@@ -24,7 +24,7 @@
 	},
 	"apicache": {
 		"enabled": false,
-		"fetcher_interval": 60,
+		"fetcher_interval": 15,
 		"updater_interval": 15,
 		"objects_per_poll": 100,
 		"max_refresh_per_run": 50,

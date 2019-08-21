@@ -19,7 +19,7 @@ class hxtool_api_cache:
 		self.max_refresh_per_run = max_refresh_per_run
 		self.refresh_interval = refresh_interval
 
-		self.cacheObjects = ["hosts", "alerts"]
+		self.cacheObjects = ["host", "alert", "triage", "file", "live"]
 
 		# TEMP: drop cache
 		#hxtool_global.hxtool_db.cacheDrop(self.profile_id)
@@ -52,7 +52,7 @@ class hxtool_api_cache:
 				# We have cache entries, start from last offset
 				myoffset = res[-1]['offset']
 
-			if objectType == "hosts":
+			if objectType == "host":
 				(ret, response_code, response_data) = self.hx_api_object.restListHosts(offset=myoffset, limit=self.objects_per_poll)
 				if ret:
 					for host in response_data['data']['entries']:
@@ -65,13 +65,36 @@ class hxtool_api_cache:
 							hxtool_global.hxtool_db.cacheAddSysinfo(self.profile_id, "sysinfo", host['_id'], response_data['data'])
 
 						self.logger.debug("{}: New host added: {}".format(self.profile_id, host['_id']))
-			elif objectType == "alerts":
+			elif objectType == "alert":
 				(ret, response_code, response_data) = self.hx_api_object.restGetAlerts(offset=myoffset, limit=self.objects_per_poll)
 				if ret:
 					for alert in response_data['data']['entries']:
 						myoffset += 1
 						hxtool_global.hxtool_db.cacheAdd(self.profile_id, objectType, myoffset, alert)
 						self.logger.debug("{}: New alert added: {}".format(self.profile_id, alert['_id']))
+			elif objectType == "triage":
+				(ret, response_code, response_data) = self.hx_api_object.restListTriages(offset=myoffset, limit=self.objects_per_poll)
+				if ret:
+					for triage in response_data['data']['entries']:
+						myoffset += 1
+						hxtool_global.hxtool_db.cacheAdd(self.profile_id, objectType, myoffset, triage)
+						self.logger.debug("{}: New triage added: {}".format(self.profile_id, triage['_id']))
+			elif objectType == "file":
+				(ret, response_code, response_data) = self.hx_api_object.restListFileaq(offset=myoffset, limit=self.objects_per_poll)
+				if ret:
+					for file in response_data['data']['entries']:
+						myoffset += 1
+						hxtool_global.hxtool_db.cacheAdd(self.profile_id, objectType, myoffset, file)
+						self.logger.debug("{}: New fileacq added: {}".format(self.profile_id, file['_id']))
+			elif objectType == "live":
+				(ret, response_code, response_data) = self.hx_api_object.restListDataAcquisitions(offset=myoffset, limit=self.objects_per_poll)
+				if ret:
+					for live in response_data['data']['entries']:
+						myoffset += 1
+						hxtool_global.hxtool_db.cacheAdd(self.profile_id, objectType, myoffset, live)
+						self.logger.debug("{}: New live acquisition added: {}".format(self.profile_id, live['_id']))
+
+
 		return True
 
 	def apicache_updater(self):
@@ -89,20 +112,26 @@ class hxtool_api_cache:
 					if update_count > self.max_refresh_per_run:
 						break
 
-					if item['type'] == "hosts":
+					if item['type'] == "host":
 						restUrl = ("/hx/api/v3/hosts/" + str(item['contentId']))
-					elif item['type'] == "alerts":
+					elif item['type'] == "alert":
 						restUrl = ("/hx/api/v3/alerts/" + str(item['contentId']))
-					
+					elif item['type'] == "triage":
+						restUrl = ("/hx/api/v3/acqs/triages/" + str(item['contentId']))
+					elif item['type'] == "file":
+						restUrl = ("/hx/api/v3/acqs/files/" + str(item['contentId']))
+					elif item['type'] == "live":
+						restUrl = ("/hx/api/v3/acqs/live/" + str(item['contentId']))
+
 					(ret, response_code, response_data) = self.hx_api_object.restGetUrl(restUrl)
 					if ret:
 						self.logger.debug("{}: Updating cache entry: {}, id: {}".format(self.profile_id, item['type'], item['contentId']))
 						hxtool_global.hxtool_db.cacheUpdate(item['profile_id'], item['type'], item['offset'], response_data['data'])
-						if item['type'] == "hosts":
+						if item['type'] == "host":
 							(sret, sresponse_code, sresponse_data) = self.hx_api_object.restGetHostSysinfo(item['contentId'])
 							if sret:
 								self.logger.debug("{}: Updating cache entry sysinfo: {}".format(self.profile_id, item['contentId']))
-								hxtool_global.hxtool_db.cacheUpdateSysinfo(item['profile_id'], item['type'], item['contentId'], sresponse_data['data'])
+								hxtool_global.hxtool_db.cacheUpdateSysinfo(item['profile_id'], "sysinfo", item['contentId'], sresponse_data['data'])
 
 
 		return True

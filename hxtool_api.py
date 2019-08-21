@@ -1626,7 +1626,10 @@ def datatable_alerts(hx_api_object):
 		if ret:
 			for alert in response_data['data']['entries']:
 				# Query host object
-				(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
+				hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", alert['agent']['_id'])
+				if hresponse_data == False:
+					(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
+
 				if ret:
 					hostname = hresponse_data['data']['hostname']
 					domain = hresponse_data['data']['domain']
@@ -1889,7 +1892,9 @@ def datatable_acqs(hx_api_object):
 			if ret:
 				for acq in response_data['data']['entries']:
 					if acq['type'] != "bulk":
-						(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(acq['host']['_id'])
+						hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", acq['host']['_id'])
+						if hresponse_data == False:
+							(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(acq['host']['_id'])
 						if ret:
 							request_user = "N/A"
 							acq_url = None
@@ -1897,7 +1902,13 @@ def datatable_acqs(hx_api_object):
 								acq_url = acq['acq']['url']
 							else:
 								acq_url = "/hx/api/v3/acqs/{}/{}".format(acq['type'], HXAPI.compat_str(acq['acq']['_id']))
-							(a_ret, a_response_code, a_response_data) = hx_api_object.restGetUrl(acq_url)
+
+							a_response_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], acq['type'], acq['acq']['_id'])
+							if a_response_data == False:
+								(a_ret, a_response_code, a_response_data) = hx_api_object.restGetUrl(acq_url)
+							else:
+								a_ret = True
+
 							if a_ret:
 								request_user = a_response_data['data']['request_actor']['username']
 							myacqs['data'].append({
