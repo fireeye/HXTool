@@ -2800,26 +2800,46 @@ def cache_statistics(hx_api_object):
 
 	mystats = {}
 
-	if hxtool_global.hxtool_config['apicache']['enabled']:
-		mystats['enabled'] = True
-	else:
+	try:
+		if hxtool_global.hxtool_config['apicache']['enabled']:
+			mystats['enabled'] = True
+			apicache_refresh_interval = hxtool_global.hxtool_config['apicache']['refresh_interval']
+		else:
+			mystats['enabled'] = False
+	except TypeError:
 		mystats['enabled'] = False
 
-	cacherecords = hxtool_global.hxtool_db.cacheListAll(session['ht_profileid'])
-	mystats['all_records'] = len(cacherecords)
-	mystats['removed_records'] = 0
+	if mystats['enabled']:
 
-	mystats['host'] = 0
-	mystats['sysinfo'] = 0
-	mystats['alert'] = 0
-	mystats['triage'] = 0
-	mystats['file'] = 0
-	mystats['live'] = 0
-	
-	for record in cacherecords:
-		mystats[record['type']] += 1
-		if 'removed' in record:
-			mystats['removed_records'] += 1
+		mystats['Fetcher capability'] = str(hxtool_global.apicache['fetcher_capability']) + " records per second"
+		mystats['Updater capability'] = str(hxtool_global.apicache['updater_capability']) + " records within the refresh interval"
+		mystats['Updater attempts'] = str(hxtool_global.apicache['updater_capability_attempts']) + " polls within the refresh interval"
+
+		cacherecords = hxtool_global.hxtool_db.cacheListAll(session['ht_profileid'])
+		mystats['Total records'] = str(len(cacherecords))
+		mystats['Removed records'] = 0
+		mystats['Non updated'] = 0
+
+		mystats['Fetcher last item'] = "Type: {} Create Timestamp: {}".format(hxtool_global.apicache['fetcher_last_entry']['type'], hxtool_global.apicache['fetcher_last_entry']['create_timestamp'])
+		mystats['Updater last item'] = "Type: {} Update Timestamp: {}".format(hxtool_global.apicache['updater_last_entry']['type'], hxtool_global.apicache['updater_last_entry']['update_timestamp'])
+		
+		mystats['host'] = 0
+		mystats['sysinfo'] = 0
+		mystats['alert'] = 0
+		mystats['triage'] = 0
+		mystats['file'] = 0
+		mystats['live'] = 0
+		
+		for record in cacherecords:
+			mystats[record['type']] += 1
+			if 'removed' in record:
+				mystats['Removed records'] += 1
+			else:
+				t = datetime.datetime.now() - datetime.datetime.strptime(record['update_timestamp'], "%Y-%m-%d %H:%M:%S")
+				if t.seconds > apicache_refresh_interval:
+					mystats['Non updated'] += 1
+
+		mystats['Non updated'] = str(mystats['Non updated']) + " records outside of refresh interval has not been updated"
 	
 	return(app.response_class(response=json.dumps(mystats), status=200, mimetype='application/json'))
 

@@ -21,6 +21,21 @@ class hxtool_api_cache:
 
 		self.cacheObjects = ["host", "alert", "triage", "file", "live"]
 
+		# Number of objects that can be fetched per second
+		self.fetcher_capability = self.objects_per_poll // self.fetcher_interval
+
+		# Number of updater polls that can be made during the refresh_interval
+		self.updater_capability_attempts = self.refresh_interval // self.updater_interval
+
+		# Number of records that can be updated within the refresh_interval
+		self.updater_capability = self.updater_capability_attempts * self.max_refresh_per_run
+
+		# Tell hxtool_global about our stats
+		hxtool_global.apicache = {}
+		hxtool_global.apicache['fetcher_capability'] = self.fetcher_capability
+		hxtool_global.apicache['updater_capability'] = self.updater_capability
+		hxtool_global.apicache['updater_capability_attempts'] = self.updater_capability_attempts
+
 		# TEMP: drop cache
 		#hxtool_global.hxtool_db.cacheDrop(self.profile_id)
 
@@ -29,14 +44,14 @@ class hxtool_api_cache:
 		apicache_fetcher_task.set_schedule(seconds=self.fetcher_interval)
 		apicache_fetcher_task.add_step(self, "apicache_fetcher")
 		hxtool_global.hxtool_scheduler.add(apicache_fetcher_task)
-		self.logger.info("Apicache fetcher started for profile: {}".format(self.profile_id))
+		self.logger.info("Apicache fetcher started for profile: {}. Capacity: {} records per second".format(self.profile_id, self.fetcher_capability))
 
 		# Schedule updater
 		apicache_updater_task = hxtool_scheduler_task("System", "Cache updater for " + str(self.profile_id), immutable=True)
 		apicache_updater_task.set_schedule(seconds=self.updater_interval)
 		apicache_updater_task.add_step(self, "apicache_updater")
 		hxtool_global.hxtool_scheduler.add(apicache_updater_task)
-		self.logger.info("Apicache updater started for profile: {}".format(self.profile_id))
+		self.logger.info("Apicache updater started for profile: {}. Capacity: {} records can be updated within the refresh interval".format(self.profile_id, self.updater_capability))
 
 	def apicache_fetcher(self):
 		#self.logger.info("Apicache fetcher called.")
@@ -51,6 +66,8 @@ class hxtool_api_cache:
 			else:
 				# We have cache entries, start from last offset
 				myoffset = res[-1]['offset']
+
+			hxtool_global.apicache['fetcher_last_entry'] = res[-1]
 
 			if objectType == "host":
 				(ret, response_code, response_data) = self.hx_api_object.restListHosts(offset=myoffset, limit=self.objects_per_poll)
@@ -147,4 +164,6 @@ class hxtool_api_cache:
 						else:
 							pass
 
+				hxtool_global.apicache['updater_last_entry'] = item
+				
 		return True

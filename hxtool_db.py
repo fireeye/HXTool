@@ -33,6 +33,18 @@ class hxtool_db:
 			
 		self._lock = threading.Lock()
 		self.check_schema()
+
+		# Check for the existance of APICache
+		try:
+			if hxtool_global.hxtool_config['apicache']['enabled']:
+				self.apicache = True
+				if 'refresh_interval' in hxtool_global.hxtool_config['apicache'].keys():
+					self.apicache_refresh_interval = hxtool_global.hxtool_config['apicache']['refresh_interval']
+				else:
+					self.apicache = False
+		except TypeError:
+			self.apicache = False
+
 		
 	def close(self):
 		if self._db is not None:
@@ -545,18 +557,21 @@ class hxtool_db:
 
 	def cacheGet(self, profile_id, cacheType, contentId):
 		with self._lock:
-			r = self._db.table("ObjectCache").get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['contentId'] == contentId))
-			if not r:
-				#print("{} - Cache Miss (no record)".format(cacheType))
-				return False
-			else:
-				t = datetime.datetime.now() - datetime.datetime.strptime(r['update_timestamp'], "%Y-%m-%d %H:%M:%S")
-				if t.seconds > 900:
-					#print("{} - Cache Miss (dirty). Last updated: {}".format(cacheType, r['update_timestamp']))
+			if self.apicache:
+				r = self._db.table("ObjectCache").get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['contentId'] == contentId))
+				if not r:
+					#print("{} - Cache Miss (no record)".format(cacheType))
 					return False
 				else:
-					#print("{} - Cache Hit. Last updated: {}".format(cacheType, r['update_timestamp']))
-					return r
+					t = datetime.datetime.now() - datetime.datetime.strptime(r['update_timestamp'], "%Y-%m-%d %H:%M:%S")
+					if t.seconds > self.apicache_refresh_interval:
+						#print("{} - Cache Miss (dirty). Last updated: {}".format(cacheType, r['update_timestamp']))
+						return False
+					else:
+						#print("{} - Cache Hit. Last updated: {}".format(cacheType, r['update_timestamp']))
+						return r
+			else:
+				return False
 
 	def cacheFlagRemove(self, profile_id, cacheType, offset):
 		with self._lock:
