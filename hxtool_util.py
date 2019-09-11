@@ -8,7 +8,6 @@ import threading
 import datetime
 import re
 import colorsys
-import logging
 import traceback
 
 try:
