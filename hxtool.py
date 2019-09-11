@@ -54,9 +54,15 @@ from hxtool_api import ht_api
 HXTOOL_API_VERSION = 1
 default_encoding = 'utf-8'
 debug_mode = False
+
+# Setup logging
 hxtool_logging.setLoggerClass()
 logger = hxtool_logging.getLogger()
+
+# Create the app
 app = Flask(hxtool_logging.root_logger_name, static_url_path='/static')
+
+hxtool_vars.app_instance_path = app.root_path
 
 # Register HXTool API blueprint
 app.register_blueprint(ht_api)
@@ -559,25 +565,22 @@ def app_init(debug = False):
 # Version specific upgrade code goes here
 def hxtool_upgrade():
 	files_to_move = ['hxtool.db', 'conf.json', 'hxtool.key', 'hxtool.crt']
-	base_path = os.path.dirname(sys.argv[0])
 	for file in files_to_move:
-		if os.path.isfile(os.path.join(base_path, file)):
-			if os.path.isfile(os.path.join(base_path, hxtool_global.data_path, file)):
+		if os.path.isfile(combine_app_path(file)):
+			if os.path.isfile(combine_app_path(hxtool_vars.data_path, file)):
 				try:
 					f = raw_input
 				except NameError:
 					f = input
-				r = f("{} already exists in {}, do you want to overwrite it? (Note that this might be a default file that you can safely overwrite) (Y/N)?".format(file, hxtool_global.data_path))
+				r = f("{} already exists in {}, do you want to overwrite it? (Note that this might be a default file that you can safely overwrite) (Y/N)?".format(file, hxtool_vars.data_path))
 				if r.strip().lower() != 'y':
 					continue
 			print("UPGRADE: Moving {} to the data folder".format(file))
-			os.rename(os.path.join(base_path, file), os.path.join(base_path, hxtool_global.data_path, file))
-		
+			os.rename(combine_app_path(file), combine_app_path(hxtool_global.data_path, file))
 
 #Run upgrade code before everything else
 hxtool_upgrade()
-hxtool_vars.app_instance_path = app.root_path
-	
+
 if __name__ == "__main__":
 	hxtool_global.initialize()
 	
