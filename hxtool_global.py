@@ -7,6 +7,9 @@ def initialize():
 	global task_hx_api_sessions
 	task_hx_api_sessions = {}
 	
+	global apicache
+	apicache = {}
+	
 	global hxtool_db
 	global hxtool_config
 	global hxtool_scheduler
