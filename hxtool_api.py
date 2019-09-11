@@ -1626,7 +1626,10 @@ def datatable_alerts(hx_api_object):
 		if ret:
 			for alert in response_data['data']['entries']:
 				# Query host object
-				(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
+				hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", alert['agent']['_id'])
+				if hresponse_data == False:
+					(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
+
 				if ret:
 					hostname = hresponse_data['data']['hostname']
 					domain = hresponse_data['data']['domain']
@@ -1889,7 +1892,9 @@ def datatable_acqs(hx_api_object):
 			if ret:
 				for acq in response_data['data']['entries']:
 					if acq['type'] != "bulk":
-						(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(acq['host']['_id'])
+						hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", acq['host']['_id'])
+						if hresponse_data == False:
+							(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(acq['host']['_id'])
 						if ret:
 							request_user = "N/A"
 							acq_url = None
@@ -1897,7 +1902,13 @@ def datatable_acqs(hx_api_object):
 								acq_url = acq['acq']['url']
 							else:
 								acq_url = "/hx/api/v3/acqs/{}/{}".format(acq['type'], HXAPI.compat_str(acq['acq']['_id']))
-							(a_ret, a_response_code, a_response_data) = hx_api_object.restGetUrl(acq_url)
+
+							a_response_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], acq['type'], acq['acq']['_id'])
+							if a_response_data == False:
+								(a_ret, a_response_code, a_response_data) = hx_api_object.restGetUrl(acq_url)
+							else:
+								a_ret = True
+
 							if a_ret:
 								request_user = a_response_data['data']['request_actor']['username']
 							myacqs['data'].append({
@@ -2778,6 +2789,60 @@ def stack_job_results(hx_api_object, stack_job_eid):
 		
 	ht_data_model = hxtool_data_models(stack_job['stack_type'])
 	return ht_data_model.stack_data(stack_job['results'])	
+
+
+#####################
+# Cache API calls ###
+#####################
+@ht_api.route('/api/v{0}/cache/statistics'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def cache_statistics(hx_api_object):
+
+	mystats = {}
+
+	try:
+		if hxtool_global.hxtool_config['apicache']['enabled']:
+			mystats['enabled'] = True
+			apicache_refresh_interval = hxtool_global.hxtool_config['apicache']['refresh_interval']
+		else:
+			mystats['enabled'] = False
+	except TypeError:
+		mystats['enabled'] = False
+
+	if mystats['enabled']:
+
+		mystats['Fetcher capability'] = str(hxtool_global.apicache['fetcher_capability']) + " records per second"
+		mystats['Updater capability'] = str(hxtool_global.apicache['updater_capability']) + " records within the refresh interval"
+		mystats['Updater attempts'] = str(hxtool_global.apicache['updater_capability_attempts']) + " polls within the refresh interval"
+
+		cacherecords = hxtool_global.hxtool_db.cacheListAll(session['ht_profileid'])
+		mystats['Total records'] = str(len(cacherecords))
+		mystats['Removed records'] = 0
+		mystats['Non updated'] = 0
+
+		mystats['Fetcher last item'] = "Type: {} Create Timestamp: {}".format(hxtool_global.apicache['fetcher_last_entry']['type'], hxtool_global.apicache['fetcher_last_entry']['create_timestamp'])
+		mystats['Updater last item'] = "Type: {} Update Timestamp: {}".format(hxtool_global.apicache['updater_last_entry']['type'], hxtool_global.apicache['updater_last_entry']['update_timestamp'])
+		
+		mystats['host'] = 0
+		mystats['sysinfo'] = 0
+		mystats['alert'] = 0
+		mystats['triage'] = 0
+		mystats['file'] = 0
+		mystats['live'] = 0
+		
+		for record in cacherecords:
+			mystats[record['type']] += 1
+			if 'removed' in record:
+				mystats['Removed records'] += 1
+			else:
+				t = datetime.datetime.now() - datetime.datetime.strptime(record['update_timestamp'], "%Y-%m-%d %H:%M:%S")
+				if t.seconds > apicache_refresh_interval:
+					mystats['Non updated'] += 1
+
+		mystats['Non updated'] = str(mystats['Non updated']) + " records outside of refresh interval has not been updated"
+	
+	return(app.response_class(response=json.dumps(mystats), status=200, mimetype='application/json'))
+
 
 #######################
 ### X15 INTEGRATION ###

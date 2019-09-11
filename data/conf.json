@@ -22,6 +22,14 @@
 		"poll_interval": 30,
 		"poll_threads": 4
 	},
+	"apicache": {
+		"enabled": true,
+		"fetcher_interval": 15,
+		"updater_interval": 15,
+		"objects_per_poll": 100,
+		"max_refresh_per_run": 50,
+		"refresh_interval": 300
+	},
 	"headers": {},
 	"cookies": {}
 }

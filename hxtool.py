@@ -48,6 +48,7 @@ from hxtool_data_models import *
 from hxtool_session import *
 from hxtool_scheduler import *
 from hxtool_task_modules import *
+from hxtool_apicache import *
 
 # Import HXTool API Flask blueprint
 from hxtool_api import ht_api
@@ -475,7 +476,8 @@ def app_init(debug = False):
 	hxtool_global.get_logger().addHandler(console_log)
 	app.logger.addHandler(console_log)
 	
-	hxtool_global.set_hxtool_config(hxtool_config(combine_app_path(hxtool_global.data_path, 'conf.json'), logger = app.logger))
+	#hxtool_global.set_hxtool_config(hxtool_config(combine_app_path(hxtool_global.data_path, 'conf.json'), logger = app.logger))
+	hxtool_global.hxtool_config = hxtool_config(combine_app_path(hxtool_global.data_path, 'conf.json'), logger = app.logger)
 	
 	# Initialize configured log handlers
 	for log_handler in hxtool_global.hxtool_config.log_handlers():
@@ -541,6 +543,16 @@ def app_init(debug = False):
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
 	app.session_interface = hxtool_session_interface(app, expiration_delta=hxtool_global.hxtool_config['network']['session_timeout'])
+
+	if hxtool_global.hxtool_config['apicache']:
+		if 'enabled' in hxtool_global.hxtool_config['apicache']:
+			if hxtool_global.hxtool_config['apicache']['enabled']:
+				hxtool_global.hxtool_apicache = {}
+				for profile in profiles:
+					if profile['profile_id'] in hxtool_global.task_hx_api_sessions:
+						hxtool_global.hxtool_apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['fetcher_interval'], hxtool_global.hxtool_config['apicache']['updater_interval'], hxtool_global.hxtool_config['apicache']['objects_per_poll'], hxtool_global.hxtool_config['apicache']['max_refresh_per_run'], hxtool_global.hxtool_config['apicache']['refresh_interval'])
+					else:
+						hxtool_global.get_logger(__name__).info("No background credential for {}, not starting apicache".format(profile['profile_id']))
 
 	set_svg_mimetype()
 
@@ -618,19 +630,19 @@ if __name__ == "__main__":
 	
 	# TODO: This should really be after app.run, but you cannot run code after app.run, so we'll leave this here for now.
 	hxtool_global.get_logger(__name__).info("Application is running. Please point your browser to http{0}://{1}:{2}. Press Ctrl+C/Ctrl+Break to exit.".format(
-																							's' if app.hxtool_config['network']['ssl'] == 'enabled' else '',
-																							app.hxtool_config['network']['listen_address'], 
-																							app.hxtool_config['network']['port']))
-	if app.hxtool_config['network']['ssl'] == "enabled":
+																							's' if hxtool_global.hxtool_config['network']['ssl'] == 'enabled' else '',
+																							hxtool_global.hxtool_config['network']['listen_address'], 
+																							hxtool_global.hxtool_config['network']['port']))
+	if hxtool_global.hxtool_config['network']['ssl'] == "enabled":
 		app.config['SESSION_COOKIE_SECURE'] = True
-		context = (app.hxtool_config['ssl']['cert'], app.hxtool_config['ssl']['key'])
-		app.run(host=app.hxtool_config['network']['listen_address'], 
-				port=app.hxtool_config['network']['port'], 
+		context = (hxtool_global.hxtool_config['ssl']['cert'], hxtool_global.hxtool_config['ssl']['key'])
+		app.run(host=hxtool_global.hxtool_config['network']['listen_address'], 
+				port=hxtool_global.hxtool_config['network']['port'], 
 				ssl_context=context, 
 				threaded=True)
 	else:
-		app.run(host=app.hxtool_config['network']['listen_address'], 
-				port=app.hxtool_config['network']['port'])
+		app.run(host=hxtool_global.hxtool_config['network']['listen_address'], 
+				port=hxtool_global.hxtool_config['network']['port'])
 	
 else:
 	# Running under gunicorn/mod_wsgi
