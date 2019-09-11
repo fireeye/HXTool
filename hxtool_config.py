@@ -79,6 +79,13 @@ class hxtool_config:
 			v = default
 		return v
 		
+	def get_child_item(self, parent_key, child_key, default = None):
+		try:
+			if self[parent_key] is not None:
+				return self[parent_key].get(child_key, default)
+		except TypeError:
+			return default
+			
 	def get_config(self):
 		return self._config
 			
