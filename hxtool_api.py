@@ -16,7 +16,7 @@ except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
 
-import hxtool_global
+import hxtool_logging
 from hx_lib import *
 from hxtool_util import *
 from hxtool_data_models import *
@@ -26,7 +26,7 @@ from hxtool_task_modules import *
 HXTOOL_API_VERSION = 1
 
 ht_api = Blueprint('ht_api', __name__, template_folder='templates')
-logger = hxtool_global.get_logger(__name__)
+logger = hxtool_logging.getLogger(__name__)
 
 default_encoding = 'utf-8'
 
