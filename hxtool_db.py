@@ -21,6 +21,7 @@ logger = hxtool_logging.getLogger(__name__)
 
 class hxtool_db:
 	def __init__(self, db_file, write_cache_size = 10):
+		# If we can't open the DB file, rename the existing one
 		try:
 			CachingMiddleware.WRITE_CACHE_SIZE = write_cache_size
 			self._db = tinydb.TinyDB(db_file, storage=CachingMiddleware(JSONStorage))
@@ -28,9 +29,21 @@ class hxtool_db:
 			logger.error("%s is not a TinyDB formatted database. Please move or rename this file before starting HXTool.", db_file)
 			exit(1)
 			
-		self._lock = Lock()
+		self._lock = threading.Lock()
 		self.check_schema()
-	
+
+		# Check for the existance of APICache
+		try:
+			if hxtool_global.hxtool_config['apicache']['enabled']:
+				self.apicache = True
+				if 'refresh_interval' in hxtool_global.hxtool_config['apicache'].keys():
+					self.apicache_refresh_interval = hxtool_global.hxtool_config['apicache']['refresh_interval']
+				else:
+					self.apicache = False
+		except TypeError:
+			self.apicache = False
+
+		
 	def close(self):
 		if self._db is not None:
 			self._db.close()
@@ -539,7 +552,91 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('audits').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['audit_id']))
 			
-			
+
+	def cacheGet(self, profile_id, cacheType, contentId):
+		with self._lock:
+			if self.apicache:
+				r = self._db.table("ObjectCache").get((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['contentId'] == contentId))
+				if not r:
+					#print("{} - Cache Miss (no record)".format(cacheType))
+					return False
+				else:
+					t = datetime.datetime.now() - datetime.datetime.strptime(r['update_timestamp'], "%Y-%m-%d %H:%M:%S")
+					if t.seconds > self.apicache_refresh_interval:
+						#print("{} - Cache Miss (dirty). Last updated: {}".format(cacheType, r['update_timestamp']))
+						return False
+					else:
+						#print("{} - Cache Hit. Last updated: {}".format(cacheType, r['update_timestamp']))
+						return r
+			else:
+				return False
+
+	def cacheFlagRemove(self, profile_id, cacheType, offset):
+		with self._lock:
+			r = self._db.table('ObjectCache').update({
+				 'removed_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'removed' : True
+				 }, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['offset'] == offset))
+			return r
+
+	def cacheDrop(self, profile_id):
+		with self._lock:
+			return self._db.table("ObjectCache").remove((tinydb.Query()['profile_id'] == profile_id))
+
+
+	def cacheListAll(self, profile_id):
+		with self._lock:
+			return self._db.table('ObjectCache').search((tinydb.Query()['profile_id'] == profile_id))
+
+	def cacheList(self, profile_id, cacheType):
+		with self._lock:
+			return self._db.table('ObjectCache').search((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType))
+
+	def cacheListUpdate(self, profile_id, cacheType):
+		with self._lock:
+			return self._db.table('ObjectCache').search(~(tinydb.Query()['removed'] == True) & (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType))
+
+	def cacheAdd(self, profile_id, cacheType, offset, data):
+		with self._lock:
+			r = self._db.table('ObjectCache').insert({
+				 'profile_id' : profile_id,
+				 'type' : cacheType,
+				 'offset' : int(offset),
+				 'contentId' : data['_id'],
+				 'create_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'data' : data
+				 })
+			return r
+
+	def cacheAddSysinfo(self, profile_id, cacheType, contentId, data):
+		with self._lock:
+			r = self._db.table('ObjectCache').insert({
+				 'profile_id' : profile_id,
+				 'type' : cacheType,
+				 'offset' : 0,
+				 'contentId' : contentId,
+				 'create_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'data' : data
+				 })
+			return r
+
+	def cacheUpdate(self, profile_id, cacheType, offset, data):
+		with self._lock:
+			r = self._db.table('ObjectCache').update({
+				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'data' : data
+				 }, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['offset'] == offset))
+			return r
+
+	def cacheUpdateSysinfo(self, profile_id, cacheType, contentId, data):
+		with self._lock:
+			r = self._db.table('ObjectCache').update({
+				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'data' : data
+				 }, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['contentId'] == contentId))
+			return r			
 				
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
