@@ -469,8 +469,6 @@ def sigint_handler(signum, frame):
 def app_init(debug = False):
 	hxtool_global.initialize()
 	
-	hxtool_vars.app_instance_path = app.root_path
-	
 	# Log early init/failures to stdout
 	console_log = logging.StreamHandler(sys.stdout)
 	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
@@ -578,10 +576,10 @@ def hxtool_upgrade():
 
 #Run upgrade code before everything else
 hxtool_upgrade()
-
+hxtool_vars.app_instance_path = app.root_path
+	
 if __name__ == "__main__":
 	hxtool_global.initialize()
-	hxtool_global.app_instance_path = "."
 	
 	signal.signal(signal.SIGINT, sigint_handler)
 	
