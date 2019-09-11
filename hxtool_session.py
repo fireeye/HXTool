@@ -9,18 +9,18 @@ import hashlib
 import threading
 import datetime
 
-import hxtool_global
+import hxtool_logging
 from hx_lib import *
 from hxtool_scheduler import *
 
+logger = hxtool_logging.getLogger(__name__)
 
 class hxtool_session(CallbackDict, SessionMixin):
-	def __init__(self, app_secret, logger = hxtool_global.get_logger(__name__)):
-		def on_update(self):	
+	def __init__(self, app_secret):
+		def on_update(self):
 			if self.accessed == False:
 				self.modified = True
 			
-		self.logger = logger
 		self.secret = app_secret
 		self.id = None
 		self.new = True
@@ -30,11 +30,11 @@ class hxtool_session(CallbackDict, SessionMixin):
 		CallbackDict.__init__(self, on_update=on_update)
 		
 	def create(self):
-		self.id = str(hmac.new(self.secret, os.urandom(32), digestmod=hashlib.sha256).hexdigest())	
+		self.id = str(hmac.new(self.secret, os.urandom(32), digestmod=hashlib.sha256).hexdigest())
 		
 	def load(self, id, session_record):	
 		if session_record is not None:
-			self.logger.debug("Loading saved session data.")
+			logger.debug("Loading saved session data.")
 			# Set accessed to True for set/update so we don't loop into on_update()
 			self.accessed = True
 			# Explicitly set modified to False
@@ -45,8 +45,7 @@ class hxtool_session(CallbackDict, SessionMixin):
 	
 # expiration_delta is in minutes		
 class hxtool_session_interface(SessionInterface):
-	def __init__(self, app, logger = hxtool_global.get_logger(__name__), expiration_delta=30):
-		self.logger = logger
+	def __init__(self, app, expiration_delta=30):
 		self.session_cache = {}
 		self.expiration_delta = expiration_delta
 		
@@ -63,7 +62,7 @@ class hxtool_session_interface(SessionInterface):
 		return datetime.datetime.utcnow() + delta
 		
 	def open_session(self, app, request):
-		session = hxtool_session(app.secret_key, self.logger)
+		session = hxtool_session(app.secret_key)
 		
 		session_id = request.cookies.get(app.session_cookie_name)
 		if session_id:
@@ -72,10 +71,10 @@ class hxtool_session_interface(SessionInterface):
 				session_record = hxtool_global.hxtool_db.sessionGet(session_id)
 				if session_record is not None:
 					session.load(session_id, session_record)
-					self.logger.debug("We have an existing database session with id: {0}".format(session.id))
+					logger.debug("We have an existing database session with id: {0}".format(session.id))
 			else:
 				session = cached_session
-				self.logger.debug("We have an existing cached session with id: {0}".format(session.id))
+				logger.debug("We have an existing cached session with id: {0}".format(session.id))
 	
 		
 		return session
@@ -95,10 +94,10 @@ class hxtool_session_interface(SessionInterface):
 		if session.new:
 			session.create()
 			hxtool_global.hxtool_db.sessionCreate(session.id)
-			self.logger.debug("Created a new session with id: {0}".format(session.id))
+			logger.debug("Created a new session with id: {0}".format(session.id))
 			session.new = False
 			
-		self.logger.debug("Saving session with id: {0}".format(session.id))
+		logger.debug("Saving session with id: {0}".format(session.id))
 		hxtool_global.hxtool_db.sessionUpdate(session.id, session)
 		session.modified = False
 		
@@ -110,15 +109,15 @@ class hxtool_session_interface(SessionInterface):
 		response.set_cookie(app.session_cookie_name, session.id, expires=self.get_expiration_time(app, session), path=cookie_path, httponly=http_only, secure=secure, domain=cookie_domain)	
 
 	def delete_session(self, app, session_id):
-		self.logger.debug("Deleting session with id: {0}".format(session_id))
+		logger.debug("Deleting session with id: {0}".format(session_id))
 		hxtool_global.hxtool_db.sessionDelete(session_id)
 		if session_id in self.session_cache:
 			del self.session_cache[session_id]
 			
 	def session_reaper(self, app):
-		self.logger.debug("session_reaper() called.")
+		logger.debug("session_reaper() called.")
 		for s in hxtool_global.hxtool_db.sessionList():
 			if not s['update_timestamp'] or (datetime.datetime.utcnow() - HXAPI.dt_from_str(s['update_timestamp'])) >= (app.permanent_session_lifetime or datetime.timedelta(minutes=self.expiration_delta)):
-				self.logger.debug("Deleting session id: {} with update_timestamp: {}".format(s['session_id'], s['update_timestamp']))
+				logger.debug("Deleting session id: {} with update_timestamp: {}".format(s['session_id'], s['update_timestamp']))
 				self.delete_session(app, s['session_id'])
 		return True
