@@ -35,7 +35,10 @@ except ImportError:
 	exit(1)
 	
 # hx_tool imports
-import hxtool_global
+import hxtool_logging
+hxtool_logging.setLoggerClass()
+
+import hxtool_vars
 from hx_lib import *
 from hxtool_util import *
 from hxtool_formatting import *
