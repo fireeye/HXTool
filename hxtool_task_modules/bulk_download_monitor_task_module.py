@@ -54,6 +54,18 @@ class bulk_download_monitor_task_module(task_module):
 				if bulk_download_job['stopped'] == False:
 					hx_api_object = self.get_task_api_object()
 					if hx_api_object:
+						(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(bulk_download_job['bulk_acquisition_id'])
+						if ret:
+							if response_data['data']['state'] != 'RUNNING':
+								self.logger.error("The bulk acquisition job {} is not in a running state. Controller state: {}".format(bulk_download_job['bulk_acquisition_id'], response_data['data']['state']))
+								hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_job['bulk_acquisition_id'], stopped=True)
+								self.parent_task.stop()
+								return(ret, result)
+						else:
+							self.logger.error("Failed to get bulk acquisition job status for ID {}".format(bulk_download_job['bulk_acquisition_id']))
+							self.parent_task.stop()
+							return(ret, result)
+						
 						(ret, response_code, response_data) = hx_api_object.restListBulkHosts(bulk_download_job['bulk_acquisition_id'], filter_term = {'state' : 'COMPLETE'})
 						if ret:
 							for bulk_host in response_data['data']['entries']:
