@@ -495,12 +495,14 @@ def app_init(debug = False):
 	# Initialize configured log handlers
 	for log_handler in hxtool_global.hxtool_config.log_handlers():
 		logger.addHandler(log_handler)
-	
-	
+
 	
 	# Init DB
 	# Disable the write cache altogether - too many issues reported with it enabled.
-	hxtool_global.hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), write_cache_size = 0)
+	hxtool_global.hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), 
+										apicache = hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False),
+										apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
+										write_cache_size = 0)
 
 	# Enable X15 integration if config options are present
 	if hxtool_global.hxtool_config['x15']:

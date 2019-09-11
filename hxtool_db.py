@@ -13,6 +13,7 @@ except ImportError:
 	print("hxtool_db requires the 'tinydb' module, please install it.")
 	exit(1)
 	
+
 import hxtool_vars
 import hxtool_logging
 from hx_lib import HXAPI
@@ -20,7 +21,7 @@ from hx_lib import HXAPI
 logger = hxtool_logging.getLogger(__name__)
 
 class hxtool_db:
-	def __init__(self, db_file, write_cache_size = 10):
+	def __init__(self, db_file, apicache = False, apicache_refresh_interval = None, write_cache_size = 10):
 		# If we can't open the DB file, rename the existing one
 		try:
 			CachingMiddleware.WRITE_CACHE_SIZE = write_cache_size
@@ -29,21 +30,12 @@ class hxtool_db:
 			logger.error("%s is not a TinyDB formatted database. Please move or rename this file before starting HXTool.", db_file)
 			exit(1)
 			
-		self._lock = threading.Lock()
+		self._lock = Lock()
 		self.check_schema()
 
-		# Check for the existance of APICache
-		try:
-			if hxtool_global.hxtool_config['apicache']['enabled']:
-				self.apicache = True
-				if 'refresh_interval' in hxtool_global.hxtool_config['apicache'].keys():
-					self.apicache_refresh_interval = hxtool_global.hxtool_config['apicache']['refresh_interval']
-				else:
-					self.apicache = False
-		except TypeError:
-			self.apicache = False
+		self.apicache = apicache
+		self.apicache_refresh_interval = apicache_refresh_interval
 
-		
 	def close(self):
 		if self._db is not None:
 			self._db.close()
@@ -562,7 +554,7 @@ class hxtool_db:
 					return False
 				else:
 					t = datetime.datetime.now() - datetime.datetime.strptime(r['update_timestamp'], "%Y-%m-%d %H:%M:%S")
-					if t.seconds > self.apicache_refresh_interval:
+					if self.apicache_refresh_interval is not None and t.seconds > self.apicache_refresh_interval:
 						#print("{} - Cache Miss (dirty). Last updated: {}".format(cacheType, r['update_timestamp']))
 						return False
 					else:
