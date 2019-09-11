@@ -635,7 +635,7 @@ if __name__ == "__main__":
 																							hxtool_global.hxtool_config['network']['port']))
 	if hxtool_global.hxtool_config['network']['ssl'] == "enabled":
 		app.config['SESSION_COOKIE_SECURE'] = True
-		context = (hxtool_global.hxtool_config['ssl']['cert'], hxtool_global.hxtool_config['ssl']['key'])
+		context = (combine_app_path(hxtool_vars.data_path, hxtool_global.hxtool_config['ssl']['cert']), combine_app_path(hxtool_vars.data_path, hxtool_global.hxtool_config['ssl']['key']))
 		app.run(host=hxtool_global.hxtool_config['network']['listen_address'], 
 				port=hxtool_global.hxtool_config['network']['port'], 
 				ssl_context=context, 

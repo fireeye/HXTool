@@ -15,8 +15,8 @@
 		"session_timeout": 30
 	},
 	"ssl": {
-		"cert": "data/hxtool.crt",
-		"key": "data/hxtool.key"
+		"cert": "hxtool.crt",
+		"key": "hxtool.key"
 	},
 	"background_processor": {
 		"poll_interval": 30,
