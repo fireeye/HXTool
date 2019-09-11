@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import threading
+from threading import Lock
 import datetime
-import logging
-
-import hxtool_global
-from hxtool_util import *
-from hx_lib import *
 
 try:
 	import tinydb
@@ -17,23 +12,25 @@ try:
 except ImportError:
 	print("hxtool_db requires the 'tinydb' module, please install it.")
 	exit(1)
+	
+import hxtool_vars
+import hxtool_logging
+from hx_lib import HXAPI
 
-from hx_lib import *
+logger = hxtool_logging.getLogger(__name__)
 
 class hxtool_db:
-	def __init__(self, db_file, logger = hxtool_global.get_logger(__name__), write_cache_size = 10):
-		self.logger = logger
-		# If we can't open the DB file, rename the existing one
+	def __init__(self, db_file, write_cache_size = 10):
 		try:
 			CachingMiddleware.WRITE_CACHE_SIZE = write_cache_size
 			self._db = tinydb.TinyDB(db_file, storage=CachingMiddleware(JSONStorage))
 		except ValueError:
-			self.logger.error("%s is not a TinyDB formatted database. Please move or rename this file before starting HXTool.", db_file)
+			logger.error("%s is not a TinyDB formatted database. Please move or rename this file before starting HXTool.", db_file)
 			exit(1)
 			
-		self._lock = threading.Lock()
+		self._lock = Lock()
 		self.check_schema()
-		
+	
 	def close(self):
 		if self._db is not None:
 			self._db.close()
@@ -49,15 +46,15 @@ class hxtool_db:
 			if current_schema_version:
 				current_schema_version = int(current_schema_version['schema_version'])
 		if not current_schema_version:
-			self.logger.warning("The current HXTool database has no schema version set, a DB schema upgrade may be required.")
+			logger.warning("The current HXTool database has no schema version set, a DB schema upgrade may be required.")
 			if self.upgrade_schema():
-				self.logger.info("Database schema upgraded successfully.")
-				self._db.table('schema_version').insert({'schema_version' : hxtool_global.hxtool_schema_version})
-		elif current_schema_version < hxtool_global.hxtool_schema_version:
-			self.logger.warning("The current HXTool database has a schema version: {} that is older than the current version of: {}, a DB schema upgrade may be required.".format(current_schema_version, hxtool_global.hxtool_schema_version))
+				logger.info("Database schema upgraded successfully.")
+				self._db.table('schema_version').insert({'schema_version' : hxtool_vars.hxtool_schema_version})
+		elif current_schema_version < hxtool_vars.hxtool_schema_version:
+			logger.warning("The current HXTool database has a schema version: {} that is older than the current version of: {}, a DB schema upgrade may be required.".format(current_schema_version, hxtool_global.hxtool_schema_version))
 			if self.upgrade_schema():
-				self.logger.info("Database schema upgraded successfully.")
-				self._db.table('schema_version').update({'schema_version' : hxtool_global.hxtool_schema_version}, eids = [1])
+				logger.info("Database schema upgraded successfully.")
+				self._db.table('schema_version').update({'schema_version' : hxtool_vars.hxtool_schema_version}, eids = [1])
 		
 	def upgrade_schema(self):
 		try:
