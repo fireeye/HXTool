@@ -8,7 +8,6 @@ import threading
 import datetime
 import re
 import colorsys
-import logging
 import traceback
 
 try:
@@ -26,8 +25,11 @@ except ImportError:
 	print("hxtool requires the 'pycryptodome' module, please install it.")
 	exit(1)
 
-import hxtool_global
-from hx_lib import *
+import hxtool_logging
+import hxtool_vars
+from hx_lib import HXAPI
+
+logger = hxtool_logging.getLogger(__name__)
 
 def get_N_HexCol(N=5):
 	HSV_tuples = [(x * 1.0 / N, 0.7, 0.7) for x in range(N)]
@@ -50,7 +52,7 @@ def valid_session_required(f):
 				session['ht_api_object'] = o.serialize()
 				return ret	
 			else:
-				hxtool_global.get_logger().warn("The HX API token for the current session has expired, redirecting to the login page.")
+				logger.warn("The HX API token for the current session has expired, redirecting to the login page.")
 		return ret
 	return is_session_valid
 	
@@ -119,7 +121,7 @@ def download_directory_base():
 		
 def combine_app_path(path, *paths):
 	if not os.path.isabs(path):
-		return os.path.join(hxtool_global.app_instance_path, path, *paths)
+		return os.path.join(hxtool_vars.app_instance_path, path, *paths)
 	else:
 		return path
 		
@@ -200,7 +202,7 @@ class TemporaryFileLock(object):
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.release()	
 	
-from hxtool_scheduler import hxtool_scheduler_task
+#from hxtool_scheduler import hxtool_scheduler_task
 from hxtool_task_modules import *
 
 def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hxtool_host_list_id = None, start_time = None, schedule = None, comment = "HXTool Bulk Acquisition", download = True, task_profile = None, skip_base64 = False):

@@ -6,8 +6,10 @@ import logging
 from os import path
 import sys, logging, logging.handlers, socket
 
-import hxtool_global
-from hxtool_util import *
+import hxtool_logging
+from hxtool_util import combine_app_path
+
+logger = hxtool_logging.getLogger(__name__)
 
 class hxtool_config:
 	"""
@@ -51,25 +53,24 @@ class hxtool_config:
 			'critical' : logging.CRITICAL
 		}
 	
-	def __init__(self, config_file, logger = hxtool_global.get_logger(__name__)):
-		self.logger = logger
+	def __init__(self, config_file):
 		
-		self.logger.info('Reading configuration file %s', config_file)
+		logger.info('Reading configuration file %s', config_file)
 		if path.isfile(config_file):
 			with open(config_file, 'r') as config_file_handle:
 				self._config = json.load(config_file_handle)
-				self.logger.info('Checking configuration file %s', config_file)
+				logger.info('Checking configuration file %s', config_file)
 				if not {'log_handlers', 'network', 'ssl', 'background_processor'} <= set(self._config.keys()):
 					raise ValueError('Configuration file is missing key elements!')
 				else:
-					self.logger.info('Configuration file %s is OK.', config_file)
+					logger.info('Configuration file %s is OK.', config_file)
 				
 				if 'proxies' in self._config['network']:
 					if not {'http', 'https'} <= set(self._config['network']['proxies'].keys()):
-						self.logger.warning("Ignoring invalid proxy configuration! Please see http://docs.python-requests.org/en/master/user/advanced/")
+						logger.warning("Ignoring invalid proxy configuration! Please see http://docs.python-requests.org/en/master/user/advanced/")
 						del self._config['network']['proxies']
 		else:
-			self.logger.warning('Unable to open config file: %s, loading default config.', config_file)
+			logger.warning('Unable to open config file: %s, loading default config.', config_file)
 			self._config = self.DEFAULT_CONFIG
 			
 	def __getitem__(self, key, default = None):
@@ -78,6 +79,13 @@ class hxtool_config:
 			v = default
 		return v
 		
+	def get_child_item(self, parent_key, child_key, default = None):
+		try:
+			if self[parent_key] is not None:
+				return self[parent_key].get(child_key, default)
+		except TypeError:
+			return default
+			
 	def get_config(self):
 		return self._config
 			

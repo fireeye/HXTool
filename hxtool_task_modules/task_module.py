@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import hxtool_logging
 import hxtool_global
 from hx_lib import *
 from hx_audit import *
@@ -9,7 +10,7 @@ from hxtool_util import *
 class task_module(object):
 	def __init__(self, parent_task):
 		self.parent_task = parent_task
-		self.logger = hxtool_global.get_logger(__name__)
+		self.logger = hxtool_logging.getLogger(__name__)
 		self.enabled = True
 	
 	def get_task_api_object(self):

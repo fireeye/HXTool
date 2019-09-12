@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import hxtool_logging
 import hxtool_global
 from hx_lib import *
 from hxtool_scheduler import *
 from hxtool_db import *
 
 class hxtool_api_cache:
-	def __init__(self, hx_api_object, profile_id, fetcher_interval, updater_interval, objects_per_poll, max_refresh_per_run, refresh_interval, logger = hxtool_global.get_logger(__name__)):
-		self.logger = logger
+	def __init__(self, hx_api_object, profile_id, fetcher_interval, updater_interval, objects_per_poll, max_refresh_per_run, refresh_interval):
+		self.logger = hxtool_logging.getLogger(__name__)
 		self.hx_api_object = hx_api_object
 		self.profile_id = profile_id
 		
