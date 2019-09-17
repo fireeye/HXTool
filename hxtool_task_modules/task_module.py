@@ -13,8 +13,14 @@ class task_module(object):
 		self.enabled = True
 	
 	def get_task_api_object(self):
-		return self.parent_task.scheduler.task_hx_api_sessions.get(self.parent_task.profile_id, None)
-	
+		s = self.parent_task.scheduler.task_hx_api_sessions.get(self.parent_task.profile_id, None)
+		if s is not None and s.restIsSessionValid():
+			return s
+		else:
+			self.logger.error("There is no valid background task API session for profile {}".format(self.parent_task.profile_id))
+			return None
+		
+		
 	def yield_audit_results(self, bulk_download_path, batch_mode, host_name, agent_id, bulk_acquisition_id = None):
 		hx_host = None
 		api_object = self.get_task_api_object()
