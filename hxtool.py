@@ -51,8 +51,7 @@ from hxtool_apicache import *
 # Import HXTool API Flask blueprint
 from hxtool_api import ht_api
 
-HXTOOL_API_VERSION = 1
-default_encoding = 'utf-8'
+default_encoding = hxtool_vars.default_encoding
 debug_mode = False
 
 # Setup logging
@@ -453,20 +452,12 @@ def logout():
 		
 ###########
 ### Main ##
-###########			
-def logout_task_sessions():
-	for profile_id in hxtool_global.task_hx_api_sessions:
-		hx_api_object = hxtool_global.task_hx_api_sessions[profile_id]
-		if hx_api_object:
-			hx_api_object.restLogout()
-			hx_api_object = None
-
-
+###########
 def sigint_handler(signum, frame):
 	logger.info("Caught SIGINT, exiting...")
 	if hxtool_global.hxtool_scheduler:
 		hxtool_global.hxtool_scheduler.stop()
-	logout_task_sessions()	
+		hxtool_global.hxtool_scheduler.logout_task_api_sessions()
 	if hxtool_global.hxtool_db:
 		hxtool_global.hxtool_db.close()
 	exit(0)	
@@ -513,37 +504,8 @@ def app_init(debug = False):
 	hxtool_global.hxtool_scheduler = hxtool_scheduler()
 	hxtool_global.hxtool_scheduler.start()
 	
-	app.task_api_key = 'Z\\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
-	
-	# Loop through background credentials and start the API sessions
-	profiles = hxtool_global.hxtool_db.profileList()
-	for profile in profiles:
-		task_api_credential = hxtool_global.hxtool_db.backgroundProcessorCredentialGet(profile['profile_id'])
-		if task_api_credential:
-			try:
-				salt = HXAPI.b64(task_api_credential['salt'], True)
-				iv = HXAPI.b64(task_api_credential['iv'], True)
-				key = crypt_pbkdf2_hmacsha256(salt, app.task_api_key)
-				decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
-				hxtool_global.task_hx_api_sessions[profile['profile_id']] = HXAPI(profile['hx_host'], 
-																					hx_port = profile['hx_port'], 
-																					proxies = hxtool_global.hxtool_config['network'].get('proxies'), 
-																					headers = hxtool_global.hxtool_config['headers'], 
-																					cookies = hxtool_global.hxtool_config['cookies'], 
-																					logger_name = hxtool_logging.getLoggerName(HXAPI.__name__), 
-																					default_encoding = default_encoding)				
-				api_login_task = hxtool_scheduler_task(profile['profile_id'], "Task API Login - {}".format(profile['hx_host']), immutable = True)
-				api_login_task.add_step(task_api_session_module, kwargs = {
-											'profile_id' : profile['profile_id'],
-											'username' : task_api_credential['hx_api_username'],
-											'password' : decrypted_background_password
-				})
-				decrypted_background_password = None
-				hxtool_global.hxtool_scheduler.add(api_login_task)
-			except UnicodeDecodeError:
-				logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
-		else:
-			logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+	# Initialize background API sessions
+	hxtool_global.hxtool_scheduler.initialize_task_api_sessions()
 	
 	# Load tasks from the database after the task API sessions have been initialized
 	hxtool_global.hxtool_scheduler.load_from_database()
@@ -555,10 +517,9 @@ def app_init(debug = False):
 	if hxtool_global.hxtool_config['apicache']:
 		if 'enabled' in hxtool_global.hxtool_config['apicache']:
 			if hxtool_global.hxtool_config['apicache']['enabled']:
-				hxtool_global.hxtool_apicache = {}
-				for profile in profiles:
-					if profile['profile_id'] in hxtool_global.task_hx_api_sessions:
-						hxtool_global.hxtool_apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['fetcher_interval'], hxtool_global.hxtool_config['apicache']['updater_interval'], hxtool_global.hxtool_config['apicache']['objects_per_poll'], hxtool_global.hxtool_config['apicache']['max_refresh_per_run'], hxtool_global.hxtool_config['apicache']['refresh_interval'])
+				for profile in hxtool_global.hxtool_db.profileList():
+					if profile['profile_id'] in hxtool_global.hxtool_scheduler.task_hx_api_sessions:
+						hxtool_global.apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['fetcher_interval'], hxtool_global.hxtool_config['apicache']['updater_interval'], hxtool_global.hxtool_config['apicache']['objects_per_poll'], hxtool_global.hxtool_config['apicache']['max_refresh_per_run'], hxtool_global.hxtool_config['apicache']['refresh_interval'])
 					else:
 						logger.info("No background credential for {}, not starting apicache".format(profile['profile_id']))
 

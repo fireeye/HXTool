@@ -43,13 +43,13 @@ class task_api_session_module(task_module):
 	
 	def run(self, profile_id = None, username = None, password = None):
 		ret = False
-		if profile_id in hxtool_global.task_hx_api_sessions:
-			(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[profile_id].restLogin(username, 
-																											password, 
-																											auto_renew_token = True)
+		if self.get_task_api_object() is not None:
+			(ret, response_code, response_data) = self.get_task_api_object().restLogin(username, password, auto_renew_token = True)
 			if ret:
-				self.logger.info("Successfully initialized task API session for host {} ({})".format(hxtool_global.task_hx_api_sessions[profile_id].hx_host, profile_id))
+				self.logger.info("Successfully initialized task API session for host {} ({})".format(self.get_task_api_object().hx_host, profile_id))
 			else:
-				self.logger.warn("Failed to initialize task API session for host {} ({})".format(hxtool_global.task_hx_api_sessions[profile_id].hx_host, profile_id))
-				del hxtool_global.task_hx_api_sessions[profile_id]
+				self.logger.warn("Failed to initialize task API session for host {} ({})".format(self.get_task_api_object().hx_host, profile_id))
+				# TODO: need a better way to handle this
+				del hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile_id]
+			password = None
 		return ret
