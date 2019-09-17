@@ -49,7 +49,6 @@ class task_api_session_module(task_module):
 				self.logger.info("Successfully initialized task API session for host {} ({})".format(self.get_task_api_object().hx_host, profile_id))
 			else:
 				self.logger.warn("Failed to initialize task API session for host {} ({})".format(self.get_task_api_object().hx_host, profile_id))
-				# TODO: need a better way to handle this
-				del hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile_id]
+				del self.parent_task.scheduler.task_hx_api_sessions[profile_id]
 			password = None
 		return ret

@@ -79,7 +79,7 @@ class hxtool_scheduler:
 		task.set_state(TASK_STATE_QUEUED)
 		logger.debug("Executing task with id: %s, name: %s.", task.task_id, task.name)
 		try:
-			ret = task.run(self.task_hx_api_sessions.get(task.profile_id, None))
+			ret = task.run(self)
 		except Exception as e:
 			logger.error(pretty_exceptions(e))
 			task.set_state(TASK_STATE_FAILED)
@@ -223,7 +223,7 @@ class hxtool_scheduler_task:
 		self.profile_name = "Unknown"
 		self.task_id = task_id or str(secure_uuid4())
 		self.parent_id = parent_id
-		self.task_api_session = None
+		self.scheduler = None
 		self.wait_for_parent = wait_for_parent
 		self.parent_complete = False
 		self.name = name
@@ -313,7 +313,7 @@ class hxtool_scheduler_task:
 		with self._lock:
 			self._stored = stored
 		
-	def run(self, task_api_session):
+	def run(self, scheduler):
 		self._stop_signal = False
 		self._defer_signal = False
 		self._pending_deletion_signal = False
@@ -322,9 +322,10 @@ class hxtool_scheduler_task:
 		if self.enabled:
 			
 			with self._lock:
-				self.task_api_session = task_api_session
 				
 				self.state = TASK_STATE_RUNNING
+				
+				self.scheduler = scheduler
 				
 				# Reset microseconds to keep from drifting too badly
 				self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
@@ -391,6 +392,8 @@ class hxtool_scheduler_task:
 					if not self._defer_signal:
 						# Reset parent_complete for recurring tasks
 						self.parent_complete = False
+			
+			self.scheduler = None
 		else:
 			self.set_state(TASK_STATE_STOPPED)
 		

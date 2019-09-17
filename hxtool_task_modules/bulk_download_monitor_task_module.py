@@ -152,7 +152,7 @@ class bulk_download_monitor_task_module(task_module):
 													download_and_process_task.add_step(x15_postgres_task_module, kwargs = task_module_args)
 									
 									download_and_process_task.stored_result = self.parent_task.stored_result
-									hxtool_global.hxtool_scheduler.add(download_and_process_task)
+									self.parent_task.scheduler.add(download_and_process_task)
 									
 							
 							self.parent_task.defer()

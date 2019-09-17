@@ -13,7 +13,7 @@ class task_module(object):
 		self.enabled = True
 	
 	def get_task_api_object(self):
-		return self.parent_task.task_api_session
+		return self.parent_task.scheduler.task_hx_api_sessions.get(self.parent_task.profile_id, None)
 	
 	def yield_audit_results(self, bulk_download_path, batch_mode, host_name, agent_id, bulk_acquisition_id = None):
 		hx_host = None
