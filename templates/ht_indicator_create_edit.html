@@ -287,6 +287,9 @@
 
 			// User clicked the submit button
 			$('#postbutton').click(function() {
+				if(getUrlParameter("clone") == "true") {
+					$('#myTitle').data('id', "new");
+				}
 
 				var data = {};
 

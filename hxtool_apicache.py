@@ -166,5 +166,5 @@ class hxtool_api_cache:
 							pass
 
 				hxtool_global.apicache['updater_last_entry'] = item
-				
+
 		return True
