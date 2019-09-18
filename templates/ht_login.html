@@ -170,7 +170,7 @@
 
 	{{ htPanelNoHeader.widgetFooter() }}
 
-	{% if fail %}
+	{% if fail is not none %}
 	<div id="hxtoolMessage" style='z-index: 100; display: block;' class="fe-modal" role="dialog" aria-modal="true">
 		<div class="fe-modal__dialog fe-modal__dialog--medium">
 			<div class="fe-modal__content">

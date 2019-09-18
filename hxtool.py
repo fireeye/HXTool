@@ -405,10 +405,11 @@ def channels(hx_api_object):
 #### Authentication
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+	fail = None
 	if (request.method == 'POST'):
 		if 'ht_user' in request.form:
 			ht_profile = hxtool_global.hxtool_db.profileGet(request.form['controllerProfileDropdown'])
-			if ht_profile:	
+			if ht_profile:
 
 				hx_api_object = HXAPI(ht_profile['hx_host'], 
 									hx_port = ht_profile['hx_port'], 
@@ -433,10 +434,10 @@ def login():
 						redirect_uri = "/"
 					return redirect(redirect_uri, code=302)
 				else:
-					return render_template('ht_login.html', fail=response_data)		
-		return render_template('ht_login.html', hx_default_port = HXAPI.HX_DEFAULT_PORT, fail = "Invalid profile id.", version = hxtool_vars.__version__)
-	else:	
-		return render_template('ht_login.html', hx_default_port = HXAPI.HX_DEFAULT_PORT, version = hxtool_vars.__version__)
+					fail = response_data
+			else:
+				fail = "Invalid profile ID."
+	return render_template('ht_login.html', hx_default_port = HXAPI.HX_DEFAULT_PORT, fail = fail, version = hxtool_vars.__version__)
 		
 @app.route('/logout', methods=['GET'])
 def logout():
