@@ -11,12 +11,15 @@ from multiprocessing import cpu_count, TimeoutError
 
 import hxtool_logging
 import hxtool_global
+from hxtool_vars import default_encoding
 from hx_lib import HXAPI
 from hxtool_util import *
 import hxtool_task_modules
 
 
 logger = hxtool_logging.getLogger(__name__)
+
+TASK_API_KEY = 'Z\\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
 
 TASK_STATE_SCHEDULED = 0
 TASK_STATE_QUEUED = 1
@@ -45,6 +48,7 @@ class hxtool_scheduler:
 		self._lock = threading.Lock()
 		self.task_queue = {}
 		self.history_queue = {}
+		self.task_hx_api_sessions = {}
 		self._poll_thread = threading.Thread(target = self._scan_task_queue, name = "PollThread")
 		self._stop_event = threading.Event()
 		# Allow for thread oversubscription based on CPU count
@@ -75,7 +79,7 @@ class hxtool_scheduler:
 		task.set_state(TASK_STATE_QUEUED)
 		logger.debug("Executing task with id: %s, name: %s.", task.task_id, task.name)
 		try:
-			ret = task.run()
+			ret = task.run(self)
 		except Exception as e:
 			logger.error(pretty_exceptions(e))
 			task.set_state(TASK_STATE_FAILED)
@@ -92,8 +96,45 @@ class hxtool_scheduler:
 		logger.debug("Closing the task thread pool.")
 		self.task_threads.close()
 		logger.debug("Waiting for running threads to terminate.")
-		self.task_threads.join()	
+		self.task_threads.join()
 		logger.debug("stop() exit.")
+		
+	def initialize_task_api_sessions(self):
+		# Loop through background credentials and start the API sessions
+		profiles = hxtool_global.hxtool_db.profileList()
+		for profile in profiles:
+			task_api_credential = hxtool_global.hxtool_db.backgroundProcessorCredentialGet(profile['profile_id'])
+			if task_api_credential:
+				try:
+					salt = HXAPI.b64(task_api_credential['salt'], True)
+					iv = HXAPI.b64(task_api_credential['iv'], True)
+					key = crypt_pbkdf2_hmacsha256(salt, TASK_API_KEY)
+					decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
+					self.task_hx_api_sessions[profile['profile_id']] = HXAPI(profile['hx_host'], 
+																						hx_port = profile['hx_port'], 
+																						proxies = hxtool_global.hxtool_config['network'].get('proxies'), 
+																						headers = hxtool_global.hxtool_config['headers'], 
+																						cookies = hxtool_global.hxtool_config['cookies'], 
+																						logger_name = hxtool_logging.getLoggerName(HXAPI.__name__), 
+																						default_encoding = default_encoding)
+					api_login_task = hxtool_scheduler_task(profile['profile_id'], "Task API Login - {}".format(profile['hx_host']), immutable = True)
+					api_login_task.add_step(hxtool_task_modules.task_api_session_module, kwargs = {
+												'profile_id' : profile['profile_id'],
+												'username' : task_api_credential['hx_api_username'],
+												'password' : decrypted_background_password
+					})
+					decrypted_background_password = None
+					self.add(api_login_task)
+				except UnicodeDecodeError:
+					logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+			else:
+				logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+	
+	def logout_task_api_sessions(self):
+		for hx_api_object in self.task_hx_api_sessions.values():
+			if hx_api_object is not None:
+				hx_api_object.restLogout()
+				hx_api_object = None
 	
 	def signal_child_tasks(self, parent_task_id, parent_task_state, parent_stored_result):
 		with self._lock:
@@ -106,7 +147,7 @@ class hxtool_scheduler:
 			task.set_state(TASK_STATE_SCHEDULED)
 			# Note: this must be within the lock otherwise we run into a nasty race condition where the task runs before the stored state is set -
 			# with the run lock taking precedence.
-			if should_store:	
+			if should_store:
 				task.store()
 		return task.task_id	
 		
@@ -182,6 +223,7 @@ class hxtool_scheduler_task:
 		self.profile_name = "Unknown"
 		self.task_id = task_id or str(secure_uuid4())
 		self.parent_id = parent_id
+		self.scheduler = None
 		self.wait_for_parent = wait_for_parent
 		self.parent_complete = False
 		self.name = name
@@ -237,7 +279,7 @@ class hxtool_scheduler_task:
 				minutes = self.schedule['minutes'],
 				seconds = self.schedule['seconds']
 			)
-
+			
 	def set_schedule(self, seconds = 0, minutes = 0, hours = 0, days = 0, weeks = 0):
 		with self._lock:
 			self.schedule = {
@@ -271,7 +313,7 @@ class hxtool_scheduler_task:
 		with self._lock:
 			self._stored = stored
 		
-	def run(self):
+	def run(self, scheduler):
 		self._stop_signal = False
 		self._defer_signal = False
 		self._pending_deletion_signal = False
@@ -282,6 +324,8 @@ class hxtool_scheduler_task:
 			with self._lock:
 				
 				self.state = TASK_STATE_RUNNING
+				
+				self.scheduler = scheduler
 				
 				# Reset microseconds to keep from drifting too badly
 				self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
@@ -348,6 +392,8 @@ class hxtool_scheduler_task:
 					if not self._defer_signal:
 						# Reset parent_complete for recurring tasks
 						self.parent_complete = False
+			
+			self.scheduler = None
 		else:
 			self.set_state(TASK_STATE_STOPPED)
 		

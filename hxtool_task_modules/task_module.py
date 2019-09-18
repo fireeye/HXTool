@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import hxtool_logging
-import hxtool_global
 from hx_lib import *
 from hx_audit import *
-from hxtool_util import *	
-	
+from hxtool_util import *
+
 class task_module(object):
 	def __init__(self, parent_task):
 		self.parent_task = parent_task
@@ -14,11 +13,14 @@ class task_module(object):
 		self.enabled = True
 	
 	def get_task_api_object(self):
-		if self.parent_task.profile_id in hxtool_global.task_hx_api_sessions:
-			if hxtool_global.task_hx_api_sessions[self.parent_task.profile_id].restIsSessionValid():
-				return hxtool_global.task_hx_api_sessions[self.parent_task.profile_id]
-		return None
-	
+		s = self.parent_task.scheduler.task_hx_api_sessions.get(self.parent_task.profile_id, None)
+		if s is not None and s.restIsSessionValid():
+			return s
+		else:
+			self.logger.error("There is no valid background task API session for profile {}".format(self.parent_task.profile_id))
+			return None
+		
+		
 	def yield_audit_results(self, bulk_download_path, batch_mode, host_name, agent_id, bulk_acquisition_id = None):
 		hx_host = None
 		api_object = self.get_task_api_object()

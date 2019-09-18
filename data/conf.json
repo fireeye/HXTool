@@ -23,7 +23,7 @@
 		"poll_threads": 4
 	},
 	"apicache": {
-		"enabled": true,
+		"enabled": false,
 		"fetcher_interval": 15,
 		"updater_interval": 15,
 		"objects_per_poll": 100,
