@@ -17,6 +17,7 @@ except ImportError:
 import hxtool_vars
 import hxtool_logging
 from hx_lib import HXAPI
+from hxtool_util import secure_uuid4
 
 logger = hxtool_logging.getLogger(__name__)
 
