@@ -355,31 +355,10 @@ def sysinfo(hx_api_object):
 @valid_session_required
 def settings(hx_api_object):
 	if request.method == 'POST':
-		# Generate a new IV - must be 16 bytes
-		iv = crypt_generate_random(16)
-		salt = crypt_generate_random(32)
-		key = crypt_pbkdf2_hmacsha256(salt, app.task_api_key)
-		encrypted_password = crypt_aes(key, iv, request.form['bgpass'])
-		out = hxtool_global.hxtool_db.backgroundProcessorCredentialCreate(session['ht_profileid'], request.form['bguser'], HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
+		hxtool_global.hxtool_scheduler.add_task_api_session(session['ht_profileid'], hx_api_object.hx_host, hx_api_object.hx_port, request.form.get('bguser'), request.form.get('bgpass'))
 		logger.info(format_activity_log(msg="background processing credentials action", action="set", profile=session['ht_profileid'], user=session['ht_user'], controller=session['hx_ip']))
-		hxtool_global.task_hx_api_sessions[session['ht_profileid']] = HXAPI(hx_api_object.hx_host, 
-																			hx_port = hx_api_object.hx_port, 
-																			proxies = hxtool_global.hxtool_config['network'].get('proxies'), 
-																			headers = hxtool_global.hxtool_config['headers'], 
-																			cookies = hxtool_global.hxtool_config['cookies'], 
-																			logger_name = hxtool_global.get_submodule_logger_name(HXAPI.__name__), 
-																			default_encoding = default_encoding)																
-		(ret, response_code, response_data) = hxtool_global.task_hx_api_sessions[session['ht_profileid']].restLogin(request.form['bguser'], request.form['bgpass'], auto_renew_token = True)
-		if ret:
-			logger.info("Successfully initialized task API session for profile {}".format(session['ht_profileid']))
-		else:
-			logger.error("Failed to initialized task API session for profile {}".format(session['ht_profileid']))
-	if request.args.get('unset'):
-		out = hxtool_global.hxtool_db.backgroundProcessorCredentialRemove(session['ht_profileid'])
-		hx_api_object = hxtool_global.task_hx_api_sessions.get(session['ht_profileid'])
-		if hx_api_object and hx_api_object.restIsSessionValid():
-			(ret, response_code, response_data) = hx_api_object.restLogout()
-			del hxtool_global.task_hx_api_sessions[session['ht_profileid']]
+	elif request.method == 'GET' and request.args.get('unset') == '1':
+		hxtool_global.hxtool_scheduler.remove_task_api_session(session['ht_profileid'])
 		logger.info(format_activity_log(msg="background processing credentials action", action="delete", user=session['ht_user'], controller=session['hx_ip']))
 		return redirect("/settings", code=302)
 	

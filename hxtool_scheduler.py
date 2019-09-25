@@ -86,6 +86,22 @@ class hxtool_scheduler:
 		finally:
 			return ret
 			
+	def _add_task_api_task(self, profile_id, hx_host, hx_port, username, password):
+		self.task_hx_api_sessions[profile_id] = HXAPI(hx_host,
+														hx_port = hx_port, 
+														proxies = hxtool_global.hxtool_config['network'].get('proxies'), 
+														headers = hxtool_global.hxtool_config['headers'], 
+														cookies = hxtool_global.hxtool_config['cookies'], 
+														logger_name = hxtool_logging.getLoggerName(HXAPI.__name__), 
+														default_encoding = default_encoding)
+		api_login_task = hxtool_scheduler_task(profile_id, "Task API Login - {}".format(hx_host), immutable = True)
+		api_login_task.add_step(hxtool_task_modules.task_api_session_module, kwargs = {
+									'profile_id' : profile_id,
+									'username' : username,
+									'password' : password
+		})
+		self.add(api_login_task)
+	
 	def start(self):
 		self._poll_thread.start()
 		logger.info("Task scheduler started with %s threads.", self.thread_count)
@@ -98,7 +114,7 @@ class hxtool_scheduler:
 		logger.debug("Waiting for running threads to terminate.")
 		self.task_threads.join()
 		logger.debug("stop() exit.")
-		
+	
 	def initialize_task_api_sessions(self):
 		# Loop through background credentials and start the API sessions
 		profiles = hxtool_global.hxtool_db.profileList()
@@ -110,25 +126,29 @@ class hxtool_scheduler:
 					iv = HXAPI.b64(task_api_credential['iv'], True)
 					key = crypt_pbkdf2_hmacsha256(salt, TASK_API_KEY)
 					decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
-					self.task_hx_api_sessions[profile['profile_id']] = HXAPI(profile['hx_host'], 
-																						hx_port = profile['hx_port'], 
-																						proxies = hxtool_global.hxtool_config['network'].get('proxies'), 
-																						headers = hxtool_global.hxtool_config['headers'], 
-																						cookies = hxtool_global.hxtool_config['cookies'], 
-																						logger_name = hxtool_logging.getLoggerName(HXAPI.__name__), 
-																						default_encoding = default_encoding)
-					api_login_task = hxtool_scheduler_task(profile['profile_id'], "Task API Login - {}".format(profile['hx_host']), immutable = True)
-					api_login_task.add_step(hxtool_task_modules.task_api_session_module, kwargs = {
-												'profile_id' : profile['profile_id'],
-												'username' : task_api_credential['hx_api_username'],
-												'password' : decrypted_background_password
-					})
+					self._add_task_api_task(profile['profile_id'], profile['hx_host'], profile['hx_port'], task_api_credential['hx_api_username'], decrypted_background_password) 
 					decrypted_background_password = None
-					self.add(api_login_task)
 				except UnicodeDecodeError:
 					logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 			else:
 				logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+	
+	def add_task_api_session(self, profile_id, hx_host, hx_port, username, password):
+		iv = crypt_generate_random(16)
+		salt = crypt_generate_random(32)
+		key = crypt_pbkdf2_hmacsha256(salt, TASK_API_KEY)
+		encrypted_password = crypt_aes(key, iv, password)
+		hxtool_global.hxtool_db.backgroundProcessorCredentialCreate(profile_id, username, HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
+		encrypted_password = None
+		self._add_task_api_task(profile_id, hx_host, hx_port, username, password)
+		password = None
+	
+	def remove_task_api_session(self, profile_id):
+		out = hxtool_global.hxtool_db.backgroundProcessorCredentialRemove(profile_id)
+		hx_api_object = self.task_hx_api_sessions.get(profile_id)
+		if hx_api_object and hx_api_object.restIsSessionValid():
+			(ret, response_code, response_data) = hx_api_object.restLogout()
+			del self.task_hx_api_sessions[profile_id]
 	
 	def logout_task_api_sessions(self):
 		for hx_api_object in self.task_hx_api_sessions.values():
