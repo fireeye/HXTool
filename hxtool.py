@@ -519,7 +519,7 @@ def hxtool_upgrade():
 				if r.strip().lower() != 'y':
 					continue
 			print("UPGRADE: Moving {} to the data folder".format(file))
-			os.rename(combine_app_path(file), combine_app_path(hxtool_global.data_path, file))
+			os.rename(combine_app_path(file), combine_app_path(hxtool_vars.data_path, file))
 
 #Run upgrade code before everything else
 hxtool_upgrade()
