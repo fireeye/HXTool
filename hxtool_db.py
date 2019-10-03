@@ -439,7 +439,7 @@ class hxtool_db:
 	
 	def scriptCreate(self, scriptname, script, username):
 		with self._lock:
-			return self._db.table('scripts').insert({'script_id' : str(uuid.uuid4()), 
+			return self._db.table('scripts').insert({'script_id' : str(secure_uuid4()), 
 														'scriptname': str(scriptname), 
 														'username' : str(username),
 														'script' : str(script), 
@@ -461,7 +461,7 @@ class hxtool_db:
 
 	def oiocCreate(self, iocname, ioc, username):
 		with self._lock:
-			return self._db.table('openioc').insert({'ioc_id' : str(uuid.uuid4()), 
+			return self._db.table('openioc').insert({'ioc_id' : str(secure_uuid4()), 
 														'iocname': str(iocname), 
 														'username' : str(username),
 														'ioc' : str(ioc), 
@@ -502,7 +502,7 @@ class hxtool_db:
 			
 	def taskProfileAdd(self, name, actor, params):
 		with self._lock:
-			return self._db.table('taskprofiles').insert({'taskprofile_id' : str(uuid.uuid4()), 
+			return self._db.table('taskprofiles').insert({'taskprofile_id' : str(secure_uuid4()), 
 														'name': str(name), 
 														'actor' : str(actor),
 														'params' : params, 
