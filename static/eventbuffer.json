@@ -52,7 +52,7 @@
     { "name": "path", "fullname": "regKeyEvent/path", "type": "text"},
     { "name": "hive", "fullname": "regKeyEvent/hive", "type": "text"},
     { "name": "keyPath", "fullname": "regKeyEvent/keyPath", "type": "text"},
-    { "name": "eventType", "fullname": "regKeyEvent/eventType", "type": "text"},
+    { "name": "eventType", "fullname": "regKeyEvent/eventType", "type": "integer"},
     { "name": "valueName", "fullname": "regKeyEvent/valueName", "type": "text"},
     { "name": "valueType", "fullname": "regKeyEvent/valueType", "type": "text"},
     { "name": "value", "fullname": "regKeyEvent/value", "type": "text"},
