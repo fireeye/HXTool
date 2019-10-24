@@ -36,6 +36,8 @@ def get_audit_records(audit_data, generator, item_name, fields=None, post_proces
 		pass
 	return items
 
+class EmptyAuditException(Exception): pass
+
 class AuditPackage:
 	def __init__(self, acquisition_package_path):
 		self.package = zipfile.ZipFile(acquisition_package_path)
@@ -129,6 +131,10 @@ class AuditPackage:
 							payload_item_tag = elem.tag
 							d['generator_item_name'] = payload_item_tag
 							
+							if payload_item_tag is None:
+								raise EmptyAuditException("The audit payload '{}' for generator '{}' is empty. Please manually inspect the audit package: {}".format(result['payload'], audit['generator'], self.package.filename)) 
+						
+							
 							for event, elem in xml_iterator:
 								if elem.tag == payload_item_tag and event == "end":
 									result_dict = self.xml_to_dict(elem)
@@ -161,7 +167,7 @@ class AuditPackage:
 								break
 								
 						if audit_item is None:
-							raise Exception("The audit payload '{}' for generator '{}' is empty. Please manually inspect the audit package: {}".format(result['payload'], audit['generator'], self.package.filename)) 
+							raise EmptyAuditException("The audit payload '{}' for generator '{}' is empty. Please manually inspect the audit package: {}".format(result['payload'], audit['generator'], self.package.filename)) 
 						
 						if batch_mode:
 							result_dict = {
