@@ -20,6 +20,22 @@ function datatables_parsePlatform(data) {
 	return(data);	
 }
 
+function datatables_parsePlatformRule(data) {
+	if (data == "win") {
+		data = '<i class="fab fa-windows fa-lg" style="margin-right: 2px; color: rgb(73, 110, 150);" aria-hidden="true"></i>';
+	}
+	else if (data == "osx") {
+		data = '<i class="fab fa-apple fa-lg" style="margin-right: 2px; color: rgb(127, 127, 127);" aria-hidden="true"></i>';
+	}
+	else if (data == "linux") {
+		data = '<i class="fab fa-linux fa-lg" style="margin-right: 2px;" aria-hidden="true"></i>';
+	}
+	else {
+		data = "N/A"
+	}
+	return(data);	
+}
+
 function host_parsePlatform(data) {
 	if (data == "win") {
 		data = '<i class="fab fa-windows fa-7x fa-fw" style="margin-right: 2px; color: rgb(73, 110, 150);" aria-hidden="true"></i>';
@@ -203,6 +219,33 @@ function datatables_parseContainmentState(data) {
 	else if (data == "contained") {
 		data = "<span class='htLayoutIconWrapper'>";
 		data += "<i class='fas fa-lock fa-md fa-fw' style='margin-right: 2px; color: #d11717;' aria-hidden='true'></i><b>Contained</b>";
+		data += "</span>";
+	}
+	else {
+		data = data;
+	}
+	return(data);
+}
+
+function datatables_parseRuleState(data) {
+	if (data == 0) {
+		data = "<span class='fe-info--hxtool-icon-warn'>";
+		data += "<i class='fas fa-plus fa-md fa-fw' style='margin-right: 2px; color: yellow;' aria-hidden='true'></i><b>new</b>";
+		data += "</span>";
+	}
+	else if (data == 1) {
+		data = "<span class='fe-info--hxtool-icon-ok'>";
+		data += "<i class='fas fa-check fa-md fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>approved</b>";
+		data += "</span>";
+	}
+	else if (data == 2) {
+		data = "<span class='fe-info--hxtool-icon-deny'>";
+		data += "<i class='fas fa-ban fa-md fa-fw' style='margin-right: 2px; color: red;' aria-hidden='true'></i><b>deny</b>";
+		data += "</span>";
+	}
+	else if (data == 3) {
+		data = "<span class='fe-info--hxtool-icon-ok'>";
+		data += "<i class='fas fa-check-square fa-md fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>submitted</b>";
 		data += "</span>";
 	}
 	else {

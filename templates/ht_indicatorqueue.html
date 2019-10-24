@@ -1,0 +1,285 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Indicator queue{% endblock %}
+{% block navlocation %}Indicator queue{% endblock %}
+{% block content %}
+
+<script>
+
+	function generateConditionList(myConditions, myId) {
+		$("#ruleViewPopup").find(".fe-modal__body").append("<div id='" + myId + "' class='clt'></div>");
+		var r = "";
+		r += "<ul><li>or<ul>";
+
+		$.each(myConditions, function(key, value) {
+			r += "<li>and<ul>";
+			$.each(value, function(ckey, cvalue) {
+				r += "<li>";
+				if (cvalue['negate'] == true) {
+					r += "<span style='color: #ea475b; font-weight: bold;'>not </span>";
+				}
+				r += "<strong>" + cvalue['token'] + "</strong> " + cvalue['operator'] + " " + cvalue['value'];
+				if (cvalue['preservecase'] == true) {
+					r += "<span style='color: #59dc90;'> (case sensitive)</span>";
+				}
+				r += "</li>";
+			});
+			r += "</ul></li>";
+		});
+
+		r += "</ul></li>";
+		$("#" + myId).html(r);
+	}
+
+
+	$(document).ready(function() {
+
+		hxtool_ajax_get_request("/api/v1/indicator_category/get_edit_policies", "", function(myCategoryPolicies) {
+			myEditPolicies = JSON.parse(myCategoryPolicies['api_response']);
+
+			ioc_datatable = $('#iocTable').DataTable( {
+				"ajax": "/api/v1/datatable_indicatorqueue",
+				"paging":   false,
+				"ordering": false,
+				"info":     false,
+				"searching": true,
+				"processing": false,
+				"dom": '<"hxtool_datatables_buttons"B>frtip',
+				"buttons": [
+					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+					{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
+				],
+				"columns": [
+					{ title: "", "data": "DT_RowId" },
+					{ title: "Name", "data": "name" },
+					{ title: "Method", "data": "method" },
+					{ title: "Category", "data": "category" },
+					{ title: "Created by", "data": "create_user" },
+					{ title: "Modified by", "data": "update_user" },
+					{ title: "Created", "data": "create_timestamp" },
+					{ title: "Modified", "data": "update_timestamp" },
+					{ title: "State", "data": "state" },
+					{ title: "Log", "data": "log" },
+					{ title: "Action", "data": "DT_RowId" }
+				],
+				"columnDefs": [	
+					{"className": "hxtool_table_cell_center", "targets": [2, 3, 4, 5, 6, 7, 8, 10]},
+					{
+					 "targets": 0,
+					 "width": "34px",
+					 render: function ( data, type, row, meta ) {
+					 	r = "&nbsp;";
+				 		r += "<input id='" + row.DT_RowId + "_check' type='checkbox' />";
+						 	return (r);
+					 }
+					},
+					{
+					 "targets": 1,
+					 render: function ( data, type, row, meta ) {
+					 	platforms = "";
+						for (var key in row.platform) {
+							platforms += datatables_parsePlatformRule(row.platform[key]);
+						}
+						
+					 	name = data;
+					 	r = "<button style='float: right; margin-right: 6px;' class='ruleAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view<i class='fe-icon--right fas fa-eye'></i></button>";
+					 	r += "<button style='float: right; margin-right: 6px;' class='ruleAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='edit' data-id='" + row.DT_RowId + "'>edit<i class='fe-icon--right fas fa-edit'></i></button>";
+					 	return (platforms + "&nbsp;" + name + r);
+					 }
+					},
+					{
+					 "targets": [6, 7],
+					 render: function ( data, type, row, meta ) {
+					 	return (datatables_Timestamp(data));
+					 }
+					},
+					{
+					 "targets": 8,
+					 render: function ( data, type, row, meta ) {
+					 	return (datatables_parseRuleState(data));
+					 	
+					 }
+					},
+					{
+					 "targets": 9,
+					 "width": "390px",
+					 render: function ( data, type, row, meta ) {
+					 	r = "";
+
+					 	if (typeof data == "object") {
+						 	if (data.length > 0) {
+							 	// Display last message in the array
+							 	r = data[data.length-1]['c_timestamp'] + ": " + data[data.length-1]['message'];
+
+							 	if (data.length > 2) {
+							 		r += "<button style='float: right; margin-right: 6px;' class='logExpand fe-btn fe-btn--sm fe-btn--hxtool-main'>...</button>";
+
+								 	r += "<div style='display: none;'>";
+								 	for (let i in data) {
+								 		if (i == data.length-1) {
+								 			break;
+								 		}
+								 		r += data[i]['c_timestamp'] + ": " + data[i]['message'] + "<br>";
+								 	}
+								 	r += "</div>";
+							 	}
+							 }
+						 }
+
+					 	return r
+					 }
+					},
+					{
+					 "targets": 10,
+					 "width": "370px",
+					 render: function ( data, type, row, meta ) {
+					 	r = "<button style='margin-right: 6px;' class='ruleAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='approve' data-id='" + row.DT_RowId + "'>approve<i class='fe-icon--right fas fa-check'></i></button>";
+					 	r += "<button style='margin-right: 6px;' class='ruleAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='deny' data-id='" + row.DT_RowId + "'>deny<i class='fe-icon--right fas fa-ban'></i></button>";
+					 	r += "<button style='margin-right: 6px;' class='ruleAction fe-btn fe-btn--sm fe-btn--hxtool-main-remove' data-type='remove' data-id='" + row.DT_RowId + "'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
+					 	if (row.state == 1) {
+					 		r += "<button style='margin-right: 6px;' class='ruleAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='submit' data-id='" + row.DT_RowId + "'>submit<i class='fe-icon--right fas fa-cogs'></i></button>";
+					 	}
+					 	else {
+					 		r += "<button style='margin-right: 6px;' class='fe-btn fe-btn--sm fe-btn--hxtool-main-disabled'>submit<i class='fe-icon--right fas fa-cogs'></i></button>";
+					 	}
+					 	return (r);
+					 }
+					}
+				]
+			});
+			$('div.dataTables_filter input').addClass("fe-input");
+
+		});
+
+		$("#iocTable").on("click", ".logExpand", function() {
+			$("#ruleLogPopup").find(".fe-modal__body").html($(this).next("div").html());
+			$("#ruleLogPopup").show();
+		});
+
+		$("#iocTable").on("click", ".ruleAction", function() {
+
+			if ($(this).data("type") == "approve") {
+				myrow = $(this).closest("tr");
+				hxtool_ajax_get_request("/api/v1/indicatorqueue/approve", "id=" + $(this).data("id"), function() {
+					ioc_datatable.ajax.reload();
+				});
+			}
+
+			if ($(this).data("type") == "deny") {
+				myrow = $(this).closest("tr");
+				hxtool_ajax_get_request("/api/v1/indicatorqueue/deny", "id=" + $(this).data("id"), function() {
+					ioc_datatable.ajax.reload();
+				});
+			}
+
+			if ($(this).data("type") == "remove") {
+				myrow = $(this).closest("tr");
+				hxtool_ajax_get_request("/api/v1/indicatorqueue/remove", "id=" + $(this).data("id"), function() {
+					myrow.fadeOut(200, function() {
+						ioc_datatable.row(myrow).remove().draw();
+					});
+				});
+			}
+			if ($(this).data("type") == "view") {
+				hxtool_ajax_get_request("/api/v1/indicatorqueue/view", "id=" + $(this).data("id"), function(myRule) {
+					
+					// First empty the container
+					$("#ruleViewPopup").find(".fe-modal__body").html("");
+
+					if (typeof myRule['presence'] != 'undefined') {
+						$("#ruleViewPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Conditions for detecting presence</h3>");
+						generateConditionList(myRule['presence'], "presenceList");
+					}
+
+					if (typeof myRule['execution'] != 'undefined') {
+						$("#ruleViewPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Conditions for detecting execution</h3>");
+						generateConditionList(myRule['execution'], "executionList");
+					}
+
+					$("#ruleViewPopup").show();
+				});
+			}
+		});
+
+		$("#ruleViewDismiss").click(function() {
+			$("#ruleViewPopup").hide();
+		});
+		
+		$("#ruleLogDismiss").click(function() {
+			$("#ruleLogPopup").hide();
+		});
+
+		$('#importButton').click(function(){ 
+			$('#ruleImportPopup').show();
+		});
+
+		$('#ruleImportCancel').click(function(){
+			$('#ruleImportPopup').hide();
+		});
+
+		$('#ruleImportSubmit').click(function(){
+			$('#ruleImportPopup').hide();
+
+			var data = new FormData();
+			$.each($('#ruleImportFile').prop('files'), function(key, value) {
+				data.append("ruleImport", value);
+			});
+
+			hxtool_ajax_post_request("/api/v1/indicatorqueue/import", data, function() {
+				ioc_datatable.ajax.reload();
+			});
+
+		});
+
+		$("#exportButton").click(function() {
+			myExports = {};
+			ioc_datatable.rows().eq(0).each( function ( index ) {
+				var row = ioc_datatable.row( index );
+
+				if ($("#" + row.data()['DT_RowId'] + "_check").is(":checked")) {
+					myuuid = row.data()['DT_RowId'];
+					myExports[myuuid] = {
+						"name": row.data()['display_name'],
+						"category": row.data()['category_name'],
+						"platforms": row.data()['platforms'],
+					};
+				}
+
+			});
+			location.href = "/api/v1/indicators/export?indicators=" + JSON.stringify(myExports);
+		});
+	
+	});
+</script>
+
+{{ htPanelNoHeader.widgetHeader(panelDisplay="inline-block") }}
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="exportButton"> Export selected <i style='color: #11a962;' class="fe-icon--right fas fa-file-export"></i></button>
+	<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="importButton"> Import <i style='color: #11a962;' class="fe-icon--right fas fa-file-import"></i></button>
+{{ htPanelNoHeader.widgetFooter() }}
+
+{{ htPanel.widgetHeader("Rule Queue", panelId="iocTableContainer", panelIcon="fa-table") }}
+	<table style='width: 100%;' id='iocTable' class='hxtool_table'></table>
+{{ htPanel.widgetFooter() }}
+
+{{ htModal.widgetHeader("View rule", modalId="ruleViewPopup", modalSize="large") }}
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="ruleViewDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
+{{ htModal.widgetHeader("View log", modalId="ruleLogPopup", modalSize="medium") }}
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="ruleLogDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
+{{ htModal.widgetFooter() }}
+
+
+{{ htModal.widgetHeader("Import indicators", modalId="ruleImportPopup", modalSize="small") }}
+	<h3 class='hxtool_typography_h3'>Upload hxtool exported rules</h3>
+	<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='ruleImportFile' name='ruleImportFile'>
+	<br>
+	<h5>HXTool rule format only! <br>(No STIX/YARA/OpenIOC formats)</h5>
+{{ htModal.widgetMiddle() }}
+	<button class="fe-btn fe-btn--md fe-btn--secondary" id="ruleImportCancel" aria-label="Cancel"><span> Cancel </span></button>
+	<button class="fe-btn fe-btn--md fe-btn--primary" id="ruleImportSubmit" aria-label="Submit"><span> Submit </span></button>
+{{ htModal.widgetFooter() }}
+
+{% endblock %}

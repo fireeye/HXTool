@@ -735,6 +735,49 @@ def hxtool_api_conditions_get(hx_api_object):
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
+###################
+# Indicator queue #
+###################
+@ht_api.route('/api/v{0}/indicatorqueue/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_indicatorqueue_remove(hx_api_object):
+	r = hxtool_global.hxtool_db.ruleRemove(request.args.get('id'))
+	app.logger.info(format_activity_log(msg="rule queue action", action="remove", name=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
+	return(app.response_class(response=json.dumps(r), status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/indicatorqueue/view'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_indicatorqueue_view(hx_api_object):
+	r = hxtool_global.hxtool_db.ruleGet(request.args.get('id'))
+	return(app.response_class(response=r, status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/indicatorqueue/approve'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_indicatorqueue_approve(hx_api_object):
+	r = hxtool_global.hxtool_db.ruleUpdateState(request.args.get('id'), 1)
+	r = hxtool_global.hxtool_db.ruleAddLog(request.args.get('id'), "User " + session['ht_user'] + " approved this request")
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/indicatorqueue/deny'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_indicatorqueue_deny(hx_api_object):
+	r = hxtool_global.hxtool_db.ruleUpdateState(request.args.get('id'), 2)
+	r = hxtool_global.hxtool_db.ruleAddLog(request.args.get('id'), "User " + session['ht_user'] + " denied this request")
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/indicatorqueue/import'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_indicatorqueue_import(hx_api_object):
+
+	fc = request.files['ruleImport']
+	iocs = json.loads(fc.read().decode(default_encoding))
+	
+	for iockey in iocs:
+		hxtool_global.hxtool_db.ruleAdd(session['ht_profileid'], iocs[iockey]['name'], iocs[iockey]['category'], iocs[iockey]['platforms'], session['ht_user'], HXAPI.b64(json.dumps(iocs[iockey])), "add")
+		
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
+
 ##############
 # Indicators #
 ##############
@@ -847,6 +890,47 @@ def hxtool_api_indicators_new(hx_api_object):
 	else:
 		chosenplatform = [mydata['platform']]
 
+	myrule = {}
+	myrule['name'] = mydata['name']
+	myrule['category'] = mydata['category']
+	myrule['platforms'] = chosenplatform
+	myrule['description'] = mydata['description']
+	myrule['presence'] = []
+	myrule['execution'] = []
+
+	for key, value in mydata.items():
+		if key not in ['name', 'category', 'platform', 'description']:
+			(iocguid, ioctype) = key.split("_")
+
+			if ioctype == "presence":
+				mycondition = []
+				for condition in value:
+					mycondition.append({
+						"token" : condition['group'] + "/" + condition['field'],
+						"operator" : condition['operator'],
+						"type" : condition['type'],
+						"value" : condition['data'],
+						"preservecase" : condition['case'],
+						"negate" : condition['negate']
+						})
+				myrule['presence'].append(mycondition)
+
+			elif ioctype == "execution":
+				mycondition = []
+				for condition in value:
+					mycondition.append({
+						"token" : condition['group'] + "/" + condition['field'],
+						"operator" : condition['operator'],
+						"type" : condition['type'],
+						"value" : condition['data'],
+						"preservecase" : condition['case'],
+						"negate" : condition['negate']
+						})
+				myrule['execution'].append(mycondition)
+
+	hxtool_global.hxtool_db.ruleAdd(session['ht_profileid'], mydata['name'], mydata['category'], chosenplatform, session['ht_user'], HXAPI.b64(json.dumps(myrule)), "add")
+
+	# REMOVE SOON
 	(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform, description=mydata['description'])
 	if ret:
 		ioc_guid = response_data['data']['_id']
@@ -1992,6 +2076,31 @@ def datatable_es(hx_api_object):
 		return(app.response_class(response=json.dumps(mysearches), status=200, mimetype='application/json'))
 	else:
 		return('HX API Call failed',500)
+
+@ht_api.route('/api/v{0}/datatable_indicatorqueue'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_indicatorqueue(hx_api_object):
+	indicators = hxtool_global.hxtool_db.ruleList(session['ht_profileid'])
+
+	myrules = {"data": []}
+
+	for indicator in indicators:
+		myrules['data'].append({
+			"DT_RowId" : indicator['id'],
+			"name" : indicator['name'],
+			"method" : indicator['method'],
+			"category" : indicator['category'],
+			"platform" : indicator['platform'],
+			"state" : indicator['state'],
+			"create_user" : indicator['create_user'],
+			"update_user" : indicator['update_user'],
+			"create_timestamp" : indicator['create_timestamp'],
+			"update_timestamp" : indicator['update_timestamp'],
+			"log" : indicator['log'],
+			"action" : indicator['id'],
+			})
+	return(app.response_class(response=json.dumps(myrules), status=200, mimetype='application/json'))
+
 
 @ht_api.route('/api/v{0}/datatable_bulk'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
