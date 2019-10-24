@@ -19,7 +19,7 @@
 		"key": "hxtool.key"
 	},
 	"scheduler": {
-		"threads" : null
+		"thread_count" : null
 	},
 	"apicache": {
 		"enabled": false,
