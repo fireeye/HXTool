@@ -81,7 +81,7 @@ class bulk_download_monitor_task_module(task_module):
 																	parent_id = self.parent_task.parent_id,
 																	wait_for_parent = False,
 																	start_time = self.parent_task.start_time,
-																	defer_interval = hxtool_global.hxtool_config['background_processor']['poll_interval']
+																	defer_interval = hxtool_global.hxtool_config['scheduler']['defer_interval']
 																)
 																
 									download_and_process_task.add_step(

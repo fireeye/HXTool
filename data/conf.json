@@ -19,7 +19,8 @@
 		"key": "hxtool.key"
 	},
 	"scheduler": {
-		"thread_count" : null
+		"thread_count" : null,
+		"defer_interval" : 30
 	},
 	"apicache": {
 		"enabled": false,

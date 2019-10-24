@@ -36,7 +36,8 @@ class hxtool_config:
 			'key' : 'hxtool.key'
 		},
 		'scheduler' : {
-			'thread_count' : None
+			'thread_count' : None,
+			'defer_interval' : 30
 		},
 		'headers' : {
 		},
