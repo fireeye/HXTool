@@ -196,6 +196,11 @@ def searchresult(hx_api_object):
 def indicators(hx_api_object):
 	return render_template('ht_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+@app.route('/indicatorqueue', methods=['GET'])
+@valid_session_required
+def indicatorsqueue(hx_api_object):
+	return render_template('ht_indicatorqueue.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
 @app.route('/categories', methods=['GET'])
 @valid_session_required
 def categories(hx_api_object):

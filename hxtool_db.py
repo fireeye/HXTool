@@ -3,6 +3,7 @@
 
 from threading import Lock
 import datetime
+import json
 
 try:
 	import tinydb
@@ -544,7 +545,65 @@ class hxtool_db:
 	def auditDelete(self, profile_id, audit_id):
 		with self._lock:
 			return self._db.table('audits').remove((tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['audit_id']))
-			
+
+
+	def ruleList(self, profile_id):
+		with self._lock:
+			return self._db.table('rules').search((tinydb.Query()['profile_id'] == profile_id))
+
+	def ruleGet(self, rule_id):
+		with self._lock:
+			r = self._db.table('rules').get((tinydb.Query()['id'] == rule_id))
+			if r:
+				return HXAPI.b64(r['rule'], decode = True, decode_string = True)
+			else:
+				return False
+
+	def ruleUpdateState(self, rule_id, state):
+		with self._lock:
+			r = self._db.table('rules').update({
+				 'state' : state
+				 }, (tinydb.Query()['id'] == rule_id))
+			return r
+			#return self._db.table('rules').update(statement, (tinydb.Query()['id'] == rule_id))
+
+	def ruleAddLog(self, rule_id, message):
+		with self._lock:
+			r = self._db.table('rules').get((tinydb.Query()['id'] == rule_id))
+			if 'log' in r.keys():
+				log = r['log']
+				log.append({ "c_timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "message": message })
+				rn = self._db.table('rules').update({
+					'log' : log
+					}, (tinydb.Query()['id'] == rule_id))
+				return True
+			else:
+				return False
+
+
+	def ruleRemove(self, rule_id):
+		with self._lock:
+			return self._db.table('rules').remove((tinydb.Query()['id'] == rule_id))
+
+	def ruleAdd(self, profile_id, name, category, platform, create_user, rule, method):
+		with self._lock:
+			r = self._db.table('rules').insert({
+				 'profile_id' : profile_id,
+				 'id' : str(secure_uuid4()),
+				 'state' : 0,
+				 'method' : method,
+				 'name' : name,
+				 'category' : category,
+				 'platform' : platform,
+				 'create_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'create_user' : create_user,
+				 'update_user' : create_user,
+				 'log' : [],
+				 'rule' : rule
+				 })
+			return r
+
 
 	def cacheGet(self, profile_id, cacheType, contentId):
 		with self._lock:
