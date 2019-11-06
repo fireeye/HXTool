@@ -504,7 +504,7 @@ def app_init(debug = False):
 			if hxtool_global.hxtool_config['apicache']['enabled']:
 				for profile in hxtool_global.hxtool_db.profileList():
 					if profile['profile_id'] in hxtool_global.hxtool_scheduler.task_hx_api_sessions:
-						hxtool_global.apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['fetcher_interval'], hxtool_global.hxtool_config['apicache']['updater_interval'], hxtool_global.hxtool_config['apicache']['objects_per_poll'], hxtool_global.hxtool_config['apicache']['max_refresh_per_run'], hxtool_global.hxtool_config['apicache']['refresh_interval'])
+						hxtool_global.apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['fetcher_interval'], hxtool_global.hxtool_config['apicache']['objects_per_poll'], hxtool_global.hxtool_config['apicache']['refresh_interval'])
 					else:
 						logger.info("No background credential for {}, not starting apicache".format(profile['profile_id']))
 
