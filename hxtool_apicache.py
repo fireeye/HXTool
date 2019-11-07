@@ -80,13 +80,13 @@ class hxtool_api_cache:
 								t = datetime.datetime.now() - datetime.datetime.strptime(myCache[host['_id']], "%Y-%m-%d %H:%M:%S")
 								if t.seconds > self.refresh_interval:
 									hxtool_global.hxtool_db.cacheUpdate(self.profile_id, "host", host['_id'], host)
-									self.logger.debug("{}: Host record updated: {}".format(self.profile_id, host['_id']))
+									self.logger.info("{}: Host record updated: {}".format(self.profile_id, host['_id']))
 
 									# For hosts, we also update sysinfo
 									(ret, response_code, response_data) = self.hx_api_object.restGetHostSysinfo(host['_id'])
 									if ret:
 										hxtool_global.hxtool_db.cacheUpdate(self.profile_id, "sysinfo", host['_id'], response_data['data'])
-										self.logger.debug("{}: Host sysinfo record updated: {}".format(self.profile_id, host['_id']))
+										self.logger.info("{}: Host sysinfo record updated: {}".format(self.profile_id, host['_id']))
 							else:
 								# No record exists, create a new entry
 								hxtool_global.hxtool_db.cacheAdd(self.profile_id, objectType, host)

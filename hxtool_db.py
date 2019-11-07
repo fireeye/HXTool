@@ -656,6 +656,7 @@ class hxtool_db:
 				 'contentId' : data['_id'],
 				 'create_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'dirty' : False,
 				 'data' : data
 				 })
 			return r
@@ -668,6 +669,7 @@ class hxtool_db:
 				 'contentId' : contentId,
 				 'create_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 				 'update_timestamp' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+				 'dirty' : False,
 				 'data' : data
 				 })
 			return r
