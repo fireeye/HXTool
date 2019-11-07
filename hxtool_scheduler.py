@@ -52,7 +52,7 @@ class hxtool_scheduler:
 		self._poll_thread = threading.Thread(target = self._scan_task_queue, name = "PollThread")
 		self._stop_event = threading.Event()
 		# Allow for thread oversubscription based on CPU count
-		self.thread_count = thread_count or (cpu_count() * 4)
+		self.thread_count = thread_count or (cpu_count() + 1)
 		self.task_threads = ThreadPool(self.thread_count)
 		logger.info("Task scheduler initialized.")
 

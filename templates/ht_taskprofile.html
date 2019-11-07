@@ -75,7 +75,8 @@
 					myTasks['params'].push({
 						"module": myTaskType,
 						"helix_url": $("#" + myTaskGuid + "_helix_url").val(),
-						"helix_apikey": $("#" + myTaskGuid + "_helix_apikey").val()
+						"helix_apikey": $("#" + myTaskGuid + "_helix_apikey").val(),
+						"eventmode": $("#" + myTaskGuid + "_helix_eventmode").data("id")
 					});
 				}
 				else if (myTaskType == "x15") {
@@ -161,6 +162,8 @@
 				$("#helix_" + myguid).append("<br>");
 				$("#helix_" + myguid).append("<b>API URL</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_helix_url' type='text'><br>");
 				$("#helix_" + myguid).append("<b>API KEY</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_helix_apikey' type='text'><br>");
+				$("#helix_" + myguid).append("<b>Event mode</b><br>");
+				$("#helix_" + myguid).append(generateDropDown("per-event", myguid + "_helix_eventmode", "per-event", entries=myEventModes, elementAdditionalClass=false, elementLabel=false));
 				$("#helix_" + myguid).append("<br>");
 			}
 			if(mymodule == 5) {

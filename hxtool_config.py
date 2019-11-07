@@ -35,9 +35,9 @@ class hxtool_config:
 			'cert' : 'hxtool.crt',
 			'key' : 'hxtool.key'
 		},
-		'background_processor' : {
-			'poll_interval' : 30,
-			'poll_threads'	: 4,
+		'scheduler' : {
+			'thread_count' : None,
+			'defer_interval' : 30
 		},
 		'headers' : {
 		},
@@ -60,7 +60,7 @@ class hxtool_config:
 			with open(config_file, 'r') as config_file_handle:
 				self._config = json.load(config_file_handle)
 				logger.info('Checking configuration file %s', config_file)
-				if not {'log_handlers', 'network', 'ssl', 'background_processor'} <= set(self._config.keys()):
+				if not {'log_handlers', 'network', 'ssl', 'scheduler'} <= set(self._config.keys()):
 					raise ValueError('Configuration file is missing key elements!')
 				else:
 					logger.info('Configuration file %s is OK.', config_file)

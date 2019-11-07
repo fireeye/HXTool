@@ -486,7 +486,7 @@ def app_init(debug = False):
 		hxtool_global.hxtool_x15_object = hxtool_x15()
 	
 	# Initialize the scheduler
-	hxtool_global.hxtool_scheduler = hxtool_scheduler(thread_count = 8)
+	hxtool_global.hxtool_scheduler = hxtool_scheduler(hxtool_global.hxtool_config['scheduler']['thread_count'])
 	hxtool_global.hxtool_scheduler.start()
 	
 	# Initialize background API sessions

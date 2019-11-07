@@ -30,12 +30,15 @@ class task_module(object):
 		
 		with AuditPackage(bulk_download_path) as audit_package:
 			for audit in audit_package.audits:
-				for audit_object in audit_package.audit_to_dict(audit, host_name, agent_id = agent_id, batch_mode = batch_mode):
-					audit_object.update({
-						'hx_host' : hx_host,
-						'bulk_acquisition_id' : bulk_acquisition_id
-					})
-					yield audit_object
+				try:
+					for audit_object in audit_package.audit_to_dict(audit, host_name, agent_id = agent_id, batch_mode = batch_mode):
+						audit_object.update({
+							'hx_host' : hx_host,
+							'bulk_acquisition_id' : bulk_acquisition_id
+						})
+						yield audit_object
+				except EmptyAuditException as e:
+					self.logger.warning(e)
 			
 	# Input and output args are a list of dictionary objects containing the following five keys: name, type, required user_supplied, and description 
 	# these define the modules inputs and outputs, for example:

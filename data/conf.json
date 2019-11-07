@@ -18,9 +18,9 @@
 		"cert": "hxtool.crt",
 		"key": "hxtool.key"
 	},
-	"background_processor": {
-		"poll_interval": 30,
-		"poll_threads": 4
+	"scheduler": {
+		"thread_count" : null,
+		"defer_interval" : 30
 	},
 	"apicache": {
 		"enabled": true,
