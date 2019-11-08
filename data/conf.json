@@ -24,9 +24,34 @@
 	},
 	"apicache": {
 		"enabled": true,
-		"fetcher_interval": 15,
-		"objects_per_poll": 3,
-		"refresh_interval": 60
+		"types": ["host", "alert", "triage", "file", "live"],
+		"intervals": {
+			"host": {
+				"fetcher_interval": 60,
+				"objects_per_poll": 3,
+				"refresh_interval": 60
+			},
+			"alert": {
+				"fetcher_interval": 15,
+				"objects_per_poll": 300,
+				"refresh_interval": 15
+			},
+			"triage": {
+				"fetcher_interval": 10,
+				"objects_per_poll": 10,
+				"refresh_interval": 30
+			},
+			"file": {
+				"fetcher_interval": 10,
+				"objects_per_poll": 5,
+				"refresh_interval": 25
+			},
+			"live": {
+				"fetcher_interval": 10,
+				"objects_per_poll": 50,
+				"refresh_interval": 35
+			}
+		}
 	},
 	"headers": {},
 	"cookies": {}
