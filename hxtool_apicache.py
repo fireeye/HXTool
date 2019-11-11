@@ -4,9 +4,12 @@
 import hxtool_logging
 import hxtool_global
 import time
+from collections import deque
+
 from hx_lib import *
 from hxtool_scheduler import *
 from hxtool_db import *
+
 
 class hxtool_api_cache:
 	def __init__(self, hx_api_object, profile_id, intervals, objectTypes):
@@ -15,7 +18,7 @@ class hxtool_api_cache:
 		self.profile_id = profile_id
 
 		# TEMP: drop cache
-		hxtool_global.hxtool_db.cacheDrop(self.profile_id)
+		#hxtool_global.hxtool_db.cacheDrop(self.profile_id)
 
 		for objectType in objectTypes:
 			if objectType in intervals.keys():
@@ -33,49 +36,58 @@ class hxtool_api_cache:
 				hxtool_global.hxtool_scheduler.add(my_fetcher_task)
 				self.logger.info("Apicache {} fetcher started for profile: {}.".format(objectType, self.profile_id))
 
-		# Number of objects that can be fetched per second
-		#self.fetcher_capability = self.objects_per_poll // self.fetcher_interval
+		stats = {}
+		for k, v in intervals.items():
+			stats[k] = {"settings": v, "stats": {"records": 0, "timeline": deque([], maxlen=1000)}}
 
-		# Number of updater polls that can be made during the refresh_interval
-		#self.updater_capability_attempts = self.refresh_interval // self.updater_interval
+		hxtool_global.apicache = { "started" : datetime.datetime.now(), "types" : objectTypes, "data": stats }
 
-		# Number of records that can be updated within the refresh_interval
-		#self.updater_capability = self.updater_capability_attempts * self.max_refresh_per_run
-
-		# Tell hxtool_global about our stats
-		hxtool_global.apicache = {}
-		#hxtool_global.apicache['fetcher_capability'] = self.fetcher_capability
-		#hxtool_global.apicache['updater_capability'] = self.updater_capability
-		#hxtool_global.apicache['updater_capability_attempts'] = self.updater_capability_attempts
 
 	def apicache_processor(self, currOffset, objectType, records, myCache, refresh_interval):
 
+		s_start = datetime.datetime.now()
+		s_total = 0
+		s_update = 0
+		s_add = 0
+
 		for record in records:
 			
+			s_total += 1
 			currOffset += 1
 
 			if record['_id'] in myCache.keys():
 				t = datetime.datetime.now() - datetime.datetime.strptime(myCache[record['_id']], "%Y-%m-%d %H:%M:%S")
 				if t.seconds > refresh_interval:
 					hxtool_global.hxtool_db.cacheUpdate(self.profile_id, objectType, record['_id'], record)
-					self.logger.info("{}: {} record updated: {}".format(self.profile_id, objectType, record['_id']))
+					s_update += 1
+					self.logger.debug("{}: {} record updated: {}".format(self.profile_id, objectType, record['_id']))
 
 					# Special case, also get sysinfo for hosts
 					if objectType == "host":
 						(ret, response_code, response_data) = self.hx_api_object.restGetHostSysinfo(record['_id'])
 						if ret:
 							hxtool_global.hxtool_db.cacheUpdate(self.profile_id, "sysinfo", record['_id'], response_data['data'])
-							self.logger.info("{}: Host sysinfo record updated: {}".format(self.profile_id, record['_id']))
+							self.logger.debug("{}: Host sysinfo record updated: {}".format(self.profile_id, record['_id']))
 			else:
 				hxtool_global.hxtool_db.cacheAdd(self.profile_id, objectType, record)
-				self.logger.info("{}: New {} record added: {}".format(self.profile_id, objectType, record['_id']))
+				s_add += 1
+				self.logger.debug("{}: New {} record added: {}".format(self.profile_id, objectType, record['_id']))
 
 				# Special case, also get sysinfo for hosts
 				if objectType == "host":
 					(ret, response_code, response_data) = self.hx_api_object.restGetHostSysinfo(record['_id'])
 					if ret:
 						hxtool_global.hxtool_db.cacheAddById(self.profile_id, "sysinfo", record['_id'], response_data['data'])
-						self.logger.info("{}: New sysinfo record added: {}".format(self.profile_id, record['_id']))
+						self.logger.debug("{}: New sysinfo record added: {}".format(self.profile_id, record['_id']))
+
+		# Process stats
+		s_end = datetime.datetime.now()
+		myStats = {"timestamp": s_end, "processed": s_total, "updates": s_update, "additions": s_add, "duration": (s_end - s_start).total_seconds()}
+		hxtool_global.apicache['data'][objectType]['stats']['timeline'].append(myStats)
+
+		# Show log if we have updates or new records
+		if s_update is not 0 or s_add is not 0:
+			self.logger.info("{}: [{}] {} records updated, {} records added in {} seconds".format(self.profile_id, objectType, s_update, s_add, (s_end - s_start).total_seconds()))
 
 		return currOffset
 
