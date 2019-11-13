@@ -18,7 +18,7 @@ class hxtool_api_cache:
 		self.profile_id = profile_id
 
 		# TEMP: drop cache
-		#hxtool_global.hxtool_db.cacheDrop(self.profile_id)
+		hxtool_global.hxtool_db.cacheDrop(self.profile_id)
 
 		for objectType in objectTypes:
 			if objectType in intervals.keys():
@@ -40,8 +40,7 @@ class hxtool_api_cache:
 		for k, v in intervals.items():
 			stats[k] = {"settings": v, "stats": {"records": 0, "timeline": deque([], maxlen=1000)}}
 
-		hxtool_global.apicache = { "started" : datetime.datetime.now(), "types" : objectTypes, "data": stats }
-
+		hxtool_global.apicache = { "started" : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "types" : objectTypes, "data": stats }
 
 	def apicache_processor(self, currOffset, objectType, records, myCache, refresh_interval):
 
@@ -82,7 +81,8 @@ class hxtool_api_cache:
 
 		# Process stats
 		s_end = datetime.datetime.now()
-		myStats = {"timestamp": s_end, "processed": s_total, "updates": s_update, "additions": s_add, "duration": (s_end - s_start).total_seconds()}
+		myStats = {"timestamp": s_end.strftime("%Y-%m-%d %H:%M:%S"), "processed": s_total, "updates": s_update, "additions": s_add, "duration": (s_end - s_start).total_seconds()}
+		hxtool_global.apicache['data'][objectType]['stats']['records'] += s_total
 		hxtool_global.apicache['data'][objectType]['stats']['timeline'].append(myStats)
 
 		# Show log if we have updates or new records
