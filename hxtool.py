@@ -11,6 +11,7 @@
 ##################################################
 
 # Core python imports
+import ssl
 import base64
 import sys
 import logging
@@ -585,7 +586,13 @@ if __name__ == "__main__":
 																							hxtool_global.hxtool_config['network']['port']))
 	if hxtool_global.hxtool_config['network']['ssl'] == "enabled":
 		app.config['SESSION_COOKIE_SECURE'] = True
-		context = (combine_app_path(hxtool_vars.data_path, hxtool_global.hxtool_config['ssl']['cert']), combine_app_path(hxtool_vars.data_path, hxtool_global.hxtool_config['ssl']['key']))
+		context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+		context.check_hostname = False
+		context.verify_mode = ssl.CERT_NONE
+		context.options |= ssl.OP_NO_SSLv2
+		context.options |= ssl.OP_NO_SSLv3
+		context.options |= ssl.OP_NO_TLSv1
+		context.load_cert_chain(combine_app_path(hxtool_vars.data_path, hxtool_global.hxtool_config['ssl']['cert']), combine_app_path(hxtool_vars.data_path, hxtool_global.hxtool_config['ssl']['key']))
 		app.run(host=hxtool_global.hxtool_config['network']['listen_address'], 
 				port=hxtool_global.hxtool_config['network']['port'], 
 				ssl_context=context, 
