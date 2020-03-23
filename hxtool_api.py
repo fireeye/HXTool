@@ -1064,7 +1064,6 @@ def hxtool_api_stacking_stacktypes(hx_api_object):
 @ht_api.route('/api/v{0}/stacking/new'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
 def hxtool_api_stacking_new(hx_api_object):
-	#print(request.form)
 	stack_type = hxtool_data_models.stack_types.get(request.form['stack_type'])
 	if stack_type:
 		with open(combine_app_path('scripts', stack_type['script']), 'r') as f:

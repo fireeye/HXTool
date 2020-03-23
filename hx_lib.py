@@ -233,6 +233,8 @@ class HXAPI:
 					self.api_version = 3
 			elif self.hx_version[0] == 4:
 				self.api_version = 3
+			elif self.hx_version[0] == 5:
+				self.api_version = 3
 	
 	###################
 	## Generic GET
@@ -666,7 +668,7 @@ class HXAPI:
 			
 		if comment:
 			data['comment'] = comment
-	
+
 		request = self.build_request(self.build_api_route('acqs/bulk'), method = 'POST', data = json.dumps(data))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
