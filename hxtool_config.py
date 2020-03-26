@@ -66,7 +66,7 @@ class hxtool_config:
 					logger.info('Configuration file %s is OK.', config_file)
 				
 				if 'proxies' in self._config['network']:
-					if not {'http', 'https'} <= set(self._config['network']['proxies'].keys()):
+					if len(list(filter(lambda x: x == 'http' or x == 'https', self._config['network']['proxies']))) == 0:
 						logger.warning("Ignoring invalid proxy configuration! Please see http://docs.python-requests.org/en/master/user/advanced/")
 						del self._config['network']['proxies']
 		else:

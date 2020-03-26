@@ -45,7 +45,8 @@
     { "name": "dataAtLowestOffset", "fullname": "fileWriteEvent/dataAtLowestOffset", "type": "text"},
     { "name": "textAtLowestOffset", "fullname": "fileWriteEvent/textAtLowestOffset", "type": "text"},
     { "name": "closed", "fullname": "fileWriteEvent/closed", "type": "bool"},
-    { "name": "error", "fullname": "fileWriteEvent/error", "type": "text"}
+    { "name": "error", "fullname": "fileWriteEvent/error", "type": "text"},
+	{ "name": "username", "fullname": "fileWriteEvent/username", "type": "text"}
   ],
   "regKeyEvent": [
     { "name": "timestamp", "timestamp": "regKeyEvent/timestamp", "type": "text"},
