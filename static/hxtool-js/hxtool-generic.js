@@ -1,10 +1,10 @@
-function hxtool_ajax_post_request(endpoint, mydata, successCallback) {
+function hxtool_ajax_post_request(endpoint, mydata, successCallback, contentType=false) {
 	$.ajax
 	({
 		type: "POST",
 		url: endpoint,
 		dataType: 'json',
-		contentType: false,
+		contentType: contentType,
 		processData: false,
 		data: mydata,
 		success: successCallback,
