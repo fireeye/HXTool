@@ -224,7 +224,7 @@ def rtioc(hx_api_object):
 		categories = formatCategoriesSelect(response_data)
 
 		#(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ 'uri_name': uuid })
-		(ret, response_code, response_data) = hx_api_object.restGetUrl(url)
+		(ret, response_code, response_data) = hx_api_object.restGetUrl(url, include_params=True)
 		if ret:
 			iocname = response_data['data']['name']
 			myiocuri = response_data['data']['uri_name']
@@ -235,11 +235,10 @@ def rtioc(hx_api_object):
 			else:
 				platform = "all"
 
-			#(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, uuid, 'presence')
-			#(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, uuid, 'execution')
-			(ret, response_code, condition_class_presence) = hx_api_object.restGetUrl(url + "/conditions/presence")
-			(ret, response_code, condition_class_execution) = hx_api_object.restGetUrl(url + "/conditions/execution")
-
+		
+			(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, myiocuri, 'presence')
+			(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, myiocuri, 'execution')
+			
 			mypre = json.dumps(condition_class_presence['data']['entries'])
 			myexec = json.dumps(condition_class_execution['data']['entries'])
 
