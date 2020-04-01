@@ -183,13 +183,42 @@
 					myuuid = row.data()['DT_RowId'];
 					myExports[myuuid] = {
 						"name": row.data()['display_name'],
+						"uri_name": row.data()['uri_name'],
 						"category": row.data()['category_name'],
-						"platforms": row.data()['platforms'],
+						"platforms": row.data()['platforms']
 					};
 				}
 
 			});
-			location.href = "/api/v1/indicators/export?indicators=" + JSON.stringify(myExports);
+			$.ajax
+			({
+				type: 'POST',
+				url: '/api/v1/indicators/export',
+				contentType: 'application/json',
+				xhrFields: { responseType: 'blob' },
+				processData: false,
+				data: JSON.stringify(myExports),
+				success: function(data, status, xhr) {
+					var filename = "";
+					var disposition = xhr.getResponseHeader('Content-Disposition');
+					if (disposition && disposition.indexOf('attachment') !== -1) {
+						var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+						var matches = filenameRegex.exec(disposition);
+						if (matches != null && matches[1]) { 
+							filename = matches[1].replace(/['"]/g, '');
+						}
+					}
+					var blobUrl = URL.createObjectURL(new File([data], {'type' : xhr.getResponseHeader('Content-Type')}));
+					var downloadLink = document.createElement('a');
+					downloadLink.href = blobUrl;
+					downloadLink.target = '_blank';
+					downloadLink.download = filename;
+					downloadLink.click();
+					downloadLink.remove();
+					URL.revokeObjectURL(blobUrl);
+				},
+				error: hxtoolActionFail
+			})
 		});
 
 		$("#createButton").click(function() {
