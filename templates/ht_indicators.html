@@ -112,21 +112,21 @@
 
 		$("#iocTable").on("click", ".iocAction", function() {
 			if ($(this).data("type") == "edit") {
-				location.href = "/rtioc?indicator=" + $(this).data("url");
+				location.href = "/rtioc?indicator=" + encodeURIComponent($(this).data("url"));
 			}
 			if ($(this).data("type") == "clone") {
-				location.href = "/rtioc?indicator=" + $(this).data("url") + "&clone=true";
+				location.href = "/rtioc?indicator=" + encodeURIComponent($(this).data("url")) + "&clone=true";
 			}
 			if ($(this).data("type") == "remove") {
 				myrow = $(this).closest("tr");
-				hxtool_ajax_get_request("/api/v1/indicators/remove", "url=" + $(this).data("url"), function() {
+				hxtool_ajax_get_request("/api/v1/indicators/remove", "url=" + encodeURIComponent($(this).data("url")), function() {
 					myrow.fadeOut(200, function() {
 						ioc_datatable.row(myrow).remove().draw();
 					});
 				});
 			}
 			if ($(this).data("type") == "view") {
-				hxtool_ajax_get_request("/api/v1/indicators/get/conditions", "uuid=" + $(this).data("id") + "&url=" + $(this).data("url"), function(myConditionsResponse) {
+				hxtool_ajax_get_request("/api/v1/indicators/get/conditions", "uuid=" + $(this).data("id") + "&url=" + encodeURIComponent($(this).data("url")), function(myConditionsResponse) {
 					myConditions = JSON.parse(myConditionsResponse['api_response']);
 
 					// First empty the container
