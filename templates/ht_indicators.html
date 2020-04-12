@@ -112,21 +112,21 @@
 
 		$("#iocTable").on("click", ".iocAction", function() {
 			if ($(this).data("type") == "edit") {
-				location.href = "/rtioc?indicator=" + $(this).data("url");
+				location.href = "/rtioc?indicator=" + encodeURIComponent($(this).data("url"));
 			}
 			if ($(this).data("type") == "clone") {
-				location.href = "/rtioc?indicator=" + $(this).data("url") + "&clone=true";
+				location.href = "/rtioc?indicator=" + encodeURIComponent($(this).data("url")) + "&clone=true";
 			}
 			if ($(this).data("type") == "remove") {
 				myrow = $(this).closest("tr");
-				hxtool_ajax_get_request("/api/v1/indicators/remove", "url=" + $(this).data("url"), function() {
+				hxtool_ajax_get_request("/api/v1/indicators/remove", "url=" + encodeURIComponent($(this).data("url")), function() {
 					myrow.fadeOut(200, function() {
 						ioc_datatable.row(myrow).remove().draw();
 					});
 				});
 			}
 			if ($(this).data("type") == "view") {
-				hxtool_ajax_get_request("/api/v1/indicators/get/conditions", "uuid=" + $(this).data("id") + "&url=" + $(this).data("url"), function(myConditionsResponse) {
+				hxtool_ajax_get_request("/api/v1/indicators/get/conditions", "uuid=" + $(this).data("id") + "&url=" + encodeURIComponent($(this).data("url")), function(myConditionsResponse) {
 					myConditions = JSON.parse(myConditionsResponse['api_response']);
 
 					// First empty the container
@@ -183,13 +183,42 @@
 					myuuid = row.data()['DT_RowId'];
 					myExports[myuuid] = {
 						"name": row.data()['display_name'],
+						"uri_name": row.data()['uri_name'],
 						"category": row.data()['category_name'],
-						"platforms": row.data()['platforms'],
+						"platforms": row.data()['platforms']
 					};
 				}
 
 			});
-			location.href = "/api/v1/indicators/export?indicators=" + JSON.stringify(myExports);
+			$.ajax
+			({
+				type: 'POST',
+				url: '/api/v1/indicators/export',
+				contentType: 'application/json',
+				xhrFields: { responseType: 'blob' },
+				processData: false,
+				data: JSON.stringify(myExports),
+				success: function(data, status, xhr) {
+					var filename = "";
+					var disposition = xhr.getResponseHeader('Content-Disposition');
+					if (disposition && disposition.indexOf('attachment') !== -1) {
+						var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+						var matches = filenameRegex.exec(disposition);
+						if (matches != null && matches[1]) { 
+							filename = matches[1].replace(/['"]/g, '');
+						}
+					}
+					var blobUrl = URL.createObjectURL(new File([data], {'type' : xhr.getResponseHeader('Content-Type')}));
+					var downloadLink = document.createElement('a');
+					downloadLink.href = blobUrl;
+					downloadLink.target = '_blank';
+					downloadLink.download = filename;
+					downloadLink.click();
+					downloadLink.remove();
+					URL.revokeObjectURL(blobUrl);
+				},
+				error: hxtoolActionFail
+			})
 		});
 
 		$("#createButton").click(function() {
@@ -216,7 +245,7 @@
 
 {{ htModal.widgetHeader("Import indicators", modalId="ruleImportPopup", modalSize="small") }}
 	<h3 class='hxtool_typography_h3'>Upload hxtool exported rules</h3>
-	<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='ruleImportFile' name='ruleImportFile'>
+	<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='ruleImportFile' name='ruleImportFile' multiple>
 	<br>
 	<h5>HXTool rule format only! <br>(No STIX/YARA/OpenIOC formats)</h5>
 {{ htModal.widgetMiddle() }}
