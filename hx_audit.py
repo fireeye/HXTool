@@ -87,7 +87,8 @@ class AuditPackage:
 		if payload_name and payload_name not in self.package.namelist():
 			return None
 		elif generator:
-			payload_name = self.get_generator_result(generator)['payload']
+			g = self.get_generator_result(generator)
+			payload_name = g['payload'] if g is not None else None
 			if not payload_name:
 				return None
 			
