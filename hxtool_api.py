@@ -1091,9 +1091,9 @@ def hxtool_api_stacking_remove(hx_api_object):
 		bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
 		if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
 			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
-			hxtool_global.hxtool_db.bulkDownloadDelete(bulk_download_job.eid)
+			hxtool_global.hxtool_db.bulkDownloadDelete(bulk_download_job.doc_id)
 			
-		hxtool_global.hxtool_db.stackJobDelete(stack_job.eid)
+		hxtool_global.hxtool_db.stackJobDelete(stack_job.doc_id)
 		(r, rcode) = create_api_response(ret, response_code, response_data)
 		app.logger.info(format_activity_log(msg="stacking", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
@@ -1106,8 +1106,8 @@ def hxtool_api_stacking_stop(hx_api_object):
 		bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
 		if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
 			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
-			hxtool_global.hxtool_db.stackJobStop(stack_job_eid = stack_job.eid)
-			hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_job.eid, stopped = True)
+			hxtool_global.hxtool_db.stackJobStop(stack_job_eid = stack_job.doc_id)
+			hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_job.doc_id, stopped = True)
 
 			(r, rcode) = create_api_response(ret, response_code, response_data)
 			app.logger.info(format_activity_log(msg="stacking", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
@@ -1166,7 +1166,7 @@ def hxtool_api_acquisition_multi_file_listing_stop(hx_api_object):
 		bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(file_listing_job['bulk_download_eid'])
 		(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
 		if ret:
-			hxtool_global.hxtool_db.fileListingStop(file_listing_job.eid)
+			hxtool_global.hxtool_db.fileListingStop(file_listing_job.doc_id)
 			hxtool_global.hxtool_db.bulkDownloadUpdate(file_listing_job['bulk_download_eid'], stopped = True)
 			app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
@@ -1181,7 +1181,7 @@ def hxtool_api_acquisition_multi_file_listing_remove(hx_api_object):
 		if bulk_download_job.get('bulk_acquisition_id', None):
 			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
 		hxtool_global.hxtool_db.bulkDownloadDelete(file_listing_job['bulk_download_eid'])
-		hxtool_global.hxtool_db.fileListingDelete(file_listing_job.eid)
+		hxtool_global.hxtool_db.fileListingDelete(file_listing_job.doc_id)
 		app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
@@ -1194,8 +1194,8 @@ def hxtool_api_acquisition_multi_mf_stop(hx_api_object):
 		success = True
 		#TODO: Stop each file acquisition or handle solely in remove?
 		if success:
-			hxtool_global.hxtool_db.multiFileStop(mf_job.eid)
-			app.logger.info(format_activity_log(msg="multi-file acquisition", action="stop", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
+			hxtool_global.hxtool_db.multiFileStop(mf_job.doc_id)
+			app.logger.info(format_activity_log(msg="multi-file acquisition", action="stop", id=mf_job.doc_id, user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/acquisition/multi/mf/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -1209,14 +1209,14 @@ def hxtool_api_acquisition_multi_mf_remove(hx_api_object):
 			(ret, response_code, response_data) = hx_api_object.restDeleteFile(uri)
 			#TODO: Replace with delete of file from record
 			if not f['downloaded']:
-				hxtool_global.hxtool_db.multiFileUpdateFile(session['ht_profileid'], mf_job.eid, f['acquisition_id'])
+				hxtool_global.hxtool_db.multiFileUpdateFile(session['ht_profileid'], mf_job.doc_id, f['acquisition_id'])
 			# If the file acquisition no longer exists on the controller(404), then we should delete it from our DB anyway.
 			if not ret and response_code != 404:
 				app.logger.error("Failed to remove file acquisition {0} from the HX controller, response code: {1}".format(f['acquisition_id'], response_code))
 				success = False		
 		if success:
-			hxtool_global.hxtool_db.multiFileDelete(mf_job.eid)
-			app.logger.info(format_activity_log(msg="multi-file acquisition", action="remove", id=mf_job.eid, user=session['ht_user'], controller=session['hx_ip']))
+			hxtool_global.hxtool_db.multiFileDelete(mf_job.doc_id)
+			app.logger.info(format_activity_log(msg="multi-file acquisition", action="remove", id=mf_job.doc_id, user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
@@ -1249,7 +1249,7 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 					app.logger.warn('File Listing %s does not exist - User: %s@%s:%s', session['ht_user'], fl_id, hx_api_object.hx_host, hx_api_object.hx_port)
 					continue
 				choice_files = [file_listing['files'][i] for i in file_ids if i <= len(file_listing['files'])]
-				multi_file_eid = hxtool_global.hxtool_db.multiFileCreate(session['ht_user'], session['ht_profileid'], display_name=display_name, file_listing_id=file_listing.eid, api_mode=use_api_mode)
+				multi_file_eid = hxtool_global.hxtool_db.multiFileCreate(session['ht_user'], session['ht_profileid'], display_name=display_name, file_listing_id=file_listing.doc_id, api_mode=use_api_mode)
 				# Create a data acquisition for each file from its host
 				for cf in choice_files:
 					if cf['hostname'] in agent_ids:
@@ -1298,7 +1298,7 @@ def datatable_multi_filelisting(hx_api_object):
 	data_rows = []
 	for j in hxtool_global.hxtool_db.fileListingList(profile_id):
 		job = dict(j)
-		job.update({'id': j.eid})
+		job.update({'id': j.doc_id})
 		job['state'] = ("STOPPED" if job['stopped'] else "RUNNING")
 		job['file_count'] = len(job.pop('files'))
 
@@ -1331,7 +1331,7 @@ def datatable_multi_multifile(hx_api_object):
 		job = dict(mf)
 		hosts_completed = len([_ for _ in job['files'] if _['downloaded']])
 		job.update({
-			'id': mf.eid,
+			'id': mf.doc_id,
 			'state': ("STOPPED" if job['stopped'] else "RUNNING"),
 			'file_count': len(job['files']),
 			'mode': ('api_mode' in job and job['api_mode']) and 'API' or 'RAW'
@@ -1364,7 +1364,7 @@ def datatable_stacking(hx_api_object):
 			job_progress = int(hosts_completed / float(len(bulk_download['hosts'])) * 100)
 
 		mydata['data'].append({
-			"DT_RowId": job.eid,
+			"DT_RowId": job.doc_id,
 			"create_timestamp": HXAPI.compat_str(job['create_timestamp']),
 			"update_timestamp": HXAPI.compat_str(job['update_timestamp']),
 			"stack_type": job['stack_type'],
