@@ -1988,7 +1988,9 @@ def datatable_acqs(hx_api_object):
 			if ret:
 				for acq in response_data['data']['entries']:
 					if acq['type'] != "bulk":
-						hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", acq['host']['_id'])
+						hresponse_data = False
+						if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+							hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", acq['host']['_id'])
 						if hresponse_data == False:
 							(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(acq['host']['_id'])
 						if ret:
@@ -1998,8 +2000,9 @@ def datatable_acqs(hx_api_object):
 								acq_url = acq['acq']['url']
 							else:
 								acq_url = "/hx/api/v3/acqs/{}/{}".format(acq['type'], HXAPI.compat_str(acq['acq']['_id']))
-
-							a_response_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], acq['type'], acq['acq']['_id'])
+							a_response_data = False
+							if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+								a_response_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], acq['type'], acq['acq']['_id'])
 							if a_response_data == False:
 								(a_ret, a_response_code, a_response_data) = hx_api_object.restGetUrl(acq_url)
 							else:
