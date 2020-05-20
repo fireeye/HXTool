@@ -1718,7 +1718,9 @@ def datatable_alerts(hx_api_object):
 		if ret:
 			for alert in response_data['data']['entries']:
 				# Query host object
-				hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", alert['agent']['_id'])
+				hresponse_data = False
+				if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+					hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", alert['agent']['_id'])
 				if hresponse_data == False:
 					(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
 
