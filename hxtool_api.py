@@ -1285,7 +1285,10 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 						pass
 			if file_jobs:
 				app.logger.info(format_activity_log(msg="multi-file acquisition", action="new", user=session['ht_user'], controller=session['hx_ip']))
-				return redirect("/multifile", code=302)
+		else:
+			app.logger.error(format_activity_log(error="Multi-file acquisition failed, no files were selected.", action="new", user=session['ht_user'], controller=session['hx_ip']))
+			
+	return redirect("/multifile", code=302)
 
 ##############
 # Datatables #
