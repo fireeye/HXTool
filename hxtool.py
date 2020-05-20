@@ -474,11 +474,22 @@ def app_init(debug = False):
 
 	
 	# Init DB
-	# Disable the write cache altogether - too many issues reported with it enabled.
-	hxtool_global.hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), 
-										apicache = hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False),
-										apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
-										write_cache_size = 0)
+	# Check if MongoDB is enabled as the database, otherwise, fallback to TinyDB
+	if hxtool_global.hxtool_config.get_child_item('db', 'type') == "mongodb":
+		from hxtool_mongodb import hxtool_mongodb
+		
+		hxtool_global.hxtool_db = hxtool_mongodb(hxtool_global.hxtool_config.get_child_item('db', 'host', False),
+												hxtool_global.hxtool_config.get_child_item('db', 'port', 27017), 
+												hxtool_global.hxtool_config.get_child_item('db', 'user', False), 
+												hxtool_global.hxtool_config.get_child_item('db', 'password', False),
+												hxtool_global.hxtool_config.get_child_item('db', 'auth_source', "admin"),
+												hxtool_global.hxtool_config.get_child_item('db', 'auth_mechanism', "SCRAM-SHA-256"))
+	else:		
+		# Disable the write cache altogether - too many issues reported with it enabled.
+		hxtool_global.hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), 
+											apicache = hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False),
+											apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
+											write_cache_size = 0)
 
 	# Enable X15 integration if config options are present
 	#if hxtool_global.hxtool_config['x15']:
