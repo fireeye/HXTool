@@ -481,9 +481,9 @@ def app_init(debug = False):
 										write_cache_size = 0)
 
 	# Enable X15 integration if config options are present
-	if hxtool_global.hxtool_config['x15']:
-		from hxtool_x15_db import hxtool_x15
-		hxtool_global.hxtool_x15_object = hxtool_x15()
+	#if hxtool_global.hxtool_config['x15']:
+	#	from hxtool_x15_db import hxtool_x15
+	#	hxtool_global.hxtool_x15_object = hxtool_x15()
 	
 	# Initialize the scheduler
 	hxtool_global.hxtool_scheduler = hxtool_scheduler(hxtool_global.hxtool_config['scheduler']['thread_count'])
