@@ -510,12 +510,14 @@ def app_init(debug = False):
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
 	app.session_interface = hxtool_session_interface(app, expiration_delta=hxtool_global.hxtool_config['network']['session_timeout'])
 
-	if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
-		for profile in hxtool_global.hxtool_db.profileList():
-			if profile['profile_id'] in hxtool_global.hxtool_scheduler.task_hx_api_sessions:
-				hxtool_global.apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['intervals'], hxtool_global.hxtool_config['apicache']['types'])
-			else:
-				logger.info("No background credential for {}, not starting apicache".format(profile['profile_id']))
+	# Disable API cache for now
+	# TODO: Restricted to MongoDB only?
+	#if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+	#	for profile in hxtool_global.hxtool_db.profileList():
+	#		if profile['profile_id'] in hxtool_global.hxtool_scheduler.task_hx_api_sessions:
+	#			hxtool_global.apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['intervals'], hxtool_global.hxtool_config['apicache']['types'])
+	#		else:
+	#			logger.info("No background credential for {}, not starting apicache".format(profile['profile_id']))
 
 	set_svg_mimetype()
 
