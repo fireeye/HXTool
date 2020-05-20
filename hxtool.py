@@ -491,6 +491,7 @@ def app_init(debug = False):
 											apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
 											write_cache_size = 0)
 
+	# TODO: Disabled for now
 	# Enable X15 integration if config options are present
 	#if hxtool_global.hxtool_config['x15']:
 	#	from hxtool_x15_db import hxtool_x15
