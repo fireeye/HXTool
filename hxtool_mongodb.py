@@ -19,6 +19,7 @@ from bson.objectid import ObjectId
 
 logger = hxtool_logging.getLogger(__name__)
 
+# Emulate existing TinyDB architecture
 class tinydb_emulated_dict(dict):
 	# Ugly way of dealing with MongoDB ObjectId and JSON encoding
 	def __setitem__(self, key, value):
@@ -59,26 +60,10 @@ class hxtool_mongodb:
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.close()
 
+	# TODO: Remove after all references are removed
 	def mongoStripKeys(self, data):
 		return data
-#		if isinstance(data, dict):
-#			data = tinydb_emulated_dict(data)
-#			data.doc_id = str(data['_id'])
-#			return(data)
-#		if isinstance(data, list):
-#			newlist = []
-#			for myObject in data:
-#				if '_id' in myObject.keys():
-#					
-#					myObject.doc_id = str(myObject['_id'])
-#				newlist.append(myObject)
-#			return(newlist)
-#		if data == None:
-#			return(None)
-#		else:
-#			print(data)
-#			print("Unexpected MongoDB response")
-
+		
 	def profileCreate(self, hx_name, hx_host, hx_port):
 		# Generate a unique profile id
 		profile_id = str(secure_uuid4())
