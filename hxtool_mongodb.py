@@ -104,7 +104,7 @@ class hxtool_mongodb:
 		return self.mongoStripKeys(self._db_alerts.find_one( { "profile_id": profile_id, "hx_alert_id": int(hx_alert_id) } ))
 	
 	def alertAddAnnotation(self, profile_id, hx_alert_id, annotation, state, create_user):
-		return self._db_alerts.update({ "profile_id": profile_id, "hx_alert_id": int(hx_alert_id) }, {"$push": {"annotations": {'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())} }})
+		return self._db_alerts.update_one({ "profile_id": profile_id, "hx_alert_id": int(hx_alert_id) }, {"$push": {"annotations": {'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())} }})
 
 	def bulkDownloadCreate(self, profile_id, hostset_name = None, hostset_id = None, task_profile = None):
 		r = None
@@ -213,7 +213,7 @@ class hxtool_mongodb:
 		return r.inserted_id
 
 	def multiFileAddJob(self, multi_file_id, job):
-		return self._db_multi_file.update( { "_id": ObjectId(multi_file_id) }, { "$push": { "files": job } } )
+		return self._db_multi_file.update_one( { "_id": ObjectId(multi_file_id) }, { "$push": { "files": job } } )
 
 	def multiFileList(self, profile_id):
 		return self.mongoStripKeys(list(self._db_multi_file.find( { "profile_id": profile_id } )))
@@ -246,7 +246,7 @@ class hxtool_mongodb:
 		return self._db_session.remove( { "session_id": session_id } )
 	
 	def scriptCreate(self, scriptname, script, username):
-		return self._db_scripts.insert({'script_id' : str(secure_uuid4()), 
+		return self._db_scripts.insert_one({'script_id' : str(secure_uuid4()), 
 													'scriptname': str(scriptname), 
 													'username' : str(username),
 													'script' : str(script), 
@@ -264,7 +264,7 @@ class hxtool_mongodb:
 
 
 	def oiocCreate(self, iocname, ioc, username):
-		return self._db_openioc.insert({'ioc_id' : str(secure_uuid4()), 
+		return self._db_openioc.insert_one({'ioc_id' : str(secure_uuid4()), 
 													'iocname': str(iocname), 
 													'username' : str(username),
 													'ioc' : str(ioc), 
@@ -314,7 +314,7 @@ class hxtool_mongodb:
 
 
 	def auditCreate(self, profile_id, host_id, hostname, generator, start_time, end_time, results):
-		return self._db_audits.insert({'profile_id' : profile_id,
+		return self._db_audits.insert_one({'profile_id' : profile_id,
 												'audit_id'	: str(secure_uuid4()),
 												'host_id:'	: host_id,
 												'hostname'	: hostname,
