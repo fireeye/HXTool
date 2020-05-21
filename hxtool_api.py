@@ -1232,13 +1232,13 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 
 		# Collect User Selections
 		file_jobs, choices, listing_ids = [], {}, set([])
-		choice_re = re.compile('^choose_file_(\d+)_(\d+)$')
+		#choice_re = re.compile('^choose_file_(\d+)_(\d+)$')
 		for k, v in list(request.form.items()):
-			m = choice_re.match(k)
-			if m:
-				fl_id = int(m.group(1))
+			if k.startswith("choose_file"):
+				(fl_id, myindex) = k[12:].split("_")
+			#	fl_id = int(m.group(1))
 				listing_ids.add(fl_id)
-				choices.setdefault(fl_id, []).append(int(m.group(2)))
+				choices.setdefault(fl_id, []).append(int(myindex))
 		if choices:
 			choice_files, agent_ids = [], {}
 			for fl_id, file_ids in list(choices.items()):

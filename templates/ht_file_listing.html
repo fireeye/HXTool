@@ -156,7 +156,7 @@
 					<tbody>
 		{% for fileitem in fl_results %}
 						<tr id='file_{{ loop.index0 }}'>
-							<td><input type='checkbox' name='choose_file_{{ file_listing.eid}}_{{ loop.index0 }}'></td>
+							<td><input type='checkbox' name='choose_file_{{ file_listing.doc_id}}_{{ loop.index0 }}'></td>
 							<td>{{ fileitem['hostname'] }}</td>
 			{% for f in display_fields %}
 							<td>{{ fileitem[f]|nl2br }}</td>
