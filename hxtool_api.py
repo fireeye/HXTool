@@ -2900,7 +2900,7 @@ def profile_by_id(profile_id):
 # Stacking Results #
 ####################
 
-@ht_api.route('/api/v{0}/stacking/<int:stack_job_eid>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
+@ht_api.route('/api/v{0}/stacking/<stack_job_eid>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def stack_job_results(hx_api_object, stack_job_eid):
 	stack_job = hxtool_global.hxtool_db.stackJobGet(stack_job_eid = stack_job_eid)

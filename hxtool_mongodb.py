@@ -47,6 +47,7 @@ class hxtool_mongodb:
 			self._db_bulk_download = self._client.hxtool.bulk_download
 			self._db_file_listing = self._client.hxtool.file_listing
 			self._db_multi_file = self._client.hxtool.multi_file
+			self._db_stacking = self._client.hxtool.stacking
 			self._client.admin.command('ismaster')
 			logger.info("MongoDB connection successful")
 		except Exception as e:
@@ -222,13 +223,51 @@ class hxtool_mongodb:
 		return self.mongoStripKeys(self._db_multi_file.find_one( { "_id": ObjectId(multi_file_id) } ))
 
 	def multiFileUpdateFile(self, profile_id, multi_file_id, acquisition_id):
-		return self._db_multi_file.update( { "_id": ObjectId(multi_file_id) }, { "$set": { "files.$[].acquisition_id": acquisition_id, "files.$[].downloaded": True } } )
+		return self._db_multi_file.update_one( { "_id": ObjectId(multi_file_id) }, { "$set": { "files.$[].acquisition_id": acquisition_id, "files.$[].downloaded": True } } )
 																			
 	def multiFileStop(self, multi_file_id):
-		return self.mongoStripKeys(self._db_multi_file.update( { "_id": ObjectId(multi_file_id) }, { "$set": { "stopped": True, "update_timestamp": HXAPI.dt_to_str(datetime.datetime.utcnow()) } } ))
+		return self.mongoStripKeys(self._db_multi_file.update_one( { "_id": ObjectId(multi_file_id) }, { "$set": { "stopped": True, "update_timestamp": HXAPI.dt_to_str(datetime.datetime.utcnow()) } } ))
 	
 	def multiFileDelete(self, multi_file_id):
 		return self._db_multi_file.remove( { "_id": ObjectId(multi_file_id) } )
+	
+	def stackJobCreate(self, profile_id, bulk_download_eid, stack_type):
+		ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
+		r = self._db_stacking.insert_one({
+			'profile_id' : profile_id, 
+			'bulk_download_eid' : bulk_download_eid, 
+			'stopped' : False,
+			'stack_type' : stack_type,
+			'hosts' : [],
+			'results' : [],
+			'last_index' : None,
+			'last_groupby' : [],
+			'create_timestamp' : ts, 
+			'update_timestamp' : ts
+		})
+		return r.inserted_id
+		
+	def stackJobGet(self, stack_job_eid = None, profile_id = None, bulk_download_eid = None):
+		if stack_job_eid:
+			return self._db_stacking.find_one( { "_id": ObjectId(stack_job_eid) } )
+		elif profile_id and bulk_download_eid:
+			return self._db_stacking.find_one( { "profile_id": profile_id, "bulk_download_eid": ObjectId(bulk_download_eid) } )
+	
+	def stackJobList(self, profile_id):
+		return list(self._db_stacking.find( { "profile_id": profile_id } ))
+		
+	def stackJobAddHost(self, profile_id, bulk_download_eid, hostname, agent_id):
+		return self._db_stacking.update_one( { "profile_id": profile_id, "bulk_download_eid": ObjectId(bulk_download_eid) }, { "$push": { "hosts": {"hostname" : hostname, "agent_id" : agent_id, "processed" : False} } } )
+		
+	def stackJobAddResult(self, profile_id, bulk_download_eid, hostname, result):
+		self._db_stacking.update_one( { "profile_id": profile_id, "bulk_download_eid": ObjectId(bulk_download_eid) }, { "$push": { "results" : { "$each": result }  } } )
+		return self._db_stacking.update_one( { "profile_id": profile_id, "bulk_download_eid": ObjectId(bulk_download_eid) }, { "$set": { "hosts.$[].hostname": hostname, "hosts.$[].processed": True } } )
+			
+	def stackJobStop(self, stack_job_eid):
+		return self._db_stacking.update_one( { "_id": ObjectId(stack_job_eid) }, { "$set": { "stopped": True, "update_timestamp": HXAPI.dt_to_str(datetime.datetime.utcnow()) } } )
+	
+	def stackJobDelete(self, stack_job_eid):
+		return self._db_stacking.remove( { "_id": ObjectId(stack_job_eid) } )
 	
 	def sessionCreate(self, session_id):
 		return self._db_session.insert_one({'session_id': session_id, 'session_data': {}, 'update_timestamp'	: HXAPI.dt_to_str(datetime.datetime.utcnow())})
