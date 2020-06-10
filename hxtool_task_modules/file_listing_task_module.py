@@ -55,9 +55,9 @@ class file_listing_task_module(task_module):
 		result = {}
 		try:
 			file_listing = hxtool_global.hxtool_db.fileListingGetByBulkId(self.parent_task.profile_id, bulk_download_eid)
-			generator = 'w32rawfiles'
+			generator = 'files-raw'
 			if file_listing and 'api_mode' in file_listing['cfg'] and file_listing['cfg']['api_mode']:
-				generator = 'w32apifiles'
+				generator = 'files-api'
 			with AuditPackage(bulk_download_path) as audit_pkg:
 				audit_data = audit_pkg.get_audit(generator = generator, open_only=True)
 				if audit_data:

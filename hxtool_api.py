@@ -1256,7 +1256,10 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 					else:
 						(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = cf['hostname'])
 						agent_id = agent_ids[cf['hostname']] = response_data['data']['entries'][0]['_id']
-					path, filename = cf['FullPath'].rsplit('\\', 1)
+					path_split_char = '\\'
+					if cf['FullPath'].startswith('/'):
+						path_split_char = '/'
+					path, filename = cf['FullPath'].rsplit(path_split_char, 1)
 					(ret, response_code, response_data) = hx_api_object.restAcquireFile(agent_id, path, filename, use_api_mode)
 					if ret:
 						acq_id = response_data['data']['_id']
