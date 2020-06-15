@@ -13,7 +13,6 @@ import hxtool_vars
 import hxtool_logging
 from hx_lib import HXAPI
 from hxtool_util import secure_uuid4
-import pickle
 from bson.binary import Binary
 from bson.objectid import ObjectId
 
