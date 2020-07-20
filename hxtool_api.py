@@ -826,13 +826,13 @@ def hxtool_api_indicators_export(hx_api_object):
 	
 	buffer = BytesIO()
 	if len(iocList.keys()) == 1:
-		iocfname = iocList[list(iocList.keys())[0]]['uri_name'] + ".ioc"
+		iocfname = iocList[list(iocList.keys())[0]]['uri_name'] + ".rule"
 		buffer.write(json.dumps(iocList, indent=4, ensure_ascii=False).encode(default_encoding))
 	else:
 		iocfname = "multiple_indicators.zip"
 		with zipfile.ZipFile(buffer, 'w') as zf:
 			for ioc in iocList:
-				zf.writestr(iocList[ioc]['uri_name'] + '.ioc', json.dumps(iocList[ioc], indent=4, ensure_ascii=False).encode(default_encoding))
+				zf.writestr(iocList[ioc]['uri_name'] + '.rule', json.dumps(iocList[ioc], indent=4, ensure_ascii=False).encode(default_encoding))
 		zf.close()
 
 	buffer.seek(0)
