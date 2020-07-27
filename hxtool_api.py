@@ -684,6 +684,45 @@ def hxtool_api_scripts_download(hx_api_object):
 
 
 ########################
+# IOC Streaming API    #
+########################
+@ht_api.route('/api/v{0}/datatable_streaming_indicators'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_streaming_indicators(hx_api_object):
+	
+	mydata = {}
+	mydata['data'] = []
+
+	(ret, response_code, response_data) = hx_api_object.restListStreamingIndcators()
+	if ret:
+		for indicator in response_data['data']['entries']:
+
+			mydata['data'].append({
+				"DT_RowId": 		indicator['id'],
+				"url": 				hx_api_object.buildStreamingIndicatorURI(indicator['id']),
+				"name" : 			indicator['name'],
+				"description": 		indicator['description'],
+				"last_updated": 	indicator['updated_at'],
+				"category_name": 	'Custom',
+				"updated_by": 		indicator['updated_by'],
+				"meta": 			indicator['meta'],
+				"platforms":		streaming_indicator_platforms_supported(indicator)
+				})
+
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
+# return a single string to indicate the platforms supported by an indicator as 'win / linux / mac'
+def streaming_indicator_platforms_supported(indicator):
+	platforms = []
+	if indicator['supports_win']:
+		platforms.append('win')
+	if indicator['supports_linux']:
+		platforms.append('linux')
+	if indicator['supports_osx']:
+		platforms.append('mac')
+	return ' / '.join(platforms)
+
+########################
 # Indicator categories #
 ########################
 @ht_api.route('/api/v{0}/indicator_category/get_edit_policies'.format(HXTOOL_API_VERSION), methods=['GET'])

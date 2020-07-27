@@ -207,6 +207,13 @@ def indicatorsqueue(hx_api_object):
 def categories(hx_api_object):
 	return render_template('ht_categories.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### Streaming indicators
+@app.route('/streaming_indicators', methods=['GET', 'POST'])
+@valid_session_required
+def streaming_indicators(hx_api_object):
+	return render_template('ht_streaming_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+
 ### Real-time indicators
 @app.route('/rtioc', methods=['GET'])
 @valid_session_required

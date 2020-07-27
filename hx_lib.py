@@ -132,6 +132,9 @@ class HXAPI:
 		if not min_api_version:
 			min_api_version = self.api_version
 		return '/hx/api/v{0}/{1}'.format(min_api_version, api_endpoint)
+
+	def build_module_api_route(self, module_name, api_endpoint, min_api_version):
+		return '/hx/api/plugins/{0}/v{1}/{2}'.format(module_name, min_api_version, api_endpoint)
 		
 	def handle_response(self, request, multiline_json = False, multiline_json_limit = DEFAULT_LIMIT, stream = False):
 		
@@ -330,6 +333,39 @@ class HXAPI:
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
+
+
+	
+	## IOC Streaming
+	################
+	STREAMING_MODULE_NAME = 'ioc-streaming'
+	STREAMING_MODULE_API_VER = '1'
+
+	# List indicator categories
+	def restListStreamingIndcators(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term={}, query_terms = {}):
+		
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}
+		if sort_term:
+			params['sort'] = sort_term
+		params.update(filter_term)
+		params.update(query_terms)
+		
+		request = self.build_request(self.buildStreamingIndicatorURI(), params = params)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	# build the URI for the Indicators endpoint.  Accommodate a specific indicator if provided
+	def buildStreamingIndicatorURI(self, indicator_id=None):
+		uri = self.build_module_api_route(module_name=self.STREAMING_MODULE_NAME, 
+										  min_api_version=self.STREAMING_MODULE_API_VER,
+										  api_endpoint='indicators')
+		if indicator_id:
+			uri += '/{0}'.format(indicator_id)
+		return uri
 
 
 	
