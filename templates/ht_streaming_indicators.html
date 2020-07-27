@@ -53,10 +53,10 @@
 					{ title: "", 				"data": "DT_RowId" },		//0
 					{ title: "Name", 			"data": "name" },			//1
 					{ title: "Description", 	"data": "description" },	//2
-					{ title: "Last Updated", 	"data": "last_updated" },	//3
+					{ title: "Platforms", 		"data": "platforms" },		//3
 					{ title: "Category", 		"data": "category_name" },	//4
-					{ title: "Updated by", 		"data": "updated_by" },		//5
-					{ title: "Platforms", 		"data": "platforms" },		//6
+					{ title: "Last Updated", 	"data": "last_updated" },	//5
+					{ title: "Updated by", 		"data": "updated_by" },		//6
 					{ title: "Action", 			"data": "DT_RowId" }		//7
 				],
 				"columnDefs": [	
@@ -75,7 +75,7 @@
 					 }
 					},
 					{
-					 "targets": 3,
+					 "targets": 5,
 					 render: function ( data, type, row, meta ) {
 					 	return (datatables_Timestamp(data));
 					 }
