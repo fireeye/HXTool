@@ -703,6 +703,7 @@ def datatable_streaming_indicators(hx_api_object):
 				"name" : 			indicator['name'],
 				"description": 		indicator['description'],
 				"last_updated": 	indicator['updated_at'],
+				"category_id":		2,
 				"category_name": 	'Custom',
 				"updated_by": 		indicator['updated_by'],
 				"meta": 			indicator['meta'],
@@ -711,7 +712,7 @@ def datatable_streaming_indicators(hx_api_object):
 
 	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
-# return a single string to indicate the platforms supported by an indicator as 'win / linux / mac'
+# return an array of platforms supported
 def streaming_indicator_platforms_supported(indicator):
 	platforms = []
 	if indicator['supports_win']:
@@ -720,7 +721,7 @@ def streaming_indicator_platforms_supported(indicator):
 		platforms.append('linux')
 	if indicator['supports_osx']:
 		platforms.append('mac')
-	return ' / '.join(platforms)
+	return platforms
 
 ########################
 # Indicator categories #
