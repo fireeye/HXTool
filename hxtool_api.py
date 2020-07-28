@@ -696,8 +696,13 @@ def datatable_streaming_indicators(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restListStreamingIndcators()
 	if ret:
 		for indicator in response_data['data']['entries']:
+			mydata['data'].append(indicator_dict_from_indicator(indicator=indicator, hx_api_object=hx_api_object))
 
-			mydata['data'].append({
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
+#serialize from an indicator response to a dictionary of properties
+def indicator_dict_from_indicator(indicator, hx_api_object):
+	return {
 				"DT_RowId": 		indicator['id'],
 				"url": 				hx_api_object.buildStreamingIndicatorURI(indicator['id']),
 				"name" : 			indicator['name'],
@@ -708,9 +713,7 @@ def datatable_streaming_indicators(hx_api_object):
 				"updated_by": 		indicator['updated_by'],
 				"meta": 			indicator['meta'],
 				"platforms":		streaming_indicator_platforms_supported(indicator)
-				})
-
-	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+			}
 
 # return an array of platforms supported
 def streaming_indicator_platforms_supported(indicator):

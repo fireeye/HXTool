@@ -1,0 +1,432 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Streaming Indicator{% endblock %}
+{% block navlocation %}Streaming Indicator{% endblock %}
+{% block content %}
+
+	<script>
+
+		function guid() {
+		    function _p8(s) {
+		        var p = (Math.random().toString(16)+"000000000").substr(2,8);
+		        return s ? "-" + p.substr(0,4) + "-" + p.substr(4,4) : p ;
+		    }
+	    	return _p8() + _p8(true) + _p8(true) + _p8();
+		}
+
+		function getGroups(data, targetelement, myguid, myGroup, myField, myOperator) {
+			var myhtml = "<select id=group_" + myguid + ">";
+			$.each(data, function(index, field) {
+				myhtml += "<option name='" + index + "'>" + index;
+			});
+			myhtml += "</select>";
+			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fas fa-chevron-up'></i></span>";
+
+			var myentries = [];
+			$.each(data, function(index, field) {
+				myentries.push({"elementText": index, "elementId": index, "elementIcon": "fa-check"});
+			});
+
+			// Check if we need to populate fields
+			if (myGroup) {
+				// Set the group
+				$(targetelement).html(generateDropDown(myGroup, "group_" + myguid, myGroup, entries=myentries, false, false));
+				getFields(data, myGroup, $(targetelement).next(), myguid, myField, myOperator);
+			}
+			else {
+				// Load fields into next cell
+				$(targetelement).html(generateDropDown(myentries[0]['elementText'], "group_" + myguid, myentries[0]['elementId'], entries=myentries, false, false));
+				getFields(data, $(targetelement).find('button').data('id'), $(targetelement).next(), myguid);
+			}
+		}
+
+		function getFields(data, mytype, targetelement, myguid, myField, myOperator) {
+			var myhtml = "<select id=field_" + myguid + ">";
+			$.each(data[mytype], function(index, field) {
+				myhtml += "<option data-type='" + field.type + "' value='" + field.name + "'>" + field.name;
+			});
+			myhtml += "</select>";
+			myhtml += "<span class='hxtool_select_tail'><i class='fe-icon--right fas fa-chevron-up'></i></span>";
+
+			var myentries = [];
+			$.each(data[mytype], function(index, field) {
+				myentries.push({"elementText": field.name, "elementId": field.type, "elementIcon": "fa-check"});
+			});
+
+			if (myField) {
+				// Set the field
+				$(targetelement).html(generateDropDown(myField, "field_" + myguid, "false", entries=myentries, false, false));
+				$(targetelement).find(".fe-dropdown__list-container").find("li").each(function() {
+					if (myField == $(this).find(".fe-dropdown__item-link-text").html()) {
+						myNextField = $(this).find(".fe-dropdown__item-link-text").data("id");
+					}
+				});
+				$(targetelement).find("button").data("id", myNextField);
+				getOperators(myNextField, $(targetelement).next(), myguid, myOperator);
+			}
+			else {
+				$(targetelement).html(generateDropDown(myentries[0]['elementText'], "field_" + myguid, myentries[0]['elementId'], entries=myentries, false, false));
+				getOperators($(targetelement).find(".fe-dropdown__list-container").find("li").first().find(".fe-dropdown__item-link-text").data("id"), $(targetelement).next(), myguid, myOperator);
+			}
+		}
+
+		function getOperators(mytype, targetelement, myguid, myOperator) {
+			myops = {};
+			myops['text'] = ["contains", "equal", "matches", "starts-with", "ends-with"];
+			myops['integer'] = ["equal", "greater-than", "less-than", "between"];
+			myops['md5'] = ["equal"];
+			myops['range'] = ["between"];
+
+			var myentries = [];
+			$.each( myops[mytype], function( key, value ) {
+				myentries.push({"elementText": value, "elementId": value, "elementIcon": "fa-check"});
+			});
+
+			if (myOperator) {
+				$(targetelement).html(generateDropDown(myOperator, "operator_" + myguid, myOperator, entries=myentries, false, false));
+			}
+			else {
+				$(targetelement).html(generateDropDown(myentries[0]['elementText'], "operator_" + myguid, myentries[0]['elementId'], entries=myentries, false, false));
+			}
+
+		}
+
+		function addCondition(myguid, condition_type) {
+
+			var myentries = [{"elementText": "Presence condition", "elementId": "presence", "elementIcon": "fa-check"}, {"elementText": "Execution condition", "elementId": "execution", "elementIcon": "fa-check"}]
+
+			// Set the condition type
+			if (condition_type) {
+				if (condition_type == "presence") {
+					mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
+				}
+				else {
+					mytypehtml = generateDropDown("execution condition", "ioctype", "execution", entries=myentries, false, false);
+				}
+				
+			}
+			else {
+				mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
+			}
+		
+			// Append row to table
+			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove conditionDeleteButton\'>remove<i class=\'fe-icon--right fas fa-trash\'></i></button></td></tr>');
+		}
+
+		function addElement(myguid, optionalElement) {
+			//Append row to table
+			if (optionalElement == undefined) {
+				$('#ioctable tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove elementDeleteButton\'>remove<i class=\'fe-icon--right fas fa-trash\'></i></button></td></tr>');
+			}
+			else {
+				$('<tr data-id=\'' + myguid + '\' id=\'element_' + myguid + '\'><td></td><td></td><td></td><td><input type=\'checkbox\'></td><td><input type=\'checkbox\'></td><td><input class=\'hxtool_rtioc_input fe-input\' style=\'width: 100%; box-sizing: border-box;\' type=\'text\'></td><td><button class=\'fe-btn fe-btn--sm fe-btn--hxtool-main elementAddButton\' id=\'add_' + myguid + '\'>+</button></td><td><button id=\'delete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove elementDeleteButton\'>remove<i class=\'fe-icon--right fas fa-trash\'></i></button></td></tr>').insertAfter($(optionalElement)).closest('tr');
+			}
+		}
+
+		function renderConditions(myconditions, myioctype, eventspace) {
+			$.each( myconditions, function( ikey, ivalue ) {
+				addCondition(ivalue['uuid'], myioctype);
+				$.each( ivalue['tests'], function( key, value ) {
+					myguid = ($('#ioctable tr:last').data('id'));
+					myTokenInfo = value['token'].split("/");
+
+					addElement(myguid);
+					getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid, myTokenInfo[0], myTokenInfo[1], value['operator']);
+					if (value['negate']) {
+						$('#ioctable').closest('table').find('tr:last td:eq(3)').find('input').prop('checked', true);
+					}
+					if (value['preservecase']) {
+						$('#ioctable').closest('table').find('tr:last td:eq(4)').find('input').prop('checked', true);
+					}
+					$('#ioctable').closest('table').find('tr:last td:eq(5)').find('input').val(value['value']);
+					
+				});
+			});
+		}
+
+		function removeElements(startElement) {
+			// Get the guid from the row
+			currguid = ($(startElement).parent().parent().data('id'));
+
+			// Delete the whole condition
+			if ($(startElement).attr('id').startsWith('gdelete_')) {
+				$('#ioctable tr[data-id="' + currguid + '"]').css('background-color', '#f49c89');
+				$('#ioctable tr[data-id="' + currguid + '"]').fadeTo(200,0.1, function(){
+					$(this).remove();
+				})
+			}
+
+			// Last row in condition - need to remove the entire condition
+			if ($('#ioctable tr[data-id="' + currguid + '"]').length == 2) {
+				$('#ioctable tr[data-id="' + currguid + '"]').css('background-color', '#f49c89');
+				$('#ioctable tr[data-id="' + currguid + '"]').fadeTo(200,0.1, function(){
+					$(this).remove();
+				})
+			}
+			// Just remove the row there are other rows left in the condition
+			else {
+				$(startElement).parent().parent().css('background-color', '#f49c89');
+				$(startElement).parent().parent().fadeTo(200,0.1, function(){
+					$(this).remove();
+				})
+			}
+		}
+
+		$(document).ready(function() {
+
+			// Import event space
+			{% if eventspace %}
+				eventspace = JSON.parse({{eventspace|tojson|safe}});
+			{% endif %}
+
+			// IF edit mode we will need to import all the conditions
+			{% if ioccategory %}			
+				var ioccategory = JSON.parse({{ioccategory|tojson|safe}});
+			{% endif %}
+
+			{% if platform %}
+				var platform = JSON.parse({{platform|tojson|safe}});
+				$('#indicator_platform').data("id", platform);
+				if (platform == "win") {
+					$('#indicator_platform').html("Microsoft Windows" + "<i class='fe-icon--right fas fa-chevron-up'></i>");
+				}
+				else if (platform == "osx") {
+					$('#indicator_platform').html("Apple MacOS" + "<i class='fe-icon--right fas fa-chevron-up'></i>");
+				}
+				else if (platform == "linux") {
+					$('#indicator_platform').html("Linux" + "<i class='fe-icon--right fas fa-chevron-up'></i>");
+				}
+				else {
+					$('#indicator_platform').html("All" + "<i class='fe-icon--right fas fa-chevron-up'></i>");
+				}
+			{% endif %}
+
+			{% if mypre %}
+				var mypresence = JSON.parse({{mypre|tojson|safe}});
+				renderConditions(mypresence, 'presence', eventspace);
+			{% endif %}
+
+			{% if myexec %}
+				var myexecution = JSON.parse({{myexec|tojson|safe}});
+				renderConditions(myexecution, 'execution', eventspace);
+			{% endif %}
+
+			// Render categories
+			hxtool_ajax_get_request("/api/v1/indicator_category/list", "", function(setResponse) {
+				myCategoryResponse = JSON.parse(setResponse['api_response']);
+				mycats = [];
+				$.each(myCategoryResponse['data']['entries'], function( index, value ) {
+					mycats.push({"elementText": value['uri_name'], "elementId": value['uri_name'], "elementIcon": "fa-check"});
+					if ( typeof ioccategory === 'undefined' ) {
+						if (value['uri_name'] == "Custom") { catsDefault = value['uri_name']; catsDefaultName = value['uri_name']; }
+					}
+					else {
+						if (value['uri_name'] == ioccategory) { catsDefault = value['uri_name']; catsDefaultName = value['uri_name']; }
+					}
+				});
+				$("#categoryContainer").html(generateDropDown(catsDefaultName, "cats", catsDefault, entries=mycats, false, false));
+			});
+
+			// Adds new condition row
+			$('#add_cond').click(function() {
+
+				if (typeof $('#ioctable').find('tr').last().attr('id') !== 'undefined') {
+					if ($('#ioctable').find('tr').last().attr('id').startsWith('condition_') ) {
+						$("#hxtoolMessageBody").html("Add elements to your condition before adding a new condition");
+						$("#hxtoolMessage").show();
+
+					}
+					else {
+						// Last row is not a new condition
+						myguid = guid();
+						addCondition(myguid);
+						addElement(myguid);
+						getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
+						// $("html, body").animate({ scrollTop: $(document).height() }, 1);
+					}
+				}
+				else {
+					// First row
+					myguid = guid();
+					addCondition(myguid);
+					addElement(myguid);
+					getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
+				}
+
+			});
+
+			// + button clicked - need to add new element on the next row
+			$('#ioctable').on('click', 'button.elementAddButton', function() {
+				myguid = ($(this).parent().parent().data('id'));
+				addElement(myguid, $(this).parent().parent());
+				getGroups(eventspace, $(this).parent().parent().next().find('td:first'), myguid);
+			});
+
+			// Delete button clicked - remove the element
+			$('#ioctable').on('click', 'button.elementDeleteButton', function() {
+				removeElements($(this));
+			});
+
+			// Condition delete button clicked
+			$('#ioctable').on('click', 'button.conditionDeleteButton', function() {
+				removeElements($(this));
+			});
+
+			$("#ioctable").on('click', '.fe-dropdown__item-link', function() {
+
+				myguid = ($(this).closest("tr").data('id'));
+
+				if($(this).closest("td").find("button").attr("id").startsWith("group_")) {
+					getFields(eventspace, $(this).find("span").next().data("id"), $(this).closest("td").next(), myguid);
+				}
+
+				if($(this).closest("td").find("button").attr("id").startsWith("field_")) {
+					getOperators($(this).find("span").next().data("id"), $(this).closest("td").next(), myguid);
+				}
+
+			});
+
+			// User clicked the submit button
+			$('#postbutton').click(function() {
+				if(getUrlParameter("clone") == "true") {
+					$('#myTitle').data('id', "new");
+				}
+
+				var data = {};
+
+				data['name'] = $('#indicator_name').val();
+				data['description'] = $('#indicatorDesc').val();
+				data['category'] = $('#cats').data("id");
+				data['platform'] = $('#indicator_platform').data("id");
+
+				// Need to add original name and category if we are in edit mode
+				if ($('#myTitle').data('id') == "edit") {
+					data['originalname'] = $('#myTitle').data('iocname');
+					data['originalcategory'] = $('#myTitle').data('category');
+					data['iocuri'] = $('#myTitle').data('iocuri');
+				}
+
+				var myioctype;
+
+				$("#ioctable tr:gt(0)").each(function () {
+
+					if ($(this).attr('id').startsWith('condition_')) {
+						myioctype = $(this).find('td:eq(0)').find('button').data("id");
+						currguid = $(this).data('id') + "_" + myioctype;
+						data[currguid] = [];
+					}
+
+					if ($(this).attr('id').startsWith('element_')) {
+						currguid = $(this).data('id') + "_" + myioctype;
+						var mygroup = $(this).find('td:eq(0)').find('button').data("id");
+						var myfield = $(this).find('td:eq(1)').find('button').text().replace(/\s+/g, '');
+						var mytype = $(this).find('td:eq(1)').find('button').data("id");
+						var myoper = $(this).find('td:eq(2)').find('button').data("id");
+
+						if ($(this).find('td:eq(3)').find('input').is(':checked'))
+							{ myneg = true; }
+						else 
+							{ myneg = false; }
+
+						if ($(this).find('td:eq(4)').find('input').is(':checked'))
+							{ mycase = true; }
+						else 
+							{ mycase = false; }
+
+						var mydata = $(this).find('td:eq(5)').find('input').val();
+						var mydict = {"group": mygroup, "field": myfield, "type": mytype, "operator": myoper, "negate": myneg, "case": mycase, "data": mydata};
+						data[currguid].push(mydict);
+					}
+
+				});
+
+				// Post a new indicator (new mode)				
+				if ($('#myTitle').data('id') == "new") {
+					if ($('#indicator_name').val() !== "") {
+						var myForm = new FormData();
+						myForm.append("rule", JSON.stringify(data));
+
+						hxtool_ajax_post_request("/api/v1/indicators/new", myForm, function() {
+							location.href = "/indicators";
+						});
+
+					}
+					else {
+						$("#hxtoolMessageBody").html("Enter a rule name!");
+						$("#hxtoolMessage").show();
+					}
+				}
+				// Post new indicator edit request (edit mode)
+				else {
+					if ($('#indicator_name').val() !== "") {
+						var myForm = new FormData();
+						myForm.append("rule", JSON.stringify(data));
+
+						hxtool_ajax_post_request("/api/v1/indicators/edit", myForm, function() {
+							location.href = "/indicators";
+						});
+					}
+					else {
+						$("#hxtoolMessageBody").html("Enter a rule name!");
+						$("#hxtoolMessage").show();
+					}
+				}
+			});
+		});
+	</script>
+
+
+	{% if iocname %}
+		<div id='myTitle' data-id='edit' data-category='{{myioccategory|safe}}' data-iocname='{{iocname|safe}}' data-iocuri='{{myiocuri|safe}}' class='tableTitle'></div>
+	{% else %}
+		<div id='myTitle' data-id='new' class='tableTitle'></div>
+	{% endif %}
+
+	{{ htPanel.widgetHeader("Rule settings", panelDisplay="inline-block", panelIcon="fa-external-link-square") }}
+		<h4 class='hxtool_typography_h3'>Rule name</h4>
+		<input style='margin-bottom: 7px; width: 650px;' class='fe-input' type='text' id='indicator_name' name='indicator_name' value='{% if iocname %}{{iocname|safe}}{% endif %}'>
+
+		<h4 class='hxtool_typography_h3'>Rule description</h4>
+		<textarea id='indicatorDesc' style='height: 100px;' class='indicatorDescription fe-input'>{% if mydescription %}{{mydescription|safe}}{% endif %}</textarea>
+
+		<h4 class='hxtool_typography_h3'>Rule category</h4>
+		<div id='categoryContainer'></div>
+
+		<h4 class='hxtool_typography_h3'>Platform</h4>
+		{{ htDropdown.widgetHeader("Microsoft Windows", "indicator_platform", "win") }}
+		{{ htDropdown.widgetItem("Microsoft Windows", "win", elementIcon="fa-windows") }}
+		{{ htDropdown.widgetItem("Apple MacOS", "osx", elementIcon="fa-apple") }}
+		{{ htDropdown.widgetItem("Linux", "linux", elementIcon="fa-linux") }}
+		{{ htDropdown.widgetItem("All", "all", elementIcon="fas fa-globe") }}
+		{{ htDropdown.widgetFooter() }}
+
+		{% if iocname %}
+			<div style='width: 650px; font-style: italic; font-size: 11px; margin-top: 10px;'>Note: Due to limitations in the HX API indicator conditions cannot be edited. When you use HXTool to edit an indicator a new indicator will be created and the old indicator will be removed. Make sure to backup your indicators before proceeding</div>
+		{% endif %}
+		<div style='text-align: right;'>
+			<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="postbutton"> Submit <i style='color: #11a962;' class="fe-icon--right fas fa-check"></i></button>
+		</div>
+	{{ htPanel.widgetFooter() }}
+
+	{{ htPanel.widgetHeader("Rule", panelIcon="fa-table") }}
+		<table id='ioctable' class='hxtool_rtioc_table hxtool_table' style='width: 100%;'>
+			<thead>
+				<th>Group</th>
+				<th>Field</th>
+				<th>Operator</th>
+				<th>Negate</th>
+				<th>Preserve Case</th>
+				<th>Matching Value</th>
+				<th>&nbsp;</th>
+				<th>Delete</th>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+
+		<div style='text-align: center; padding-top: 6px;'>
+			<button id='add_cond' class='fe-btn fe-btn--sm fe-btn--hxtool-main'>add condition<i class='fe-icon--right fas fa-plus'></i></button>
+		</div>
+	{{ htPanel.widgetFooter() }}
+
+
+{% endblock %}

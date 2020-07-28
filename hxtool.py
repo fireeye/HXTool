@@ -213,6 +213,48 @@ def categories(hx_api_object):
 def streaming_indicators(hx_api_object):
 	return render_template('ht_streaming_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+@app.route('/streamingioc', methods=['GET'])
+@valid_session_required
+def streamingioc(hx_api_object):
+			
+	myEventFile = open(combine_app_path('static/eventbuffer.json'), 'r')
+	eventspace = myEventFile.read()
+	myEventFile.close()
+
+	if request.args.get('indicator'):
+
+		url = request.args.get('indicator')
+
+		(ret, response_code, response_data) = hx_api_object.restListCategories()
+		categories = formatCategoriesSelect(response_data)
+
+		#(ret, response_code, response_data) = hx_api_object.restListIndicators(limit=1, filter_term={ 'uri_name': uuid })
+		(ret, response_code, response_data) = hx_api_object.restGetUrl(url, include_params=True)
+		if ret:
+			iocname = response_data['data']['name']
+			myiocuri = response_data['data']['uri_name']
+			ioccategory = response_data['data']['category']['uri_name']
+			mydescription = response_data['data']['description']
+			if len(response_data['data']['platforms']) == 1:
+				platform = response_data['data']['platforms'][0]
+			else:
+				platform = "all"
+
+		
+			(ret, response_code, condition_class_presence) = hx_api_object.restGetCondition(ioccategory, myiocuri, 'presence')
+			(ret, response_code, condition_class_execution) = hx_api_object.restGetCondition(ioccategory, myiocuri, 'execution')
+			
+			mypre = json.dumps(condition_class_presence['data']['entries'])
+			myexec = json.dumps(condition_class_execution['data']['entries'])
+
+			if request.args.get('clone'):
+				ioccategory = "Custom"
+
+		return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, myiocuri=myiocuri, myioccategory=ioccategory, mydescription=mydescription, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
+	else:
+		(ret, response_code, response_data) = hx_api_object.restListCategories()
+		categories = formatCategoriesSelect(response_data)
+		return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, eventspace=eventspace)
 
 ### Real-time indicators
 @app.route('/rtioc', methods=['GET'])
