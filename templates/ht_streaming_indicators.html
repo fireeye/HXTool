@@ -111,10 +111,10 @@
 
 		$("#iocTable").on("click", ".iocAction", function() {
 			if ($(this).data("type") == "edit") {
-				location.href = "/rtioc?indicator=" + encodeURIComponent($(this).data("url"));
+				location.href = "/streamingioc?indicator=" + encodeURIComponent($(this).data("url"));
 			}
 			if ($(this).data("type") == "clone") {
-				location.href = "/rtioc?indicator=" + encodeURIComponent($(this).data("url")) + "&clone=true";
+				location.href = "/streamingioc?indicator=" + encodeURIComponent($(this).data("url")) + "&clone=true";
 			}
 			if ($(this).data("type") == "remove") {
 				myrow = $(this).closest("tr");
@@ -221,7 +221,7 @@
 		});
 
 		$("#createButton").click(function() {
-			location.href = "/rtioc";
+			location.href = "/streamingioc";
 		});
 		
 	});
