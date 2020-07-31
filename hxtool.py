@@ -242,6 +242,10 @@ def streamingioc(hx_api_object):
 			if request.args.get('clone'):
 				ioccategory = "Custom"
 
+			(ret, response_code, conditions) = hx_api_object.restListConditionsForStreamingIndcator(indicator['DT_RowId'])
+			
+			myconditions = json.dumps(conditions['data']['entries'])
+
 		return render_template(
 							'ht_streaming_indicator_create_edit.html',
 							user=session['ht_user'], 
@@ -252,6 +256,7 @@ def streamingioc(hx_api_object):
 							myioccategory=ioccategory,
 							mydescription=mydescription, 
 							ioccategory=json.dumps(ioccategory), 
+							myconditions = myconditions,
 							platform=json.dumps(platform), 
 							eventspace=eventspace)
 	else:
@@ -300,11 +305,29 @@ def rtioc(hx_api_object):
 			if request.args.get('clone'):
 				ioccategory = "Custom"
 
-		return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, myiocuri=myiocuri, myioccategory=ioccategory, mydescription=mydescription, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
+		return render_template(
+							'ht_indicator_create_edit.html', 
+							user=session['ht_user'], 
+							controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), 
+							categories=categories, 
+							iocname=iocname, 
+							myiocuri=myiocuri, 
+							myioccategory=ioccategory, 
+							mydescription=mydescription, 
+							ioccategory=json.dumps(ioccategory), 
+							platform=json.dumps(platform), 
+							mypre=mypre, 
+							myexec=myexec, 
+							eventspace=eventspace)
 	else:
 		(ret, response_code, response_data) = hx_api_object.restListCategories()
 		categories = formatCategoriesSelect(response_data)
-		return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, eventspace=eventspace)
+		return render_template(
+							'ht_indicator_create_edit.html', 
+							user=session['ht_user'], 
+							controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), 
+							categories=categories, 
+							eventspace=eventspace)
 
 def eventspace_from_file():
 	with open(combine_app_path('static/eventbuffer.json'), 'r') as myEventFile:

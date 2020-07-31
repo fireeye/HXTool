@@ -341,7 +341,7 @@ class HXAPI:
 	STREAMING_MODULE_NAME = 'ioc-streaming'
 	STREAMING_MODULE_API_VER = '1'
 
-	# List indicator categories
+	# List streaming indicators
 	def restListStreamingIndcators(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term={}, query_terms = {}):
 		
 		params = {
@@ -357,6 +357,14 @@ class HXAPI:
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
+
+	# List conditions for a streaming indicator
+	def restListConditionsForStreamingIndcator(self, indicator_id):
+		
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=indicator_id) + '/conditions')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)		
 
 	# build the URI for the Indicators endpoint.  Accommodate a specific indicator if provided
 	def buildStreamingIndicatorURI(self, indicator_id=None):

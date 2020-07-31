@@ -90,27 +90,27 @@
 
 		}
 
-		function addCondition(myguid, condition_type) {
+		//function addCondition(myguid, condition_type) {
 
-			var myentries = [{"elementText": "Presence condition", "elementId": "presence", "elementIcon": "fa-check"}, {"elementText": "Execution condition", "elementId": "execution", "elementIcon": "fa-check"}]
+		//	var myentries = [{"elementText": "Presence condition", "elementId": "presence", "elementIcon": "fa-check"}, {"elementText": "Execution condition", "elementId": "execution", "elementIcon": "fa-check"}]
 
-			// Set the condition type
-			if (condition_type) {
-				if (condition_type == "presence") {
-					mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
-				}
-				else {
-					mytypehtml = generateDropDown("execution condition", "ioctype", "execution", entries=myentries, false, false);
-				}
-				
-			}
-			else {
-				mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
-			}
-		
-			// Append row to table
-			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove conditionDeleteButton\'>remove<i class=\'fe-icon--right fas fa-trash\'></i></button></td></tr>');
-		}
+		//	// Set the condition type
+		//	if (condition_type) {
+		//		if (condition_type == "presence") {
+		//			mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
+		//		}
+		//		else {
+		//			mytypehtml = generateDropDown("execution condition", "ioctype", "execution", entries=myentries, false, false);
+		//		}
+		//		
+		//	}
+		//	else {
+		//		mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
+		//	}
+		//
+		//	// Append row to table
+		//	$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove conditionDeleteButton\'>remove<i class=\'fe-icon--right fas fa-trash\'></i></button></td></tr>');
+		//}
 
 		function addElement(myguid, optionalElement) {
 			//Append row to table
@@ -122,12 +122,13 @@
 			}
 		}
 
-		function renderConditions(myconditions, myioctype, eventspace) {
+		function renderConditions(myconditions, eventspace) {
 			$.each( myconditions, function( ikey, ivalue ) {
-				addCondition(ivalue['uuid'], myioctype);
-				$.each( ivalue['tests'], function( key, value ) {
-					myguid = ($('#ioctable tr:last').data('id'));
-					myTokenInfo = value['token'].split("/");
+				//addCondition(ivalue['uuid'], myioctype);
+				var myguid = ivalue['id'];
+				$.each( ivalue['condition']['tests'], function( key, value ) {
+					//var myguid = ($('#ioctable tr:last').data('id'));
+					var myTokenInfo = value['token'].split("/");
 
 					addElement(myguid);
 					getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid, myTokenInfo[0], myTokenInfo[1], value['operator']);
@@ -175,7 +176,7 @@
 
 			// Import event space
 			{% if eventspace %}
-				eventspace = JSON.parse({{eventspace|tojson|safe}});
+				var eventspace = JSON.parse({{eventspace|tojson|safe}});
 			{% endif %}
 
 			// IF edit mode we will need to import all the conditions
@@ -200,31 +201,31 @@
 				}
 			{% endif %}
 
-			{% if mypre %}
-				var mypresence = JSON.parse({{mypre|tojson|safe}});
-				renderConditions(mypresence, 'presence', eventspace);
+			{% if myconditions %}
+				var myconds = JSON.parse({{myconditions|tojson|safe}});
+				renderConditions(myconds, eventspace);
 			{% endif %}
 
-			{% if myexec %}
-				var myexecution = JSON.parse({{myexec|tojson|safe}});
-				renderConditions(myexecution, 'execution', eventspace);
-			{% endif %}
+			//{% if myexec %}
+			//	var myexecution = JSON.parse({{myexec|tojson|safe}});
+			//	renderConditions(myexecution, 'execution', eventspace);
+			//{% endif %}
 
 			// Render categories
-			hxtool_ajax_get_request("/api/v1/indicator_category/list", "", function(setResponse) {
-				myCategoryResponse = JSON.parse(setResponse['api_response']);
-				mycats = [];
-				$.each(myCategoryResponse['data']['entries'], function( index, value ) {
-					mycats.push({"elementText": value['uri_name'], "elementId": value['uri_name'], "elementIcon": "fa-check"});
-					if ( typeof ioccategory === 'undefined' ) {
-						if (value['uri_name'] == "Custom") { catsDefault = value['uri_name']; catsDefaultName = value['uri_name']; }
-					}
-					else {
-						if (value['uri_name'] == ioccategory) { catsDefault = value['uri_name']; catsDefaultName = value['uri_name']; }
-					}
-				});
-				$("#categoryContainer").html(generateDropDown(catsDefaultName, "cats", catsDefault, entries=mycats, false, false));
-			});
+			//hxtool_ajax_get_request("/api/v1/indicator_category/list", "", function(setResponse) {
+			//	myCategoryResponse = JSON.parse(setResponse['api_response']);
+			//	mycats = [];
+			//	$.each(myCategoryResponse['data']['entries'], function( index, value ) {
+			//		mycats.push({"elementText": value['uri_name'], "elementId": value['uri_name'], "elementIcon": "fa-check"});
+			//		if ( typeof ioccategory === 'undefined' ) {
+			//			if (value['uri_name'] == "Custom") { catsDefault = value['uri_name']; catsDefaultName = value['uri_name']; }
+			//		}
+			//		else {
+			//			if (value['uri_name'] == ioccategory) { catsDefault = value['uri_name']; catsDefaultName = value['uri_name']; }
+			//		}
+			//	});
+			//	$("#categoryContainer").html(generateDropDown(catsDefaultName, "cats", catsDefault, entries=mycats, false, false));
+			//});
 
 			// Adds new condition row
 			$('#add_cond').click(function() {
@@ -238,7 +239,7 @@
 					else {
 						// Last row is not a new condition
 						myguid = guid();
-						addCondition(myguid);
+						//addCondition(myguid);
 						addElement(myguid);
 						getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
 						// $("html, body").animate({ scrollTop: $(document).height() }, 1);
@@ -247,7 +248,7 @@
 				else {
 					// First row
 					myguid = guid();
-					addCondition(myguid);
+					//addCondition(myguid);
 					addElement(myguid);
 					getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
 				}
@@ -381,15 +382,17 @@
 		<div id='myTitle' data-id='new' class='tableTitle'></div>
 	{% endif %}
 
-	{{ htPanel.widgetHeader("Rule settings", panelDisplay="inline-block", panelIcon="fa-external-link-square") }}
+	{{ htPanel.widgetHeader("Streaming Rule settings", panelDisplay="inline-block", panelIcon="fa-external-link-square") }}
 		<h4 class='hxtool_typography_h3'>Rule name</h4>
 		<input style='margin-bottom: 7px; width: 650px;' class='fe-input' type='text' id='indicator_name' name='indicator_name' value='{% if iocname %}{{iocname|safe}}{% endif %}'>
 
 		<h4 class='hxtool_typography_h3'>Rule description</h4>
 		<textarea id='indicatorDesc' style='height: 100px;' class='indicatorDescription fe-input'>{% if mydescription %}{{mydescription|safe}}{% endif %}</textarea>
 
+		<!-- 
 		<h4 class='hxtool_typography_h3'>Rule category</h4>
 		<div id='categoryContainer'></div>
+		-->
 
 		<h4 class='hxtool_typography_h3'>Platform</h4>
 		{{ htDropdown.widgetHeader("Microsoft Windows", "indicator_platform", "win") }}
@@ -399,9 +402,11 @@
 		{{ htDropdown.widgetItem("All", "all", elementIcon="fas fa-globe") }}
 		{{ htDropdown.widgetFooter() }}
 
+		<!--
 		{% if iocname %}
 			<div style='width: 650px; font-style: italic; font-size: 11px; margin-top: 10px;'>Note: Due to limitations in the HX API indicator conditions cannot be edited. When you use HXTool to edit an indicator a new indicator will be created and the old indicator will be removed. Make sure to backup your indicators before proceeding</div>
 		{% endif %}
+		-->
 		<div style='text-align: right;'>
 			<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="postbutton"> Submit <i style='color: #11a962;' class="fe-icon--right fas fa-check"></i></button>
 		</div>
