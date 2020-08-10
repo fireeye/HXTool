@@ -90,27 +90,27 @@
 
 		}
 
-		//function addCondition(myguid, condition_type) {
+		function addCondition(myguid, condition_type) {
+			// var myentries = [{"elementText": "Presence condition", "elementId": "presence", "elementIcon": "fa-check"}, {"elementText": "Execution condition", "elementId": "execution", "elementIcon": "fa-check"}
+			var myentries = [{"elementText": "Condition", "elementId": "condition", "elementIcon": "fa-check"}]
 
-		//	var myentries = [{"elementText": "Presence condition", "elementId": "presence", "elementIcon": "fa-check"}, {"elementText": "Execution condition", "elementId": "execution", "elementIcon": "fa-check"}]
-
-		//	// Set the condition type
-		//	if (condition_type) {
-		//		if (condition_type == "presence") {
-		//			mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
-		//		}
-		//		else {
-		//			mytypehtml = generateDropDown("execution condition", "ioctype", "execution", entries=myentries, false, false);
-		//		}
-		//		
-		//	}
-		//	else {
-		//		mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
-		//	}
-		//
-		//	// Append row to table
-		//	$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove conditionDeleteButton\'>remove<i class=\'fe-icon--right fas fa-trash\'></i></button></td></tr>');
-		//}
+			// Set the condition type
+			if (condition_type) {
+				if (condition_type == "presence") {
+					mytypehtml = generateDropDown("presence condition", "ioctype", "presence", entries=myentries, false, false);
+				}
+				else {
+					mytypehtml = generateDropDown("execution condition", "ioctype", "execution", entries=myentries, false, false);
+				}
+				
+			}
+			else {
+				mytypehtml = generateDropDown("condition", "ioctype", "condition", entries=myentries, false, false);
+			}
+		
+			// Append row to table
+			$('#ioctable > tbody:last-child').append('<tr data-id=\'' + myguid + '\' id=\'condition_' + myguid + '\'><td class=\'hxtool_rtioc_table_header_condition\' colspan=\'7\'>' +  mytypehtml + '</td><td class=\'hxtool_rtioc_table_header_condition_right\'><button id=\'gdelete_' + myguid + '\' class=\'fe-btn fe-btn--sm fe-btn--hxtool-main-remove conditionDeleteButton\'>remove<i class=\'fe-icon--right fas fa-trash\'></i></button></td></tr>');
+		}
 
 		function addElement(myguid, optionalElement) {
 			//Append row to table
@@ -124,10 +124,10 @@
 
 		function renderConditions(myconditions, eventspace) {
 			$.each( myconditions, function( ikey, ivalue ) {
-				//addCondition(ivalue['uuid'], myioctype);
+				addCondition(ivalue['uuid']); //, myioctype);
 				var myguid = ivalue['id'];
 				$.each( ivalue['condition']['tests'], function( key, value ) {
-					//var myguid = ($('#ioctable tr:last').data('id'));
+					var myguid = ($('#ioctable tr:last').data('id'));
 					var myTokenInfo = value['token'].split("/");
 
 					addElement(myguid);
@@ -231,26 +231,26 @@
 			$('#add_cond').click(function() {
 
 				if (typeof $('#ioctable').find('tr').last().attr('id') !== 'undefined') {
-					//if ($('#ioctable').find('tr').last().attr('id').startsWith('condition_') ) {
-					//	$("#hxtoolMessageBody").html("Add elements to your condition before adding a new condition");
-					//	$("#hxtoolMessage").show();
+					if ($('#ioctable').find('tr').last().attr('id').startsWith('condition_') ) {
 
-					//}
-					//else {
+						// Last row is an empty condition
+						$("#hxtoolMessageBody").html("Add elements to your condition before adding a new condition");
+						$("#hxtoolMessage").show();
+					}
+					else {
 
-					// Last row is not a new condition
-					myguid = guid();
-					//addCondition(myguid);
-					addElement(myguid);
-					getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
-					// $("html, body").animate({ scrollTop: $(document).height() }, 1);
-					
-					//}
+						// Last row is not a new condition
+						myguid = guid();
+						addCondition(myguid);
+						addElement(myguid);
+						getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
+						// $("html, body").animate({ scrollTop: $(document).height() }, 1);
+					}
 				}
 				else {
 					// First row
 					myguid = guid();
-					//addCondition(myguid);
+					addCondition(myguid);
 					addElement(myguid);
 					getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
 				}
@@ -312,13 +312,15 @@
 
 				$("#ioctable tr:gt(0)").each(function () {
 
-					//if ($(this).attr('id').startsWith('condition_')) {
-					myioctype = $(this).find('td:eq(0)').find('button').data("id");
-					//	currguid = $(this).data('id') + "_" + myioctype;
-					//	data[currguid] = [];
-					//}
+					if ($(this).attr('id').startsWith('condition_')) {
+						// This is a condition row
+						myioctype = $(this).find('td:eq(0)').find('button').data("id");
+						currguid = $(this).data('id') + "_" + myioctype;
+						data[currguid] = [];
+					}
 
 					if ($(this).attr('id').startsWith('element_')) {
+						// This is a condition test row
 						currguid = $(this).data('id') + "_" + myioctype;
 						var mygroup = $(this).find('td:eq(0)').find('button').data("id");
 						var myfield = $(this).find('td:eq(1)').find('button').text().replace(/\s+/g, '');
@@ -337,8 +339,7 @@
 
 						var mydata = $(this).find('td:eq(5)').find('input').val();
 						var mydict = {"group": mygroup, "field": myfield, "type": mytype, "operator": myoper, "negate": myneg, "case": mycase, "data": mydata};
-						//data[currguid].push(mydict);
-						data[currguid] = mydict;
+						data[currguid].push(mydict);
 					}
 
 				});

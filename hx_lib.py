@@ -405,7 +405,11 @@ class HXAPI:
 	# Add a new streaming condition
 	def restAddStreamingCondition(self, ioc_category, ioc_guid, condition_class, condition_data):
 
-		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_guid) + '/conditions', method = 'POST', data = condition_data)
+		body = {}
+		body['conditions'] = []
+		body['conditions'].append(condition_data)
+
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_guid) + '/conditions', method = 'POST', data = json.dumps(body))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)

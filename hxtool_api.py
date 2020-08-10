@@ -693,6 +693,7 @@ def datatable_streaming_indicators(hx_api_object):
 	mydata = {}
 	mydata['data'] = []
 
+	#TODO: sort by name or creation date?
 	myFilter = '{"operator":"eq","field":"deleted","arg":["false"]}'	# show only active indicators
 	(ret, response_code, response_data) = hx_api_object.restListStreamingIndicators(filter_term=myFilter)
 	if ret:
@@ -758,7 +759,7 @@ def hxtool_api_streaming_indicators_new(hx_api_object):
 					else:
 						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
 
-				(ret, response_code, response_data) = hx_api_object.restAddStreamingCondition(mydata['category'], ioc_guid, ioctype, json.dumps(mytests))
+				(ret, response_code, response_data) = hx_api_object.restAddStreamingCondition(mydata['category'], ioc_guid, ioctype, mytests)
 				if not ret:
 					# Remove the indicator if condition push was unsuccessful
 					(ret, response_code, response_data) = hx_api_object.restDeleteStreamingIndicator(mydata['category'], ioc_guid)
