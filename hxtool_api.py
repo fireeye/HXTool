@@ -693,9 +693,9 @@ def datatable_streaming_indicators(hx_api_object):
 	mydata = {}
 	mydata['data'] = []
 
-	#TODO: sort by name or creation date?
+	mySort = 'updated_at:desc'	#sort most recent updates to the top
 	myFilter = '{"operator":"eq","field":"deleted","arg":["false"]}'	# show only active indicators
-	(ret, response_code, response_data) = hx_api_object.restListStreamingIndicators(filter_term=myFilter)
+	(ret, response_code, response_data) = hx_api_object.restListStreamingIndicators(sort_term=mySort, filter_term=myFilter)
 	if ret:
 		for indicator in response_data['data']['entries']:
 			mydata['data'].append(indicator_dict_from_indicator(indicator=indicator, hx_api_object=hx_api_object))
