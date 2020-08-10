@@ -375,6 +375,46 @@ class HXAPI:
 			uri += '/{0}'.format(indicator_id)
 		return uri
 
+	# Add a new streaming indicator
+	def restAddStreamingIndicator(self, ioc_category, display_name, create_text=None, platforms=None, description=None):
+
+		data = {
+			'name' : display_name
+		}
+		if create_text:
+			data['created_by'] = create_text
+		if platforms:
+			data['platforms'] = platforms
+		if description:
+			data['description'] = description
+
+		body = {}
+		body['indicators'] = []
+		body['indicators'].append(data)
+		
+		request = self.build_request(self.buildStreamingIndicatorURI(), method = 'POST', data = json.dumps(body))
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		if ret:
+			response_data = response_data['data']['entries'][0]
+
+		return(ret, response_code, response_data)	
+		
+
+	# Add a new streaming condition
+	def restAddStreamingCondition(self, ioc_category, ioc_guid, condition_class, condition_data):
+
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_guid) + '/conditions', method = 'POST', data = condition_data)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+	
+	# Delete a streaming indicator by name
+	def restDeleteStreamingIndicator(self, indicator_category, ioc_guid):
+		
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_guid), method = 'DELETE')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
 
 	
 	## Indicators

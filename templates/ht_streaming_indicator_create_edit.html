@@ -231,19 +231,21 @@
 			$('#add_cond').click(function() {
 
 				if (typeof $('#ioctable').find('tr').last().attr('id') !== 'undefined') {
-					if ($('#ioctable').find('tr').last().attr('id').startsWith('condition_') ) {
-						$("#hxtoolMessageBody").html("Add elements to your condition before adding a new condition");
-						$("#hxtoolMessage").show();
+					//if ($('#ioctable').find('tr').last().attr('id').startsWith('condition_') ) {
+					//	$("#hxtoolMessageBody").html("Add elements to your condition before adding a new condition");
+					//	$("#hxtoolMessage").show();
 
-					}
-					else {
-						// Last row is not a new condition
-						myguid = guid();
-						//addCondition(myguid);
-						addElement(myguid);
-						getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
-						// $("html, body").animate({ scrollTop: $(document).height() }, 1);
-					}
+					//}
+					//else {
+
+					// Last row is not a new condition
+					myguid = guid();
+					//addCondition(myguid);
+					addElement(myguid);
+					getGroups(eventspace, $('#ioctable').closest('table').find('tr:last td:first'), myguid);
+					// $("html, body").animate({ scrollTop: $(document).height() }, 1);
+					
+					//}
 				}
 				else {
 					// First row
@@ -296,7 +298,7 @@
 
 				data['name'] = $('#indicator_name').val();
 				data['description'] = $('#indicatorDesc').val();
-				data['category'] = $('#cats').data("id");
+				//data['category'] = $('#cats').data("id");
 				data['platform'] = $('#indicator_platform').data("id");
 
 				// Need to add original name and category if we are in edit mode
@@ -310,11 +312,11 @@
 
 				$("#ioctable tr:gt(0)").each(function () {
 
-					if ($(this).attr('id').startsWith('condition_')) {
-						myioctype = $(this).find('td:eq(0)').find('button').data("id");
-						currguid = $(this).data('id') + "_" + myioctype;
-						data[currguid] = [];
-					}
+					//if ($(this).attr('id').startsWith('condition_')) {
+					myioctype = $(this).find('td:eq(0)').find('button').data("id");
+					//	currguid = $(this).data('id') + "_" + myioctype;
+					//	data[currguid] = [];
+					//}
 
 					if ($(this).attr('id').startsWith('element_')) {
 						currguid = $(this).data('id') + "_" + myioctype;
@@ -335,7 +337,8 @@
 
 						var mydata = $(this).find('td:eq(5)').find('input').val();
 						var mydict = {"group": mygroup, "field": myfield, "type": mytype, "operator": myoper, "negate": myneg, "case": mycase, "data": mydata};
-						data[currguid].push(mydict);
+						//data[currguid].push(mydict);
+						data[currguid] = mydict;
 					}
 
 				});
@@ -346,8 +349,8 @@
 						var myForm = new FormData();
 						myForm.append("rule", JSON.stringify(data));
 
-						hxtool_ajax_post_request("/api/v1/indicators/new", myForm, function() {
-							location.href = "/indicators";
+						hxtool_ajax_post_request("/api/v1/streaming_indicators/new", myForm, function() {
+							location.href = "/streaming_indicators";
 						});
 
 					}
