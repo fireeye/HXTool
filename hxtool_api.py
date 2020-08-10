@@ -693,7 +693,8 @@ def datatable_streaming_indicators(hx_api_object):
 	mydata = {}
 	mydata['data'] = []
 
-	(ret, response_code, response_data) = hx_api_object.restListStreamingIndcators()
+	myFilter = '{"operator":"eq","field":"deleted","arg":["false"]}'	# show only active indicators
+	(ret, response_code, response_data) = hx_api_object.restListStreamingIndicators(filter_term=myFilter)
 	if ret:
 		for indicator in response_data['data']['entries']:
 			mydata['data'].append(indicator_dict_from_indicator(indicator=indicator, hx_api_object=hx_api_object))
@@ -769,6 +770,14 @@ def hxtool_api_streaming_indicators_new(hx_api_object):
 		# Failed to create indicator
 		app.logger.warn(format_activity_log(msg="rule action", action="new", reason="failed to create indicator", user=session['ht_user'], controller=session['hx_ip']))
 		return ('failed to create indicator', 500)	
+
+@ht_api.route('/api/v{0}/streaming_indicators/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_streaming_indicators_remove(hx_api_object):
+	(ret, response_code, response_data) =  hx_api_object.restDeleteStreamingIndicator('', request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="rule action", action="remove", name=request.args.get('url'), user=session['ht_user'], controller=session['hx_ip']))
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 #serialize from an indicator response to a dictionary of properties
 def indicator_dict_from_indicator(indicator, hx_api_object):

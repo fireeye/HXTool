@@ -118,7 +118,7 @@
 			}
 			if ($(this).data("type") == "remove") {
 				myrow = $(this).closest("tr");
-				hxtool_ajax_get_request("/api/v1/indicators/remove", "url=" + encodeURIComponent($(this).data("url")), function() {
+				hxtool_ajax_get_request("/api/v1/streaming_indicators/remove", "id=" + encodeURIComponent($(this).data("id")), function() {
 					myrow.fadeOut(200, function() {
 						ioc_datatable.row(myrow).remove().draw();
 					});

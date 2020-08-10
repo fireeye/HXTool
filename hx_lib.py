@@ -342,7 +342,7 @@ class HXAPI:
 	STREAMING_MODULE_API_VER = '1'
 
 	# List streaming indicators
-	def restListStreamingIndcators(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term={}, query_terms = {}):
+	def restListStreamingIndicators(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term={}, query_terms = {}):
 		
 		params = {
 			'limit' : limit,
@@ -350,7 +350,8 @@ class HXAPI:
 		}
 		if sort_term:
 			params['sort'] = sort_term
-		params.update(filter_term)
+		if filter_term:
+			params['filter'] = filter_term
 		params.update(query_terms)
 		
 		request = self.build_request(self.buildStreamingIndicatorURI(), params = params)
@@ -383,6 +384,7 @@ class HXAPI:
 		}
 		if create_text:
 			data['created_by'] = create_text
+			data['updated_by'] = create_text
 		if platforms:
 			data['platforms'] = platforms
 		if description:
