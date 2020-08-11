@@ -403,25 +403,47 @@ class HXAPI:
 		
 
 	# Add a new streaming condition
-	def restAddStreamingCondition(self, ioc_category, ioc_guid, condition_class, condition_data):
+	def restAddStreamingCondition(self, ioc_category, ioc_id, condition_class, condition_data):
 
 		body = {}
 		body['conditions'] = []
 		body['conditions'].append(condition_data)
 
-		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_guid) + '/conditions', method = 'POST', data = json.dumps(body))
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id) + '/conditions', method = 'POST', data = json.dumps(body))
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 	
-	# Delete a streaming indicator by name
-	def restDeleteStreamingIndicator(self, indicator_category, ioc_guid):
+	# Delete a streaming indicator by id
+	def restDeleteStreamingIndicator(self, indicator_category, ioc_id):
 		
-		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_guid), method = 'DELETE')
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id), method = 'DELETE')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
+	
+	# Delete a condition from a streaming indicator by id
+	def restDeleteConditionFromStreamingIndicator(self, indicator_category, ioc_id, condition_id):
+		
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id) + '/conditions/{0}'.format(condition_id), method = 'DELETE')
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+	
+	# Delete all conditions from a streaming indicator by id
+	def restDeleteAllConditionsFromStreamingIndicator(self, indicator_category, ioc_id):
+		
+		(ret, response_code, response_data, response_headers) = self.restListConditionsForStreamingIndcator(indicator_id=ioc_id)
+		if ret:
+			myConditions = response_data['data']['entries']
+			for condition in myConditions:
+				condition_id = condition['id']
+				self.logger.debug('Deleting condition {0} from indicator {1}'.format(condition_id, ioc_id))
+				(ret, response_code, response_data, response_headers) = self.restDeleteConditionFromStreamingIndicator('', ioc_id=ioc_id, condition_id=condition_id)
+				if not ret:
+					self.logger.error('Deleting condition {0} from indicator {1} yielded error [{2}] with reason [{3}]'.format(condition_id, ioc_id, response_code, response_data))
 
+		return(ret, response_code, response_data)
 	
 	## Indicators
 	#############
