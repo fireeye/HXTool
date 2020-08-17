@@ -528,8 +528,7 @@ def sigint_handler(signum, frame):
 		hxtool_global.hxtool_db.close()
 	exit(0)	
 
-
-def app_init(debug = False):
+def app_init_1(debug):
 	hxtool_global.initialize()
 	
 	# Log early init/failures to stdout
@@ -561,6 +560,9 @@ def app_init(debug = False):
 										apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
 										write_cache_size = 0)
 
+def app_init(debug = False):
+	app_init_1(debug)
+	
 	# Enable X15 integration if config options are present
 	if hxtool_global.hxtool_config['x15']:
 		from hxtool_x15_db import hxtool_x15
@@ -610,7 +612,7 @@ def hxtool_upgrade():
 #Run upgrade code before everything else
 hxtool_upgrade()
 
-if __name__ == "__main__":
+def hxtool_run_main():
 	hxtool_global.initialize()
 	
 	signal.signal(signal.SIGINT, sigint_handler)
@@ -680,7 +682,12 @@ if __name__ == "__main__":
 	else:
 		app.run(host=hxtool_global.hxtool_config['network']['listen_address'], 
 				port=hxtool_global.hxtool_config['network']['port'])
-	
+
+if __name__ == "__main__":
+	hxtool_run_main()
+
+'''	
 else:
 	# Running under gunicorn/mod_wsgi
 	app_init(debug = False)
+'''	
