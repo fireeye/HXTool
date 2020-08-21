@@ -12,7 +12,7 @@
 
 		$.each(myConditions, function(key, value) {
 			r += "<li>and<ul>";
-			$.each(value['tests'], function(ckey, cvalue) {
+			$.each(value['condition']['tests'], function(ckey, cvalue) {
 				r += "<li>";
 				if (cvalue['negate'] == true) {
 					r += "<span style='color: #ea475b; font-weight: bold;'>not </span>";
@@ -86,7 +86,7 @@
 					 render: function ( data, type, row, meta ) {
 					 	r = "";
 					 	myId = String(row.category_id);
-					 	r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-url='" + row.url + "'>view<i class='fe-icon--right fas fa-eye'></i></button>";
+					 	r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='view' data-id='" + row.DT_RowId + "'>view<i class='fe-icon--right fas fa-eye'></i></button>";
 				 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='clone' data-url='" + row.url + "' data-id='" + row.DT_RowId + "'>clone<i class='fe-icon--right fas fa-clone'></i></button>";
 					 	if (myEditPolicies[myId] == "full" || myEditPolicies[myId] == "edit_delete") {
 					 		r += "<button style='margin-right: 6px;' class='iocAction fe-btn fe-btn--sm fe-btn--hxtool-main' data-type='edit' data-url='" + row.url + "' data-id='" + row.DT_RowId + "'>edit<i class='fe-icon--right fas fa-edit'></i></button>";
@@ -125,21 +125,17 @@
 				});
 			}
 			if ($(this).data("type") == "view") {
-				hxtool_ajax_get_request("/api/v1/indicators/get/conditions", "uuid=" + $(this).data("id") + "&url=" + encodeURIComponent($(this).data("url")), function(myConditionsResponse) {
+				hxtool_ajax_get_request("/api/v1/streaming_indicators/get/conditions", "uuid=" + $(this).data("id"), function(myConditionsResponse) {
 					myConditions = JSON.parse(myConditionsResponse['api_response']);
 
 					// First empty the container
 					$("#ruleViewPopup").find(".fe-modal__body").html("");
 
 					// Generate the lists of conditions
-					if (myConditions['presence']['data']['entries'].length > 0) {
-						$("#ruleViewPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Conditions for detecting presence</h3>");
-						generateConditionList(myConditions['presence']['data']['entries'], "presenceList");
+					if (myConditions['conditions']['data']['entries'].length > 0) {
+						$("#ruleViewPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Conditions for streamed hit</h3>");
+						generateConditionList(myConditions['conditions']['data']['entries'], "conditionsList");
 						$("#ruleViewPopup").find(".fe-modal__body").append("<br>");
-					}
-					if (myConditions['execution']['data']['entries'].length > 0) {
-						$("#ruleViewPopup").find(".fe-modal__body").append("<h3 class='hxtool_typography_h3'>Conditions for detecting execution</h3>");
-						generateConditionList(myConditions['execution']['data']['entries'], "executionList");
 					}
 
 					$("#ruleViewPopup").show();

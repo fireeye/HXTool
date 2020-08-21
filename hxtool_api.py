@@ -702,6 +702,17 @@ def datatable_streaming_indicators(hx_api_object):
 
 	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/streaming_indicators/get/conditions'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_streaming_indicators_get_conditions(hx_api_object):
+	uuid = request.args.get('uuid')
+	(ret, response_code, condition_class_conditions) = hx_api_object.restListConditionsForStreamingIndcator(indicator_id=uuid)
+
+	myconditions = { "conditions": condition_class_conditions }
+
+	(r, rcode) = create_api_response(ret, response_code, myconditions)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 @ht_api.route('/api/v{0}/streaming_indicators/new'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
 def hxtool_api_streaming_indicators_new(hx_api_object):
