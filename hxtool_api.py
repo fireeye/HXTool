@@ -233,12 +233,14 @@ def hxtool_api_enterprise_search_new_db(hx_api_object):
 	#   <Context document="processEvent" search="processEvent/process" type="event" />
 	# to:
 	#   <Context document="eventItem" search="eventItem/processEvent/process" type="event" />
-	#
+    # This will not convert conditions such as:
+	#   <Context document="FileItem" search="FileItem/FullPath" type="endpoint" />
+
 	event_item_script = re.sub(
-		'<Context\s+document="(?!eventItem).+"\s+search="(?!eventItem/)(?P<search>.+)"\s+type="(?!mir).+"\s+/>',
-		'<Context document="eventItem" search="eventItem/\g<search>" type="event" />',
-		HXAPI.b64(ioc_script['ioc'], True).decode('utf-8'),
-		flags=re.IGNORECASE)
+	    '<Context\s+document="(?!eventItem).+"\s+search="(?!eventItem/)(?P<search>.+Event.+)"\s+type="(?!mir).+"\s+/>',
+	    '<Context document="eventItem" search="eventItem/\g<search>" type="event" />',
+	    HXAPI.b64(ioc_script['ioc'], True).decode('utf-8'),
+	    flags=re.IGNORECASE)
 
 	enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
 										'script' : HXAPI.b64(event_item_script),
@@ -283,7 +285,7 @@ def hxtool_api_enterprise_search_new_file(hx_api_object):
 
 	# see comment in hxtool_api_enterprise_search_new_db above
 	event_item_script = re.sub(
-		'<Context\s+document="(?!eventItem).+"\s+search="(?!eventItem/)(?P<search>.+)"\s+type="(?!mir).+"\s+/>',
+		'<Context\s+document="(?!eventItem).+"\s+search="(?!eventItem/)(?P<search>.+Event.+)"\s+type="(?!mir).+"\s+/>',
 		'<Context document="eventItem" search="eventItem/\g<search>" type="event" />',
 		ioc_script.decode('utf-8'),
 		flags=re.IGNORECASE)
