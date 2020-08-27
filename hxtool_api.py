@@ -223,9 +223,25 @@ def hxtool_api_enterprise_search_new_db(hx_api_object):
 	
 	if schedule:
 		enterprise_search_task.set_schedule(**schedule)
-		
+
+	# IOC conditions can be in "event only" or "eventItem" format. The IOC content shipped via DTI
+	# and available in the Endpoint Supplementary IOCs on the Market use the "event only" format.
+	# Other IOCs may be in "eventItem" format, depending on how they are created using OpenIOC
+	# editor. Most importantly, the HX Enterprise Search API expects "eventItem" format. This
+	# regex adds the necessary "eventItem" prefix to any IOC conditions in "event only" format.
+	# For example, this regex converts:
+	#   <Context document="processEvent" search="processEvent/process" type="event" />
+	# to:
+	#   <Context document="eventItem" search="eventItem/processEvent/process" type="event" />
+	#
+	event_item_script = re.sub(
+		'<Context\s+document="(?!eventItem).+"\s+search="(?!eventItem/)(?P<search>.+)"\s+type="(?!mir).+"\s+/>',
+		'<Context document="eventItem" search="eventItem/\g<search>" type="event" />',
+		HXAPI.b64(ioc_script['ioc'], True).decode('utf-8'),
+		flags=re.IGNORECASE)
+
 	enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
-										'script' : ioc_script['ioc'],
+										'script' : HXAPI.b64(event_item_script),
 										'hostset_id' : request.args.get('sweephostset'),
 										'ignore_unsupported_items' : ignore_unsupported_items,
 										'skip_base64': True,
@@ -264,9 +280,16 @@ def hxtool_api_enterprise_search_new_file(hx_api_object):
 	
 	if schedule:
 		enterprise_search_task.set_schedule(**schedule)
-		
+
+	# see comment in hxtool_api_enterprise_search_new_db above
+	event_item_script = re.sub(
+		'<Context\s+document="(?!eventItem).+"\s+search="(?!eventItem/)(?P<search>.+)"\s+type="(?!mir).+"\s+/>',
+		'<Context document="eventItem" search="eventItem/\g<search>" type="event" />',
+		ioc_script.decode('utf-8'),
+		flags=re.IGNORECASE)
+
 	enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
-										'script' : HXAPI.b64(ioc_script),
+										'script' : HXAPI.b64(event_item_script),
 										'hostset_id' : request.form.get('sweephostset'),
 										'ignore_unsupported_items' : ignore_unsupported_items,
 										'skip_base64': True,
