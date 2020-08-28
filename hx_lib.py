@@ -360,11 +360,14 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 	# List conditions for a streaming indicator
-	def restListConditionsForStreamingIndcator(self, indicator_id):
+	def restListConditionsForStreamingIndicator(self, indicator_id):
 		
 		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=indicator_id) + '/conditions')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-		
+
+		# filter out deleted conditions
+		not_deleted = list(filter(lambda x: x['deleted'] == False, response_data['data']['entries']))
+		response_data['data']['entries'] = not_deleted
 		return(ret, response_code, response_data)		
 
 	# build the URI for the Indicators endpoint.  Accommodate a specific indicator if provided
@@ -433,7 +436,7 @@ class HXAPI:
 	# Delete all conditions from a streaming indicator by id
 	def restDeleteAllConditionsFromStreamingIndicator(self, indicator_category, ioc_id):
 		
-		(ret, response_code, response_data, response_headers) = self.restListConditionsForStreamingIndcator(indicator_id=ioc_id)
+		(ret, response_code, response_data, response_headers) = self.restListConditionsForStreamingIndicator(indicator_id=ioc_id)
 		if ret:
 			myConditions = response_data['data']['entries']
 			for condition in myConditions:
