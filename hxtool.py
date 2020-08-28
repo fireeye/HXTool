@@ -241,7 +241,7 @@ def streamingioc(hx_api_object):
 			if request.args.get('clone'):
 				ioccategory = "Custom"
 
-			(ret, response_code, conditions) = hx_api_object.restListConditionsForStreamingIndcator(indicator['DT_RowId'])
+			(ret, response_code, conditions) = hx_api_object.restListConditionsForStreamingIndicator(indicator['DT_RowId'])
 			
 			myconditions = json.dumps(conditions['data']['entries'])
 

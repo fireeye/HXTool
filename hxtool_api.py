@@ -706,7 +706,7 @@ def datatable_streaming_indicators(hx_api_object):
 @valid_session_required
 def hxtool_api_streaming_indicators_get_conditions(hx_api_object):
 	uuid = request.args.get('uuid')
-	(ret, response_code, condition_class_conditions) = hx_api_object.restListConditionsForStreamingIndcator(indicator_id=uuid)
+	(ret, response_code, condition_class_conditions) = hx_api_object.restListConditionsForStreamingIndicator(indicator_id=uuid)
 
 	myconditions = { "conditions": condition_class_conditions }
 
@@ -760,15 +760,15 @@ def hxtool_api_streaming_indicators_new(hx_api_object):
 			if key not in ['name', 'category', 'platform', 'description']:
 				(form_iocguid, ioctype) = key.split("_")
 				mytests = {"tests": []}
-				for entry in value:
-					if not entry['negate'] and not entry['case']:
-						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data']})
-					elif entry['negate'] and not entry['case']:
-						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True})
-					elif entry['case'] and not entry['negate']:
-						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "preservecase": True})
-					else:
-						mytests['tests'].append({"token": entry['group'] + "/" + entry['field'], "type": entry['type'], "operator": entry['operator'], "value": entry['data'], "negate": True, "preservecase": True})
+				for test in value:
+					mytests['tests'].append({
+						"token": 		 test['group'] + "/" + test['field'], 
+						"operator": 	 test['operator'], 
+						"type": 		 test['type'], 
+						"value": 		 test['data'],
+						"preservecase" : test['case'],
+						"negate" : 		 test['negate']
+					})
 
 				(ret, response_code, response_data) = hx_api_object.restAddStreamingCondition(mydata['category'], ioc_guid, ioctype, mytests)
 				if not ret:
