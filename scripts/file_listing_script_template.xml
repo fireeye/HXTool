@@ -9,7 +9,7 @@
   <script id="urn:uuid:aaebf0df-137d-40b4-ab6f-4ea0942c12cc" chaining="implicit">
     <commands>
       <command xsi:type="ExecuteModuleCommand" id="urn:uuid:891e31de-111c-4087-988d-ce84331c93b4">
-        <module name="w32rawfiles" version="1.4.37.0" />
+        <module name="files-raw" version="1.4.37.0" />
         <config xsi:type="ParameterListModuleConfig">
           <parameters>
             <param name="Path">

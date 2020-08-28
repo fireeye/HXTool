@@ -474,16 +474,28 @@ def app_init(debug = False):
 
 	
 	# Init DB
-	# Disable the write cache altogether - too many issues reported with it enabled.
-	hxtool_global.hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), 
-										apicache = hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False),
-										apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
-										write_cache_size = 0)
+	# Check if MongoDB is enabled as the database, otherwise, fallback to TinyDB
+	if hxtool_global.hxtool_config.get_child_item('db', 'type') == "mongodb":
+		from hxtool_mongodb import hxtool_mongodb
+		
+		hxtool_global.hxtool_db = hxtool_mongodb(hxtool_global.hxtool_config.get_child_item('db', 'host', False),
+												hxtool_global.hxtool_config.get_child_item('db', 'port', 27017), 
+												hxtool_global.hxtool_config.get_child_item('db', 'user', False), 
+												hxtool_global.hxtool_config.get_child_item('db', 'password', False),
+												hxtool_global.hxtool_config.get_child_item('db', 'auth_source', "admin"),
+												hxtool_global.hxtool_config.get_child_item('db', 'auth_mechanism', "SCRAM-SHA-256"))
+	else:		
+		# Disable the write cache altogether - too many issues reported with it enabled.
+		hxtool_global.hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), 
+											apicache = hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False),
+											apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
+											write_cache_size = 0)
 
+	# TODO: Disabled for now
 	# Enable X15 integration if config options are present
-	if hxtool_global.hxtool_config['x15']:
-		from hxtool_x15_db import hxtool_x15
-		hxtool_global.hxtool_x15_object = hxtool_x15()
+	#if hxtool_global.hxtool_config['x15']:
+	#	from hxtool_x15_db import hxtool_x15
+	#	hxtool_global.hxtool_x15_object = hxtool_x15()
 	
 	# Initialize the scheduler
 	hxtool_global.hxtool_scheduler = hxtool_scheduler(hxtool_global.hxtool_config['scheduler']['thread_count'])
@@ -499,14 +511,14 @@ def app_init(debug = False):
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
 	app.session_interface = hxtool_session_interface(app, expiration_delta=hxtool_global.hxtool_config['network']['session_timeout'])
 
-	if hxtool_global.hxtool_config['apicache']:
-		if 'enabled' in hxtool_global.hxtool_config['apicache']:
-			if hxtool_global.hxtool_config['apicache']['enabled']:
-				for profile in hxtool_global.hxtool_db.profileList():
-					if profile['profile_id'] in hxtool_global.hxtool_scheduler.task_hx_api_sessions:
-						hxtool_global.apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['intervals'], hxtool_global.hxtool_config['apicache']['types'])
-					else:
-						logger.info("No background credential for {}, not starting apicache".format(profile['profile_id']))
+	# Disable API cache for now
+	# TODO: Restricted to MongoDB only?
+	#if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+	#	for profile in hxtool_global.hxtool_db.profileList():
+	#		if profile['profile_id'] in hxtool_global.hxtool_scheduler.task_hx_api_sessions:
+	#			hxtool_global.apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['intervals'], hxtool_global.hxtool_config['apicache']['types'])
+	#		else:
+	#			logger.info("No background credential for {}, not starting apicache".format(profile['profile_id']))
 
 	set_svg_mimetype()
 

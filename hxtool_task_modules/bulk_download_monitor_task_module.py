@@ -96,7 +96,7 @@ class bulk_download_monitor_task_module(task_module):
 									if task_profile == 'stacking':
 										self.logger.debug("Using stacking task module.")
 										# TODO: Maybe move this to the stacking module instead
-										hxtool_global.hxtool_db.stackJobAddHost(self.parent_task.profile_id, bulk_download_eid, bulk_host['host']['hostname'])
+										hxtool_global.hxtool_db.stackJobAddHost(self.parent_task.profile_id, bulk_download_eid, bulk_host['host']['hostname'], bulk_host['host']['_id'])
 										download_and_process_task.add_step(
 											stacking_task_module, 
 											kwargs = {

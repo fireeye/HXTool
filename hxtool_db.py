@@ -391,9 +391,9 @@ class hxtool_db:
 		with self._lock:
 			return self._db.table('stacking').search((tinydb.Query()['profile_id'] == profile_id))
 	
-	def stackJobAddHost(self, profile_id, bulk_download_eid, hostname):
+	def stackJobAddHost(self, profile_id, bulk_download_eid, hostname, agent_id):
 		with self._lock:
-			return self._db.table('stacking').update(self._db_append_to_list('hosts', {'hostname' : hostname, 'processed' : False}), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == int(bulk_download_eid)))
+			return self._db.table('stacking').update(self._db_append_to_list('hosts', {'hostname' : hostname, 'agent_id': agent_id, 'processed' : False}), (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['bulk_download_eid'] == int(bulk_download_eid)))
 	
 	def stackJobAddResult(self, profile_id, bulk_download_eid, hostname, result):
 		with self._lock:

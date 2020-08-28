@@ -49,6 +49,53 @@ class hxtool_data_models:
 				}
 		
 	stack_types = {
+		"all-ports": {
+			"audit_module" : "ports",
+			"script": "ports.json",
+			"platform": "all",
+			"name" : "Ports",
+			"item_name": "PortItem",
+			"fields": [
+				"remotePort",
+				"protocol",
+				"localPort",
+				"process",
+				"pid",
+				"localIP",
+				"state",
+				"remoteIP",
+				"path"
+			],
+			"default_index": "hostname",
+			"default_groupby": ['path', 'localIP', 'localPort', 'state', 'remoteIP', 'remotePort'],			
+			"post_process": None
+		},
+		"all-processes-api": {
+			"audit_module" : "processes-api",
+			"script" : "processes-api.json",
+			"platform" : "all",
+			"name" : "Process",
+			"item_name" : "ProcessItem",
+			"fields" : [
+				"Username",
+				"SectionList",
+				"name",
+				"parentpid",
+				"PortList",
+				"HandleList",
+				"pid",
+				"SecurityType",
+				"kernelTime",
+				"SecurityID",
+				"arguments",
+				"startTime",
+				"path",
+				"userTime"
+				],
+			"default_index" : "hostname",
+			"default_groupby" : ["name", "path", "arguments"],			
+			"post_process" : None
+		},
 		"windows-services": {
 			"audit_module" : "w32services",
 			"script": "services-md5.xml",
@@ -117,28 +164,7 @@ class hxtool_data_models:
 			"post_process" : None
 			
 		},
-		"windows-ports": {
-			"audit_module" : "w32ports",
-			"script": "w32ports.xml",
-			"platform": "windows",
-			"name" : "Ports",
-			"item_name": "PortItem",
-			"fields": [
-				"remotePort",
-				"protocol",
-				"localPort",
-				"process",
-				"pid",
-				"localIP",
-				"state",
-				"remoteIP",
-				"path"
-			],
-			"default_index": "hostname",
-			"default_groupby": ['path', 'localIP', 'localPort', 'state', 'remoteIP', 'remotePort'],			
-			"post_process": None
-		},
-		"windows-processes": {
+		"windows-processes-memory": {
 			"audit_module" : "w32processes-memory",
 			"script" : "w32processes-memory.xml",
 			"platform" : "windows",
@@ -202,27 +228,6 @@ class hxtool_data_models:
 			"default_index" : "hostname",
 			"default_groupby" : ["Md5sum", "Sha1sum", "Sha256sum"],
 			"post_process" : w32mbr_post_process
-		},
-		"linux-ports": {
-			"audit_module" : "ports",
-			"script": "linux-ports.json",
-			"platform": "linux",
-			"name" : "Ports",
-			"item_name": "PortItem",
-			"fields": [
-				"remotePort",
-				"protocol",
-				"localPort",
-				"process",
-				"pid",
-				"localIP",
-				"state",
-				"remoteIP",
-				"path"
-			],
-			"default_index": "hostname",
-			"default_groupby": ['path', 'localIP', 'localPort', 'state', 'remoteIP', 'remotePort'],			
-			"post_process": None
-		},
+		}
 	}
 	

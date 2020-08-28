@@ -484,10 +484,10 @@ class hxtool_scheduler_task:
 			'task_id' : self.task_id,
 			'name' : self.name,
 			'schedule' : self.schedule,
-			'start_time' : str(self.start_time),
-			'end_time' : str(self.end_time) if self.end_time else None,
-			'last_run' : str(self.last_run) if self.last_run else None,
-			'next_run' : str(self.next_run) if self.next_run else None,
+			'start_time' : HXAPI.dt_to_str(self.start_time),
+			'end_time' : HXAPI.dt_to_str(self.end_time) if self.end_time else None,
+			'last_run' : HXAPI.dt_to_str(self.last_run) if self.last_run else None,
+			'next_run' : HXAPI.dt_to_str(self.next_run) if self.next_run else None,
 			'enabled' : self.enabled,
 			'immutable' : self.immutable,
 			'stop_on_fail' : self.stop_on_fail,
@@ -524,12 +524,12 @@ class hxtool_scheduler_task:
 									immutable = d['immutable'],
 									stop_on_fail = d['stop_on_fail'],
 									defer_interval = d['defer_interval'])
-		task.last_run = d.get('last_run', None)
+		task.last_run = HXAPI.dt_from_str(d['last_run']) if d['last_run'] else None
 		task.parent_complete = d.get('parent_complete', False)
 		task.last_run_state = d.get('last_run_state', None)							
 		task.state = d.get('state')
 		schedule = d.get('schedule', None)
-		if schedule:
+		if schedule is dict:
 			task.set_schedule(**schedule)
 			task._calculate_next_run()
 		for s in d['steps']:

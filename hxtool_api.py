@@ -826,13 +826,13 @@ def hxtool_api_indicators_export(hx_api_object):
 	
 	buffer = BytesIO()
 	if len(iocList.keys()) == 1:
-		iocfname = iocList[list(iocList.keys())[0]]['uri_name'] + ".ioc"
+		iocfname = iocList[list(iocList.keys())[0]]['uri_name'] + ".rule"
 		buffer.write(json.dumps(iocList, indent=4, ensure_ascii=False).encode(default_encoding))
 	else:
 		iocfname = "multiple_indicators.zip"
 		with zipfile.ZipFile(buffer, 'w') as zf:
 			for ioc in iocList:
-				zf.writestr(iocList[ioc]['uri_name'] + '.ioc', json.dumps(iocList[ioc], indent=4, ensure_ascii=False).encode(default_encoding))
+				zf.writestr(iocList[ioc]['uri_name'] + '.rule', json.dumps(iocList[ioc], indent=4, ensure_ascii=False).encode(default_encoding))
 		zf.close()
 
 	buffer.seek(0)
@@ -936,7 +936,8 @@ def hxtool_api_indicators_new(hx_api_object):
 						})
 				myrule['execution'].append(mycondition)
 
-	hxtool_global.hxtool_db.ruleAdd(session['ht_profileid'], mydata['name'], mydata['category'], chosenplatform, session['ht_user'], HXAPI.b64(json.dumps(myrule)), "add")
+	# TODO: Disable for now
+	#hxtool_global.hxtool_db.ruleAdd(session['ht_profileid'], mydata['name'], mydata['category'], chosenplatform, session['ht_user'], HXAPI.b64(json.dumps(myrule)), "add")
 
 	# REMOVE SOON
 	(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform, description=mydata['description'])
@@ -1076,7 +1077,7 @@ def hxtool_api_stacking_new(hx_api_object):
 		with open(combine_app_path('scripts', stack_type['script']), 'r') as f:
 			script_xml = f.read()
 			hostset_id = int(request.form['stackhostset'])
-			bulk_download_eid = submit_bulk_job(hx_api_object, script_xml, hostset_id = hostset_id, task_profile = "stacking")
+			bulk_download_eid = submit_bulk_job(hx_api_object, script_xml, hostset_id = hostset_id, task_profile = "stacking", comment = "HXTool Stacking Job: {}".format(stack_type['name']))
 			ret = hxtool_global.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
 			app.logger.info(format_activity_log(msg="stacking", action="new", hostsetid=hostset_id, type=request.form['stack_type'], user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
@@ -1232,13 +1233,13 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 
 		# Collect User Selections
 		file_jobs, choices, listing_ids = [], {}, set([])
-		choice_re = re.compile('^choose_file_(\d+)_(\d+)$')
+		#choice_re = re.compile('^choose_file_(\d+)_(\d+)$')
 		for k, v in list(request.form.items()):
-			m = choice_re.match(k)
-			if m:
-				fl_id = int(m.group(1))
+			if k.startswith("choose_file"):
+				(fl_id, myindex) = k[12:].split("_")
+			#	fl_id = int(m.group(1))
 				listing_ids.add(fl_id)
-				choices.setdefault(fl_id, []).append(int(m.group(2)))
+				choices.setdefault(fl_id, []).append(int(myindex))
 		if choices:
 			choice_files, agent_ids = [], {}
 			for fl_id, file_ids in list(choices.items()):
@@ -1256,7 +1257,10 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 					else:
 						(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = cf['hostname'])
 						agent_id = agent_ids[cf['hostname']] = response_data['data']['entries'][0]['_id']
-					path, filename = cf['FullPath'].rsplit('\\', 1)
+					path_split_char = '\\'
+					if cf['FullPath'].startswith('/'):
+						path_split_char = '/'
+					path, filename = cf['FullPath'].rsplit(path_split_char, 1)
 					(ret, response_code, response_data) = hx_api_object.restAcquireFile(agent_id, path, filename, use_api_mode)
 					if ret:
 						acq_id = response_data['data']['_id']
@@ -1284,7 +1288,10 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 						pass
 			if file_jobs:
 				app.logger.info(format_activity_log(msg="multi-file acquisition", action="new", user=session['ht_user'], controller=session['hx_ip']))
-				return redirect("/multifile", code=302)
+		else:
+			app.logger.error(format_activity_log(error="Multi-file acquisition failed, no files were selected.", action="new", user=session['ht_user'], controller=session['hx_ip']))
+			
+	return redirect("/multifile", code=302)
 
 ##############
 # Datatables #
@@ -1717,7 +1724,9 @@ def datatable_alerts(hx_api_object):
 		if ret:
 			for alert in response_data['data']['entries']:
 				# Query host object
-				hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", alert['agent']['_id'])
+				hresponse_data = False
+				if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+					hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", alert['agent']['_id'])
 				if hresponse_data == False:
 					(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
 
@@ -1983,7 +1992,9 @@ def datatable_acqs(hx_api_object):
 			if ret:
 				for acq in response_data['data']['entries']:
 					if acq['type'] != "bulk":
-						hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", acq['host']['_id'])
+						hresponse_data = False
+						if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+							hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", acq['host']['_id'])
 						if hresponse_data == False:
 							(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(acq['host']['_id'])
 						if ret:
@@ -1993,8 +2004,9 @@ def datatable_acqs(hx_api_object):
 								acq_url = acq['acq']['url']
 							else:
 								acq_url = "/hx/api/v3/acqs/{}/{}".format(acq['type'], HXAPI.compat_str(acq['acq']['_id']))
-
-							a_response_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], acq['type'], acq['acq']['_id'])
+							a_response_data = False
+							if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+								a_response_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], acq['type'], acq['acq']['_id'])
 							if a_response_data == False:
 								(a_ret, a_response_code, a_response_data) = hx_api_object.restGetUrl(acq_url)
 							else:
@@ -2892,7 +2904,7 @@ def profile_by_id(profile_id):
 # Stacking Results #
 ####################
 
-@ht_api.route('/api/v{0}/stacking/<int:stack_job_eid>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
+@ht_api.route('/api/v{0}/stacking/<stack_job_eid>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def stack_job_results(hx_api_object, stack_job_eid):
 	stack_job = hxtool_global.hxtool_db.stackJobGet(stack_job_eid = stack_job_eid)
