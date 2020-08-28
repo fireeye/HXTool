@@ -54,7 +54,6 @@ from hxtool_api import indicator_dict_from_indicator
 from hxtool_api import ht_api
 
 default_encoding = hxtool_vars.default_encoding
-debug_mode = False
 
 # Setup logging
 hxtool_logging.setLoggerClass()
@@ -613,6 +612,8 @@ def hxtool_upgrade():
 hxtool_upgrade()
 
 def hxtool_run_main():
+	debug_mode = False
+
 	hxtool_global.initialize()
 	
 	signal.signal(signal.SIGINT, sigint_handler)
