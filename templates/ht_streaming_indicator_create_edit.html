@@ -344,36 +344,19 @@
 
 				});
 
-				// Post a new indicator (new mode)				
-				if ($('#myTitle').data('id') == "new") {
-					if ($('#indicator_name').val() !== "") {
-						var myForm = new FormData();
-						myForm.append("rule", JSON.stringify(data));
+				// Post the new or updated indicator				
+				if ($('#indicator_name').val() !== "") {
+					var myForm = new FormData();
+					myForm.append("rule", JSON.stringify(data));
 
-						hxtool_ajax_post_request("/api/v1/streaming_indicators/new", myForm, function() {
-							location.href = "/streaming_indicators";
-						});
+					hxtool_ajax_post_request("/api/v1/streaming_indicators/newOrUpdate", myForm, function() {
+						location.href = "/streaming_indicators";
+					});
 
-					}
-					else {
-						$("#hxtoolMessageBody").html("Enter a rule name!");
-						$("#hxtoolMessage").show();
-					}
 				}
-				// Post new indicator edit request (edit mode)
 				else {
-					if ($('#indicator_name').val() !== "") {
-						var myForm = new FormData();
-						myForm.append("rule", JSON.stringify(data));
-
-						hxtool_ajax_post_request("/api/v1/indicators/edit", myForm, function() {
-							location.href = "/indicators";
-						});
-					}
-					else {
-						$("#hxtoolMessageBody").html("Enter a rule name!");
-						$("#hxtoolMessage").show();
-					}
+					$("#hxtoolMessageBody").html("Enter a rule name!");
+					$("#hxtoolMessage").show();
 				}
 			});
 		});

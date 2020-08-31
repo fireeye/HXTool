@@ -713,51 +713,32 @@ def hxtool_api_streaming_indicators_get_conditions(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, myconditions)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
-@ht_api.route('/api/v{0}/streaming_indicators/new'.format(HXTOOL_API_VERSION), methods=['POST'])
+@ht_api.route('/api/v{0}/streaming_indicators/newOrUpdate'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
-def hxtool_api_streaming_indicators_new(hx_api_object):
+def hxtool_api_streaming_indicators_newOrUpdate(hx_api_object):
 
 	mydata = json.loads(request.form.get('rule'))
 	mydata['category'] = ''	# no value, for now
+	orig_uri = mydata.get('iocuri')  # if None this is a new indicator
 
 	if mydata['platform'] == "all":
 		chosenplatform = ['win', 'osx', 'linux']
 	else:
 		chosenplatform = [mydata['platform']]
 
-	#myrule = {}
-	#myrule['name'] = mydata['name']
-	#myrule['category'] = '' #mydata['category']
-	#myrule['platforms'] = chosenplatform
-	#myrule['description'] = mydata['description']
-	# myrule['conditions'] = []
-
-	#for key, value in mydata.items():
-	#	if key not in ['name', 'category', 'platform', 'description']:
-	#		(iocguid, ioctype) = key.split("_")
-
-	#		mycondition = []
-	#		for condition in value:
-	#			mycondition.append({
-	#				"token" : condition['group'] + "/" + condition['field'],
-	#				"operator" : condition['operator'],
-	#				"type" : condition['type'],
-	#				"value" : condition['data'],
-	#				"preservecase" : condition['case'],
-	#				"negate" : condition['negate']
-	#				})
-	#		myrule['conditions'].append(mycondition)
-
-	# TODO: Zeke to figure out what to do with this db update
-	#hxtool_global.hxtool_db.ruleAdd(session['ht_profileid'], mydata['name'], mydata['category'], chosenplatform, session['ht_user'], HXAPI.b64(json.dumps(myrule)), "add")
-
-	# REMOVE SOON
-	(ret, response_code, response_data) = hx_api_object.restAddStreamingIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform, description=mydata['description'])
+	# create the new indicator.  If this is an update, the orginal will be removed below.
+	(ret, response_code, response_data) = hx_api_object.restAddStreamingIndicator(
+															ioc_category=mydata['category'], 
+															display_name=mydata['name'], 
+															create_text=session['ht_user'], 
+															platforms=chosenplatform, 
+															description=mydata['description'])
 	if ret:
-		ioc_guid = response_data['id']
+		new_ioc_id = response_data['id']
 
+		#create each new condition for the new indicator
 		for key, value in mydata.items():
-			if key not in ['name', 'category', 'platform', 'description']:
+			if "_" in key:
 				(form_iocguid, ioctype) = key.split("_")
 				mytests = {"tests": []}
 				for test in value:
@@ -770,13 +751,18 @@ def hxtool_api_streaming_indicators_new(hx_api_object):
 						"negate" : 		 test['negate']
 					})
 
-				(ret, response_code, response_data) = hx_api_object.restAddStreamingCondition(mydata['category'], ioc_guid, ioctype, mytests)
+				(ret, response_code, response_data) = hx_api_object.restAddStreamingCondition(mydata['category'], new_ioc_id, ioctype, mytests)
 				if not ret:
-					# Remove the indicator if condition push was unsuccessful
-					(ret, response_code, response_data) = hx_api_object.restDeleteStreamingIndicator(mydata['category'], ioc_guid)
+					# Remove the new indicator if condition push was unsuccessful
+					(ret, response_code, response_data) = hx_api_object.restDeleteStreamingIndicator(mydata['category'], new_ioc_id)
 					return ('failed to create indicator conditions, check your conditions', 500)
 		# All OK
 		app.logger.info(format_activity_log(msg="rule action", action="new", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
+		if orig_uri:
+			# Remove the original indicator
+			(ret, response_code, response_data) = hx_api_object.restDeleteStreamingIndicator(mydata['originalcategory'], orig_uri.split("/")[-1])
+			if not ret:
+				app.logger.warn(format_activity_log(msg="rule action", action="update", reason="failed to remove old indicator", user=session['ht_user'], controller=session['hx_ip']))
 		return ('', 204)
 	else:
 		# Failed to create indicator

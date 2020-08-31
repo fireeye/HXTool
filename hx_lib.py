@@ -419,7 +419,9 @@ class HXAPI:
 	
 	# Delete a streaming indicator by id
 	def restDeleteStreamingIndicator(self, indicator_category, ioc_id):
-		
+		self.restDeleteAllConditionsFromStreamingIndicator(
+													indicator_category=indicator_category,
+													ioc_id=ioc_id)
 		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id), method = 'DELETE')
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
@@ -436,15 +438,16 @@ class HXAPI:
 	# Delete all conditions from a streaming indicator by id
 	def restDeleteAllConditionsFromStreamingIndicator(self, indicator_category, ioc_id):
 		
-		(ret, response_code, response_data, response_headers) = self.restListConditionsForStreamingIndicator(indicator_id=ioc_id)
+		(ret, response_code, response_data) = self.restListConditionsForStreamingIndicator(indicator_id=ioc_id)
 		if ret:
 			myConditions = response_data['data']['entries']
 			for condition in myConditions:
 				condition_id = condition['id']
 				self.logger.debug('Deleting condition {0} from indicator {1}'.format(condition_id, ioc_id))
-				(ret, response_code, response_data, response_headers) = self.restDeleteConditionFromStreamingIndicator('', ioc_id=ioc_id, condition_id=condition_id)
-				if not ret:
+				(ret_2, response_code, response_data) = self.restDeleteConditionFromStreamingIndicator('', ioc_id=ioc_id, condition_id=condition_id)
+				if not ret_2:
 					self.logger.error('Deleting condition {0} from indicator {1} yielded error [{2}] with reason [{3}]'.format(condition_id, ioc_id, response_code, response_data))
+					ret = ret_2
 
 		return(ret, response_code, response_data)
 	
