@@ -124,8 +124,7 @@
 
 		function renderConditions(myconditions, eventspace) {
 			$.each( myconditions, function( ikey, ivalue ) {
-				addCondition(ivalue['uuid']); //, myioctype);
-				var myguid = ivalue['id'];
+				addCondition(ivalue['id']); //, myioctype);
 				$.each( ivalue['condition']['tests'], function( key, value ) {
 					var myguid = ($('#ioctable tr:last').data('id'));
 					var myTokenInfo = value['token'].split("/");
