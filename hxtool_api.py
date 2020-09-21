@@ -684,6 +684,140 @@ def hxtool_api_scripts_download(hx_api_object):
 
 
 ########################
+# IOC Streaming API    #
+########################
+@ht_api.route('/api/v{0}/datatable_streaming_indicators'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def datatable_streaming_indicators(hx_api_object):
+	
+	mydata = {}
+	mydata['data'] = []
+
+	mySort = 'updated_at:desc'	#sort most recent updates to the top
+	myFilter = '{"operator":"eq","field":"deleted","arg":["false"]}'	# show only active indicators
+	(ret, response_code, response_data) = hx_api_object.restListStreamingIndicators(sort_term=mySort, filter_term=myFilter)
+	if ret:
+		for indicator in response_data['data']['entries']:
+			mydata['data'].append(indicator_dict_from_indicator(indicator=indicator, hx_api_object=hx_api_object))
+
+	return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/streaming_indicators/get/conditions'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_streaming_indicators_get_conditions(hx_api_object):
+	uuid = request.args.get('uuid')
+	(ret, response_code, condition_class_conditions) = hx_api_object.restListConditionsForStreamingIndicator(indicator_id=uuid)
+
+	myconditions = { "conditions": condition_class_conditions }
+
+	(r, rcode) = create_api_response(ret, response_code, myconditions)
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/streaming_indicators/new'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_streaming_indicators_new(hx_api_object):
+
+	mydata = json.loads(request.form.get('rule'))
+	mydata['category'] = ''	# no value, for now
+
+	if mydata['platform'] == "all":
+		chosenplatform = ['win', 'osx', 'linux']
+	else:
+		chosenplatform = [mydata['platform']]
+
+	#myrule = {}
+	#myrule['name'] = mydata['name']
+	#myrule['category'] = '' #mydata['category']
+	#myrule['platforms'] = chosenplatform
+	#myrule['description'] = mydata['description']
+	# myrule['conditions'] = []
+
+	#for key, value in mydata.items():
+	#	if key not in ['name', 'category', 'platform', 'description']:
+	#		(iocguid, ioctype) = key.split("_")
+
+	#		mycondition = []
+	#		for condition in value:
+	#			mycondition.append({
+	#				"token" : condition['group'] + "/" + condition['field'],
+	#				"operator" : condition['operator'],
+	#				"type" : condition['type'],
+	#				"value" : condition['data'],
+	#				"preservecase" : condition['case'],
+	#				"negate" : condition['negate']
+	#				})
+	#		myrule['conditions'].append(mycondition)
+
+	# TODO: Zeke to figure out what to do with this db update
+	#hxtool_global.hxtool_db.ruleAdd(session['ht_profileid'], mydata['name'], mydata['category'], chosenplatform, session['ht_user'], HXAPI.b64(json.dumps(myrule)), "add")
+
+	# REMOVE SOON
+	(ret, response_code, response_data) = hx_api_object.restAddStreamingIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform, description=mydata['description'])
+	if ret:
+		ioc_guid = response_data['id']
+
+		for key, value in mydata.items():
+			if key not in ['name', 'category', 'platform', 'description']:
+				(form_iocguid, ioctype) = key.split("_")
+				mytests = {"tests": []}
+				for test in value:
+					mytests['tests'].append({
+						"token": 		 test['group'] + "/" + test['field'], 
+						"operator": 	 test['operator'], 
+						"type": 		 test['type'], 
+						"value": 		 test['data'],
+						"preservecase" : test['case'],
+						"negate" : 		 test['negate']
+					})
+
+				(ret, response_code, response_data) = hx_api_object.restAddStreamingCondition(mydata['category'], ioc_guid, ioctype, mytests)
+				if not ret:
+					# Remove the indicator if condition push was unsuccessful
+					(ret, response_code, response_data) = hx_api_object.restDeleteStreamingIndicator(mydata['category'], ioc_guid)
+					return ('failed to create indicator conditions, check your conditions', 500)
+		# All OK
+		app.logger.info(format_activity_log(msg="rule action", action="new", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
+		return ('', 204)
+	else:
+		# Failed to create indicator
+		app.logger.warn(format_activity_log(msg="rule action", action="new", reason="failed to create indicator", user=session['ht_user'], controller=session['hx_ip']))
+		return ('failed to create indicator', 500)	
+
+@ht_api.route('/api/v{0}/streaming_indicators/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_streaming_indicators_remove(hx_api_object):
+	(ret, response_code, response_data) =  hx_api_object.restDeleteStreamingIndicator('', request.args.get('id'))
+	(r, rcode) = create_api_response(ret, response_code, response_data)
+	app.logger.info(format_activity_log(msg="rule action", action="remove", name=request.args.get('url'), user=session['ht_user'], controller=session['hx_ip']))
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+#serialize from an indicator response to a dictionary of properties
+def indicator_dict_from_indicator(indicator, hx_api_object):
+	return {
+				"DT_RowId": 		indicator['id'],
+				"url": 				hx_api_object.buildStreamingIndicatorURI(indicator['id']),
+				"name" : 			indicator['name'],
+				"description": 		indicator['description'],
+				"last_updated": 	indicator['updated_at'],
+				"category_id":		2,
+				"category_name": 	'Custom',
+				"updated_by": 		indicator['updated_by'],
+				"meta": 			indicator['meta'],
+				"platforms":		streaming_indicator_platforms_supported(indicator)
+			}
+
+# return an array of platforms supported
+def streaming_indicator_platforms_supported(indicator):
+	platforms = []
+	if indicator['supports_win']:
+		platforms.append('win')
+	if indicator['supports_linux']:
+		platforms.append('linux')
+	if indicator['supports_osx']:
+		platforms.append('osx')
+	return platforms
+
+########################
 # Indicator categories #
 ########################
 @ht_api.route('/api/v{0}/indicator_category/get_edit_policies'.format(HXTOOL_API_VERSION), methods=['GET'])
