@@ -686,6 +686,23 @@ def hxtool_api_scripts_download(hx_api_object):
 ########################
 # IOC Streaming API    #
 ########################
+@ht_api.route('/api/v{0}/streaming_indicator_category/get_edit_policies'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_streaming_indicator_category_get_edit_policies(hx_api_object):
+	# streaming indicators don't have categories, so make them up for our own purposes.  We just need one of each type.
+	r = {
+		'api_success':True,
+		'api_response_code':200,
+		'api_response': json.dumps({
+			"1": "read_only", 
+			"2": "full", 
+			"3": "edit_delete", 
+			"4": "delete"
+			})
+		}
+
+	return(app.response_class(response=json.dumps(r), status=200, mimetype='application/json'))
+	
 @ht_api.route('/api/v{0}/datatable_streaming_indicators'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def datatable_streaming_indicators(hx_api_object):
@@ -812,8 +829,8 @@ def indicator_dict_from_indicator(indicator, hx_api_object):
 				"name" : 			indicator['name'],
 				"description": 		indicator['description'],
 				"last_updated": 	indicator['updated_at'],
-				"category_id":		2,
-				"category_name": 	'Custom',
+				"category_id":		1 if(indicator['category'] == 'FireEye') else 2, # see hxtool_api_streaming_indicator_category_get_edit_policies() above
+				"category_name": 	indicator['category'],
 				"updated_by": 		indicator['updated_by'],
 				"meta": 			indicator['meta'],
 				"platforms":		streaming_indicator_platforms_supported(indicator)
