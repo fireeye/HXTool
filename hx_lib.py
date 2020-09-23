@@ -233,8 +233,6 @@ class HXAPI:
 					self.api_version = 3
 			elif self.hx_version[0] >= 4:
 				self.api_version = 3
-			elif self.hx_version[0] == 5:
-				self.api_version = 3
 	
 	###################
 	## Generic GET
