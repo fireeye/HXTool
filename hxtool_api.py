@@ -857,7 +857,7 @@ def hxtool_api_indicators_export(hx_api_object):
 		iocfname = "multiple_indicators.zip"
 		with zipfile.ZipFile(buffer, 'w') as zf:
 			for ioc in iocList:
-				zf.writestr(iocList[ioc]['uri_name'] + '.rule', json.dumps(iocList[ioc], indent=4, ensure_ascii=False).encode(default_encoding))
+				zf.writestr(iocList[ioc]['uri_name'] + '.rule', json.dumps({ ioc : iocList[ioc] }, indent=4, ensure_ascii=False).encode(default_encoding))
 		zf.close()
 
 	buffer.seek(0)
