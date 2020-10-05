@@ -124,8 +124,7 @@
 
 		function renderConditions(myconditions, eventspace) {
 			$.each( myconditions, function( ikey, ivalue ) {
-				addCondition(ivalue['uuid']); //, myioctype);
-				var myguid = ivalue['id'];
+				addCondition(ivalue['id']); //, myioctype);
 				$.each( ivalue['condition']['tests'], function( key, value ) {
 					var myguid = ($('#ioctable tr:last').data('id'));
 					var myTokenInfo = value['token'].split("/");
@@ -344,36 +343,19 @@
 
 				});
 
-				// Post a new indicator (new mode)				
-				if ($('#myTitle').data('id') == "new") {
-					if ($('#indicator_name').val() !== "") {
-						var myForm = new FormData();
-						myForm.append("rule", JSON.stringify(data));
+				// Post the new or updated indicator				
+				if ($('#indicator_name').val() !== "") {
+					var myForm = new FormData();
+					myForm.append("rule", JSON.stringify(data));
 
-						hxtool_ajax_post_request("/api/v1/streaming_indicators/new", myForm, function() {
-							location.href = "/streaming_indicators";
-						});
+					hxtool_ajax_post_request("/api/v1/streaming_indicators/newOrUpdate", myForm, function() {
+						location.href = "/streaming_indicators";
+					});
 
-					}
-					else {
-						$("#hxtoolMessageBody").html("Enter a rule name!");
-						$("#hxtoolMessage").show();
-					}
 				}
-				// Post new indicator edit request (edit mode)
 				else {
-					if ($('#indicator_name').val() !== "") {
-						var myForm = new FormData();
-						myForm.append("rule", JSON.stringify(data));
-
-						hxtool_ajax_post_request("/api/v1/indicators/edit", myForm, function() {
-							location.href = "/indicators";
-						});
-					}
-					else {
-						$("#hxtoolMessageBody").html("Enter a rule name!");
-						$("#hxtoolMessage").show();
-					}
+					$("#hxtoolMessageBody").html("Enter a rule name!");
+					$("#hxtoolMessage").show();
 				}
 			});
 		});
@@ -406,11 +388,9 @@
 		{{ htDropdown.widgetItem("All", "all", elementIcon="fas fa-globe") }}
 		{{ htDropdown.widgetFooter() }}
 
-		<!--
 		{% if iocname %}
-			<div style='width: 650px; font-style: italic; font-size: 11px; margin-top: 10px;'>Note: Due to limitations in the HX API indicator conditions cannot be edited. When you use HXTool to edit an indicator a new indicator will be created and the old indicator will be removed. Make sure to backup your indicators before proceeding</div>
+			<div style='width: 650px; font-style: italic; font-size: 11px; margin-top: 10px;'>Note: Due to limitations in the HX API streaming indicator conditions cannot be edited. When you use HXTool to edit a streaming indicator a new streaming indicator will be created and the old streaming indicator will be removed. Make sure to backup your streaming indicators before proceeding</div>
 		{% endif %}
-		-->
 		<div style='text-align: right;'>
 			<button class="fe-btn fe-btn--md fe-btn--hxtool-main-master" id="postbutton"> Submit <i style='color: #11a962;' class="fe-icon--right fas fa-check"></i></button>
 		</div>

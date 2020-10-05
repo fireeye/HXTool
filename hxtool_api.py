@@ -686,6 +686,23 @@ def hxtool_api_scripts_download(hx_api_object):
 ########################
 # IOC Streaming API    #
 ########################
+@ht_api.route('/api/v{0}/streaming_indicator_category/get_edit_policies'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_streaming_indicator_category_get_edit_policies(hx_api_object):
+	# streaming indicators don't have categories, so make them up for our own purposes.  We just need one of each type.
+	r = {
+		'api_success':True,
+		'api_response_code':200,
+		'api_response': json.dumps({
+			"1": "read_only", 
+			"2": "full", 
+			"3": "edit_delete", 
+			"4": "delete"
+			})
+		}
+
+	return(app.response_class(response=json.dumps(r), status=200, mimetype='application/json'))
+	
 @ht_api.route('/api/v{0}/datatable_streaming_indicators'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def datatable_streaming_indicators(hx_api_object):
@@ -713,54 +730,61 @@ def hxtool_api_streaming_indicators_get_conditions(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, myconditions)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
-@ht_api.route('/api/v{0}/streaming_indicators/new'.format(HXTOOL_API_VERSION), methods=['POST'])
+@ht_api.route('/api/v{0}/streaming_indicators/newOrUpdate'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
-def hxtool_api_streaming_indicators_new(hx_api_object):
+def hxtool_api_streaming_indicators_newOrUpdate(hx_api_object):
 
 	mydata = json.loads(request.form.get('rule'))
+	'''
+	Keys within mydata:
+		'name' 				- the name of the rule
+		'description' 		- the description of the rule
+		'platform' 			- the platform assigned to the rule, or 'all'
+		'originalname' 		- the original name of the rule
+		'originalcategory' 	- the original category of the rule
+		'iocuri'			- the fully qualified uri of the rule, for example:'/hx/api/plugins/ioc-streaming/v1/indicators/e3d70699-4d46-4b3c-8a5b-8d46ef1e22a2'
+							  The uri will be empty if this is a new rule.
+		'xxx_condition'		- The condition to attach.  If there are more than one, they will appear in sequence.  A condition is not required
+							  'xxx' will be the UUID of the condition.  If the condition is a new one, then 'xxx' with be 'undefined'
+
+		Each condition is an array of Tests
+		Keys with Tests:
+			'case'		- boolean to make the comparison case sensitive
+			'data'		- the data to test for within the comparison
+			'field'		- the field for the comparions
+			'group'		- the groupd for the field, for example:'fileWriteEvent'
+			'negate'	- boolean to reverse the sense of the test
+			'operator'	- the comparison operator
+			'type'		- the data type of the field, for example:'text'
+	'''
+	
 	mydata['category'] = ''	# no value, for now
+	orig_uri = mydata.get('iocuri')  # if None this is a new indicator
 
 	if mydata['platform'] == "all":
 		chosenplatform = ['win', 'osx', 'linux']
 	else:
 		chosenplatform = [mydata['platform']]
 
-	#myrule = {}
-	#myrule['name'] = mydata['name']
-	#myrule['category'] = '' #mydata['category']
-	#myrule['platforms'] = chosenplatform
-	#myrule['description'] = mydata['description']
-	# myrule['conditions'] = []
+	# Our approach is to simply create a new indicator with conditions (even if this is an update).  For an update, we will delete the old condition.
+	# We do this so that we can roll-back to the original in the case that there is a problem with the update.
 
-	#for key, value in mydata.items():
-	#	if key not in ['name', 'category', 'platform', 'description']:
-	#		(iocguid, ioctype) = key.split("_")
-
-	#		mycondition = []
-	#		for condition in value:
-	#			mycondition.append({
-	#				"token" : condition['group'] + "/" + condition['field'],
-	#				"operator" : condition['operator'],
-	#				"type" : condition['type'],
-	#				"value" : condition['data'],
-	#				"preservecase" : condition['case'],
-	#				"negate" : condition['negate']
-	#				})
-	#		myrule['conditions'].append(mycondition)
-
-	# TODO: Zeke to figure out what to do with this db update
-	#hxtool_global.hxtool_db.ruleAdd(session['ht_profileid'], mydata['name'], mydata['category'], chosenplatform, session['ht_user'], HXAPI.b64(json.dumps(myrule)), "add")
-
-	# REMOVE SOON
-	(ret, response_code, response_data) = hx_api_object.restAddStreamingIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform, description=mydata['description'])
+	# create the new indicator.  If this is an update, the orginal will be removed below.
+	(ret, response_code, response_data) = hx_api_object.restAddStreamingIndicator(
+															ioc_category=mydata['category'], 
+															display_name=mydata['name'], 
+															create_text=session['ht_user'], 
+															platforms=chosenplatform, 
+															description=mydata['description'])
 	if ret:
-		ioc_guid = response_data['id']
+		new_ioc_id = response_data['id']
 
+		#create each condition for the new indicator
 		for key, value in mydata.items():
-			if key not in ['name', 'category', 'platform', 'description']:
+			if "_condition" in key:
 				(form_iocguid, ioctype) = key.split("_")
 				mytests = {"tests": []}
-				for test in value:
+				for test in value:	# value is an array of tests
 					mytests['tests'].append({
 						"token": 		 test['group'] + "/" + test['field'], 
 						"operator": 	 test['operator'], 
@@ -770,13 +794,19 @@ def hxtool_api_streaming_indicators_new(hx_api_object):
 						"negate" : 		 test['negate']
 					})
 
-				(ret, response_code, response_data) = hx_api_object.restAddStreamingCondition(mydata['category'], ioc_guid, ioctype, mytests)
+				(ret, response_code, response_data) = hx_api_object.restAddStreamingCondition(mydata['category'], new_ioc_id, ioctype, mytests)
 				if not ret:
-					# Remove the indicator if condition push was unsuccessful
-					(ret, response_code, response_data) = hx_api_object.restDeleteStreamingIndicator(mydata['category'], ioc_guid)
+					# Remove the new indicator if condition push was unsuccessful.  Note that this will remove any conditions that were attached
+					# ahead of this failure
+					(ret, response_code, response_data) = hx_api_object.restDeleteStreamingIndicator(mydata['category'], new_ioc_id)
 					return ('failed to create indicator conditions, check your conditions', 500)
 		# All OK
 		app.logger.info(format_activity_log(msg="rule action", action="new", name=mydata['name'], category=mydata['category'], user=session['ht_user'], controller=session['hx_ip']))
+		if orig_uri:
+			# Remove the original indicator and original conditions
+			(ret, response_code, response_data) = hx_api_object.restDeleteStreamingIndicator(mydata['originalcategory'], orig_uri.split("/")[-1])
+			if not ret:
+				app.logger.warn(format_activity_log(msg="rule action", action="update", reason="failed to remove old indicator", user=session['ht_user'], controller=session['hx_ip']))
 		return ('', 204)
 	else:
 		# Failed to create indicator
@@ -799,8 +829,8 @@ def indicator_dict_from_indicator(indicator, hx_api_object):
 				"name" : 			indicator['name'],
 				"description": 		indicator['description'],
 				"last_updated": 	indicator['updated_at'],
-				"category_id":		2,
-				"category_name": 	'Custom',
+				"category_id":		1 if(indicator['category'] == 'FireEye') else 2, # see hxtool_api_streaming_indicator_category_get_edit_policies() above
+				"category_name": 	indicator['category'],
 				"updated_by": 		indicator['updated_by'],
 				"meta": 			indicator['meta'],
 				"platforms":		streaming_indicator_platforms_supported(indicator)
