@@ -1009,7 +1009,7 @@ def hxtool_api_indicators_edit(hx_api_object):
 	myState = True
 
 	if mydata['platform'] == "all":
-		chosenplatform = ['win', 'osx']
+		chosenplatform = ['win', 'osx', 'linux']
 	else:
 		chosenplatform = [mydata['platform']]
 
