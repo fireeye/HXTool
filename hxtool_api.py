@@ -825,7 +825,7 @@ def hxtool_api_streaming_indicators_remove(hx_api_object):
 def indicator_dict_from_indicator(indicator, hx_api_object):
 	return {
 				"DT_RowId": 		indicator['id'],
-				"url": 				hx_api_object.buildStreamingIndicatorURI(indicator['id']),
+				"url": 				hx_api_object.buildStreamingIndicatorURI(indicator_id=indicator['id']),
 				"name" : 			indicator['name'],
 				"description": 		indicator['description'],
 				"last_updated": 	indicator['updated_at'],
