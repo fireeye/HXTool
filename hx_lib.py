@@ -371,10 +371,10 @@ class HXAPI:
 		return(ret, response_code, response_data)		
 
 	# build the URI for the Indicators endpoint.  Accommodate a specific indicator if provided
-	def buildStreamingIndicatorURI(self, indicator_id=None):
+	def buildStreamingIndicatorURI(self, api_endpoint='indicators', indicator_id=None):
 		uri = self.build_module_api_route(module_name=self.STREAMING_MODULE_NAME, 
 										  min_api_version=self.STREAMING_MODULE_API_VER,
-										  api_endpoint='indicators')
+										  api_endpoint=api_endpoint)
 		if indicator_id:
 			uri += '/{0}'.format(indicator_id)
 		return uri
@@ -423,16 +423,22 @@ class HXAPI:
 													indicator_category=indicator_category,
 													ioc_id=ioc_id)
 		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id), method = 'DELETE')
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		(ret, response_code, response_data, _) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 	
 	# Delete a condition from a streaming indicator by id
 	def restDeleteConditionFromStreamingIndicator(self, indicator_category, ioc_id, condition_id):
 		
+		# detach the condition from the indicator
 		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id) + '/conditions/{0}'.format(condition_id), method = 'DELETE')
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-		
+		(ret, response_code, response_data, _) = self.handle_response(request)
+
+		# delete the condition
+		if ret:
+			request = self.build_request(self.buildStreamingIndicatorURI(api_endpoint='conditions') + '/{0}'.format(condition_id), method = 'DELETE')
+			(ret, response_code, response_data, _) = self.handle_response(request)
+
 		return(ret, response_code, response_data)
 	
 	# Delete all conditions from a streaming indicator by id
