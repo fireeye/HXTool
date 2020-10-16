@@ -175,10 +175,11 @@
 				if ($("#" + row.data()['DT_RowId'] + "_check").is(":checked")) {
 					myuuid = row.data()['DT_RowId'];
 					myExports[myuuid] = {
-						"name": row.data()['display_name'],
-						"uri_name": row.data()['uri_name'],
+						"name": row.data()['name'],
+						"uri_name": row.data()['url'],
 						"category": row.data()['category_name'],
-						"platforms": row.data()['platforms']
+						"platforms": row.data()['platforms'],
+						"description": row.data()['description']
 					};
 				}
 
@@ -186,7 +187,7 @@
 			$.ajax
 			({
 				type: 'POST',
-				url: '/api/v1/indicators/export',
+				url: '/api/v1/streaming_indicators/export',
 				contentType: 'application/json',
 				xhrFields: { responseType: 'blob' },
 				processData: false,

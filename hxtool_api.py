@@ -847,6 +847,80 @@ def streaming_indicator_platforms_supported(indicator):
 		platforms.append('osx')
 	return platforms
 
+@ht_api.route('/api/v{0}/streaming_indicators/export'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_streaming_indicators_export(hx_api_object):
+	iocList = request.json
+	for uuid, ioc in iocList.items():
+		(ret, _, response_data) = hx_api_object.restListConditionsForStreamingIndicator(indicator_id=uuid)
+		if ret:
+			ioc['uri_name'] = uuid	# reduce the uri_name to simply the uuid (removing th path info)
+			iocList[uuid]['conditions'] = []
+			for item in response_data['data']['entries']:
+				iocList[uuid]['conditions'].append(item['condition']['tests'])
+
+	buffer = BytesIO()
+	if len(iocList.keys()) == 1:
+		iocfname = list(iocList.keys())[0] + ".ioc"
+		buffer.write(json.dumps(iocList, indent=4, ensure_ascii=False).encode(default_encoding))
+	else:
+		iocfname = "multiple_indicators.zip"
+		with zipfile.ZipFile(buffer, 'w') as zf:
+			for uuid, ioc in iocList:
+				zf.writestr(uuid + '.ioc', json.dumps(iocList[ioc], indent=4, ensure_ascii=False).encode(default_encoding))
+		zf.close()
+
+	buffer.seek(0)
+	
+	app.logger.info(format_activity_log(msg="streaming rule action", action="export", name=iocfname, user=session['ht_user'], controller=session['hx_ip']))
+	return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
+
+@ht_api.route('/api/v{0}/streaming_indicators/import'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_streaming_indicators_import(hx_api_object):
+	files = request.files.getlist('ruleImport')
+	
+	for file in files:
+		iocs = json.loads(file.read().decode(default_encoding))
+		
+		for iockey in iocs:
+
+			# Check if category exists
+			category_exists = False
+			(ret, response_code, response_data) = hx_api_object.restListCategories(limit = 1, filter_term={'name' : iocs[iockey]['category']})
+			if ret:
+				# As it turns out, filtering by name also returns partial matches. However the exact match seems to be the 1st result
+				category_exists = (len(response_data['data']['entries']) == 1 and response_data['data']['entries'][0]['name'].lower() == iocs[iockey]['category'].lower())
+				if not category_exists:
+					app.logger.info(format_activity_log(msg="rule action", action="new", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
+					(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(iocs[iockey]['category']))
+					category_exists = ret
+				
+				if category_exists:
+					(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
+					if ret:
+						ioc_guid = response_data['data']['_id']
+						
+						if 'presence' in iocs[iockey].keys():
+							for p_cond in iocs[iockey]['presence']:
+								data = json.dumps(p_cond)
+								data = """{"tests":""" + data + """}"""
+								(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
+
+						if 'execution' in iocs[iockey].keys():
+							for e_cond in iocs[iockey]['execution']:
+								data = json.dumps(e_cond)
+								data = """{"tests":""" + data + """}"""
+								(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
+				
+						app.logger.info(format_activity_log(msg="rule action", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
+				else:
+					app.logger.warn(format_activity_log(msg="rule action fail", reason="unable to create category", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
+			else:
+				app.logger.info(format_activity_log(msg="rule action", reason="unable to import indicator", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
+
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+
 ########################
 # Indicator categories #
 ########################
