@@ -380,10 +380,11 @@ class HXAPI:
 		return uri
 
 	# Add a new streaming indicator
-	def restAddStreamingIndicator(self, ioc_category, display_name, create_text=None, platforms=None, description=None):
+	def restAddStreamingIndicator(self, ioc_category, display_name, create_text=None, platforms=None, description=None, enabled=True):
 
 		data = {
-			'name' : display_name
+			'name' 	  : display_name,
+			'enabled' : enabled
 		}
 		if create_text:
 			data['created_by'] = create_text
