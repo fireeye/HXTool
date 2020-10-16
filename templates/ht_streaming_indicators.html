@@ -161,7 +161,7 @@
 				data.append("ruleImport", value);
 			});
 
-			hxtool_ajax_post_request("/api/v1/indicators/import", data, function() {
+			hxtool_ajax_post_request("/api/v1/streaming_indicators/import", data, function() {
 				ioc_datatable.ajax.reload();
 			});
 

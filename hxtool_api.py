@@ -866,8 +866,8 @@ def hxtool_api_streaming_indicators_export(hx_api_object):
 	else:
 		iocfname = "multiple_indicators.zip"
 		with zipfile.ZipFile(buffer, 'w') as zf:
-			for uuid, ioc in iocList:
-				zf.writestr(uuid + '.ioc', json.dumps(iocList[ioc], indent=4, ensure_ascii=False).encode(default_encoding))
+			for uuid, ioc in iocList.items():
+				zf.writestr(uuid + '.ioc', json.dumps({uuid:ioc}, indent=4, ensure_ascii=False).encode(default_encoding))
 		zf.close()
 
 	buffer.seek(0)
@@ -883,42 +883,42 @@ def hxtool_api_streaming_indicators_import(hx_api_object):
 	for file in files:
 		iocs = json.loads(file.read().decode(default_encoding))
 		
-		for iockey in iocs:
-
-			# Check if category exists
-			category_exists = False
-			(ret, response_code, response_data) = hx_api_object.restListCategories(limit = 1, filter_term={'name' : iocs[iockey]['category']})
-			if ret:
-				# As it turns out, filtering by name also returns partial matches. However the exact match seems to be the 1st result
-				category_exists = (len(response_data['data']['entries']) == 1 and response_data['data']['entries'][0]['name'].lower() == iocs[iockey]['category'].lower())
-				if not category_exists:
-					app.logger.info(format_activity_log(msg="rule action", action="new", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
-					(ret, response_code, response_data) = hx_api_object.restCreateCategory(HXAPI.compat_str(iocs[iockey]['category']))
-					category_exists = ret
-				
-				if category_exists:
-					(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
+		for (_, ioc) in iocs.items():
+			# only import custom 
+			if ioc['category'].lower() == 'custom':
+					# create the new indicator.  If this is an update, the orginal will be removed below.
+					(ret, _, response_data) = hx_api_object.restAddStreamingIndicator(
+													ioc_category=ioc['category'], 
+													display_name=ioc['name'], 
+													create_text=session['ht_user'], 
+													platforms=ioc['platforms'], 
+													description='{0}\n\nImported from {1}'.format(ioc['description'], ioc['uri_name']))
 					if ret:
-						ioc_guid = response_data['data']['_id']
-						
-						if 'presence' in iocs[iockey].keys():
-							for p_cond in iocs[iockey]['presence']:
-								data = json.dumps(p_cond)
-								data = """{"tests":""" + data + """}"""
-								(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
-
-						if 'execution' in iocs[iockey].keys():
-							for e_cond in iocs[iockey]['execution']:
-								data = json.dumps(e_cond)
-								data = """{"tests":""" + data + """}"""
-								(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
-				
-						app.logger.info(format_activity_log(msg="rule action", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
-				else:
-					app.logger.warn(format_activity_log(msg="rule action fail", reason="unable to create category", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
-			else:
-				app.logger.info(format_activity_log(msg="rule action", reason="unable to import indicator", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
-
+						new_ioc_id = response_data['id']
+						for condition in ioc['conditions']:
+							mytests = {"tests": []}
+							for test in condition:
+								mytests['tests'].append({
+									"token": 		 test.get('token', ''),		# purposefully provide a default that will fail insert
+									"operator": 	 test.get('operator', ''),  # purposefully provide a default that will fail insert
+									"type": 		 test.get('type', ''), 		# purposefully provide a default that will fail insert
+									"value": 		 test.get('value', ''),		# purposefully provide a default that will fail insert
+									"preservecase":  test.get('preservecase', False),
+									"negate":		 test.get('negate', False)
+								})
+								
+							(ret, _, response_data) = hx_api_object.restAddStreamingCondition(ioc['category'], new_ioc_id, 'condition', mytests)
+							if not ret:
+								# Remove the new indicator if condition push was unsuccessful.  Note that this will remove any conditions that were attached
+								# ahead of this failure
+								(ret, _, response_data) = hx_api_object.restDeleteStreamingIndicator(ioc['category'], new_ioc_id)
+								app.logger.info(format_activity_log(msg="streaming rule action", reason="unable to import indicator", action="import", name=ioc['name'], user=session['ht_user'], controller=session['hx_ip']))
+								break
+						if ret:	
+							app.logger.info(format_activity_log(msg="streaming rule action", reason="imported indicator", action="import", name=ioc['name'], user=session['ht_user'], controller=session['hx_ip']))
+					else:
+						# failed to create IOC
+						app.logger.info(format_activity_log(msg="streaming rule action", reason="unable to import indicator", action="import", name=iocs['name'], user=session['ht_user'], controller=session['hx_ip']))
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 ########################
