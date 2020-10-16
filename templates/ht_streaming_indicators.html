@@ -66,10 +66,8 @@
 					 "width": "34px",
 					 render: function ( data, type, row, meta ) {
 					 	r = "&nbsp;";
-					 	if (row.category_name != "Mandiant Unrestricted Intel") {
-					 		if (row.category_name != "Mandiant Intel") {
-						 		r += "<input id='" + row.DT_RowId + "_check' type='checkbox' />";
-					 		}
+					 	if (row.category_name != "FireEye") {
+							r += "<input id='" + row.DT_RowId + "_check' type='checkbox' />";
 					 	}
 					 	return (r);
 					 }
@@ -163,7 +161,7 @@
 				data.append("ruleImport", value);
 			});
 
-			hxtool_ajax_post_request("/api/v1/indicators/import", data, function() {
+			hxtool_ajax_post_request("/api/v1/streaming_indicators/import", data, function() {
 				ioc_datatable.ajax.reload();
 			});
 
@@ -177,10 +175,11 @@
 				if ($("#" + row.data()['DT_RowId'] + "_check").is(":checked")) {
 					myuuid = row.data()['DT_RowId'];
 					myExports[myuuid] = {
-						"name": row.data()['display_name'],
-						"uri_name": row.data()['uri_name'],
+						"name": row.data()['name'],
+						"uri_name": row.data()['url'],
 						"category": row.data()['category_name'],
-						"platforms": row.data()['platforms']
+						"platforms": row.data()['platforms'],
+						"description": row.data()['description']
 					};
 				}
 
@@ -188,7 +187,7 @@
 			$.ajax
 			({
 				type: 'POST',
-				url: '/api/v1/indicators/export',
+				url: '/api/v1/streaming_indicators/export',
 				contentType: 'application/json',
 				xhrFields: { responseType: 'blob' },
 				processData: false,

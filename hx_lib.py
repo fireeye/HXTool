@@ -355,7 +355,7 @@ class HXAPI:
 		params.update(query_terms)
 		
 		request = self.build_request(self.buildStreamingIndicatorURI(), params = params)
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		(ret, response_code, response_data, _) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 
@@ -363,7 +363,7 @@ class HXAPI:
 	def restListConditionsForStreamingIndicator(self, indicator_id):
 		
 		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=indicator_id) + '/conditions')
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		(ret, response_code, response_data, _) = self.handle_response(request)
 
 		# filter out deleted conditions
 		not_deleted = list(filter(lambda x: x['deleted'] == False, response_data['data']['entries']))
@@ -380,10 +380,11 @@ class HXAPI:
 		return uri
 
 	# Add a new streaming indicator
-	def restAddStreamingIndicator(self, ioc_category, display_name, create_text=None, platforms=None, description=None):
+	def restAddStreamingIndicator(self, ioc_category, display_name, create_text=None, platforms=None, description=None, enabled=True):
 
 		data = {
-			'name' : display_name
+			'name' 	  : display_name,
+			'enabled' : enabled
 		}
 		if create_text:
 			data['created_by'] = create_text
@@ -398,7 +399,7 @@ class HXAPI:
 		body['indicators'].append(data)
 		
 		request = self.build_request(self.buildStreamingIndicatorURI(), method = 'POST', data = json.dumps(body))
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		(ret, response_code, response_data, _) = self.handle_response(request)
 		if ret:
 			response_data = response_data['data']['entries'][0]
 
@@ -413,7 +414,7 @@ class HXAPI:
 		body['conditions'].append(condition_data)
 
 		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id) + '/conditions', method = 'POST', data = json.dumps(body))
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		(ret, response_code, response_data, _) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
 	
