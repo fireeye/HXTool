@@ -192,6 +192,17 @@
 				xhrFields: { responseType: 'blob' },
 				processData: false,
 				data: JSON.stringify(myExports),
+				xhr: function() {	// hook into response processing to handle error messages being returned as text
+					var xhr = new XMLHttpRequest();
+					xhr.onreadystatechange = function() {
+						if (xhr.readyState == 2) {
+							if (xhr.status != 200) {	// not success, we should be getting errors as text	
+								xhr.responseType = "text";
+							}
+						}
+					};
+					return xhr;
+				},
 				success: function(data, status, xhr) {
 					var filename = "";
 					var disposition = xhr.getResponseHeader('Content-Disposition');

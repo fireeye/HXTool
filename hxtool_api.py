@@ -851,29 +851,32 @@ def streaming_indicator_platforms_supported(indicator):
 @valid_session_required
 def hxtool_api_streaming_indicators_export(hx_api_object):
 	iocList = request.json
-	for uuid, ioc in iocList.items():
-		(ret, _, response_data) = hx_api_object.restListConditionsForStreamingIndicator(indicator_id=uuid)
-		if ret:
-			ioc['uri_name'] = uuid	# reduce the uri_name to simply the uuid (removing th path info)
-			iocList[uuid]['conditions'] = []
-			for item in response_data['data']['entries']:
-				iocList[uuid]['conditions'].append(item['condition']['tests'])
+	if(len(iocList)):
+		for uuid, ioc in iocList.items():
+			(ret, _, response_data) = hx_api_object.restListConditionsForStreamingIndicator(indicator_id=uuid)
+			if ret:
+				ioc['uri_name'] = uuid	# reduce the uri_name to simply the uuid (removing the path info)
+				iocList[uuid]['conditions'] = []
+				for item in response_data['data']['entries']:
+					iocList[uuid]['conditions'].append(item['condition']['tests'])
 
-	buffer = BytesIO()
-	if len(iocList.keys()) == 1:
-		iocfname = list(iocList.keys())[0] + ".ioc"
-		buffer.write(json.dumps(iocList, indent=4, ensure_ascii=False).encode(default_encoding))
-	else:
-		iocfname = "multiple_indicators.zip"
-		with zipfile.ZipFile(buffer, 'w') as zf:
-			for uuid, ioc in iocList.items():
-				zf.writestr(uuid + '.ioc', json.dumps({uuid:ioc}, indent=4, ensure_ascii=False).encode(default_encoding))
-		zf.close()
+		buffer = BytesIO()
+		if len(iocList.keys()) == 1:
+			iocfname = list(iocList.keys())[0] + ".ioc"
+			buffer.write(json.dumps(iocList, indent=4, ensure_ascii=False).encode(default_encoding))
+		else:
+			iocfname = "multiple_indicators.zip"
+			with zipfile.ZipFile(buffer, 'w') as zf:
+				for uuid, ioc in iocList.items():
+					zf.writestr(uuid + '.ioc', json.dumps({uuid:ioc}, indent=4, ensure_ascii=False).encode(default_encoding))
+			zf.close()
 
-	buffer.seek(0)
-	
-	app.logger.info(format_activity_log(msg="streaming rule action", action="export", name=iocfname, user=session['ht_user'], controller=session['hx_ip']))
-	return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
+		buffer.seek(0)
+		
+		app.logger.info(format_activity_log(msg="streaming rule action", action="export", name=iocfname, user=session['ht_user'], controller=session['hx_ip']))
+		return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
+	return('Nothing selected to export', 500)
+
 
 @ht_api.route('/api/v{0}/streaming_indicators/import'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
