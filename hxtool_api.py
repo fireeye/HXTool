@@ -419,7 +419,7 @@ def hxtool_api_alerts_remove(hx_api_object):
 def hxtool_api_alerts_get(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restGetAlertID(request.args.get('id'))
 	# Workaround for matching condition which isn't a part of the response
-	if response_data['data']['source'] == "IOC":
+	if response_data.get('data', None) is not None and response_data['data']['source'] == "IOC":
 		(cret, cresponse_code, cresponse_data) = hx_api_object.restGetConditionDetails(response_data['data']['condition']['_id'])
 		if ret:
 			response_data['data']['condition']['tests'] = cresponse_data['data']['tests']
