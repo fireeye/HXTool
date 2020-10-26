@@ -280,3 +280,12 @@ def parse_schedule(request_params):
 
 	return (start_time, schedule)
 	
+def js_path(json_string, path):
+	try:
+		for path_part in path.split("."):
+			if path_part.startswith("#"):
+				path_part = int(path_part[1:])
+			json_string = json_string[path_part]
+		return json_string
+	except:
+		return "Not found!"

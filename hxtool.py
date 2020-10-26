@@ -507,6 +507,11 @@ def app_init(debug = False):
 	# Load tasks from the database after the task API sessions have been initialized
 	hxtool_global.hxtool_scheduler.load_from_database()
 	
+	with open(combine_app_path("static", "alert_types.json")) as f:
+		hxtool_global.hx_alert_types = json.load(f)
+		f.close()
+	
+	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
 	app.session_interface = hxtool_session_interface(app, expiration_delta=hxtool_global.hxtool_config['network']['session_timeout'])
