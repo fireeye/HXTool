@@ -419,7 +419,7 @@ def hxtool_api_alerts_remove(hx_api_object):
 def hxtool_api_alerts_get(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restGetAlertID(request.args.get('id'))
 	# Workaround for matching condition which isn't a part of the response
-	if response_data['data']['source'] == "IOC":
+	if response_data.get('data', None) is not None and response_data['data']['source'] == "IOC":
 		(cret, cresponse_code, cresponse_data) = hx_api_object.restGetConditionDetails(response_data['data']['condition']['_id'])
 		if ret:
 			response_data['data']['condition']['tests'] = cresponse_data['data']['tests']
@@ -1702,24 +1702,18 @@ def datatable_alerts_host(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'), filter_term={ "agent._id": request.args.get("host") })
 		if ret:
 			for alert in response_data['data']['entries']:
-				if alert['source'] == "IOC":
-					if alert['indicator']:
-						if 'display_name' in alert['indicator']:
-							tname = alert['indicator']['display_name']
+				tname = "N/A"
+				if alert['source'] in hxtool_global.hx_alert_types:
+					tname = js_path(alert, hxtool_global.hx_alert_types.get(alert['source'])['threat_key'])
+					if alert['source'] == "EXD":
+						tname = "Exploit detected in {}".format(tname)
+					# Handle missing indicator object when multiple IOCs hit. ENDPT-52003
+					elif alert['source'] == "IOC" and alert.get("indicator", None) is None:
+						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+						if cret:
+							tname = cresponse_data['data']['entries'][0]['name']
 						else:
-							(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
-							if cret:
-								tname = cresponse_data['data']['entries'][0]['name']
-							else:
-								tname = "N/A"
-					else:
-						tname = "N/A"
-				elif alert['source'] == "EXD":
-					tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
-				elif alert['source'] == "MAL":
-					tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
-				else:
-					tname = "N/A"
+							tname = "N/A"
 
 				myalerts['data'].append({
 					"DT_RowId": alert['_id'],
@@ -1764,20 +1758,19 @@ def datatable_alerts(hx_api_object):
 					hostname = "unknown"
 					domain = "unknown"
 
-				if alert['source'] == "IOC":
-					(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
-					if cret:
-						tname = cresponse_data['data']['entries'][0]['name']
-					else:
-						tname = "N/A"
-				elif alert['source'] == "EXD":
-					tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
-				elif alert['source'] == "MAL":
-					tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
-				else:
-					tname = "N/A"
-
-
+				tname = "N/A"
+				if alert['source'] in hxtool_global.hx_alert_types:
+					tname = js_path(alert, hxtool_global.hx_alert_types.get(alert['source'])['threat_key'])
+					if alert['source'] == "EXD":
+						tname = "Exploit detected in {}".format(tname)
+					# Handle missing indicator object when multiple IOCs hit. ENDPT-52003
+					elif alert['source'] == "IOC" and alert.get("indicator", None) is None:
+						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+						if cret:
+							tname = cresponse_data['data']['entries'][0]['name']
+						else:
+							tname = "N/A"
+							
 				myalerts['data'].append([HXAPI.compat_str(hostname) + "___" + HXAPI.compat_str(hid) + "___" + HXAPI.compat_str(aid), domain, alert['reported_at'], alert['source'], tname, alert['resolution']])
 		else:
 			return('', 500)
@@ -1943,24 +1936,18 @@ def datatable_alerts_full(hx_api_object):
 					platform = "linux"
 
 				
-				if alert['source'] == "IOC":
-					if alert['condition']['_id'] not in myiocs:
-						# Query IOC object since we do not have it in memory
+				tname = "N/A"
+				if alert['source'] in hxtool_global.hx_alert_types:
+					tname = js_path(alert, hxtool_global.hx_alert_types.get(alert['source'])['threat_key'])
+					if alert['source'] == "EXD":
+						tname = "Exploit detected in {}".format(tname)
+					# Handle missing indicator object when multiple IOCs hit. ENDPT-52003
+					elif alert['source'] == "IOC" and alert.get("indicator", None) is None:
 						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
 						if cret:
-							myiocs[alert['condition']['_id']] = cresponse_data['data']['entries'][0]
 							tname = cresponse_data['data']['entries'][0]['name']
 						else:
 							tname = "N/A"
-					else:
-						tname = myiocs[alert['condition']['_id']]['name']
-
-				elif alert['source'] == "EXD":
-					tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
-				elif alert['source'] == "MAL":
-					tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
-				else:
-					tname = "N/A"
 
 				myalerts['data'].append({
 					"DT_RowId": alert['_id'],
@@ -2660,9 +2647,10 @@ def chartjs_hosts_initial_agent_checkin(hx_api_object):
 @valid_session_required
 def chartjs_events_timeline(hx_api_object):
 
-	mydates = {}
-	mydates['labels'] = []
-	mydates['datasets'] = []
+	mydates = {
+		'labels' : [],
+		'datasets' : []
+	}
 	mycount = {}
 
 	# Get all dates and calculate delta
@@ -2673,7 +2661,7 @@ def chartjs_events_timeline(hx_api_object):
 	# Generate data for all dates
 	date_list = [endDate - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
 	for date in date_list[::-1]:
-		mycount[date.strftime("%Y-%m-%d")] = {"IOC": 0, "EXD": 0, "MAL": 0}
+		mycount[date.strftime("%Y-%m-%d")] = { k : 0 for k in hxtool_global.hx_alert_types.keys() }
 
 	# Get alerts
 	(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
@@ -2681,47 +2669,27 @@ def chartjs_events_timeline(hx_api_object):
 		for alert in response_data:
 			# Make sure the date exists
 			if not alert['event_at'][0:10] in mycount.keys():
-				mycount[alert['event_at'][0:10]] = {"IOC": 0, "EXD": 0, "MAL": 0}
-
+				mycount[alert['event_at'][0:10]] = { k : 0 for k in hxtool_global.hx_alert_types.keys() }
+			
 			# Add stats for date
 			mycount[alert['event_at'][0:10]][alert['source']] += 1
 
-		myDataIOC = []
-		myDataEXD = []
-		myDataMAL = []
+		stats_lists = { k : [] for k in hxtool_global.hx_alert_types.keys() }
 
 		for key, stats in mycount.items():
 			mydates['labels'].append(key)
-			myDataIOC.append(stats['IOC'])
-			myDataEXD.append(stats['EXD'])
-			myDataMAL.append(stats['MAL'])
+			for k in hxtool_global.hx_alert_types.keys():
+				stats_lists[k].append(stats[k])
 
-		mydates['datasets'].append({
-			"label": "IOC",
+		for k in hxtool_global.hx_alert_types.keys():
+			mydates['datasets'].append({
+			"label": hxtool_global.hx_alert_types[k]['label'],
 			"backgroundColor": "rgba(17, 169, 98, 0.2)",
 			"borderWidth": 2,
 			"borderColor": "#8fffc1",
 			"pointStyle": "circle",
 			"pointRadius": 2,
-			"data": myDataIOC
-		})
-		mydates['datasets'].append({
-			"label": "EXD",
-			"backgroundColor": "rgba(17, 169, 98, 0.2)",
-			"borderWidth": 2,
-			"borderColor": "#b20032",
-			"pointStyle": "circle",
-			"pointRadius": 2,
-			"data": myDataEXD
-		})
-		mydates['datasets'].append({
-			"label": "MAL",
-			"backgroundColor": "rgba(17, 169, 98, 0.2)",
-			"borderWidth": 2,
-			"borderColor": "#ffe352",
-			"pointStyle": "circle",
-			"pointRadius": 2,
-			"data": myDataMAL
+			"data": stats_lists[k]
 		})
 
 		return(app.response_class(response=json.dumps(mydates), status=200, mimetype='application/json'))
@@ -2733,53 +2701,31 @@ def chartjs_events_timeline(hx_api_object):
 @valid_session_required
 def chartjs_host_alert_timeline(hx_api_object):
 
-	mydates = {}
-	mydates['datasets'] = []
-
-	myIOC = {
-		"label": "IOC",
-		"backgroundColor": "rgba(17, 169, 98, 0.2)",
-		"borderWidth": 2,
-		"borderColor": "#8fffc1",
-		"pointStyle": "circle",
-		"pointRadius": 2,
-		"data": []
+	mydates = {
+		'datasets' : []
 	}
-	myEXD = {
-		"label": "EXD",
-		"backgroundColor": "rgba(17, 169, 98, 0.2)",
-		"borderWidth": 2,
-		"borderColor": "#b20032",
-		"pointStyle": "circle",
-		"pointRadius": 2,
-		"data": []
+	
+	stats_dict = {
+		k : {
+			"label": k,
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderWidth": 2,
+			"borderColor": "#8fffc1",
+			"pointStyle": "circle",
+			"pointRadius": 2,
+			"data": [] }
+			for k in hxtool_global.hx_alert_types.keys() 
 	}
-	myMAL = {
-		"label": "MAL",
-		"backgroundColor": "rgba(17, 169, 98, 0.2)",
-		"borderWidth": 2,
-		"borderColor": "#ffe352",
-		"pointStyle": "circle",
-		"pointRadius": 2,
-		"data": []
-	}
-
-	mydates['datasets'].append(myIOC)
-	mydates['datasets'].append(myEXD)
-	mydates['datasets'].append(myMAL)
+	
 
 	(ret, response_code, response_data) = hx_api_object.restGetAlerts(filter_term={"agent._id": request.args.get("id")})
 	if ret:
 		for alert in response_data['data']['entries']:
-
-			if alert['source'] == "IOC":
-				mydates['datasets'][0]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
-
-			if alert['source'] == "EXD":
-				mydates['datasets'][1]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
-
-			if alert['source'] == "MAL":
-				mydates['datasets'][2]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
+			stats_dict[alert['source']]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
+			
+			
+		for k, v in stats_dict:
+			mydates['datasets'].append(v)
 
 		return(app.response_class(response=json.dumps(mydates), status=200, mimetype='application/json'))
 	else:
@@ -2790,10 +2736,13 @@ def chartjs_host_alert_timeline(hx_api_object):
 @valid_session_required
 def chartjs_events_distribution(hx_api_object):
 
-	mydata = {}
-	mydata['labels'] = []
-	mydata['datasets'] = []
-	mycount = {}
+	mydata = {
+		'labels' : [ k for k in hxtool_global.hx_alert_types.keys() ],
+		'datasets' : []
+	}
+	mycount = {
+		k : 0 for k in hxtool_global.hx_alert_types.keys()
+	}
 
 	# Get alerts
 	(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
@@ -2806,29 +2755,12 @@ def chartjs_events_distribution(hx_api_object):
 			# Add stats
 			mycount[alert['source']] += 1
 
-		mydata['labels'].append("IOC")
-		mydata['labels'].append("EXD")
-		mydata['labels'].append("MAL")
-
-		if 'IOC' in mycount.keys():
-			myDataIOC = mycount["IOC"]
-		else:
-			myDataIOC = 0
-		if 'EXD' in mycount.keys():
-			myDataEXD = mycount["EXD"]
-		else:
-			myDataEXD = 0
-		if 'MAL' in mycount.keys():
-			myDataMAL = mycount["MAL"]
-		else:
-			myDataMAL = 0
-
 		mydata['datasets'].append({
 			"label": "Alert count",
 			"backgroundColor": "rgba(17, 169, 98, 0.2)",
 			"borderColor": "#8fffc1",
 			"borderWidth": 0.5,
-			"data": [myDataIOC, myDataEXD, myDataMAL]
+			"data": [ mycount[k] for k in hxtool_global.hx_alert_types.keys() ]
 		})
 
 

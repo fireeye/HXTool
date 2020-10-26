@@ -134,9 +134,9 @@ def scheduler_view(hx_api_object):
 @app.route('/scriptbuilder', methods=['GET', 'POST'])
 @valid_session_required
 def scriptbuilder_view(hx_api_object):
-	myauditspacefile = open(combine_app_path('static/acquisitions.json'), 'r')
-	auditspace = myauditspacefile.read()
-	myauditspacefile.close()
+	with open(combine_app_path("static", "acquisitions.json"), 'r') as f:
+		auditspace = f.read()
+		f.close()
 	return render_template('ht_scriptbuilder.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), auditspace=auditspace)
 
 ### Task profile page
@@ -506,6 +506,11 @@ def app_init(debug = False):
 	
 	# Load tasks from the database after the task API sessions have been initialized
 	hxtool_global.hxtool_scheduler.load_from_database()
+	
+	with open(combine_app_path("static", "alert_types.json")) as f:
+		hxtool_global.hx_alert_types = json.load(f)
+		f.close()
+	
 	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	app.permanent_session_lifetime = datetime.timedelta(days=7)

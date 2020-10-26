@@ -1,0 +1,30 @@
+{
+    "IOC": {
+        "label": "Realtime IOC Detection",
+        "threat_key": "indicator.display_name"
+    },
+    "EXD": {
+        "label": "Exploit Guard",
+        "threat_key": "event_values.process_name"
+    },
+    "MAL": {
+        "label": "Malware Protection",
+        "threat_key": "event_values.detections.detection.#0.infection.infection-name"
+    },
+    "PROCESS_TRACKER": {
+        "label": "Process Tracker",
+        "threat_key": "event_values.#0.name"
+    },
+    "PROCGUARD": {
+        "label": "Process Guard",
+        "threat_key": "event_values.#0.name"
+    },
+    "LTALERT": {
+        "label": "Logon Tracker",
+        "threat_key": "event_values.#0.name"
+    },
+    "UACPROTECT": {
+        "label": "UAC Protect",
+        "threat_key": "event_values.#0.name"
+    }
+}
