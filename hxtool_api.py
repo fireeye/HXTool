@@ -1705,25 +1705,15 @@ def datatable_alerts_host(hx_api_object):
 				tname = "N/A"
 				if alert['source'] in hxtool_global.hx_alert_types:
 					tname = js_path(alert, hxtool_global.hx_alert_types.get(alert['source'])['threat_key'])
-				
-				# if alert['source'] == "IOC":
-					# if alert['indicator']:
-						# if 'display_name' in alert['indicator']:
-							# tname = alert['indicator']['display_name']
-						# else:
-							# (cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
-							# if cret:
-								# tname = cresponse_data['data']['entries'][0]['name']
-							# else:
-								# tname = "N/A"
-					# else:
-						# tname = "N/A"
-				# elif alert['source'] == "EXD":
-					# tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
-				# elif alert['source'] == "MAL":
-					# tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
-				# else:
-					# tname = "N/A"
+					if alert['source'] == "EXD":
+						tname = "Exploit detected in {}".format(tname)
+					# Handle missing indicator object when multiple IOCs hit. ENDPT-52003
+					elif alert['source'] == "IOC" and alert.get("indicator", None) is None:
+						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+						if cret:
+							tname = cresponse_data['data']['entries'][0]['name']
+						else:
+							tname = "N/A"
 
 				myalerts['data'].append({
 					"DT_RowId": alert['_id'],
@@ -1771,21 +1761,16 @@ def datatable_alerts(hx_api_object):
 				tname = "N/A"
 				if alert['source'] in hxtool_global.hx_alert_types:
 					tname = js_path(alert, hxtool_global.hx_alert_types.get(alert['source'])['threat_key'])
-					
-				# if alert['source'] == "IOC":
-					# (cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
-					# if cret:
-						# tname = cresponse_data['data']['entries'][0]['name']
-					# else:
-						# tname = "N/A"
-				# elif alert['source'] == "EXD":
-					# tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
-				# elif alert['source'] == "MAL":
-					# tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
-				# else:
-					# tname = "N/A"
-
-
+					if alert['source'] == "EXD":
+						tname = "Exploit detected in {}".format(tname)
+					# Handle missing indicator object when multiple IOCs hit. ENDPT-52003
+					elif alert['source'] == "IOC" and alert.get("indicator", None) is None:
+						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+						if cret:
+							tname = cresponse_data['data']['entries'][0]['name']
+						else:
+							tname = "N/A"
+							
 				myalerts['data'].append([HXAPI.compat_str(hostname) + "___" + HXAPI.compat_str(hid) + "___" + HXAPI.compat_str(aid), domain, alert['reported_at'], alert['source'], tname, alert['resolution']])
 		else:
 			return('', 500)
@@ -1954,25 +1939,15 @@ def datatable_alerts_full(hx_api_object):
 				tname = "N/A"
 				if alert['source'] in hxtool_global.hx_alert_types:
 					tname = js_path(alert, hxtool_global.hx_alert_types.get(alert['source'])['threat_key'])
-				
-				# if alert['source'] == "IOC":
-					# if alert['condition']['_id'] not in myiocs:
-						# # Query IOC object since we do not have it in memory
-						# (cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
-						# if cret:
-							# myiocs[alert['condition']['_id']] = cresponse_data['data']['entries'][0]
-							# tname = cresponse_data['data']['entries'][0]['name']
-						# else:
-							# tname = "N/A"
-					# else:
-						# tname = myiocs[alert['condition']['_id']]['name']
-
-				# elif alert['source'] == "EXD":
-					# tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
-				# elif alert['source'] == "MAL":
-					# tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
-				# else:
-					# tname = "N/A"
+					if alert['source'] == "EXD":
+						tname = "Exploit detected in {}".format(tname)
+					# Handle missing indicator object when multiple IOCs hit. ENDPT-52003
+					elif alert['source'] == "IOC" and alert.get("indicator", None) is None:
+						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+						if cret:
+							tname = cresponse_data['data']['entries'][0]['name']
+						else:
+							tname = "N/A"
 
 				myalerts['data'].append({
 					"DT_RowId": alert['_id'],
