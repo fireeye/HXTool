@@ -134,9 +134,9 @@ def scheduler_view(hx_api_object):
 @app.route('/scriptbuilder', methods=['GET', 'POST'])
 @valid_session_required
 def scriptbuilder_view(hx_api_object):
-	myauditspacefile = open(combine_app_path('static/acquisitions.json'), 'r')
-	auditspace = myauditspacefile.read()
-	myauditspacefile.close()
+	with open(combine_app_path("static", "acquisitions.json"), 'r') as f:
+		auditspace = f.read()
+		f.close()
 	return render_template('ht_scriptbuilder.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), auditspace=auditspace)
 
 ### Task profile page
