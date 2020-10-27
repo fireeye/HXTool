@@ -5,7 +5,7 @@
 
 default_encoding = 'utf-8'
 HXTOOL_API_VERSION = 1
-__version__ = "4.6"
+__version__ = "4.6-pre"
 hxtool_schema_version = 40
 data_path = "data"
 log_path = "log"
