@@ -2,7 +2,7 @@
 
 .hxtool_table {
 	border-collapse: collapse;
-	font-weight: 600;
+	font-weight: 400;
 }
 
 .hxtool_table td, .hxtool_table tr, .hxtool_table th {
@@ -10,8 +10,10 @@
 }
 
 .hxtool_table thead td, .hxtool_table thead th {
-	padding: 4px;
-    font-size: 12px;
+	padding: 2px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+    font-size: 11px;
     border-right: 1px solid rgba(15, 184, 220, 0.4);;
     border-bottom: 1px solid rgba(15, 184, 220, 0.4);;
     vertical-align: bottom;
@@ -23,9 +25,11 @@
 
 
 .hxtool_table tbody td {
-	padding: 4px;
+	padding: 2px;
+	padding-top: 4px;
+	padding-bottom: 4px;
 	border-right: 1px solid rgba(15, 184, 220, 0.4);
-	font-size: 12px;
+	font-size: 11px;
 	vertical-align: middle;
 }
 

@@ -98,6 +98,11 @@
 	</script>
 	</body>
 
+
+<div class="hxtool5_container container">
+  <div class="row">
+    <div class="col-12">
+
 	<!-- TOP NAV BAR -->
 	<header class="fe-top-nav fe-top-nav__topnav">
 		<div class="fe-top-nav__title fe-top-nav__bookend--left fe-top-nav__bookend">
@@ -198,6 +203,12 @@
 		</div>
 	</header>
 
+
+    </div>
+  </div>
+  <div class="row">
+    <div class="hxtool5_content col-12">
+
 	<!-- Message popup -->
 	<div id="hxtoolMessage" style='z-index: 100;' class="fe-modal" role="dialog" aria-modal="true">
 		<div class="fe-modal__dialog fe-modal__dialog--medium">
@@ -221,6 +232,15 @@
 		</div>
 	</div>
 
+
+
+
 	<!-- Main placeholder -->
-	<div class='mainPlaceHolder'>{% block content %}{% endblock %}</div>
+	{% block content %}{% endblock %}
+
+
+    </div>
+  </div>
+
+
 </html>

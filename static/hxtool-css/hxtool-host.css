@@ -1,6 +1,6 @@
 .host-grid-container {
   display: grid;
-  grid-template-columns: 0.7fr 1fr 0.4fr;
+  grid-template-columns: 0.5fr 1fr 0.4fr;
   grid-template-rows: 160px;
   grid-template-areas: "top top top" "alerts content acquisitions";
   height: calc(100vh - 160px);
@@ -123,7 +123,6 @@
 .hxtool_table_host_alert tbody tr:nth-child(odd) {
 	background: transparent;
 }
-
 
 .hxtool_alert_header {
 	margin-block-start: 6px;

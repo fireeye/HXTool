@@ -285,3 +285,25 @@ select {
 	border: 1px solid rgba(190, 190, 190, 0.5) !important;
 }
 
+.hxtool5_container {
+	max-width: 1600px;
+	min-height: 100vh;
+	max-height: 100vh;
+	height: 100vh;
+	width: 1600px;
+	padding-left: 0;
+	padding-right: 0;
+	background: #49515d;
+}
+
+.hxtool5_content {
+	max-width: 1616px;
+	margin: 0;
+	padding-left: 32px;
+	padding-right: 8px;
+	padding-top: 16px;
+	min-height: calc(100vh - 60px);
+	max-height: calc(100vh - 60px);
+	height: 100vh;
+	overflow-y: scroll;
+}

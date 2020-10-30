@@ -2775,7 +2775,6 @@ def chartjs_events_distribution(hx_api_object):
 			"data": [ mycount[k] for k in hxtool_global.hx_alert_types.keys() ]
 		})
 
-
 		return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 	else:
 		return('',500)
