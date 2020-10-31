@@ -116,7 +116,7 @@ function hxtool_doc_ready() {
 	});
 
 	/* Detects when OS scaling is active and resizes HXTool to avoid it, doesn't work in FF */
-	if (window.devicePixelRatio !== 1) {
+	if (window.devicePixelRatio !== 1 && screen.width <= 1920) {
 		console.log("HXTool: OS Scaling active. Enforcing HXTool scaling");
 	    let scaleValue = (1/window.devicePixelRatio);
 	    $(document.body).css('zoom',scaleValue);
