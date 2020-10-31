@@ -115,4 +115,24 @@ function hxtool_doc_ready() {
 		$(this).closest("div").parent().parent().parent().parent().hide();
 	});
 
+	/* Detects when OS scaling is active and resizes HXTool to avoid it, doesn't work in FF */
+	if (window.devicePixelRatio !== 1) {
+		console.log("HXTool: OS Scaling active. Enforcing HXTool scaling");
+	    let scaleValue = (1/window.devicePixelRatio);
+	    $(document.body).css('zoom',scaleValue);
+	    var myNewHeight = (window.innerHeight * window.devicePixelRatio);
+	    $(".hxtool5_container").css('min-height',myNewHeight);
+	    $(".hxtool5_container").css('max-height',myNewHeight);
+	    $(".hxtool5_container").css('height',myNewHeight);
+		$(".hxtool5_content").css('min-height',myNewHeight - 60);
+	    $(".hxtool5_content").css('max-height',myNewHeight - 60);
+	    $(".hxtool5_content").css('height',myNewHeight - 60);
+	    $(".panelAlertsClass").css('height',myNewHeight - 290);
+	    $(".panelContentClass").css('height',myNewHeight - 290);
+	    $(".panelAcqClass").css('height',myNewHeight - 290);
+	    $(".hxtool_panel_stackinganalyze").css('min-height',myNewHeight - 190);
+	    $(".hxtool_panel_scriptbuilder").css('height',myNewHeight - 120);
+	    $(".hxtool_scriptbuilder_scriptarea").css('height',myNewHeight - 450);
+	}
+
 }
