@@ -18,7 +18,7 @@ To install HXTool:
 4. Access the web user interface via a browser: https://127.0.0.1:8080 (tested with Google Chrome and Mozilla Firefox)  
 
 ### Dependencies ###
-Python 2.7.14+ or 3.x  
+Python 3.6 or greater (Python 2.x is deprecated, and while it may still work, it will no longer be supported.)  
 Python Flask library  
 Python Requests library  
 Python Pycryptodome library  
