@@ -1127,9 +1127,12 @@ def hxtool_api_stacking_remove(hx_api_object):
 		if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
 			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
 			hxtool_global.hxtool_db.bulkDownloadDelete(bulk_download_job.doc_id)
+			(r, rcode) = create_api_response(ret, response_code, response_data)
+		else:
+			(r, rcode) = create_api_response()
 			
 		hxtool_global.hxtool_db.stackJobDelete(stack_job.doc_id)
-		(r, rcode) = create_api_response(ret, response_code, response_data)
+		
 		app.logger.info(format_activity_log(msg="stacking", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
@@ -1141,12 +1144,15 @@ def hxtool_api_stacking_stop(hx_api_object):
 		bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
 		if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
 			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
-			hxtool_global.hxtool_db.stackJobStop(stack_job_eid = stack_job.doc_id)
 			hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_job.doc_id, stopped = True)
-
 			(r, rcode) = create_api_response(ret, response_code, response_data)
-			app.logger.info(format_activity_log(msg="stacking", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
-			return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+		else:
+			(r, rcode) = create_api_response()
+			
+		hxtool_global.hxtool_db.stackJobStop(stack_job_eid = stack_job.doc_id)
+			
+		app.logger.info(format_activity_log(msg="stacking", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
 
