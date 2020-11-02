@@ -487,7 +487,8 @@ def app_init(debug = False):
 												hxtool_global.hxtool_config.get_child_item('db', 'user', False), 
 												hxtool_global.hxtool_config.get_child_item('db', 'password', False),
 												hxtool_global.hxtool_config.get_child_item('db', 'auth_source', "admin"),
-												hxtool_global.hxtool_config.get_child_item('db', 'auth_mechanism', "SCRAM-SHA-256"))
+												hxtool_global.hxtool_config.get_child_item('db', 'auth_mechanism', "SCRAM-SHA-256"),
+												hxtool_global.hxtool_config.get_child_item('db', 'db_name', "hxtool"))
 	else:		
 		# Disable the write cache altogether - too many issues reported with it enabled.
 		hxtool_global.hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), 
