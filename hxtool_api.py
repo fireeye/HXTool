@@ -1110,11 +1110,12 @@ def hxtool_api_stacking_new(hx_api_object):
 	if stack_type:
 		with open(combine_app_path('scripts', stack_type['script']), 'r') as f:
 			script_xml = f.read()
-			hostset_id = int(request.form['stackhostset'])
-			bulk_download_eid = submit_bulk_job(hx_api_object, script_xml, hostset_id = hostset_id, task_profile = "stacking", comment = "HXTool Stacking Job: {}".format(stack_type['name']))
-			ret = hxtool_global.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
-			app.logger.info(format_activity_log(msg="stacking", action="new", hostsetid=hostset_id, type=request.form['stack_type'], user=session['ht_user'], controller=session['hx_ip']))
-			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+			f.close()
+		hostset_id = int(request.form['stackhostset'])
+		bulk_download_eid = submit_bulk_job(hx_api_object, script_xml, hostset_id = hostset_id, task_profile = "stacking", comment = "HXTool Stacking Job: {}".format(stack_type['name']))
+		ret = hxtool_global.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
+		app.logger.info(format_activity_log(msg="stacking", action="new", hostsetid=hostset_id, type=request.form['stack_type'], user=session['ht_user'], controller=session['hx_ip']))
+		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/stacking/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
