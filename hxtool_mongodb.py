@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from hxtool_db import hxtool_db
+
 try:
 	from pymongo import MongoClient
 except ImportError:
@@ -30,7 +32,7 @@ class tinydb_emulated_dict(dict):
 	def doc_id(self):
 		return str(self['_id'])
 
-class hxtool_mongodb:
+class hxtool_mongodb(hxtool_db):
 	def __init__(self, db_host, db_port, db_user, db_pass, db_auth_source, db_auth_mechanism, db_name="hxtool"):
 		try:
 			self._client = MongoClient(db_host, db_port, username=db_user, password=db_pass, authSource=db_auth_source, authMechanism=db_auth_mechanism, document_class=tinydb_emulated_dict)
@@ -52,6 +54,10 @@ class hxtool_mongodb:
 		except Exception as e:
 			logger.error("Unable to connect to MongoDB, error: {}".format(e))
 			exit(1)
+	
+	@property
+	def database_engine(self):
+		return "mongodb"
 
 	def close(self):
 		if self._client is not None:
