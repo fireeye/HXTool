@@ -83,7 +83,7 @@
 					 "targets":7,
 					 "width": "34px",
 					 render: function ( data, type, row, meta ) {
-						 r += "<input id='" + row.DT_RowId + "_is_enabled' class='iocAction' data-type='is_enabled' type='checkbox' data-name='" + row.name + "'"
+						 r += "<input id='" + row.DT_RowId + "_is_enabled' class='iocAction' data-type='is_enabled' type='checkbox' data-id='" + row.DT_RowId + "' data-name='" + row.name + "'"
 						if (row.is_enabled) {
 							r += " checked />";
 						} else {
@@ -142,7 +142,11 @@
 					is_enabled = true;
 				}
 				var msg = "Rule: " + $(this).data('name') + " has been " + (is_enabled?"enabled":"disabled") + "!"
-				hxtool_ajax_get_request("/api/v1/streaming_indicators/enable", "id=" + encodeURIComponent($(this).data("id")) + "&is_enabled=" + is_enabled, function() {
+
+				var data = new FormData();
+				data.append("id", $(this).data("id"))
+				data.append("is_enabled", is_enabled)
+				hxtool_ajax_post_request("/api/v1/streaming_indicators/enable", data, function() {
 					$("#hxtoolMessageBody").html(msg);
 					$("#hxtoolMessage").show();
 				});

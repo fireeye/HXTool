@@ -730,11 +730,11 @@ def hxtool_api_streaming_indicators_get_conditions(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, myconditions)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
-@ht_api.route('/api/v{0}/streaming_indicators/enable'.format(HXTOOL_API_VERSION), methods=['GET'])
+@ht_api.route('/api/v{0}/streaming_indicators/enable'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
 def hxtool_api_streaming_indicators_enable(hx_api_object):
-	id = request.args.get('id')
-	is_enabled = request.args.get('is_enabled')
+	id = request.form.get('id')
+	is_enabled = request.form.get('is_enabled')
 
 	#(ret, response_code, condition_class_conditions) = hx_api_object.restListConditionsForStreamingIndicator(indicator_id=uuid)
 
