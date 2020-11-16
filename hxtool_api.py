@@ -730,6 +730,21 @@ def hxtool_api_streaming_indicators_get_conditions(hx_api_object):
 	(r, rcode) = create_api_response(ret, response_code, myconditions)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
+@ht_api.route('/api/v{0}/streaming_indicators/enable'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_streaming_indicators_enable(hx_api_object):
+	id = request.args.get('id')
+	is_enabled = request.args.get('is_enabled')
+
+	#(ret, response_code, condition_class_conditions) = hx_api_object.restListConditionsForStreamingIndicator(indicator_id=uuid)
+
+	#myconditions = { "conditions": condition_class_conditions }
+
+	#(r, rcode) = create_api_response(ret, response_code, myconditions)
+	rcode = 200
+	r = 'OK'
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
 @ht_api.route('/api/v{0}/streaming_indicators/newOrUpdate'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
 def hxtool_api_streaming_indicators_newOrUpdate(hx_api_object):
@@ -833,7 +848,8 @@ def indicator_dict_from_indicator(indicator, hx_api_object):
 				"category_name": 	indicator['category'],
 				"updated_by": 		indicator['updated_by'],
 				"meta": 			indicator['meta'],
-				"platforms":		streaming_indicator_platforms_supported(indicator)
+				"platforms":		streaming_indicator_platforms_supported(indicator),
+				"is_enabled":		not indicator['supports_win'] # indicator['enabled']
 			}
 
 # return an array of platforms supported

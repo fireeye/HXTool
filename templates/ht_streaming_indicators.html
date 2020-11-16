@@ -57,10 +57,11 @@
 					{ title: "Category", 		"data": "category_name" },	//4
 					{ title: "Last Updated", 	"data": "last_updated" },	//5
 					{ title: "Updated by", 		"data": "updated_by" },		//6
-					{ title: "Action", 			"data": "DT_RowId" }		//7
+					{ title: "Enabled", 		"data": "DT_RowId" },		//7
+					{ title: "Action", 			"data": "DT_RowId" }		//8
 				],
 				"columnDefs": [	
-					{"className": "hxtool_table_cell_center", "targets": [3, 4, 5, 6]},
+					{"className": "hxtool_table_cell_center", "targets": [3, 4, 5, 6, 7]},
 					{
 					 "targets": 0,
 					 "width": "34px",
@@ -79,7 +80,20 @@
 					 }
 					},
 					{
-					 "targets": 7,
+					 "targets":7,
+					 "width": "34px",
+					 render: function ( data, type, row, meta ) {
+						 r += "<input id='" + row.DT_RowId + "_is_enabled' class='iocAction' data-type='is_enabled' type='checkbox' data-name='" + row.name + "'"
+						if (row.is_enabled) {
+							r += " checked />";
+						} else {
+							r += " />";
+						}
+					 	return (r);
+					 }
+					},
+					{
+					 "targets": 8,
 					 "width": "350px",
 					 render: function ( data, type, row, meta ) {
 					 	r = "";
@@ -120,6 +134,17 @@
 					myrow.fadeOut(200, function() {
 						ioc_datatable.row(myrow).remove().draw();
 					});
+				});
+			}
+			if ($(this).data("type") == "is_enabled") {
+				var is_enabled = false;
+				if (this.checked) {
+					is_enabled = true;
+				}
+				var msg = "Rule: " + $(this).data('name') + " has been " + (is_enabled?"enabled":"disabled") + "!"
+				hxtool_ajax_get_request("/api/v1/streaming_indicators/enable", "id=" + encodeURIComponent($(this).data("id")) + "&is_enabled=" + is_enabled, function() {
+					$("#hxtoolMessageBody").html(msg);
+					$("#hxtoolMessage").show();
 				});
 			}
 			if ($(this).data("type") == "view") {
