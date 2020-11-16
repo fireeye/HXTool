@@ -60,7 +60,7 @@ class AuditPackage:
 				sysinfo_result = self.get_audit(payload_name = sysinfo_audit['payload'])
 				if sysinfo_audit['type'] == 'application/xml':
 					self.hostname = ET.fromstring(sysinfo_result, parser = ET.XMLParser(encoding = 'utf-8')).find('.//hostname').text
-				elif sysinfo_audit['type'] == 'application/json':
+				elif sysinfo_audit['type'] == 'application/json' and json.loads(sysinfo_result).get('SystemInfoItem', None) is not None:
 					self.hostname = json.loads(sysinfo_result)['SystemInfoItem'][0]['hostname']
 					
 	def __enter__(self):

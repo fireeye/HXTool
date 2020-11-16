@@ -880,7 +880,11 @@ def hxtool_api_indicators_import(hx_api_object):
 	files = request.files.getlist('ruleImport')
 	
 	for file in files:
-		iocs = json.loads(file.read().decode(default_encoding))
+		try: 
+			iocs = json.loads(file.read().decode(default_encoding))
+		except:
+			app.logger.error(format_activity_log(msg="rule action fail", reason="{} is not a valid HX JSON formatted indicator".format(file), action="import", user=session['ht_user'], controller=session['hx_ip']))
+			continue
 		
 		for iockey in iocs:
 
