@@ -405,6 +405,13 @@ class HXAPI:
 
 		return(ret, response_code, response_data)	
 		
+	# Enable/Disable a streaming indicator
+	def restEnableStreamingIndicator(self, ioc_id, is_enabled = True):
+		endpoint_suffix = '/enable' if is_enabled else '/disable'
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id) + endpoint_suffix, method = 'POST')
+		(ret, response_code, response_data, _) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
 
 	# Add a new streaming condition
 	def restAddStreamingCondition(self, ioc_category, ioc_id, condition_class, condition_data):

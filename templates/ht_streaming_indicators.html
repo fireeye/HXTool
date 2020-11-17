@@ -143,10 +143,12 @@
 				}
 				var msg = "Rule: " + $(this).data('name') + " has been " + (is_enabled?"enabled":"disabled") + "!"
 
-				var data = new FormData();
-				data.append("id", $(this).data("id"))
-				data.append("is_enabled", is_enabled)
-				hxtool_ajax_post_request("/api/v1/streaming_indicators/enable", data, function() {
+				var form = new FormData();
+				data = {};
+				data["id"] = $(this).data("id");
+				data["is_enabled"] = is_enabled;
+				form.append('data', JSON.stringify(data))
+				hxtool_ajax_post_request("/api/v1/streaming_indicators/enable", form, function() {
 					$("#hxtoolMessageBody").html(msg);
 					$("#hxtoolMessage").show();
 				});
