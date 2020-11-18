@@ -148,12 +148,6 @@ def format_activity_log(**kwargs):
 	for key, value in kwargs.items():
 		mystring += " " + key + "='" + HXAPI.compat_str(value) + "'"
 	return(mystring)
-	
-# Workaround https://bugs.python.org/issue19377 on older Python versions		
-def set_svg_mimetype():
-	import mimetypes
-	if not '.svg' in mimetypes.types_map:
-		mimetypes.add_type('image/svg+xml', '.svg')
 				
 def set_time_macros(s):
 	(s, n) = re.subn('--\#\{(now|\-(\d{1,5})(m|h))\}--', _time_replace, s, re.I) 

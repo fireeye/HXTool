@@ -531,8 +531,6 @@ def app_init(debug = False):
 	#		else:
 	#			logger.info("No background credential for {}, not starting apicache".format(profile['profile_id']))
 
-	set_svg_mimetype()
-
 # Version specific upgrade code goes here
 def hxtool_upgrade():
 	files_to_move = ['hxtool.db', 'conf.json', 'hxtool.key', 'hxtool.crt']
