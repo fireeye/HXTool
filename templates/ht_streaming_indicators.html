@@ -80,10 +80,10 @@
 					 }
 					},
 					{
-					 "targets":7,
+					 "targets": 7,
 					 "width": "34px",
 					 render: function ( data, type, row, meta ) {
-						 r += "<input id='" + row.DT_RowId + "_is_enabled' class='iocAction' data-type='is_enabled' type='checkbox' data-id='" + row.DT_RowId + "' data-name='" + row.name + "'"
+						r = "<input id='" + row.DT_RowId + "_is_enabled' class='iocAction' data-type='is_enabled' type='checkbox' data-id='" + row.DT_RowId + "' data-name='" + row.name + "'"
 						if (row.is_enabled) {
 							r += " checked />";
 						} else {
