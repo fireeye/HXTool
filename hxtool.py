@@ -452,7 +452,7 @@ def sigint_handler(signum, frame):
 	exit(0)	
 
 
-def init_db()
+def init_db():
 	# Init DB
 	# Check if MongoDB is enabled as the database, otherwise, fallback to TinyDB
 	if hxtool_global.hxtool_config.get_child_item('db', 'type') == "mongodb":
