@@ -61,6 +61,11 @@
   color: #0fb8dc;
 }
 
+.streaming_ioc_id {
+   font-size: xx-small;
+   color: #006b8c	
+}
+
 /* Generic datatables Exceptions */
 
 .hxtool_table_cell_center {

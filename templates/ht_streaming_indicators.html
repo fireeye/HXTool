@@ -74,6 +74,12 @@
 					 }
 					},
 					{
+					 "targets":1,
+					 render: function ( data, type, row, meta ) {
+					 	return (row.name + '<br><span class=streaming_ioc_id>' + row.DT_RowId + '</span>');
+					 }
+					},
+					{
 					 "targets": 5,
 					 render: function ( data, type, row, meta ) {
 					 	return (datatables_Timestamp(data));
