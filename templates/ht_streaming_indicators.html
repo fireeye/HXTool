@@ -11,7 +11,7 @@
 		r += "<ul><li>or<ul>";
 
 		$.each(myConditions, function(key, value) {
-			r += "<li>and<ul>";
+			r += "<li>and <span class = 'streaming_condition_id'>(" + value['id'] + ")</span><ul>";
 			$.each(value['condition']['tests'], function(ckey, cvalue) {
 				r += "<li>";
 				if (cvalue['negate'] == true) {

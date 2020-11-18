@@ -66,6 +66,11 @@
    color: #006b8c	
 }
 
+.streaming_condition_id {
+   font-size: xx-small;
+   color: #0fb8dc	
+}
+
 /* Generic datatables Exceptions */
 
 .hxtool_table_cell_center {
