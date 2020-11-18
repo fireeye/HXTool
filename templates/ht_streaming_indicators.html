@@ -47,7 +47,18 @@
 				"buttons": [
 					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
 					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
-					{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
+					{ 
+						extend: "excel", 
+						className: "fe-btn", 
+						exportOptions: {
+							format: {
+								header: function ( data, columnIdx ) {
+									return columnIdx +': '+ data;
+								}
+							}
+						},
+						"text": "excel<i class='fe-icon--right fas fa-file-excel'></i>"
+					}
 				],
 				"columns": [
 					{ title: "", 				"data": "DT_RowId" },		//0
@@ -120,6 +131,8 @@
 			$('div.dataTables_filter input').addClass("fe-input");
 
 		});
+
+
 
 		$("#iocTable").on("click", ".iocAction", function() {
 			if ($(this).data("type") == "edit") {
