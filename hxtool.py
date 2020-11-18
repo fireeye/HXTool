@@ -41,7 +41,6 @@ import hxtool_vars
 from hx_lib import *
 from hxtool_util import *
 from hxtool_formatting import *
-from hxtool_db import *
 from hxtool_config import *
 from hxtool_data_models import *
 from hxtool_session import *
@@ -453,6 +452,29 @@ def sigint_handler(signum, frame):
 	exit(0)	
 
 
+def init_db():
+	# Init DB
+	# Check if MongoDB is enabled as the database, otherwise, fallback to TinyDB
+	if hxtool_global.hxtool_config.get_child_item('db', 'type') == "mongodb":
+		from hxtool_mongodb import hxtool_mongodb
+		
+		return hxtool_mongodb(hxtool_global.hxtool_config.get_child_item('db', 'host', False),
+								hxtool_global.hxtool_config.get_child_item('db', 'port', 27017), 
+								hxtool_global.hxtool_config.get_child_item('db', 'user', False), 
+								hxtool_global.hxtool_config.get_child_item('db', 'password', False),
+								hxtool_global.hxtool_config.get_child_item('db', 'auth_source', "admin"),
+								hxtool_global.hxtool_config.get_child_item('db', 'auth_mechanism', "SCRAM-SHA-256"),
+								hxtool_global.hxtool_config.get_child_item('db', 'db_name', "hxtool"))
+	else:
+		from hxtool_tinydb import hxtool_tinydb
+		
+		# Disable the write cache altogether - too many issues reported with it enabled.
+		return hxtool_tinydb(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), 
+								apicache = hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False),
+								apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
+								write_cache_size = 0)
+
+
 def app_init(debug = False):
 	hxtool_global.initialize()
 	
@@ -477,26 +499,8 @@ def app_init(debug = False):
 	for log_handler in hxtool_global.hxtool_config.log_handlers():
 		logger.addHandler(log_handler)
 
+	hxtool_global.hxtool_db = init_db()
 	
-	# Init DB
-	# Check if MongoDB is enabled as the database, otherwise, fallback to TinyDB
-	if hxtool_global.hxtool_config.get_child_item('db', 'type') == "mongodb":
-		from hxtool_mongodb import hxtool_mongodb
-		
-		hxtool_global.hxtool_db = hxtool_mongodb(hxtool_global.hxtool_config.get_child_item('db', 'host', False),
-												hxtool_global.hxtool_config.get_child_item('db', 'port', 27017), 
-												hxtool_global.hxtool_config.get_child_item('db', 'user', False), 
-												hxtool_global.hxtool_config.get_child_item('db', 'password', False),
-												hxtool_global.hxtool_config.get_child_item('db', 'auth_source', "admin"),
-												hxtool_global.hxtool_config.get_child_item('db', 'auth_mechanism', "SCRAM-SHA-256"),
-												hxtool_global.hxtool_config.get_child_item('db', 'db_name', "hxtool"))
-	else:		
-		# Disable the write cache altogether - too many issues reported with it enabled.
-		hxtool_global.hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), 
-											apicache = hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False),
-											apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
-											write_cache_size = 0)
-
 	# TODO: Disabled for now
 	# Enable X15 integration if config options are present
 	#if hxtool_global.hxtool_config['x15']:
@@ -531,8 +535,6 @@ def app_init(debug = False):
 	#		else:
 	#			logger.info("No background credential for {}, not starting apicache".format(profile['profile_id']))
 
-	set_svg_mimetype()
-
 # Version specific upgrade code goes here
 def hxtool_upgrade():
 	files_to_move = ['hxtool.db', 'conf.json', 'hxtool.key', 'hxtool.crt']
@@ -562,7 +564,7 @@ if __name__ == "__main__":
 			debug_mode = True
 		elif sys.argv[1] == '--clear-sessions':
 			print("Clearing sessions from the database and exiting.")
-			hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'))
+			hxtool_db = init_db()
 			for s in hxtool_db.sessionList():
 				hxtool_db.sessionDelete(s['session_id'])
 			hxtool_db.close()
@@ -578,7 +580,7 @@ if __name__ == "__main__":
 			r = f("Do you want to proceed (Y/N)?")
 			if r.strip().lower() == 'y':
 				print("Clearing saved tasks from the database and exiting.")
-				hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'))
+				hxtool_db = init_db()
 				for t in hxtool_db.taskList():
 					hxtool_db.taskDelete(t['profile_id'], t['task_id'])
 				hxtool_db.close()
