@@ -35,6 +35,10 @@
 
 		hxtool_ajax_get_request("/api/v1/streaming_indicator_category/get_edit_policies", "", function(myCategoryPolicies) {
 			myEditPolicies = JSON.parse(myCategoryPolicies['api_response']);
+			const xOpts = {	// see: https://datatables.net/reference/api/buttons.exportData()
+				orthogonal: 'export',
+				columns: [1,2,3,4,5,6,7]
+				};
 
 			ioc_datatable = $('#iocTable').DataTable( {
 				"ajax": "/api/v1/datatable_streaming_indicators",
@@ -45,19 +49,23 @@
 				"processing": false,
 				"dom": '<"hxtool_datatables_buttons"B>frtip',
 				"buttons": [
-					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
-					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+					{ 
+						extend: "copy", 
+						className: "fe-btn", 
+						exportOptions: xOpts,
+						text: "copy<i class='fe-icon--right fas fa-copy'></i>" 
+					},
+					{ 
+						extend: "csv", 
+						className: "fe-btn", 
+						exportOptions: xOpts,
+						text: "csv<i class='fe-icon--right fas fa-file'></i>" 
+					},
 					{ 
 						extend: "excel", 
 						className: "fe-btn", 
-						exportOptions: {
-							format: {
-								header: function ( data, columnIdx ) {
-									return columnIdx +': '+ data;
-								}
-							}
-						},
-						"text": "excel<i class='fe-icon--right fas fa-file-excel'></i>"
+						exportOptions: xOpts,
+						text: "excel<i class='fe-icon--right fas fa-file-excel'></i>"
 					}
 				],
 				"columns": [
@@ -94,13 +102,15 @@
 					 "targets": 7,
 					 "width": "34px",
 					 render: function ( data, type, row, meta ) {
+						if (type === 'export') return row.is_enabled ? 'Yes' : 'No';	// format specific to export
+
 						r = "<input id='" + row.DT_RowId + "_is_enabled' class='iocAction' data-type='is_enabled' type='checkbox' data-id='" + row.DT_RowId + "' data-name='" + row.name + "'"
 						if (row.is_enabled) {
 							r += " checked />";
 						} else {
 							r += " />";
 						}
-					 	return (r);
+						return (r);
 					 }
 					},
 					{
