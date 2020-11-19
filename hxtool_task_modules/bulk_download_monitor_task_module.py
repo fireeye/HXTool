@@ -15,6 +15,7 @@ from .streaming_task_module import *
 from .file_write_task_module import *
 from .helix_task_module import *
 from .x15_postgres_task_module import *
+from .mongodb_ingest_task_module import *
 
 class bulk_download_monitor_task_module(task_module):
 
@@ -139,6 +140,11 @@ class bulk_download_monitor_task_module(task_module):
 																						'url' : task_module_params['helix_url'],
 																						'apikey' : task_module_params['helix_apikey'],
 																						'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
+																						'delete_bulk_download' : False
+																					})
+												elif task_module_params['module'] == 'mongodb':
+													self.logger.debug("Using taskmodule 'mongodb'")
+													download_and_process_task.add_step(mongodb_ingest_task_module, kwargs = {
 																						'delete_bulk_download' : False
 																					})
 												elif task_module_params['module'] == 'x15':

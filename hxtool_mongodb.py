@@ -9,6 +9,8 @@ except ImportError:
 
 import datetime
 import json
+import shlex
+import re
 import hxtool_vars
 import hxtool_logging
 from hx_lib import HXAPI
@@ -47,11 +49,15 @@ class hxtool_mongodb:
 			self._db_file_listing = self._client.hxtool.file_listing
 			self._db_multi_file = self._client.hxtool.multi_file
 			self._db_stacking = self._client.hxtool.stacking
+			self._db_audits = self._client.hxtool.audits
 			self._client.admin.command('ismaster')
 			logger.info("MongoDB connection successful")
 		except Exception as e:
 			logger.error("Unable to connect to MongoDB, error: {}".format(e))
 			exit(1)
+		
+		# Ensure that the text wildcard index is in place
+		self._db_audits.create_index([("$**","text")])
 
 	def close(self):
 		if self._client is not None:
@@ -63,6 +69,28 @@ class hxtool_mongodb:
 	# TODO: Remove after all references are removed
 	def mongoStripKeys(self, data):
 		return data
+
+	def auditInsert(self, auditdata):
+		return self._db_audits.insert_one(auditdata)
+
+	def auditRemove(self, myid):
+		return self._db_audits.remove({"bulk_acquisition_id": int(myid)})
+
+	def auditQueryAggregate(self, query, qlimit = 1000):
+		query.append({ "$limit": qlimit })
+		#print(query)
+		return self._db_audits.aggregate(query)
+
+	def auditQuery(self, query, sort = None, qlimit = 1000):
+		#print(query)
+		if sort:
+			return self._db_audits.find(query).sort(sort['sortkey'], sort['operator']).limit(qlimit)
+		else:
+			return self._db_audits.find(query).limit(qlimit)
+
+	def auditGetCollections(self):
+		pipeline = [{'$group': {'count': {'$sum': 1}, '_id': {'bulk_acquisition_id': '$bulk_acquisition_id'}}}, {'$limit': 1000}]
+		return self._db_audits.aggregate(pipeline)
 		
 	def profileCreate(self, hx_name, hx_host, hx_port):
 		# Generate a unique profile id
@@ -369,3 +397,128 @@ class hxtool_mongodb:
 			
 	def auditDelete(self, profile_id, audit_id):
 		return self._db_audits.remove( { "profile_id": profile_id, "audit_id": audit_id } )
+
+	def queryParse(self, myQuery):
+
+		myQueryParts = myQuery.split("|")
+
+		mstr = myQueryParts[0]
+
+		# Remove first whitespace
+		if mstr.startswith(" "): mstr = mstr[1:]
+
+		# Get the full text search
+		if " " in mstr:
+			fsearch = mstr[:mstr.index(" ")]
+		else:
+			fsearch = mstr
+
+		mysearch_dict = {}
+		mysearch_dict['type'] = "find"
+
+		mstr_parts = shlex.split(mstr)
+
+		ftext = False
+		for p in mstr_parts:
+			if not any(l in p for l in ["=", ":", "<", ">"]):
+				ftext = True
+
+		if mstr == "":
+			# Get all events if search is empty
+			mysearch_dict['query'] = {}
+		else:
+			if ftext == True:
+				# There is a full text query
+				mysearch_dict['query'] = { "$text": { "$search": fsearch } }
+			else:
+				mysearch_dict['query'] = {}
+
+		# Find search filters
+		for part in mstr_parts:
+
+			myoperator = False
+			for char in part:
+				if char in ['=', ":", "<", ">"]:
+					myoperator = char
+					break
+
+			if myoperator == ":":
+				ppart = part.split(":", 1)
+				if len(ppart) > 1:
+					mysearch_dict['query'][ppart[0]] = { "$regex": ".*" + re.escape(ppart[1]) + ".*" }
+			elif myoperator == "=":
+				ppart = part.split("=", 1)
+				if len(ppart) > 1:
+					if ppart[1].startswith("(") and ppart[1].endswith(")"):
+						ppart[1] = int(ppart[1].replace("(","").replace(")",""))
+					mysearch_dict['query'][ppart[0]] = { "$eq": ppart[1] }
+			elif myoperator == ">":
+				ppart = part.split(">", 1)
+				if len(ppart) > 1:
+					if ppart[1].startswith("(") and ppart[1].endswith(")"):
+						ppart[1] = int(ppart[1].replace("(","").replace(")",""))
+					mysearch_dict['query'][ppart[0]] = { "$gte": ppart[1] }
+			elif myoperator == "<":
+				ppart = part.split("<", 1)
+				if len(ppart) > 1:
+					if ppart[1].startswith("(") and ppart[1].endswith(")"):
+						ppart[1] = int(ppart[1].replace("(","").replace(")",""))
+					mysearch_dict['query'][ppart[0]] = { "$lte": ppart[1] }
+
+		if len(myQueryParts) > 1:
+			
+			for part in myQueryParts:
+				if part.startswith(" "): part = part[1:]
+
+				if part.startswith("groupby"):
+					#Aggregation pipeline
+					mysearch_dict['type'] = "aggregate"
+					mygroup = {"count": {"$sum": 1}}
+					ppart = part.replace("groupby", "")
+					if ppart.startswith(" "): ppart = ppart[1:]
+					ppart = ppart.split(",")
+
+					mygroup['_id'] = {}
+					for myGroupPart in ppart:
+						myGroupPart = myGroupPart.replace(" ", "")
+						mygroup['_id'][myGroupPart.replace(".", "/")] = "$" + myGroupPart
+
+					myMatch = mysearch_dict['query']
+					mysearch_dict['query'] = [{ "$match": myMatch }, { "$group": mygroup }]
+
+				if part.startswith("sort"):
+					if mysearch_dict['type'] == "aggregate":
+						part = part.replace("sort", "")
+						if part.startswith(" "): part = part[1:]
+
+						if ":" in part:
+							parts = part.split(":")
+							if parts[1] == "desc":
+								sortq = { "$sort": { parts[0]: -1 }}
+							elif parts[1] == "asc":
+								sortq = { "$sort": { parts[0]: 1 }}
+							else:
+								sortq = { "$sort": { parts[0]: -1 }}
+						else:
+							sortq = { "$sort": { part: -1 }}
+
+						mysearch_dict['query'].append(sortq)
+					elif mysearch_dict['type'] == "find":
+						part = part.replace("sort", "")
+						if part.startswith(" "): part = part[1:]
+
+						if ":" in part:
+							parts = part.split(":")
+							if parts[1] == "desc":
+								sortq = { "sortkey": parts[0], "operator": -1 }
+							elif parts[1] == "asc":
+								sortq = { "sortkey": parts[0], "operator": 1 }
+							else:
+								sortq = { "sortkey": parts[0], "operator": -1 }
+						else:
+							sortq = { "sortkey": part, "operator": -1 }
+
+						mysearch_dict['sort'] = sortq
+
+
+		return(mysearch_dict)
