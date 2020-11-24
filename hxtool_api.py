@@ -844,6 +844,10 @@ def hxtool_api_indicators_get_conditions(hx_api_object):
 def hxtool_api_indicators_export(hx_api_object):
 	iocList = request.json
 	for uuid, ioc in iocList.items():
+		(ret, response_code, response_data) = hx_api_object.restListIndicators(filter_term = { 'uri_name' : ioc['uri_name'] })
+		if ret:
+			iocList[uuid]['description'] = response_data['data']['entries'][0]['description']
+			iocList[uuid]['create_text'] = response_data['data']['entries'][0]['create_text']
 		(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], ioc['uri_name'], 'execution')
 		if ret:
 			for item in response_data['data']['entries']:
@@ -900,7 +904,7 @@ def hxtool_api_indicators_import(hx_api_object):
 					category_exists = ret
 				
 				if category_exists:
-					(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
+					(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], create_text=iocs[iockey].get('create_text', None) or session['ht_user'], platforms=iocs[iockey]['platforms'], description=iocs[iockey].get('description', None))
 					if ret:
 						ioc_guid = response_data['data']['_id']
 						
