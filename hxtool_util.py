@@ -196,10 +196,12 @@ class TemporaryFileLock(object):
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.release()	
 	
-#from hxtool_scheduler import hxtool_scheduler_task
-from hxtool_task_modules import *
 
 def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hxtool_host_list_id = None, start_time = None, schedule = None, comment = "HXTool Bulk Acquisition", download = True, task_profile = None, skip_base64 = False):
+	import hxtool_global
+	from hxtool_scheduler import hxtool_scheduler_task
+	from hxtool_task_modules import bulk_download_monitor_task_module, bulk_acquisition_task_module
+	
 	bulk_download_eid = None
 	
 	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending', start_time = start_time)
