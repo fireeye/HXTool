@@ -929,7 +929,7 @@ def hxtool_api_indicators_import(hx_api_object):
 								data = """{"tests":""" + data + """}"""
 								(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
 								if not ret:
-								 app.logger.warn(format_activity_log(msg="rule action fail", reason="failed to create execution condition", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
+									app.logger.warn(format_activity_log(msg="rule action fail", reason="failed to create execution condition", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 				
 						app.logger.info(format_activity_log(msg="rule action", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 				else:
