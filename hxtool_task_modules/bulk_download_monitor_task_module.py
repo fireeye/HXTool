@@ -4,7 +4,6 @@
 from .task_module import *
 import hxtool_global
 from hxtool_util import *
-from hxtool_scheduler import *
 
 # TODO: fix this with a wildcard import
 from .bulk_download_task_module import *
@@ -46,6 +45,8 @@ class bulk_download_monitor_task_module(task_module):
 		return []
 		
 	def run(self, bulk_download_eid = None, task_profile = None):
+		from hxtool_scheduler import hxtool_scheduler_task
+		
 		ret = False
 		result = {}
 		try:
