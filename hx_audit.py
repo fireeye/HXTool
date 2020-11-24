@@ -188,6 +188,14 @@ class AuditPackage:
 								result_dict.clear()
 			return
 	
+	def cast_type(self, t):
+		if t:
+			if t.isnumeric():
+				return int(t)
+			elif t.lower() == 'true' or t.lower() == 'false':
+				return bool(t)
+		return t
+	
 	def xml_to_dict(self, element):
 		d = OrderedDict()
 
@@ -206,4 +214,4 @@ class AuditPackage:
 
 			return {element.tag : d}
 		else:
-			return {element.tag : element.text}
+			return {element.tag : self.cast_type(element.text)}
