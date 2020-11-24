@@ -71,6 +71,139 @@ def hxtool_api_version_get(hx_api_object):
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
+#################
+# Audit Manager #
+#################
+@ht_api.route('/api/v{0}/auditmanager/getaudits'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_auditmanager_getaudits(hx_api_object):
+	r = hxtool_global.hxtool_db.auditGetCollections()
+
+	# Grab all bulk acqs so we can use their data to enrich the table
+	bulk_acqs = {}
+	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
+	if ret:
+		for entry in response_data['data']['entries']:
+			bulk_acqs[entry['_id']] = entry
+
+		response = {}
+		mydata = []
+
+		for res in r:
+			row = {}
+			res_data = eval(res['_id'])
+			for key, value in res_data.items():
+				row[key] = value
+			row['count'] = res['count']
+			row['action'] = res_data['bulk_acquisition_id']
+
+			if res_data['bulk_acquisition_id'] in bulk_acqs.keys():
+				row['created'] = bulk_acqs[res_data['bulk_acquisition_id']]['create_time'] 
+				row['state'] = bulk_acqs[res_data['bulk_acquisition_id']]['state'] 
+				row['name'] = bulk_acqs[res_data['bulk_acquisition_id']]['comment']
+				row['hostset'] = bulk_acqs[res_data['bulk_acquisition_id']]['host_set']['name']
+			else:
+				row['created'] = ""
+				row['state'] = ""
+				row['name'] = ""
+				row['hostset'] = ""
+
+			mydata.append(row)
+
+		response['columns'] = []
+		for column in list(set().union(*(d.keys() for d in mydata))):
+			response['columns'].append({ "data": column, "title": column })
+
+		response['data'] = mydata
+
+		return(app.response_class(response=json.dumps(response), status=200, mimetype='application/json'))
+	else:
+		return(app.response_class(response=json.dumps("Unable to list bulk acquisitions"), status=404, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/auditmanager/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_auditmanager_remove(hx_api_object):
+	rcode = 200
+	rmessage = "Audit action remove"
+	try:
+		r = hxtool_global.hxtool_db.auditRemove(request.args.get('id'))
+	except:
+		rcode = 404
+		rmessage = "Audit action remove failed"
+
+	return(app.response_class(response=json.dumps(rmessage), status=rcode, mimetype='application/json'))
+
+
+#################
+# Audit viewer  #
+#################
+@ht_api.route('/api/v{0}/auditviewer/query'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_auditviewer_query(hx_api_object):
+
+	mstr = hxtool_global.hxtool_db.queryParse(request.args.get('q'))
+	
+	if mstr['type'] == "find":
+		try:
+			if 'sort' in mstr.keys():
+				r = hxtool_global.hxtool_db.auditQuery(mstr['query'], mstr['sort'])
+			else:
+				r = hxtool_global.hxtool_db.auditQuery(mstr['query'])
+		except:
+			return(app.response_class(response=json.dumps(r), status=404, mimetype='application/json'))
+
+		response = {}
+		mydata = []
+		for res in r:
+			row = {
+				"hostname": res['hostname'],
+				"generator": res['generator'],
+				"hx_host": res['hx_host'],
+				"bulk_acquisition_id": res['bulk_acquisition_id']
+			}
+			for key in res[res['generator_item_name']].keys():
+				row[res['generator_item_name'] + "/" + key] = res[res['generator_item_name']][key]
+			mydata.append(row)
+		
+		response['columns'] = []
+		for column in list(set().union(*(d.keys() for d in mydata))):
+			response['columns'].append({ "data": column, "title": column })
+
+		mynewdata = []
+		for myrecord in mydata:
+			for mykey in list(set().union(*(d.keys() for d in mydata))):
+				if mykey not in myrecord.keys():
+					myrecord[mykey] = ""
+			mynewdata.append(myrecord)
+
+		response['data'] = mynewdata
+
+	if mstr['type'] == "aggregate":
+		try:
+			r = hxtool_global.hxtool_db.auditQueryAggregate(mstr['query'])
+		except:
+			return(app.response_class(response=json.dumps(r), status=404, mimetype='application/json'))
+
+		response = {}
+		mydata = []
+
+		for res in r:
+			row = {}
+			res_data = eval(res['_id'])
+			for key, value in res_data.items():
+				row[key] = value
+			row['count'] = res['count']
+			mydata.append(row)
+
+		response['columns'] = []
+		for column in list(set().union(*(d.keys() for d in mydata))):
+			response['columns'].append({ "data": column, "title": column })
+
+		response['data'] = mydata
+
+	return(app.response_class(response=json.dumps(response), status=200, mimetype='application/json'))
+
+
 ################
 # Acquisitions #
 ################

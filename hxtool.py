@@ -148,6 +148,18 @@ def scriptbuilder_view(hx_api_object):
 def taskprofile(hx_api_object):
 	return render_template('ht_taskprofile.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### Audit Viewer page
+@app.route('/auditexplorer', methods=['GET'])
+@valid_session_required
+def auditexplorer(hx_api_object):
+	return render_template('ht_auditviewer.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+### Manage Audits page
+@app.route('/auditmanager', methods=['GET'])
+@valid_session_required
+def auditmanager(hx_api_object):
+	return render_template('ht_auditmanager.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
 ### Bulk acq page
 @app.route('/bulkacq', methods=['GET'])
 @valid_session_required
