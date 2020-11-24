@@ -567,7 +567,7 @@ def hxtool_upgrade():
 hxtool_upgrade()
 
 if __name__ == "__main__":
-	hxtool_global.initialize()
+	
 	
 	signal.signal(signal.SIGINT, sigint_handler)
 	
