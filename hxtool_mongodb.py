@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from hxtool_db import hxtool_db
+
 try:
 	from pymongo import MongoClient
 except ImportError:
@@ -32,24 +34,24 @@ class tinydb_emulated_dict(dict):
 	def doc_id(self):
 		return str(self['_id'])
 
-class hxtool_mongodb:
-	def __init__(self, db_host, db_port, db_user, db_pass, db_auth_source, db_auth_mechanism):
+class hxtool_mongodb(hxtool_db):
+	def __init__(self, db_host, db_port, db_user, db_pass, db_auth_source, db_auth_mechanism, db_name="hxtool"):
 		try:
 			self._client = MongoClient(db_host, db_port, username=db_user, password=db_pass, authSource=db_auth_source, authMechanism=db_auth_mechanism, document_class=tinydb_emulated_dict)
-			self._db_profile = self._client.hxtool.profile
-			self._db_background_processor_credential = self._client.hxtool.background_processor_credential
-			self._db_session = self._client.hxtool.session
-			self._db_tasks = self._client.hxtool.tasks
-			self._db_taskprofiles = self._client.hxtool.taskprofiles
-			self._db_alerts = self._client.hxtool.alerts
-			self._db_hosts = self._client.hxtool.hosts
-			self._db_openioc = self._client.hxtool.openioc
-			self._db_scripts = self._client.hxtool.scripts
-			self._db_bulk_download = self._client.hxtool.bulk_download
-			self._db_file_listing = self._client.hxtool.file_listing
-			self._db_multi_file = self._client.hxtool.multi_file
-			self._db_stacking = self._client.hxtool.stacking
-			self._db_audits = self._client.hxtool.audits
+			self._db_profile = self._client[db_name].profile
+			self._db_background_processor_credential = self._client[db_name].background_processor_credential
+			self._db_session = self._client[db_name].session
+			self._db_tasks = self._client[db_name].tasks
+			self._db_taskprofiles = self._client[db_name].taskprofiles
+			self._db_alerts = self._client[db_name].alerts
+			self._db_hosts = self._client[db_name].hosts
+			self._db_openioc = self._client[db_name].openioc
+			self._db_scripts = self._client[db_name].scripts
+			self._db_bulk_download = self._client[db_name].bulk_download
+			self._db_file_listing = self._client[db_name].file_listing
+			self._db_multi_file = self._client[db_name].multi_file
+			self._db_stacking = self._client[db_name].stacking
+			self._db_audits = self._client[db_name].audits
 			self._client.admin.command('ismaster')
 			logger.info("MongoDB connection successful")
 		except Exception as e:
@@ -58,6 +60,10 @@ class hxtool_mongodb:
 		
 		# Ensure that the text wildcard index is in place
 		self._db_audits.create_index([("$**","text")])
+	
+	@property
+	def database_engine(self):
+		return "mongodb"
 
 	def close(self):
 		if self._client is not None:

@@ -13,11 +13,13 @@
 		sessionVersion = "{{session['hx_version']}}";
 		sessionIp = "{{session['hx_ip']}}";
 		sessionUser = "{{session['ht_user']}}";
+		sessionDatabaseEngine = "{{session['ht_database_engine']}}";
 
 		hxToolInfo = {
 			"HX_lib reported version": sessionVersion,
 			"Username": sessionUser,
 			"Controller IP": sessionIp,
+			"Database Engine:": sessionDatabaseEngine,
 		};
 
 		$("#hxtoolVersionContainer").append(hxtoolGenerateNestedTable(hxToolInfo));
