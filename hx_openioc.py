@@ -3,23 +3,13 @@
 
 # OpenIOC to Endpoint Security (HX) conversion code courtesy of Matthew Dunwoody
 
+import json
 import xml.etree.ElementTree as et
 
 import hxtool_logging
+from hxtool_util import combine_app_path
 
 logger = hxtool_logging.getLogger(__name__)
-
-# TODO: Load/cache from static/eventbuffer.json
-valid_tokens = [
-	'fileWriteEvent',
-	'regKeyEvent',
-	'ipv4NetworkEvent',
-	'processEvent',
-	'dnsLookupEvent',
-	'imageLoadEvent',
-	'urlMonitorEvent',
-	'addressNotificationEvent'
-]
 
 def create_test(elem):
 	context = elem.find('{http://openioc.org/schemas/OpenIOC_1.1}Context')
@@ -189,6 +179,10 @@ def process_ioc(ioc):
 		return None
 
 	indicator[indicator_id].update(ind)
+	
+	with open(combine_app_path('static', 'eventbuffer.json'), 'r') as f:
+		valid_tokens = list(json.load(f).keys())
+		f.close()
 	
 	# Generate conditions
 	top_or = root.find('{http://openioc.org/schemas/OpenIOC_1.1}criteria')[0]
