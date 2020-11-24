@@ -25,6 +25,7 @@ from hxtool_util import *
 from hxtool_data_models import *
 from hxtool_scheduler import *
 from hxtool_task_modules import *
+from hx_openioc import openioc_to_hxioc
 
 ht_api = Blueprint('ht_api', __name__, template_folder='templates')
 logger = hxtool_logging.getLogger(__name__)
@@ -884,14 +885,20 @@ def hxtool_api_indicators_import(hx_api_object):
 	files = request.files.getlist('ruleImport')
 	
 	for file in files:
+		file_content = file.read().decode(default_encoding)
 		try: 
-			iocs = json.loads(file.read().decode(default_encoding))
-		except:
-			app.logger.error(format_activity_log(msg="rule action fail", reason="{} is not a valid HX JSON formatted indicator".format(file), action="import", user=session['ht_user'], controller=session['hx_ip']))
-			continue
+			iocs = json.loads(file_content)
+		except json.decoder.JSONDecodeError:
+			iocs = openioc_to_hxioc(file_content)
+			if iocs is None:
+				app.logger.warn(format_activity_log(msg="rule action fail", reason="{} is not a valid Endpoint Security (HX) JSON or OpenIOC 1.1 indicator." .format(file.filename), action="import", user=session['ht_user'], controller=session['hx_ip']))
+				continue
 		
 		for iockey in iocs:
-
+			# TODO: Add category selection to import dialog
+			if iocs[iockey].get('category', None) is None:
+				iocs[iockey]['category'] = "Custom"
+			
 			# Check if category exists
 			category_exists = False
 			(ret, response_code, response_data) = hx_api_object.restListCategories(limit = 1, filter_term={'name' : iocs[iockey]['category']})
@@ -913,12 +920,16 @@ def hxtool_api_indicators_import(hx_api_object):
 								data = json.dumps(p_cond)
 								data = """{"tests":""" + data + """}"""
 								(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
+								if not ret:
+									app.logger.warn(format_activity_log(msg="rule action fail", reason="failed to create presence condition", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 
 						if 'execution' in iocs[iockey].keys():
 							for e_cond in iocs[iockey]['execution']:
 								data = json.dumps(e_cond)
 								data = """{"tests":""" + data + """}"""
 								(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
+								if not ret:
+								 app.logger.warn(format_activity_log(msg="rule action fail", reason="failed to create execution condition", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 				
 						app.logger.info(format_activity_log(msg="rule action", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 				else:
