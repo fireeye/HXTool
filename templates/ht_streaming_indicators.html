@@ -76,7 +76,7 @@
 					{ title: "Category", 		"data": "category_name" },	//4
 					{ title: "Last Updated", 	"data": "last_updated" },	//5
 					{ title: "Updated by", 		"data": "updated_by" },		//6
-					{ title: "Enabled", 		"data": "DT_RowId" },		//7
+					{ title: "Enabled", 		"data": "is_enabled" },		//7
 					{ title: "Action", 			"data": "DT_RowId" }		//8
 				],
 				"columnDefs": [	
@@ -107,11 +107,13 @@
 					{
 					 "targets": 7,
 					 "width": "34px",
-					 render: function ( data, type, row, meta ) {
-						if (type === 'export') return row.is_enabled ? 'Yes' : 'No';	// format specific to export
+					 render: function ( is_enabled, type, row, meta ) {
+						if (type === 'export') {
+							return is_enabled ? 'Yes' : 'No';	// format specific to export
+						}
 
 						r = "<input id='" + row.DT_RowId + "_is_enabled' class='iocAction' data-type='is_enabled' type='checkbox' data-id='" + row.DT_RowId + "' data-name='" + row.name + "'"
-						if (row.is_enabled) {
+						if (is_enabled) {
 							r += " checked />";
 						} else {
 							r += " />";
@@ -166,13 +168,17 @@
 				});
 			}
 			if ($(this).data("type") == "is_enabled") {
-				var is_enabled = false;
+				let is_enabled = false;
 				if (this.checked) {
 					is_enabled = true;
 				}
-				var msg = "Rule: " + $(this).data('name') + " has been " + (is_enabled?"enabled":"disabled") + "!"
+				let msg = "Rule: " + $(this).data('name') + " has been " + (is_enabled?"enabled":"disabled") + "!"
 
-				var form = new FormData();
+				// update the bound data
+				let cell = ioc_datatable.cell($(this).parent());
+				cell.data(is_enabled);
+
+				let form = new FormData();
 				data = {};
 				data["id"] = $(this).data("id");
 				data["is_enabled"] = is_enabled;
