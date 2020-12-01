@@ -26,6 +26,7 @@ from string import Template
 from xml.sax.saxutils import escape as xmlescape
 import re
 from io import BytesIO
+import argparse
 
 # Flask imports
 try:
@@ -52,7 +53,6 @@ from hxtool_apicache import *
 from hxtool_api import ht_api
 
 default_encoding = hxtool_vars.default_encoding
-debug_mode = False
 
 # Setup logging
 hxtool_logging.setLoggerClass()
@@ -567,39 +567,45 @@ def hxtool_upgrade():
 hxtool_upgrade()
 
 if __name__ == "__main__":
-	
-	
 	signal.signal(signal.SIGINT, sigint_handler)
 	
-	if len(sys.argv) == 2:
-		if sys.argv[1].endswith('-debug'):
-			debug_mode = True
-		elif sys.argv[1] == '--clear-sessions':
-			print("Clearing sessions from the database and exiting.")
+	parser = argparse.ArgumentParser(description = "HXTool version {}".format(hxtool_vars.__version__), usage = "%(prog)s -h for more information.")
+	parser.add_argument('-debug', dest = 'debug', action='store_true', required = False, default = False, help = "Enable debug mode logging. Note: Very verbose.")
+	parser.add_argument('--clear-sessions', dest = 'clear_sessions', action='store_true', required = False, default = False, help = "Clear stale sessions from the database. Note that this should be done by a scheduler task.")
+	parser.add_argument('--clear-saved-tasks', dest = 'clear_saved_tasks', action='store_true', required = False, default = False, help = "Clear saved tasks from the database.")
+	parser.add_argument('-v', '--version', action='version', version='HXTool version {}'.format(hxtool_vars.__version__))
+	
+	try:
+		args = parser.parse_args()
+	except:
+		parser.exit(1)
+	
+	if args.clear_sessions:
+		print("Clearing sessions from the database and exiting.")
+		hxtool_db = init_db()
+		for s in hxtool_db.sessionList():
+			hxtool_db.sessionDelete(s['session_id'])
+		hxtool_db.close()
+		hxtool_db = None
+		exit(0)
+	elif args.clear_saved_tasks:
+		print("WARNING! WARNING! WARNING!")
+		print("This will clear ALL saved tasks in the database for ALL profiles!")
+		try:
+			f = raw_input
+		except NameError:
+			f = input
+		r = f("Do you want to proceed (Y/N)?")
+		if r.strip().lower() == 'y':
+			print("Clearing saved tasks from the database and exiting.")
 			hxtool_db = init_db()
-			for s in hxtool_db.sessionList():
-				hxtool_db.sessionDelete(s['session_id'])
+			for t in hxtool_db.taskList():
+				hxtool_db.taskDelete(t['profile_id'], t['task_id'])
 			hxtool_db.close()
 			hxtool_db = None
-			exit(0)
-		elif sys.argv[1] == '--clear-saved-tasks':
-			print("WARNING! WARNING! WARNING!")
-			print("This will clear ALL saved tasks in the database for ALL profiles!")
-			try:
-				f = raw_input
-			except NameError:
-				f = input
-			r = f("Do you want to proceed (Y/N)?")
-			if r.strip().lower() == 'y':
-				print("Clearing saved tasks from the database and exiting.")
-				hxtool_db = init_db()
-				for t in hxtool_db.taskList():
-					hxtool_db.taskDelete(t['profile_id'], t['task_id'])
-				hxtool_db.close()
-				hxtool_db = None
-			exit(0)
+		exit(0)
 	
-	app_init(debug_mode)
+	app_init(debug = args.debug)
 	
 	# WSGI request log - when not running under gunicorn or mod_wsgi
 	wsgi_logger = logging.getLogger('werkzeug')
