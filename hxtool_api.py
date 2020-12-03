@@ -2475,38 +2475,37 @@ def datatable_es_result(hx_api_object):
 @ht_api.route('/api/v{0}/chartjs_agentstatus'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def chartjs_agentstatus(hx_api_object):
-
-	(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
-
-	myField = request.args.get('field')
-	myData = {}
-
-	for host in response_data['data']['entries']:
-		if "." in myField:
-			item1, item2 = myField.split(".")
-			if host[item1][item2] not in myData.keys():
-				myData[host[item1][item2]] = 0
-			myData[host[item1][item2]] += 1
-		else:
-			if host[myField] not in myData.keys():
-				myData[host[myField]] = 0
-			myData[host[myField]] += 1
-
-	del response_data
-
-	myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
-	random.shuffle(myPattern)
-
 	rData = {}
-	rData['labels'] = list(myData.keys())
-	rData['datasets'] = []
-	rData['datasets'].append({
-		"label": myField,
-		"backgroundColor": myPattern,
-		"borderColor": "#0d1a2b",
-		"borderWidth": 5,
-		"data": list(myData.values())
-		})
+	(ret, response_code, response_data) = hx_api_object.restListHosts()
+	if ret:
+		myField = request.args.get('field')
+		myData = {}
+
+		for host in response_data['data']['entries']:
+			if "." in myField:
+				item1, item2 = myField.split(".")
+				if host[item1][item2] not in myData.keys():
+					myData[host[item1][item2]] = 0
+				myData[host[item1][item2]] += 1
+			else:
+				if host[myField] not in myData.keys():
+					myData[host[myField]] = 0
+				myData[host[myField]] += 1
+
+		del response_data
+
+		myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
+		random.shuffle(myPattern)
+
+		rData['labels'] = list(myData.keys())
+		rData['datasets'] = []
+		rData['datasets'].append({
+			"label": myField,
+			"backgroundColor": myPattern,
+			"borderColor": "#0d1a2b",
+			"borderWidth": 5,
+			"data": list(myData.values())
+			})
 
 	return(app.response_class(response=json.dumps(rData), status=200, mimetype='application/json'))
 
