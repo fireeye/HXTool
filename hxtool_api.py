@@ -3004,7 +3004,7 @@ def profile():
 		else:
 			return make_response_by_code(400)
 			
-@ht_api.route('/api/v{0}/profile/<profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
+@ht_api.route('/api/v{0}/profile/<uuid:profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
 def profile_by_id(profile_id):
 	if request.method == 'GET':
 		profile_object = hxtool_global.hxtool_db.profileGet(profile_id)
