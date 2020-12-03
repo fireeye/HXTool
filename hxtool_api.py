@@ -665,6 +665,35 @@ def hxtool_api_taskprofile_new(hx_api_object):
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
+###############
+# Host Groups #
+###############
+@ht_api.route('/api/v{0}/hostgroups'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_hostgroup_add(hx_api_object):
+	hostgroup_data = request.json
+	hxtool_global.hxtool_db.hostGroupAdd(session['profile_id'], hostgroup_data['name'], session['ht_user'], hostgroup_data['agent_ids'])
+	(r, rcode) = create_api_response(ret=True)
+	logger.info(format_activity_log(msg="host group action", action="new", name=hostgroup_data['name'], user=session['ht_user'], controller=session['hx_ip']))
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/hostgroups/<uuid:hostgroup_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'DELETE'])
+@valid_session_required
+def hxtool_api_hostgroup_id(hx_api_object, hostgroup_id):
+	if request.method == 'GET':
+		hostgroup = hxtool_global.hxtool_db.hostGroupGet(hostgroup_id)
+		if hostgroup:
+			(r, rcode) = create_api_response(ret=True, response_code=200, response_data=hostgroup)
+		else:
+			(r, rcode) = create_api_response(ret=False, response_code=404)
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+	elif request.method == 'DELETE':
+		hxtool_global.hxtool_db.hostGroupRemove(hostgroup_id)
+		(r, rcode) = create_api_response(ret=True)
+		logger.info(format_activity_log(msg="host group action", action="remove", hostgroup_id=hostgroup_id, user=session['ht_user'], controller=session['hx_ip']))
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
 ####################
 # Bulk Acquisition #
 ####################

@@ -52,6 +52,7 @@ class hxtool_mongodb(hxtool_db):
 			self._db_multi_file = self._client[db_name].multi_file
 			self._db_stacking = self._client[db_name].stacking
 			self._db_audits = self._client[db_name].audits
+			self._db_hostgroups = self._client[db_name].hostgroups
 			self._client.admin.command('ismaster')
 			logger.info("MongoDB connection successful")
 		except Exception as e:
@@ -398,6 +399,34 @@ class hxtool_mongodb(hxtool_db):
 			
 	def auditDelete(self, profile_id, audit_id):
 		return self._db_audits.remove( { "profile_id": profile_id, "audit_id": audit_id } )
+		
+	def hostGroupAdd(self, profile_id, name, actor, agent_ids = []):
+		return self._db_hostgroups.insert_one({'profile_id' : profile_id,
+												'hostgroup_id' : str(secure_uuid4()), 
+												'name': str(name), 
+												'actor' : str(actor),
+												'agent_ids' : agent_ids, 
+												'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
+												'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})
+
+	def hostGroupUpdate(self, hostgroup_id, name=None, agent_ids=None):
+		d = {}
+		if name:
+			d['name'] = name
+		if agent_ids:
+			d['agent_ids'] = agent_ids
+			
+		return self._db_hostgroups.update_one( { "hostgroup_id": hostgroup_id }, { "$set": d } )
+
+	def hostGroupList(self, profile_id):
+		return list(self._db_hostgroups.find( {'profile_id' : profile_id} ))
+			
+	def hostGroupGet(self, hostgroup_id):
+		return self._db_hostgroups.find_one( {'hostgroup_id' : hostgroup_id} )
+
+	def hostGroupDelete(self, hostgroup_id):
+		return self._db_hostgroups.remove( {'hostgroup_id' : hostgroup_id} )	
+		
 
 	def queryParse(self, myQuery):
 
