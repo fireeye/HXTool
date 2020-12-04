@@ -198,7 +198,7 @@ class TemporaryFileLock(object):
 		self.release()	
 	
 
-def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hxtool_host_list_id = None, start_time = None, schedule = None, comment = "HXTool Bulk Acquisition", download = True, task_profile = None, skip_base64 = False):
+def submit_bulk_job(script_content, hostset_id = None, hxtool_hostgroup_id = None, start_time = None, schedule = None, comment = "HXTool Bulk Acquisition", download = True, task_profile = None, skip_base64 = False):
 	import hxtool_global
 	from hxtool_scheduler import hxtool_scheduler_task
 	from hxtool_task_modules import bulk_download_monitor_task_module, bulk_acquisition_task_module
@@ -232,7 +232,7 @@ def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hx
 	bulk_acquisition_task.add_step(
 		bulk_acquisition_task_module, 
 		kwargs = {
-					'script' : script_xml,
+					'script' : script_content,
 					'hostset_id' : hostset_id,
 					'comment' : comment,
 					'skip_base64' : skip_base64,
