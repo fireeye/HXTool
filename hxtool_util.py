@@ -170,6 +170,14 @@ def _time_replace(m):
 
 def pretty_exceptions(e):
 	return "{} in {}".format(e, traceback.format_exc())
+
+def hide_file(file):
+	if os.name == 'nt': 
+		import win32con
+		import win32api
+		
+		win32api.SetFileAttributes(file,win32con.FILE_ATTRIBUTE_HIDDEN | win32con.FILE_ATTRIBUTE_SYSTEM)
+	
 	
 class TemporaryFileLock(object):
 	def __init__(self, file_path, file_name = 'lock_file'):
