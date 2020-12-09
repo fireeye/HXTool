@@ -199,6 +199,7 @@ class TemporaryFileLock(object):
 	
 
 def submit_bulk_job(script_content, hostset_id = None, hxtool_hostgroup_id = None, start_time = None, schedule = None, comment = "HXTool Bulk Acquisition", download = True, task_profile = None, skip_base64 = False):
+	# TODO: Fix circular imports with hxtool_scheduler and scheduler task modules
 	import hxtool_global
 	from hxtool_scheduler import hxtool_scheduler_task
 	from hxtool_task_modules import bulk_download_monitor_task_module, bulk_acquisition_task_module
