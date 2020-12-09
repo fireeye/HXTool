@@ -52,6 +52,7 @@ class hxtool_mongodb(hxtool_db):
 			self._db_multi_file = self._client[db_name].multi_file
 			self._db_stacking = self._client[db_name].stacking
 			self._db_audits = self._client[db_name].audits
+			self._db_hostgroups = self._client[db_name].hostgroups
 			self._client.admin.command('ismaster')
 			logger.info("MongoDB connection successful")
 		except Exception as e:
@@ -71,10 +72,6 @@ class hxtool_mongodb(hxtool_db):
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.close()
-
-	# TODO: Remove after all references are removed
-	def mongoStripKeys(self, data):
-		return data
 
 	def auditInsert(self, auditdata):
 		return self._db_audits.insert_one(auditdata)
@@ -132,10 +129,10 @@ class hxtool_mongodb(hxtool_db):
 		return True
 
 	def alertList(self, profile_id):
-		return self.mongoStripKeys(list(self._db_alerts.find( { "profile_id": profile_id } )))
+		return list(self._db_alerts.find( { "profile_id": profile_id } ))
 
 	def alertGet(self, profile_id, hx_alert_id):
-		return self.mongoStripKeys(self._db_alerts.find_one( { "profile_id": profile_id, "hx_alert_id": int(hx_alert_id) } ))
+		return self._db_alerts.find_one( { "profile_id": profile_id, "hx_alert_id": int(hx_alert_id) } )
 	
 	def alertAddAnnotation(self, profile_id, hx_alert_id, annotation, state, create_user):
 		return self._db_alerts.update_one({ "profile_id": profile_id, "hx_alert_id": int(hx_alert_id) }, {"$push": {"annotations": {'annotation' : annotation, 'state' : int(state), 'create_user' : create_user, 'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())} }})
@@ -156,12 +153,12 @@ class hxtool_mongodb(hxtool_db):
 	
 	def bulkDownloadGet(self, bulk_download_eid = None, profile_id = None, bulk_acquisition_id = None):
 		if bulk_download_eid:
-			return self.mongoStripKeys(self._db_bulk_download.find_one( { "_id": ObjectId(bulk_download_eid) } ))
+			return self._db_bulk_download.find_one( { "_id": ObjectId(bulk_download_eid) } )
 		elif profile_id and bulk_acquisition_id:
-			return self.mongoStripKeys(self._db_bulk_download.find_one( { "profile_id": profile_id, "bulk_acquisition_id": bulk_acquisition_id } ))
+			return self._db_bulk_download.find_one( { "profile_id": profile_id, "bulk_acquisition_id": bulk_acquisition_id } )
 	
 	def bulkDownloadList(self, profile_id):
-		return self.mongoStripKeys(list(self._db_bulk_download.find( { "profile_id": profile_id } )))
+		return list(self._db_bulk_download.find( { "profile_id": profile_id } ))
 	
 	def bulkDownloadUpdate(self, bulk_download_eid, bulk_acquisition_id = None, hosts = None, stopped = None, complete = None):
 		d = {'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())}
@@ -219,12 +216,11 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_file_listing.find_one( { "profile_id": profile_id, "bulk_download_eid": str(bulk_download_eid) } )
 	
 	def fileListingGetById(self, flid):
-		return self.mongoStripKeys(self._db_file_listing.find_one( { "_id": ObjectId(flid) } ))
+		return self._db_file_listing.find_one( { "_id": ObjectId(flid) } )
 	
 	def fileListingList(self, profile_id):
-		res = self.mongoStripKeys(list(self._db_file_listing.find( { "profile_id": profile_id } )))
-		return(res)
-
+		return list(self._db_file_listing.find( { "profile_id": profile_id } ))
+		
 	def fileListingStop(self, file_listing_id):
 		return self._db_file_listing.update_one( { "_id": ObjectId(file_listing_id) }, { "$set": { "stopped": True, "update_timestamp": HXAPI.dt_to_str(datetime.datetime.utcnow()) } } )
 	
@@ -250,16 +246,16 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_multi_file.update_one( { "_id": ObjectId(multi_file_id) }, { "$push": { "files": job } } )
 
 	def multiFileList(self, profile_id):
-		return self.mongoStripKeys(list(self._db_multi_file.find( { "profile_id": profile_id } )))
+		return list(self._db_multi_file.find( { "profile_id": profile_id } ))
 
 	def multiFileGetById(self, multi_file_id):
-		return self.mongoStripKeys(self._db_multi_file.find_one( { "_id": ObjectId(multi_file_id) } ))
+		return self._db_multi_file.find_one( { "_id": ObjectId(multi_file_id) } )
 
 	def multiFileUpdateFile(self, profile_id, multi_file_id, acquisition_id):
 		return self._db_multi_file.update_one( { "_id": ObjectId(multi_file_id) }, { "$set": { "files.$[].acquisition_id": acquisition_id, "files.$[].downloaded": True } } )
 																			
 	def multiFileStop(self, multi_file_id):
-		return self.mongoStripKeys(self._db_multi_file.update_one( { "_id": ObjectId(multi_file_id) }, { "$set": { "stopped": True, "update_timestamp": HXAPI.dt_to_str(datetime.datetime.utcnow()) } } ))
+		return self._db_multi_file.update_one( { "_id": ObjectId(multi_file_id) }, { "$set": { "stopped": True, "update_timestamp": HXAPI.dt_to_str(datetime.datetime.utcnow()) } } )
 	
 	def multiFileDelete(self, multi_file_id):
 		return self._db_multi_file.remove( { "_id": ObjectId(multi_file_id) } )
@@ -306,7 +302,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_session.insert_one({'session_id': session_id, 'session_data': {}, 'update_timestamp'	: HXAPI.dt_to_str(datetime.datetime.utcnow())})
 	
 	def sessionList(self):
-		return self.mongoStripKeys(list(self._db_session.find()))
+		return list(self._db_session.find())
 	
 	def sessionGet(self, session_id):
 		return self._db_session.find_one( { "session_id": session_id } )
@@ -326,13 +322,13 @@ class hxtool_mongodb(hxtool_db):
 													'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})		
 
 	def scriptList(self):
-		return self.mongoStripKeys(list(self._db_scripts.find()))
+		return list(self._db_scripts.find())
 
 	def scriptDelete(self, script_id):
 		return self._db_scripts.remove( { "script_id": script_id } )
 
 	def scriptGet(self, script_id):
-		return self.mongoStripKeys(self._db_scripts.find_one( { "script_id": script_id } ))
+		return self._db_scripts.find_one( { "script_id": script_id } )
 
 
 	def oiocCreate(self, iocname, ioc, username):
@@ -344,19 +340,19 @@ class hxtool_mongodb(hxtool_db):
 													'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})		
 
 	def oiocList(self):
-		return self.mongoStripKeys(list(self._db_openioc.find()))
+		return list(self._db_openioc.find())
 
 	def oiocDelete(self, ioc_id):
 		return self._db_openioc.remove( { "ioc_id": ioc_id } )
 
 	def oiocGet(self, ioc_id):
-		return self.mongoStripKeys(self._db_openioc.find_one( { "ioc_id": ioc_id } ))
+		return self._db_openioc.find_one( { "ioc_id": ioc_id } )
 
 	def taskCreate(self, serialized_task):
 		return self._db_tasks.insert_one(serialized_task)
 	
 	def taskList(self):
-		return self.mongoStripKeys(list(self._db_tasks.find()))
+		return list(self._db_tasks.find())
 	
 	def taskGet(self, profile_id, task_id):
 		return self._db_tasks.find_one( { "profile_id": profile_id, "task_id": task_id } )
@@ -376,7 +372,7 @@ class hxtool_mongodb(hxtool_db):
 													'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})
 
 	def taskProfileList(self):
-		return self.mongoStripKeys(list(self._db_taskprofiles.find()))
+		return list(self._db_taskprofiles.find())
 			
 	def taskProfileGet(self, taskprofile_id):
 		return self._db_taskprofiles.find_one( { "taskprofile_id": taskprofile_id } )
@@ -396,13 +392,41 @@ class hxtool_mongodb(hxtool_db):
 												'results'	: results})
 	
 	def auditList(self, profile_id):
-		return self.mongoStripKeys(list(self._db_audits.find( { "profile_id": profile_id } )))
+		return list(self._db_audits.find( { "profile_id": profile_id } ))
 	
 	def auditGet(self, profile_id, audit_id):
-		return self.mongoStripKeys(self._db_audits.find_one( { "profile_id": profile_id, "audit_id": audit_id } ))
+		return self._db_audits.find_one( { "profile_id": profile_id, "audit_id": audit_id } )
 			
 	def auditDelete(self, profile_id, audit_id):
 		return self._db_audits.remove( { "profile_id": profile_id, "audit_id": audit_id } )
+		
+	def hostGroupAdd(self, profile_id, name, actor, agent_ids = []):
+		return self._db_hostgroups.insert_one({'profile_id' : profile_id,
+												'hostgroup_id' : str(secure_uuid4()), 
+												'name': str(name), 
+												'actor' : str(actor),
+												'agent_ids' : agent_ids, 
+												'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
+												'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})
+
+	def hostGroupUpdate(self, hostgroup_id, name=None, agent_ids=None):
+		d = {}
+		if name:
+			d['name'] = name
+		if agent_ids:
+			d['agent_ids'] = agent_ids
+			
+		return self._db_hostgroups.update_one( { "hostgroup_id": hostgroup_id }, { "$set": d } )
+
+	def hostGroupList(self, profile_id):
+		return list(self._db_hostgroups.find( {'profile_id' : profile_id} ))
+			
+	def hostGroupGet(self, hostgroup_id):
+		return self._db_hostgroups.find_one( {'hostgroup_id' : hostgroup_id} )
+
+	def hostGroupDelete(self, hostgroup_id):
+		return self._db_hostgroups.remove( {'hostgroup_id' : hostgroup_id} )	
+		
 
 	def queryParse(self, myQuery):
 

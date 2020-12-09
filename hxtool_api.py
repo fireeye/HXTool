@@ -665,6 +665,35 @@ def hxtool_api_taskprofile_new(hx_api_object):
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
+###############
+# Host Groups #
+###############
+@ht_api.route('/api/v{0}/hostgroups'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_hostgroup_add(hx_api_object):
+	hostgroup_data = request.json
+	hxtool_global.hxtool_db.hostGroupAdd(session['profile_id'], hostgroup_data['name'], session['ht_user'], hostgroup_data['agent_ids'])
+	(r, rcode) = create_api_response(ret=True)
+	logger.info(format_activity_log(msg="host group action", action="new", name=hostgroup_data['name'], user=session['ht_user'], controller=session['hx_ip']))
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/hostgroups/<uuid:hostgroup_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'DELETE'])
+@valid_session_required
+def hxtool_api_hostgroup_id(hx_api_object, hostgroup_id):
+	if request.method == 'GET':
+		hostgroup = hxtool_global.hxtool_db.hostGroupGet(hostgroup_id)
+		if hostgroup:
+			(r, rcode) = create_api_response(ret=True, response_code=200, response_data=hostgroup)
+		else:
+			(r, rcode) = create_api_response(ret=False, response_code=404)
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+	elif request.method == 'DELETE':
+		hxtool_global.hxtool_db.hostGroupRemove(hostgroup_id)
+		(r, rcode) = create_api_response(ret=True)
+		logger.info(format_activity_log(msg="host group action", action="remove", hostgroup_id=hostgroup_id, user=session['ht_user'], controller=session['hx_ip']))
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
 ####################
 # Bulk Acquisition #
 ####################
@@ -754,8 +783,7 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 		task_profile = request.args.get('taskprocessor', None)
 		should_download = True
 
-	submit_bulk_job(hx_api_object,  
-					bulk_acquisition_script, 
+	submit_bulk_job(bulk_acquisition_script, 
 					hostset_id = int(request.args.get('bulkhostset')),
 					start_time = start_time, 
 					schedule = schedule, 
@@ -789,8 +817,7 @@ def hxtool_api_acquisition_bulk_new_file(hx_api_object):
 		task_profile = request.form.get('taskprocessor', None)
 		should_download = True
 
-	submit_bulk_job(hx_api_object,  
-					HXAPI.compat_str(bulk_acquisition_script), 
+	submit_bulk_job(HXAPI.compat_str(bulk_acquisition_script), 
 					hostset_id = int(request.form['bulkhostset']),
 					start_time = start_time, 
 					schedule = schedule, 
@@ -1264,7 +1291,7 @@ def hxtool_api_stacking_new(hx_api_object):
 			script_xml = f.read()
 			f.close()
 		hostset_id = int(request.form['stackhostset'])
-		bulk_download_eid = submit_bulk_job(hx_api_object, script_xml, hostset_id = hostset_id, task_profile = "stacking", comment = "HXTool Stacking Job: {}".format(stack_type['name']))
+		bulk_download_eid = submit_bulk_job(script_xml, hostset_id = hostset_id, task_profile = "stacking", comment = "HXTool Stacking Job: {}".format(stack_type['name']))
 		ret = hxtool_global.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
 		app.logger.info(format_activity_log(msg="stacking", action="new", hostsetid=hostset_id, type=request.form['stack_type'], user=session['ht_user'], controller=session['hx_ip']))
 		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
@@ -1343,7 +1370,7 @@ def hxtool_api_acquisition_multi_file_listing(hx_api_object):
 	except re.error:
 		return(app.response_class(response=json.dumps("FAIL"), status=404, mimetype='application/json'))
 	if script_xml:
-		bulk_download_eid = submit_bulk_job(hx_api_object, HXAPI.compat_str(script_xml), hostset_id = hostset, task_profile = "file_listing")
+		bulk_download_eid = submit_bulk_job(HXAPI.compat_str(script_xml), hostset_id = hostset, task_profile = "file_listing")
 		ret = hxtool_global.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, depth, display_name, api_mode=use_api_mode)
 		app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="new", hostset_id=hostset, user=session['ht_user'], controller=session['hx_ip']))
 		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
@@ -2475,38 +2502,37 @@ def datatable_es_result(hx_api_object):
 @ht_api.route('/api/v{0}/chartjs_agentstatus'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def chartjs_agentstatus(hx_api_object):
-
-	(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
-
-	myField = request.args.get('field')
-	myData = {}
-
-	for host in response_data['data']['entries']:
-		if "." in myField:
-			item1, item2 = myField.split(".")
-			if host[item1][item2] not in myData.keys():
-				myData[host[item1][item2]] = 0
-			myData[host[item1][item2]] += 1
-		else:
-			if host[myField] not in myData.keys():
-				myData[host[myField]] = 0
-			myData[host[myField]] += 1
-
-	del response_data
-
-	myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
-	random.shuffle(myPattern)
-
 	rData = {}
-	rData['labels'] = list(myData.keys())
-	rData['datasets'] = []
-	rData['datasets'].append({
-		"label": myField,
-		"backgroundColor": myPattern,
-		"borderColor": "#0d1a2b",
-		"borderWidth": 5,
-		"data": list(myData.values())
-		})
+	(ret, response_code, response_data) = hx_api_object.restListHosts()
+	if ret:
+		myField = request.args.get('field')
+		myData = {}
+
+		for host in response_data['data']['entries']:
+			if "." in myField:
+				item1, item2 = myField.split(".")
+				if host[item1][item2] not in myData.keys():
+					myData[host[item1][item2]] = 0
+				myData[host[item1][item2]] += 1
+			else:
+				if host[myField] not in myData.keys():
+					myData[host[myField]] = 0
+				myData[host[myField]] += 1
+
+		del response_data
+
+		myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
+		random.shuffle(myPattern)
+
+		rData['labels'] = list(myData.keys())
+		rData['datasets'] = []
+		rData['datasets'].append({
+			"label": myField,
+			"backgroundColor": myPattern,
+			"borderColor": "#0d1a2b",
+			"borderWidth": 5,
+			"data": list(myData.values())
+			})
 
 	return(app.response_class(response=json.dumps(rData), status=200, mimetype='application/json'))
 
@@ -3005,7 +3031,7 @@ def profile():
 		else:
 			return make_response_by_code(400)
 			
-@ht_api.route('/api/v{0}/profile/<profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
+@ht_api.route('/api/v{0}/profile/<uuid:profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
 def profile_by_id(profile_id):
 	if request.method == 'GET':
 		profile_object = hxtool_global.hxtool_db.profileGet(profile_id)

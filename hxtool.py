@@ -46,7 +46,6 @@ from hxtool_config import *
 from hxtool_data_models import *
 from hxtool_session import *
 from hxtool_scheduler import *
-from hxtool_task_modules import *
 from hxtool_apicache import *
 
 # Import HXTool API Flask blueprint
@@ -487,15 +486,7 @@ def init_db():
 								write_cache_size = 0)
 
 
-def app_init(debug = False):
-	hxtool_global.initialize()
-	
-	# Log early init/failures to stdout
-	console_log = logging.StreamHandler(sys.stdout)
-	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
-	logger.addHandler(console_log)
-	#app.logger.addHandler(console_log)
-	
+def app_init(debug = False):	
 	# If we're debugging use a static key
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
@@ -504,8 +495,6 @@ def app_init(debug = False):
 	else:
 		app.secret_key = crypt_generate_random(32)
 		logger.setLevel(logging.INFO)
-	
-	hxtool_global.hxtool_config = hxtool_config(combine_app_path(hxtool_vars.data_path, 'conf.json'))
 	
 	# Initialize configured log handlers
 	for log_handler in hxtool_global.hxtool_config.log_handlers():
@@ -573,6 +562,7 @@ if __name__ == "__main__":
 	parser.add_argument('-debug', dest = 'debug', action='store_true', required = False, default = False, help = "Enable debug mode logging. Note: Very verbose.")
 	parser.add_argument('--clear-sessions', dest = 'clear_sessions', action='store_true', required = False, default = False, help = "Clear stale sessions from the database. Note that this should be done by a scheduler task.")
 	parser.add_argument('--clear-saved-tasks', dest = 'clear_saved_tasks', action='store_true', required = False, default = False, help = "Clear saved tasks from the database.")
+	parser.add_argument('--rotate-task-key', dest = 'rotate_task_key', action='store_true', required = False, default = False, help = "Rotate the background credential encryption key.")
 	parser.add_argument('-v', '--version', action='version', version='HXTool version {}'.format(hxtool_vars.__version__))
 	
 	try:
@@ -580,6 +570,16 @@ if __name__ == "__main__":
 	except:
 		parser.exit(1)
 	
+	
+	hxtool_global.initialize()
+	
+	# Log early init/failures to stdout
+	console_log = logging.StreamHandler(sys.stdout)
+	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
+	logger.addHandler(console_log)
+	
+	hxtool_global.hxtool_config = hxtool_config(combine_app_path(hxtool_vars.data_path, 'conf.json'))
+
 	if args.clear_sessions:
 		print("Clearing sessions from the database and exiting.")
 		hxtool_db = init_db()
@@ -604,7 +604,13 @@ if __name__ == "__main__":
 			hxtool_db.close()
 			hxtool_db = None
 		exit(0)
-	
+	elif args.rotate_task_key:
+		print("Rotating background credential encryption key.")
+		hxtool_db = init_db()
+		s = hxtool_scheduler(1)
+		s.rotate_task_key(hxtool_db)
+		exit(0)
+		
 	app_init(debug = args.debug)
 	
 	# WSGI request log - when not running under gunicorn or mod_wsgi

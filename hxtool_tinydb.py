@@ -686,7 +686,40 @@ class hxtool_tinydb(hxtool_db):
 				 'data' : data
 				 }, (tinydb.Query()['profile_id'] == profile_id) & (tinydb.Query()['type'] == cacheType) & (tinydb.Query()['contentId'] == contentId))
 			return r
-				
+	
+	def hostGroupAdd(self, profile_id, name, actor, agent_ids = []):
+		with self._lock:
+			return self._db.table('hostgroups').insert({'profile_id' : profile_id,
+														'hostgroup_id' : str(secure_uuid4()), 
+														'name': str(name), 
+														'actor' : str(actor),
+														'agent_ids' : agent_ids, 
+														'create_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow()), 
+														'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})
+
+	def hostGroupUpdate(self, hostgroup_id, name=None, agent_ids=None):
+		d = {}
+		if name:
+			d['name'] = name
+		if agent_ids:
+			d['agent_ids'] = agent_ids
+			
+		with self._lock:
+			return self._db.table('hostgroups').update(d, (tinydb.Query()['hostgroup_id'] == hostgroup_id))
+
+	def hostGroupList(self, profile_id):
+		with self._lock:
+			return self._db.table('hostgroups').search((tinydb.Query()['profile_id'] == profile_id))
+			
+	def hostGroupGet(self, hostgroup_id):
+		with self._lock:
+			return self._db.table('hostgroups').get((tinydb.Query()['hostgroup_id'] == hostgroup_id))
+
+	def hostGroupDelete(self, hostgroup_id):
+		with self._lock:
+			return self._db.table('hostgroups').remove((tinydb.Query()['hostgroup_id'] == hostgroup_id))
+			
+	
 	def _db_update_nested_dict(self, dict_name, dict_key, dict_values, update_timestamp = True):
 		def transform(element):
 			if not dict_key in element[dict_name]:
