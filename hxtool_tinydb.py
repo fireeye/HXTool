@@ -335,7 +335,7 @@ class hxtool_tinydb(hxtool_db):
 	def multiFileAddJob(self, multi_file_id, job):
 		try:
 			with self._lock:
-				return self._db.table('multi_file').update(self._db_append_to_list('files', job), eids=[int(multi_file_id)])
+				return self._db.table('multi_file').update(self._db_append_to_list('files', job), doc_ids=[int(multi_file_id)])
 		except:
 			return None
 
@@ -348,12 +348,9 @@ class hxtool_tinydb(hxtool_db):
 			return self._db.table('multi_file').get(doc_id = int(multi_file_id))
 
 	def multiFileUpdateFile(self, profile_id, multi_file_id, acquisition_id):
-		try:
-			with self._lock:
-				doc_ids = self._db.table('multi_file').update(self._db_update_dict_in_list('files', 'acquisition_id', acquisition_id, 'downloaded', True), eids=[int(multi_file_id)])
-				return eids
-		except:
-			return None
+		with self._lock:
+			doc_ids = self._db.table('multi_file').update(self._db_update_dict_in_list('files', 'acquisition_id', acquisition_id, 'downloaded', True), doc_ids=[int(multi_file_id)])
+			return doc_ids
 																			
 	def multiFileStop(self, multi_file_id):
 		with self._lock:
