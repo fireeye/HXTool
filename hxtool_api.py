@@ -6,8 +6,6 @@ import random
 import csv
 from io import BytesIO
 from io import StringIO
-from xml.sax.saxutils import escape as xmlescape
-from string import Template
 from collections import deque
 import zipfile
 
@@ -1344,38 +1342,66 @@ def hxtool_api_stacking_stop(hx_api_object):
 def hxtool_api_acquisition_multi_file_listing(hx_api_object):
 
 	# Get Acquisition Options from Form
-	display_name = xmlescape(request.form['listing_name'])
-	regex = xmlescape(request.form['listing_regex'])
-	path = xmlescape(request.form['listing_path'])
-	hostset = int(xmlescape(request.form['hostset']))
+	display_name = request.form['listing_name']
+	path = request.form['listing_path']
+	regex = request.form['listing_regex']
+	md5_hashes = request.form['listing_md5s']
+	hostset = int(request.form['hostset'])
 	use_api_mode = ('use_raw_mode' not in request.form)
-	depth = '-1'
+	
 	# Build a script from the template
-	script_xml = None
-	try:
-		if regex:
+	with open(combine_app_path('scripts/files_listing_template.json'), 'r') as f:
+		script_json = json.load(f)
+		f.close()
+	
+	script_json['commands'][0]['parameters'].append({
+		'name' : 'Path', 
+		'value' : path
+	})
+	
+	regex = request.form['listing_regex']
+	if regex:
+		try:
 			re.compile(regex)
-		else:
-			app.logger.warn("Regex is empty!!")
-			regex = ''
-		if use_api_mode:
-			template_path = 'scripts/api_file_listing_script_template.xml'
-		else:
-			template_path = 'scripts/file_listing_script_template.xml'
-		with open(combine_app_path(template_path), 'r') as f:
-			t = Template(f.read())
-			script_xml = t.substitute(regex=regex, path=path, depth=depth)
-		if not display_name:
-			display_name = 'hostset: {0} path: {1} regex: {2}'.format(hostset, path, regex)
-	except re.error:
-		return(app.response_class(response=json.dumps("FAIL"), status=404, mimetype='application/json'))
-	if script_xml:
-		bulk_download_eid = submit_bulk_job(HXAPI.compat_str(script_xml), hostset_id = hostset, task_profile = "file_listing")
-		ret = hxtool_global.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, depth, display_name, api_mode=use_api_mode)
-		app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="new", hostset_id=hostset, user=session['ht_user'], controller=session['hx_ip']))
-		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
-	else:
-		return(app.response_class(response=json.dumps("FAIL"), status=404, mimetype='application/json'))
+			script_json['commands'][0]['parameters'].append({
+				'name' : 'Regex', 
+				'value' : regex
+			})	
+		except re.error:
+			return(app.response_class(response=json.dumps("Invalid regular expression."), status=400, mimetype='application/json'))
+	
+	if not use_api_mode:
+		script_json['commands'][0]['name'] = "files-raw"
+		script_json['commands'][0]['parameters'].append({
+			'name' : 'Active Files',
+			'value' : true
+		}, {
+			'name' : 'Deleted Files',
+			'value' : true
+		}, {
+			'name' : 'Parse NTFS INDX Buffers',
+			'value' : true
+		})
+	
+	if md5_hashes:
+		md5_hashes = md5_hashes.splitlines()
+
+		for md5 in md5_hashes:
+			if not re.match("^[A-F0-9]{32}$", md5, re.I):
+				return(app.response_class(response=json.dumps("{} is an invalid MD5 hash.".format(md5)), status=400, mimetype='application/json'))
+		
+		script_json['commands'][0]['parameters'].append({
+			'name' : 'Filter MD5', 
+			'value' : md5_hashes
+		})
+	
+	if not display_name:
+		display_name = 'hostset: {0} path: {1} regex: {2}'.format(hostset, path, regex)
+	
+	bulk_download_eid = submit_bulk_job(json.dumps(script_json), hostset_id = hostset, task_profile = "file_listing")
+	ret = hxtool_global.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, -1, display_name, api_mode=use_api_mode)
+	app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="new", hostset_id=hostset, user=session['ht_user'], controller=session['hx_ip']))
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
 @ht_api.route('/api/v{0}/acquisition/multi/file_listing/stop'.format(HXTOOL_API_VERSION), methods=['GET'])
