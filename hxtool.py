@@ -21,9 +21,6 @@ import os
 import datetime
 import time
 import signal
-import xml.etree.ElementTree as ET
-from string import Template
-from xml.sax.saxutils import escape as xmlescape
 import re
 from io import BytesIO
 import argparse
