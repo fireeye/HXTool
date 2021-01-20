@@ -1390,6 +1390,9 @@ def hxtool_api_acquisition_multi_file_listing_stop(hx_api_object):
 			hxtool_global.hxtool_db.bulkDownloadUpdate(file_listing_job['bulk_download_eid'], stopped = True)
 			app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+		else:
+			return(app.response_class(response=json.dumps(response_data), status=response_code, mimetype='application/json'))
+	return(app.response_class(response=json.dumps("File listing job not found."), status=404, mimetype='application/json'))
 
 
 @ht_api.route('/api/v{0}/acquisition/multi/file_listing/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
