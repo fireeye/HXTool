@@ -16,8 +16,13 @@ from hx_lib import HXAPI
 from hxtool_util import *
 import hxtool_task_modules
 
-
 logger = hxtool_logging.getLogger(__name__)
+
+try:
+	import keyring
+except ImportError:
+	logger.error("The HXTool scheduler requires the keyring module in order to securely store credentials needed to interact with the controller. Please install it.")
+	exit(1)
 
 TASK_API_KEY = 'Z\\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
 
@@ -115,87 +120,46 @@ class hxtool_scheduler:
 		logger.debug("Waiting for running threads to terminate.")
 		self.task_threads.join()
 		logger.debug("stop() exit.")
-	
-	
-	def _write_task_api_key(self, key):
-		with open(self.task_api_key_file, 'wb') as f:
-			f.write(key)
-			f.close()
-			
-	def _read_task_api_key(self):
-		try:
-			with open(self.task_api_key_file, 'rb') as f:
-				k = f.read()
-				f.close()
-			return k
-		except FileNotFoundError:
-			return None
-	
-	def _encrypt_task_credential(self, key, password):
-		iv = crypt_generate_random(16)
-		salt = crypt_generate_random(32)
-		key = crypt_pbkdf2_hmacsha256(salt, key)
-		encrypted_password = crypt_aes(key, iv, password)
-		return iv, salt, encrypted_password
-	
-	def rotate_task_key(self, hxtool_db, use_legacy_key=False):
-		if use_legacy_key:
-			k = TASK_API_KEY
-		else:
-			k = self._read_task_api_key()
-		
-		new_key = crypt_generate_random(32)	
-		
-		# Loop through background credentials and start the API sessions
-		profiles = hxtool_db.profileList()
-		for profile in profiles:
-			task_api_credential = hxtool_db.backgroundProcessorCredentialGet(profile['profile_id'])
-			if task_api_credential:
-				salt = HXAPI.b64(task_api_credential['salt'], True)
-				iv = HXAPI.b64(task_api_credential['iv'], True)
-				key = crypt_pbkdf2_hmacsha256(salt, k)
-				decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
-				hxtool_db.backgroundProcessorCredentialRemove(profile['profile_id'])
-				iv, salt, encrypted_password = self._encrypt_task_credential(new_key, decrypted_background_password)
-				hxtool_db.backgroundProcessorCredentialCreate(profile['profile_id'], task_api_credential['hx_api_username'], HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
-				decrypted_background_password = None
-		self._write_task_api_key(new_key)
 
 	def initialize_task_api_sessions(self):
-		k = self._read_task_api_key()
-		if not k:
-			logger.info("No background credential encryption key exists, generating a new one.")
-			self.rotate_task_key(hxtool_global.hxtool_db, use_legacy_key=True)
-			k = self._read_task_api_key()
-			
 		# Loop through background credentials and start the API sessions
 		profiles = hxtool_global.hxtool_db.profileList()
 		for profile in profiles:
 			task_api_credential = hxtool_global.hxtool_db.backgroundProcessorCredentialGet(profile['profile_id'])
 			if task_api_credential:
-				try:
-					salt = HXAPI.b64(task_api_credential['salt'], True)
-					iv = HXAPI.b64(task_api_credential['iv'], True)
-					key = crypt_pbkdf2_hmacsha256(salt, k)
-					decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
+				decrypted_background_password = keyring.get_password("hxtool_{}".format(profile['profile_id']), task_api_credential['hx_api_username'])
+				# TODO: eventually remove this code once most people are using keyring
+				if not decrypted_background_password:
+					logger.info("Background credential for {} is not using keyring, moving it.".format(profile['profile_id']))
+					try:
+						salt = HXAPI.b64(task_api_credential['salt'], True)
+						iv = HXAPI.b64(task_api_credential['iv'], True)
+						key = crypt_pbkdf2_hmacsha256(salt, TASK_API_KEY)
+						decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
+						keyring.set_password("hxtool_{}".format(profile['profile_id']), task_api_credential['hx_api_username'], decrypted_background_password)
+						hxtool_db.backgroundProcessorCredentialRemove(profile['profile_id'])
+						hxtool_db.backgroundProcessorCredentialCreate(profile['profile_id'], task_api_credential['hx_api_username'])
+					except (UnicodeDecodeError, ValueError):
+						logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+				
+				if decrypted_background_password:
 					self._add_task_api_task(profile['profile_id'], profile['hx_host'], profile['hx_port'], task_api_credential['hx_api_username'], decrypted_background_password) 
 					decrypted_background_password = None
-				except UnicodeDecodeError:
-					logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 			else:
 				logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 	
 	def add_task_api_session(self, profile_id, hx_host, hx_port, username, password):
-		iv = crypt_generate_random(16)
-		salt = crypt_generate_random(32)
-		k = self._read_task_api_key()
-		iv, salt, encrypted_password = self._encrypt_task_credential(k, password)
-		hxtool_global.hxtool_db.backgroundProcessorCredentialCreate(profile_id, username, HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
-		encrypted_password = None
+		keyring.set_password("hxtool_{}".format(profile_id), username, password)
+		hxtool_global.hxtool_db.backgroundProcessorCredentialCreate(profile_id, username)
 		self._add_task_api_task(profile_id, hx_host, hx_port, username, password)
 		password = None
 	
 	def remove_task_api_session(self, profile_id):
+		task_api_credential = hxtool_global.hxtool_db.backgroundProcessorCredentialGet(profile_id)
+		try:
+			keyring.delete_password("hxtool_{}".format(profile_id), task_api_credential['hx_api_username'])
+		except keyring.errors.PasswordDeleteError as e:
+			logger.error("Failed to remove keyring credential for {}, error {}".format(profile_id, e))			
 		out = hxtool_global.hxtool_db.backgroundProcessorCredentialRemove(profile_id)
 		hx_api_object = self.task_hx_api_sessions.get(profile_id)
 		if hx_api_object and hx_api_object.restIsSessionValid():

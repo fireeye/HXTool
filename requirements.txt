@@ -3,3 +3,4 @@ requests
 pycryptodome
 tinydb>=3.15.2
 pandas
+keyring

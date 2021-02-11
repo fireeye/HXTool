@@ -22,6 +22,7 @@ try:
 	from Crypto.Cipher import AES
 	from Crypto.Protocol.KDF import PBKDF2
 	from Crypto.Hash import HMAC, SHA256
+	from Crypto.Util.Padding import pad, unpad
 except ImportError:
 	print("hxtool requires the 'pycryptodome' module, please install it.")
 	exit(1)
@@ -90,19 +91,12 @@ def crypt_aes(key, iv, data, decrypt = False, base64_coding = True):
 	if decrypt:
 		if base64_coding:
 			data = HXAPI.b64(data, True)
-		data = cipher.decrypt(data).decode('utf-8')
-		# Implement PKCS7 de-padding
-		pad_length = ord(data[-1:])
-		if 1 <= pad_length <= 15:
-			if all(c == chr(pad_length) for c in data[-pad_length:]):
-				data = data[:len(data) - pad_length:]
+		data = cipher.decrypt(data)
+		data = unpad(data, 16).decode('utf-8')
 		return data
 	else:
-		# Implement PKCS7 padding
-		pad_length = 16 - (len(data) % 16)
-		if pad_length < 16:
-			data += (chr(pad_length) * pad_length)
-		data = data.encode('utf-8')			
+		data = data.encode('utf-8')	
+		data = pad(data, 16)
 		data = cipher.encrypt(data)
 		if base64_coding:
 			data = HXAPI.b64(data)

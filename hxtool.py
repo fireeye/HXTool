@@ -559,7 +559,6 @@ if __name__ == "__main__":
 	parser.add_argument('-debug', dest = 'debug', action='store_true', required = False, default = False, help = "Enable debug mode logging. Note: Very verbose.")
 	parser.add_argument('--clear-sessions', dest = 'clear_sessions', action='store_true', required = False, default = False, help = "Clear stale sessions from the database. Note that this should be done by a scheduler task.")
 	parser.add_argument('--clear-saved-tasks', dest = 'clear_saved_tasks', action='store_true', required = False, default = False, help = "Clear saved tasks from the database.")
-	parser.add_argument('--rotate-task-key', dest = 'rotate_task_key', action='store_true', required = False, default = False, help = "Rotate the background credential encryption key.")
 	parser.add_argument('-v', '--version', action='version', version='HXTool version {}'.format(hxtool_vars.__version__))
 	
 	try:
@@ -600,12 +599,6 @@ if __name__ == "__main__":
 				hxtool_db.taskDelete(t['profile_id'], t['task_id'])
 			hxtool_db.close()
 			hxtool_db = None
-		exit(0)
-	elif args.rotate_task_key:
-		print("Rotating background credential encryption key.")
-		hxtool_db = init_db()
-		s = hxtool_scheduler(1)
-		s.rotate_task_key(hxtool_db)
 		exit(0)
 		
 	app_init(debug = args.debug)

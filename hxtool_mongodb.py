@@ -113,8 +113,8 @@ class hxtool_mongodb(hxtool_db):
 		self.backgroundProcessorCredentialRemove(profile_id)	
 		return self._db_profile.remove( { "profile_id": profile_id } )
 
-	def backgroundProcessorCredentialCreate(self, profile_id, hx_api_username, iv, salt, hx_api_encrypted_password):
-		return self._db_background_processor_credential.insert_one({'profile_id' : profile_id, 'hx_api_username' : hx_api_username, 'iv' : iv, 'salt': salt, 'hx_api_encrypted_password' : hx_api_encrypted_password})
+	def backgroundProcessorCredentialCreate(self, profile_id, hx_api_username):
+		return self._db_background_processor_credential.insert_one({'profile_id' : profile_id, 'hx_api_username' : hx_api_username})
 		
 	def backgroundProcessorCredentialRemove(self, profile_id):
 		return self._db_background_processor_credential.remove( { "profile_id": profile_id } )

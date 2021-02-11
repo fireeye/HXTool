@@ -151,11 +151,11 @@ class hxtool_tinydb(hxtool_db):
 		with self._lock:
 			return self._db.table('profile').remove((tinydb.Query()['profile_id'] == profile_id))
 		
-	def backgroundProcessorCredentialCreate(self, profile_id, hx_api_username, iv, salt, hx_api_encrypted_password):
+	def backgroundProcessorCredentialCreate(self, profile_id, hx_api_username):
 		r = None
 		with self._lock:
 			try:
-				r = self._db.table('background_processor_credential').insert({'profile_id' : profile_id, 'hx_api_username' : hx_api_username, 'iv' : iv, 'salt': salt, 'hx_api_encrypted_password' : hx_api_encrypted_password})
+				r = self._db.table('background_processor_credential').insert({'profile_id' : profile_id, 'hx_api_username' : hx_api_username})
 			except:
 				self._db.table('background_processor_credential').remove(doc_ids = [r])
 				raise
