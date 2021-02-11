@@ -85,7 +85,21 @@ class bulk_acquisition_task_module(task_module):
 				script, has_macros = set_time_macros(script)
 				if not has_macros and self.parent_task.last_run and self.parent_task.stored_result.get('bulk_acquisition_id', 0) > 1:
 					(ret, response_code, response_data) = hx_api_object.restRefreshBulkAcq(self.parent_task.stored_result['bulk_acquisition_id'])
-				else:	
+				else:
+					# If there's an old job, delete it if it complete
+					if self.parent_task.last_run and self.parent_task.stored_result.get('bulk_acquisition_id', 0) > 1:
+						self.logger.info("Previous bulk acquisition job {} found for this scheduled task. Checking completion status to determine if it can be deleted.".format(self.parent_task.stored_result['bulk_acquisition_id']))
+						(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(self.parent_task.stored_result['bulk_acquisition_id'])
+						if ret:
+							total_incomplete_hosts = sum(response_data['data']['stats']['running_state'][_] for _ in response_data['data']['stats']['running_state'] if _ != "COMPLETE")
+							if total_incomplete_hosts == 0:
+								(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', self.parent_task.stored_result['bulk_acquisition_id'])
+								if ret:
+									self.logger.info("Previous bulk acquisition job {} is complete, and has been removed.".format(self.parent_task.stored_result['bulk_acquisition_id']))
+								else:
+									self.logger.error("Failed to remove previous bulk acquisition job {}, error {}".format(self.parent_task.stored_result['bulk_acquisition_id'], response_data))
+							else:
+								self.logger.info("Previous bulk acquisition job {} is not complete, will not remove it.".format(self.parent_task.stored_result['bulk_acquisition_id']))
 					(ret, response_code, response_data) = hx_api_object.restNewBulkAcq(script, hostset_id = hostset_id, comment = comment, skip_base64 = False)
 				if ret and '_id' in response_data['data']:
 					result['bulk_acquisition_id'] = response_data['data']['_id']
