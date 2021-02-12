@@ -488,6 +488,8 @@ def app_init(debug = False):
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
 		logger.setLevel(logging.DEBUG)
+		app.jinja_env.auto_reload = True
+		app.config['TEMPLATES_AUTO_RELOAD'] = True
 		logger.debug("Running in debug mode.")
 	else:
 		app.secret_key = crypt_generate_random(32)
