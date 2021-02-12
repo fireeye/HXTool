@@ -26,9 +26,10 @@
 		if (["md5sum", "sha1sum", "sha256sum", "fileWriteEvent/md5", "processEvent/md5"].indexOf(myIndex) >= 0 && myValue.length > 31) {
 			r += "<i style='color: #11a962; margin-right: 6px;' class='fas fa-hashtag'></i>" + myValue;
 			r += "<div style='float: right;'>";
-			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://www.virustotal.com/#/file/" + myValue + "/detection' aria-label='show'><span>vt<i class='fe-icon--right fas fa-external-link'></i></span></button>";
-			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://intelligence.fireeye.com/search.html?search=" + myValue +"' aria-label='show'><span>isight<i class='fe-icon--right fas fa-external-link'></i></span></button>";
-			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://www.google.com/search?q=" + myValue + "' aria-label='show'><span>google<i class='fe-icon--right fas fa-external-link'></i></span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' title='VirusTotal' data-link='https://www.virustotal.com/#/file/" + myValue + "/detection' aria-label='show'><span>vt<i class='fe-icon--right fas fa-external-link'></i></span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' title='Mandiant Advantage' data-link='https://advantage.mandiant.com/search?q=" + myValue +"' aria-label='show'><span>ma<i class='fe-icon--right fas fa-external-link'></i></span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' title='FireEye Threat Intelligence' data-link='https://intelligence.fireeye.com/search.html?search=" + myValue +"' aria-label='show'><span>fti<i class='fe-icon--right fas fa-external-link'></i></span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' title='Google' data-link='https://www.google.com/search?q=" + myValue + "' aria-label='show'><span>google<i class='fe-icon--right fas fa-external-link'></i></span></button>";
 			r += "</div>";
 		}
 		else if (["container", "packed", "hidden", "system-file", "read-only", "temporary"].indexOf(myIndex) >= 0) {
