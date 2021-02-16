@@ -26,9 +26,10 @@
 		if (["md5sum", "sha1sum", "sha256sum", "fileWriteEvent/md5", "processEvent/md5"].indexOf(myIndex) >= 0 && myValue.length > 31) {
 			r += "<i style='color: #11a962; margin-right: 6px;' class='fas fa-hashtag'></i>" + myValue;
 			r += "<div style='float: right;'>";
-			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://www.virustotal.com/#/file/" + myValue + "/detection' aria-label='show'><span>vt<i class='fe-icon--right fas fa-external-link'></i></span></button>";
-			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://intelligence.fireeye.com/search.html?search=" + myValue +"' aria-label='show'><span>isight<i class='fe-icon--right fas fa-external-link'></i></span></button>";
-			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-link='https://www.google.com/search?q=" + myValue + "' aria-label='show'><span>google<i class='fe-icon--right fas fa-external-link'></i></span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' title='VirusTotal' data-link='https://www.virustotal.com/#/file/" + myValue + "/detection' aria-label='show'><span>vt<i class='fe-icon--right fas fa-external-link'></i></span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' title='Mandiant Advantage' data-link='https://advantage.mandiant.com/search?q=" + myValue +"' aria-label='show'><span>ma<i class='fe-icon--right fas fa-external-link'></i></span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' title='FireEye Threat Intelligence' data-link='https://intelligence.fireeye.com/search.html?search=" + myValue +"' aria-label='show'><span>fti<i class='fe-icon--right fas fa-external-link'></i></span></button>";
+			r += "<button class='hxtool_host_alert_goLink fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' title='Google' data-link='https://www.google.com/search?q=" + myValue + "' aria-label='show'><span>google<i class='fe-icon--right fas fa-external-link'></i></span></button>";
 			r += "</div>";
 		}
 		else if (["container", "packed", "hidden", "system-file", "read-only", "temporary"].indexOf(myIndex) >= 0) {
@@ -235,6 +236,42 @@
 			return(r);
 
 		}
+		else if (alertTypesGeneric.indexOf(myAlert['source']) >= 0) {
+			r += "<h5 class='hxtool_alert_header'>" + alertTypes[myAlert['source']]['label'] + " Alert</h5>";
+
+			r += generateTable({
+				"Threat name": myAlert['event_values'][0]['name'],
+				"Threat type": myAlert['event_values'][0]['alert_type'],
+				"Threat description": myAlert['event_values'][0]['description'],
+				"Attributes": generateNestedTable(myAlert['event_values'][0]['attributes']),
+				"Parameters": generateNestedTable(myAlert['event_values'][0]['parameters']),
+				"Event at": myAlert['event_at'],
+				"Matched at": myAlert['matched_at'],
+				"Reported at": myAlert['reported_at']
+			});
+
+			my_alert_contexts = myAlert['event_values'][0]['alert_context'];
+
+			my_processed_contexts = {}
+			myAlert['event_values'].forEach(function (myobj, myindex) {
+				my_processed_contexts[myobj['id']] = myobj;
+			});
+
+			myAlert['event_values'].forEach(function (item, index) {
+				if (my_alert_contexts.indexOf(item['id']) >= 0) {
+					if (item['id'].beginsWith('event--')) {
+						// Loop objects within event
+						item['objects'].forEach(function (myobj, myindex) {
+							r += "<h5 class='hxtool_alert_header'>" + my_processed_contexts[myobj]['type'] + "</h5>";
+							r += generateNestedTable(my_processed_contexts[myobj]);
+						});
+					}
+				}
+			});
+
+
+			return(r);
+		}
 		else {
 			return("Unsupported Alert");
 		}
@@ -274,6 +311,15 @@
 	$(document).ready(function() {
 
 		var myAgentId = getUrlParameter("host");
+		alertTypes = JSON.parse({{alerttypes|tojson|safe}});
+		alertTypesGeneric = Object.keys(alertTypes);
+		alertTypesGeneric.splice(alertTypesGeneric.indexOf("IOC"), 1);
+		alertTypesGeneric.splice(alertTypesGeneric.indexOf("EXD"), 1);
+		alertTypesGeneric.splice(alertTypesGeneric.indexOf("MAL"), 1);
+
+		String.prototype.beginsWith = function (string) {
+			return(this.indexOf(string) === 0);
+		};
 
 		// Alerts table
 		$.fn.dataTable.ext.errMode = 'none';
@@ -287,7 +333,6 @@
 			"columns": [
 				{ title: "Event at", "data": "event_at" },
 				{ title: "Threat", "data": "threat" },
-				{ title: "Source", "data": "source" },
 				{ title: "Resolution", "data": "resolution" }
 			],
 			"initComplete": function(settings, json) {
@@ -298,12 +343,6 @@
 			"columnDefs": [	
 				{
 				 "targets": 2,
-				 render: function ( data, type, row, meta ) {
-				 	return (host_parseSource(data));
-				 }
-				},
-				{
-				 "targets": 3,
 				 render: function ( data, type, row, meta ) {
 				 	return (host_parseResolution(data));
 				 }

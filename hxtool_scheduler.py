@@ -16,8 +16,13 @@ from hx_lib import HXAPI
 from hxtool_util import *
 import hxtool_task_modules
 
-
 logger = hxtool_logging.getLogger(__name__)
+
+try:
+	import keyring
+except ImportError:
+	logger.error("The HXTool scheduler requires the keyring module in order to securely store credentials needed to interact with the controller. Please install it.")
+	exit(1)
 
 TASK_API_KEY = 'Z\\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
 
@@ -55,6 +60,7 @@ class hxtool_scheduler:
 		self.thread_count = thread_count or (cpu_count() + 1)
 		self.task_threads = ThreadPool(self.thread_count)
 		logger.info("Task scheduler initialized.")
+		self.task_api_key_file = combine_app_path("data", ".taskkey")
 
 
 	def _scan_task_queue(self):
@@ -114,36 +120,46 @@ class hxtool_scheduler:
 		logger.debug("Waiting for running threads to terminate.")
 		self.task_threads.join()
 		logger.debug("stop() exit.")
-	
+
 	def initialize_task_api_sessions(self):
 		# Loop through background credentials and start the API sessions
 		profiles = hxtool_global.hxtool_db.profileList()
 		for profile in profiles:
 			task_api_credential = hxtool_global.hxtool_db.backgroundProcessorCredentialGet(profile['profile_id'])
 			if task_api_credential:
-				try:
-					salt = HXAPI.b64(task_api_credential['salt'], True)
-					iv = HXAPI.b64(task_api_credential['iv'], True)
-					key = crypt_pbkdf2_hmacsha256(salt, TASK_API_KEY)
-					decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
+				decrypted_background_password = keyring.get_password("hxtool_{}".format(profile['profile_id']), task_api_credential['hx_api_username'])
+				# TODO: eventually remove this code once most people are using keyring
+				if not decrypted_background_password:
+					logger.info("Background credential for {} is not using keyring, moving it.".format(profile['profile_id']))
+					try:
+						salt = HXAPI.b64(task_api_credential['salt'], True)
+						iv = HXAPI.b64(task_api_credential['iv'], True)
+						key = crypt_pbkdf2_hmacsha256(salt, TASK_API_KEY)
+						decrypted_background_password = crypt_aes(key, iv, task_api_credential['hx_api_encrypted_password'], decrypt = True)
+						keyring.set_password("hxtool_{}".format(profile['profile_id']), task_api_credential['hx_api_username'], decrypted_background_password)
+						hxtool_db.backgroundProcessorCredentialRemove(profile['profile_id'])
+						hxtool_db.backgroundProcessorCredentialCreate(profile['profile_id'], task_api_credential['hx_api_username'])
+					except (UnicodeDecodeError, ValueError):
+						logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
+				
+				if decrypted_background_password:
 					self._add_task_api_task(profile['profile_id'], profile['hx_host'], profile['hx_port'], task_api_credential['hx_api_username'], decrypted_background_password) 
 					decrypted_background_password = None
-				except UnicodeDecodeError:
-					logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 			else:
 				logger.info("No background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 	
 	def add_task_api_session(self, profile_id, hx_host, hx_port, username, password):
-		iv = crypt_generate_random(16)
-		salt = crypt_generate_random(32)
-		key = crypt_pbkdf2_hmacsha256(salt, TASK_API_KEY)
-		encrypted_password = crypt_aes(key, iv, password)
-		hxtool_global.hxtool_db.backgroundProcessorCredentialCreate(profile_id, username, HXAPI.b64(iv), HXAPI.b64(salt), encrypted_password)
-		encrypted_password = None
+		keyring.set_password("hxtool_{}".format(profile_id), username, password)
+		hxtool_global.hxtool_db.backgroundProcessorCredentialCreate(profile_id, username)
 		self._add_task_api_task(profile_id, hx_host, hx_port, username, password)
 		password = None
 	
 	def remove_task_api_session(self, profile_id):
+		task_api_credential = hxtool_global.hxtool_db.backgroundProcessorCredentialGet(profile_id)
+		try:
+			keyring.delete_password("hxtool_{}".format(profile_id), task_api_credential['hx_api_username'])
+		except keyring.errors.PasswordDeleteError as e:
+			logger.error("Failed to remove keyring credential for {}, error {}".format(profile_id, e))			
 		out = hxtool_global.hxtool_db.backgroundProcessorCredentialRemove(profile_id)
 		hx_api_object = self.task_hx_api_sessions.get(profile_id)
 		if hx_api_object and hx_api_object.restIsSessionValid():
@@ -484,10 +500,10 @@ class hxtool_scheduler_task:
 			'task_id' : self.task_id,
 			'name' : self.name,
 			'schedule' : self.schedule,
-			'start_time' : str(self.start_time),
-			'end_time' : str(self.end_time) if self.end_time else None,
-			'last_run' : str(self.last_run) if self.last_run else None,
-			'next_run' : str(self.next_run) if self.next_run else None,
+			'start_time' : HXAPI.dt_to_str(self.start_time),
+			'end_time' : HXAPI.dt_to_str(self.end_time) if self.end_time else None,
+			'last_run' : HXAPI.dt_to_str(self.last_run) if self.last_run else None,
+			'next_run' : HXAPI.dt_to_str(self.next_run) if self.next_run else None,
 			'enabled' : self.enabled,
 			'immutable' : self.immutable,
 			'stop_on_fail' : self.stop_on_fail,
@@ -524,12 +540,12 @@ class hxtool_scheduler_task:
 									immutable = d['immutable'],
 									stop_on_fail = d['stop_on_fail'],
 									defer_interval = d['defer_interval'])
-		task.last_run = d.get('last_run', None)
+		task.last_run = HXAPI.dt_from_str(d['last_run']) if d['last_run'] else None
 		task.parent_complete = d.get('parent_complete', False)
 		task.last_run_state = d.get('last_run_state', None)							
 		task.state = d.get('state')
 		schedule = d.get('schedule', None)
-		if schedule:
+		if schedule is dict:
 			task.set_schedule(**schedule)
 			task._calculate_next_run()
 		for s in d['steps']:

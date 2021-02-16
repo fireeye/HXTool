@@ -206,7 +206,6 @@
 				{ "title": "Threat", "data": "threat" },
 				{ "title": "Containment", "data": "containment_state" },
 				{ "title": "Event at", "data": "event_at" },
-				{ "title": "Age", "data": "age" },
 				{ "title": "Source", "data": "source" },
 				{ "title": "Resolution", "data": "resolution" },
 				{ "title": "State", "data": "annotation_max_state" },
@@ -215,10 +214,10 @@
 			],
 			"createdRow": function( row, data, index ) {
 				if (data.annotation_max_state == 1) {
-					$('td', row).eq(9).css( 'color', '#ffe352' );
+					$('td', row).eq(8).css( 'color', '#ffe352' );
 				}
 				else if (data.annotation_max_state == 2) {
-					$('td', row).eq(9).css( 'color', '#11a962' );
+					$('td', row).eq(8).css( 'color', '#11a962' );
 				}
 			},
 			"columnDefs": [	
@@ -261,21 +260,21 @@
 				 "width": "140px"
 				},
 				{
-				 "targets": 7,
+				 "targets": 6,
 				 "width": "160px",
 				 render: function ( data, type, row, meta ) {
 					return(datatables_parseSource(data));
 				 }
 				},
 				{
-				 "targets": 8,
+				 "targets": 7,
 				 "width": "160px",
 				 render: function ( data, type, row, meta ) {
 					return(datatables_parseResolution(data));
 				 }				 
 				},
 				{
-				 "targets": 9,
+				 "targets": 8,
 				 "width": "70px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
@@ -293,7 +292,7 @@
 				 }
 				},
 				{
-				 "targets": 10,
+				 "targets": 9,
 				 "width": "110px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
@@ -303,7 +302,7 @@
 				 }
 				},
 				{
-				 "targets": 11,
+				 "targets": 10,
 				 "width": "240px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display'){
@@ -313,7 +312,7 @@
 				 	return data;
 				 }
 				},
-				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11]}
+				{"className": "hxtool_table_cell_center", "targets": [0, 1, 2, 4, 5, 6, 7, 8, 9, 10]}
 			]
 		});
 		$('div.dataTables_filter input').addClass("fe-input");

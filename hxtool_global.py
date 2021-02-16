@@ -11,3 +11,4 @@ def initialize():
 	global hxtool_config
 	global hxtool_scheduler
 	global hxtool_x15_object
+	global hx_alert_types

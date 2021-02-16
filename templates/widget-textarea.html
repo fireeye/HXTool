@@ -1,0 +1,9 @@
+{% macro widget(elementPlaceholder, elementTitle="", elementHint="", elementId="", elementWidth="") -%}
+		{% if elementTitle != "" %}
+			<h4 class='hxtool_typography_h4'>{{elementTitle}}</h4>
+		{% endif %}
+		<textarea name="{{elementId}}" id="{{elementId}}" value="" {% if elementWidth != "" %}style="width: {{elementWidth}}px "{% endif %} class="fe-input" placeholder="{{elementPlaceholder}}"></textarea>
+		{% if elementHint != "" %}
+			<span class="fe-input-hint-text">{{elementHint}}</span>
+		{% endif %}
+{% endmacro %}

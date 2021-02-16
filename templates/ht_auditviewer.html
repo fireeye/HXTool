@@ -1,0 +1,275 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Audit Viewer{% endblock %}
+{% block navlocation %}Audit Viewer{% endblock %}
+{% block content %}
+
+<script>
+
+	function auditQuery(query) {
+
+		$('#result_icon').removeClass("fa-building");
+		$('#result_icon').addClass("fa-spinner");
+		$('#result_icon').addClass("fa-spin");
+
+		$.getJSON('/api/v1/auditviewer/query?q=' + query, function(myResponse) {
+
+			$('#result_icon').removeClass("fa-spin");
+			$('#result_icon').removeClass("fa-spinner");
+			$('#result_icon').addClass("fa-building");
+
+			//console.log(myResponse);
+			$('#result_stat').html("&nbsp;(" + myResponse['data'].length + " records returned)");
+
+			if (myResponse['data'].length != 0) {
+
+				if (typeof auditTable === 'undefined' || auditTable === null) {}
+				else {
+					auditTable.destroy();
+					$('#auditResultTable').empty();
+				}
+
+				$.fn.dataTable.ext.errMode = 'none';
+				auditTable = $('#auditResultTable').DataTable( {
+					"data": myResponse['data'],
+					"columns": myResponse['columns'],
+					"destroy": true,
+					"paging":   false,
+					"ordering": false,
+					"info":     false,
+					"scrollX": true,
+					"searching": true,
+					"lengthChange": false,
+					"processing": false,
+					"dom": '<"hxtool_datatables_buttons"B>frtip',
+					"buttons": [
+						{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+						{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+						{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
+					],
+					"colReorder": true,
+					"columnDefs": [	
+						{
+						 targets: "_all",
+						 render: function ( data, type, row, meta ) {
+						 	if(type === 'display') {
+						 		
+						 		if (isObject(data)) {
+						 			return hxtoolGenerateNestedTable(data);
+						 		}
+						 		else {
+						 		
+							 		if (typeof data === 'undefined' || data === null) {}
+							 		else {
+							 			//var title = $('#auditResultTable').DataTable().columns( meta.col ).header();
+							 			//var columnName = $(title).html();
+							 			data = "<span class='auditFilter' data-type='" + typeof data + "' data-id='" + meta.col + "'>" + data + "</span>";
+							 		}
+
+							 		return data;
+						 		}
+						 	}
+						 }
+						}
+					],
+				});
+				$('div.dataTables_filter input').addClass("fe-input");
+			}
+			else {
+
+				if (typeof auditTable === 'undefined' || auditTable === null) {}
+				else {
+					auditTable.destroy();
+					$('#auditResultTable').empty();
+				}
+
+				console.log("Query returned " + myResponse['data'].length + " results")
+			}
+		
+		})
+	}
+
+	$(document).ready(function() {
+
+		// Move the popup to body so overflow works correctly
+		$("#auditFilter_popup").detach().appendTo(document.body);
+
+		myRequestedId = getUrlParameter("id");
+		if (typeof myRequestedId === 'undefined' || myRequestedId === null) {}
+		else {
+			$("#myQuery").val("bulk_acquisition_id=(" + myRequestedId + ")");
+			auditQuery($("#myQuery").val());
+		}
+
+		// Close popup menu on any click
+		$(document.body).click(function(){
+			$("#auditFilter_popup").hide();
+		});
+
+		// Submit on click
+		$("#submitQuery").click(function(){
+			auditQuery($("#myQuery").val());
+		});
+
+		$("#resetQuery").click(function(){
+			$("#myQuery").val("");
+		});
+
+		// Submit on enter key pressed
+		$("#myQuery").keypress(function (e) {
+			if ((event.keyCode == 10 || event.keyCode == 13) && event.ctrlKey) {
+				auditQuery($("#myQuery").val());
+			}
+		});
+
+		$("#auditResultTable").on("click", ".auditFilter", function(e){
+			var myCol = $(this).data("id");
+			var myDataType = $(this).data("type");
+			var myData = $(this).html();
+			var title = $('#auditResultTable').DataTable().columns( myCol ).header(); 
+			var columnName = $(title).html();
+
+			$("#auditFilter_popup").hide();
+
+			$("#auditFilter_popup").data("id", columnName);
+			$("#auditFilter_popup").data("content", myData);
+			$("#auditFilter_popup").data("datatype", myDataType);
+
+			$("#auditFilter_popup").css({position:"absolute", left:e.pageX,top:e.pageY});
+			$("#auditFilter_popup").show(50);
+			e.stopPropagation();
+		});
+
+		$("#auditFilter_popup").on("click", ".auditFilter_button", function(e){
+			var myColumn = $("#auditFilter_popup").data("id").replace("/", ".");
+			var myType = $(this).data("type");
+			var myDataType = $("#auditFilter_popup").data("datatype");
+			var myData = $("#auditFilter_popup").data("content");
+			var currQuery = $("#myQuery").val();
+
+			// This section can be greatly improved so the statement gets inserted in the correct position of the query
+			if (myType == "like") {
+				if (currQuery.includes("| groupby")) {
+					if (myDataType == "string") {
+						$("#myQuery").val(currQuery.replace("| groupby", myColumn + ":'" + myData + "' | groupby"));
+					}
+					else if (myDataType == "number") {
+						$("#myQuery").val(currQuery.replace("| groupby", myColumn + ":(" + myData + ") | groupby"));
+					}
+				}
+				else {
+					if (myDataType == "string") {
+						$("#myQuery").val(currQuery + " " + myColumn + ":'" + myData + "'");
+					}
+					else if (myDataType == "number") {
+						$("#myQuery").val(currQuery + " " + myColumn + ":(" + myData + ")");
+					}
+				}
+			}
+			else if (myType == "eq") {
+				if (currQuery.includes("| groupby")) {
+					if (myDataType == "string") {
+						$("#myQuery").val(currQuery.replace("| groupby", myColumn + "='" + myData + "' | groupby"));
+					}
+					else if (myDataType == "number") {
+						$("#myQuery").val(currQuery.replace("| groupby", myColumn + "=(" + myData + ") | groupby"));
+					}
+				}
+				else {
+					if (myDataType == "string") {
+						$("#myQuery").val(currQuery + " " + myColumn + "='" + myData + "'");
+					}
+					else if (myDataType == "number") {
+						$("#myQuery").val(currQuery + " " + myColumn + "=(" + myData + ")");
+					}
+				}
+			}
+			else if (myType == "gte") {
+				if (currQuery.includes("| groupby")) {
+					if (myDataType == "string") {
+						$("#myQuery").val(currQuery.replace("| groupby", myColumn + ">'" + myData + "' | groupby"));
+					}
+					else if (myDataType == "number") {
+						$("#myQuery").val(currQuery.replace("| groupby", myColumn + ">(" + myData + ") | groupby"));
+					}
+				}
+				else {
+					if (myDataType == "string") {
+						$("#myQuery").val(currQuery + " " + myColumn + ">'" + myData + "'");
+					}
+					else if (myDataType == "number") {
+						$("#myQuery").val(currQuery + " " + myColumn + ">(" + myData + ")");
+					}
+				}
+			}
+			else if (myType == "lte") {
+				if (currQuery.includes("| groupby")) {
+					if (myDataType == "string") {
+						$("#myQuery").val(currQuery.replace("| groupby", myColumn + "<'" + myData + "' | groupby"));
+					}
+					else if (myDataType == "number") {
+						$("#myQuery").val(currQuery.replace("| groupby", myColumn + "<(" + myData + ") | groupby"));
+					}
+				}
+				else {
+					if (myDataType == "string") {
+						$("#myQuery").val(currQuery + " " + myColumn + "<'" + myData + "'");
+					}
+					else if (myDataType == "number") {
+						$("#myQuery").val(currQuery + " " + myColumn + "<(" + myData + ")");
+					}
+				}
+			}
+			else if (myType == "group") {
+				if (currQuery.includes("| groupby")) {
+					$("#myQuery").val(currQuery.replace("| groupby ", "| groupby " + myColumn + ","));
+				}
+				else {
+					$("#myQuery").val(currQuery + " | groupby " + myColumn);
+				}
+			}
+			else if (myType == "sort") {
+				$("#myQuery").val(currQuery + " | sort " + myColumn);
+			}
+
+			$("#auditFilter_popup").hide(50);
+			e.stopPropagation();
+
+		});
+
+	});
+
+</script>
+
+<div id='auditFilter_popup' class='auditFilterContainer'>
+	<button class='auditFilterDropdownChild auditFilter_button' data-type='like'>contains</button>
+	<button class='auditFilterDropdownChild auditFilter_button' data-type='eq'>equal</button>
+	<button class='auditFilterDropdownChild auditFilter_button' data-type='gte'>greater than</button>
+	<button class='auditFilterDropdownChild auditFilter_button' data-type='lte'>less than</button>
+	<button class='auditFilterDropdownChild auditFilter_button' data-type='group'>group by</button>
+	<button class='auditFilterDropdownChild auditFilter_button' data-type='sort'>sort</button>
+</div>
+
+{{ htPanel.widgetHeader("Query", panelIcon="fa-building") }}
+
+	<div style='float: right; margin-top: 0;'>
+	<button id="submitQuery" style='width: 125px;' class="fe-btn fe-btn--md fe-btn--primary fe-btn--hxtool-main-master"> Run Query <i style='color: #11a962;' class="fe-icon--right fas fa-arrow-left"></i></button><br>
+	
+	<button id="resetQuery" style='margin-top: 10px; width: 125px;' class="fe-btn fe-btn--md fe-btn--primary fe-btn--hxtool-main-remove"> reset <i class="fe-icon--right fas fa-trash"></i></button><br>
+	</div>
+	<textarea type="text" name="myQuery" id="myQuery" value="" style="resize: vertical; font-size: 14px; font-weight: bold; font-family: 'Courier New', Courier, monospace; height: 100px; width: 1384px " class="fe-input" placeholder="Start hunting for evil..."></textarea>
+	<div style='font-size: 11px; opacity: 0.5;'>
+		CTRL+RETURN to search, click on data fields to bring up filtering options
+	</div>
+
+{{ htPanel.widgetFooter() }}
+
+	<div class='fe-panel' style='margin-top: 12px;'>
+		<div class="fe-panel-header fe-panel-header--no-background">
+			<div class="fe-label fe-label--background"><i id='result_icon' class='fe-icon--left fas fa-building'></i>Search Result <span id='result_stat'></span></div>
+		</div>
+		<div class='fe-panel__body'>
+
+			<table id='auditResultTable' class='hxtool_table' style='width: 100%;'><tr><td>Enter a query to begin searching for data</td></tr></table>
+{{ htPanel.widgetFooter() }}
+
+{% endblock %}

@@ -60,7 +60,7 @@ class AuditPackage:
 				sysinfo_result = self.get_audit(payload_name = sysinfo_audit['payload'])
 				if sysinfo_audit['type'] == 'application/xml':
 					self.hostname = ET.fromstring(sysinfo_result, parser = ET.XMLParser(encoding = 'utf-8')).find('.//hostname').text
-				elif sysinfo_audit['type'] == 'application/json':
+				elif sysinfo_audit['type'] == 'application/json' and json.loads(sysinfo_result).get('SystemInfoItem', None) is not None:
 					self.hostname = json.loads(sysinfo_result)['SystemInfoItem'][0]['hostname']
 					
 	def __enter__(self):
@@ -188,6 +188,14 @@ class AuditPackage:
 								result_dict.clear()
 			return
 	
+	def cast_type(self, t):
+		if t:
+			if t.isnumeric():
+				return int(t)
+			elif t.lower() == 'true' or t.lower() == 'false':
+				return bool(t)
+		return t
+	
 	def xml_to_dict(self, element):
 		d = OrderedDict()
 
@@ -206,4 +214,4 @@ class AuditPackage:
 
 			return {element.tag : d}
 		else:
-			return {element.tag : element.text}
+			return {element.tag : self.cast_type(element.text)}
