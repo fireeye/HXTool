@@ -46,8 +46,6 @@ class bulk_download_monitor_task_module(task_module):
 		return []
 		
 	def run(self, bulk_download_eid = None, task_profile = None):
-		from hxtool_scheduler import hxtool_scheduler_task
-		
 		ret = False
 		result = {}
 		try:
@@ -77,7 +75,7 @@ class bulk_download_monitor_task_module(task_module):
 									# if we've gotten to this point - and the task won't get a callback.
 									hxtool_global.hxtool_db.bulkDownloadUpdateHost(bulk_download_eid, bulk_host['host']['_id'], hostname = bulk_host['host']['hostname'], downloaded = False)
 									
-									download_and_process_task = hxtool_scheduler_task(
+									download_and_process_task = self.parent_task.__class__(
 																	self.parent_task.profile_id, 
 																	'Bulk Acquisition Download: {}'.format(bulk_host['host']['_id']), 
 																	parent_id = self.parent_task.parent_id,
