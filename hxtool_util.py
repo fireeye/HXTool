@@ -192,55 +192,6 @@ class TemporaryFileLock(object):
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.release()	
 	
-
-def submit_bulk_job(script_content, hostset_id = None, hxtool_hostgroup_id = None, start_time = None, schedule = None, comment = "HXTool Bulk Acquisition", download = True, task_profile = None, skip_base64 = False):
-	# TODO: Fix circular imports with hxtool_scheduler and scheduler task modules
-	import hxtool_global
-	from hxtool_scheduler import hxtool_scheduler_task
-	from hxtool_task_modules import bulk_download_monitor_task_module, bulk_acquisition_task_module
-	
-	bulk_download_eid = None
-	
-	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending', start_time = start_time)
-	if schedule:
-		bulk_acquisition_task.set_schedule(**schedule)
-	
-	if download:
-		bulk_download_eid = hxtool_global.hxtool_db.bulkDownloadCreate(session['ht_profileid'], hostset_id = hostset_id, task_profile = task_profile)
-		bulk_acquisition_monitor_task = hxtool_scheduler_task(
-											session['ht_profileid'], 
-											'Bulk Acquisition Monitor Task', 
-											parent_id = bulk_acquisition_task.task_id,
-											start_time = bulk_acquisition_task.start_time
-										)
-	
-		bulk_acquisition_monitor_task.add_step(
-			bulk_download_monitor_task_module,
-			kwargs = {
-						'bulk_download_eid' : bulk_download_eid,
-						'task_profile' : task_profile
-			}
-		)
-		
-		hxtool_global.hxtool_scheduler.add(bulk_acquisition_monitor_task)
-		
-		
-	bulk_acquisition_task.add_step(
-		bulk_acquisition_task_module, 
-		kwargs = {
-					'script' : script_content,
-					'hostset_id' : hostset_id,
-					'comment' : comment,
-					'skip_base64' : skip_base64,
-					'download' : download,
-					'bulk_download_eid' : bulk_download_eid
-		}
-	)
-		
-	hxtool_global.hxtool_scheduler.add(bulk_acquisition_task)
-	
-	return bulk_download_eid
-	
 def parse_schedule(request_params):
 	start_time = None
 	schedule = None
