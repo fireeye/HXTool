@@ -1,0 +1,35 @@
+{
+    "commands": [{
+            "name": "files-api",
+            "parameters": [{
+                    "name": "Prevent Hibernation",
+                    "value": true
+                }, {
+                    "name": "Depth",
+                    "value": -1
+                }, {
+                    "name": "MD5",
+                    "value": true
+                }, {
+                    "name": "SHA1",
+                    "value": false
+                }, {
+                    "name": "SHA256",
+                    "value": false
+                },{
+                    "name": "Strings",
+                    "value": false
+                }, {
+                    "name": "AND Operator",
+                    "value": false
+                }, {
+                    "name": "Include Files",
+                    "value": true
+                }, {
+                    "name": "Include Directories",
+                    "value": true
+                }
+            ]
+        }
+    ]
+}

@@ -17,5 +17,6 @@ from .streaming_task_module import *
 from .file_write_task_module import *
 from .helix_task_module import *
 from .x15_postgres_task_module import *
+from .mongodb_ingest_task_module import *
 
 # Customer modules here

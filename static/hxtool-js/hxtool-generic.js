@@ -83,6 +83,22 @@ function hxtoolGenerateNestedTable(myData) {
 	return(r);
 }
 
+function hxtoolGenerateNestedObjectView(myData) {
+	var r = "";
+	console.log(myData);
+	$.each( myData, function( index, value ) {
+		r += "<div>";
+		r += index + ": ";
+		if (isObject(value)) {
+			hxtoolGenerateNestedObjectView(value);
+		}
+		else {
+			r += value;
+		}
+		r += "</div>";
+	});
+}
+
 function isObject(obj) {
 	return obj === Object(obj);
 }

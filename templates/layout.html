@@ -4,6 +4,7 @@
 {% import 'widget-radio.html' as htRadio %}
 {% import 'widget-dropdown.html' as htDropdown %}
 {% import 'widget-input.html' as htInput %}
+{% import 'widget-textarea.html' as htTextArea %}
 {% import 'widget-schedule.html' as htSchedule %}
 
 
@@ -98,6 +99,11 @@
 	</script>
 	</body>
 
+
+<div class="hxtool5_container container">
+  <div class="row">
+    <div class="col-12">
+
 	<!-- TOP NAV BAR -->
 	<header class="fe-top-nav fe-top-nav__topnav">
 		<div class="fe-top-nav__title fe-top-nav__bookend--left fe-top-nav__bookend">
@@ -146,6 +152,8 @@
 					<div class='hxtool_topnav_dropdown'>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scriptbuilder'>script builder</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scripts'>manage scripts</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/auditexplorer'>audit explorer</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/auditmanager'>manage audits</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/acqs'>acquisitions</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/bulkacq'>bulk acquisitions</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/multifile'>multi-file acquisitions</button><br>
@@ -198,6 +206,12 @@
 		</div>
 	</header>
 
+
+    </div>
+  </div>
+  <div class="row">
+    <div class="hxtool5_content col-12">
+
 	<!-- Message popup -->
 	<div id="hxtoolMessage" style='z-index: 100;' class="fe-modal" role="dialog" aria-modal="true">
 		<div class="fe-modal__dialog fe-modal__dialog--medium">
@@ -221,6 +235,15 @@
 		</div>
 	</div>
 
+
+
+
 	<!-- Main placeholder -->
-	<div class='mainPlaceHolder'>{% block content %}{% endblock %}</div>
+	{% block content %}{% endblock %}
+
+
+    </div>
+  </div>
+
+
 </html>

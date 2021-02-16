@@ -21,11 +21,9 @@ import os
 import datetime
 import time
 import signal
-import xml.etree.ElementTree as ET
-from string import Template
-from xml.sax.saxutils import escape as xmlescape
 import re
 from io import BytesIO
+import argparse
 
 # Flask imports
 try:
@@ -41,19 +39,16 @@ import hxtool_vars
 from hx_lib import *
 from hxtool_util import *
 from hxtool_formatting import *
-from hxtool_db import *
 from hxtool_config import *
 from hxtool_data_models import *
 from hxtool_session import *
 from hxtool_scheduler import *
-from hxtool_task_modules import *
 from hxtool_apicache import *
 
 # Import HXTool API Flask blueprint
 from hxtool_api import ht_api
 
 default_encoding = hxtool_vars.default_encoding
-debug_mode = False
 
 # Setup logging
 hxtool_logging.setLoggerClass()
@@ -116,7 +111,11 @@ def host_view(hx_api_object):
 	mytaskprofiles = hxtool_global.hxtool_db.taskProfileList()
 	taskprofiles = formatTaskprofilesFabric(mytaskprofiles)
 
-	return render_template('ht_host_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), scripts=scripts, taskprofiles=taskprofiles)
+	with open(combine_app_path("static", "alert_types.json"), 'r') as f:
+		alerttypes = f.read()
+		f.close()
+
+	return render_template('ht_host_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), scripts=scripts, taskprofiles=taskprofiles, alerttypes=alerttypes)
 
 ### Alerts page
 @app.route('/alert', methods=['GET'])
@@ -134,9 +133,9 @@ def scheduler_view(hx_api_object):
 @app.route('/scriptbuilder', methods=['GET', 'POST'])
 @valid_session_required
 def scriptbuilder_view(hx_api_object):
-	myauditspacefile = open(combine_app_path('static/acquisitions.json'), 'r')
-	auditspace = myauditspacefile.read()
-	myauditspacefile.close()
+	with open(combine_app_path("static", "acquisitions.json"), 'r') as f:
+		auditspace = f.read()
+		f.close()
 	return render_template('ht_scriptbuilder.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), auditspace=auditspace)
 
 ### Task profile page
@@ -144,6 +143,18 @@ def scriptbuilder_view(hx_api_object):
 @valid_session_required
 def taskprofile(hx_api_object):
 	return render_template('ht_taskprofile.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+### Audit Viewer page
+@app.route('/auditexplorer', methods=['GET'])
+@valid_session_required
+def auditexplorer(hx_api_object):
+	return render_template('ht_auditviewer.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+### Manage Audits page
+@app.route('/auditmanager', methods=['GET'])
+@valid_session_required
+def auditmanager(hx_api_object):
+	return render_template('ht_auditmanager.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
 ### Bulk acq page
 @app.route('/bulkacq', methods=['GET'])
@@ -412,6 +423,7 @@ def login():
 					session['hx_version'] = hx_api_object.hx_version
 					session['hx_int_version'] = int(''.join(str(i) for i in hx_api_object.hx_version))
 					session['hx_ip'] = hx_api_object.hx_host
+					session['ht_database_engine'] = hxtool_global.hxtool_db.database_engine
 					logger.info(format_activity_log(msg="user logged in", user=session['ht_user'], controller=session['hx_ip']))
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
@@ -448,42 +460,52 @@ def sigint_handler(signum, frame):
 	exit(0)	
 
 
-def app_init(debug = False):
-	hxtool_global.initialize()
-	
-	# Log early init/failures to stdout
-	console_log = logging.StreamHandler(sys.stdout)
-	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
-	logger.addHandler(console_log)
-	#app.logger.addHandler(console_log)
-	
+def init_db():
+	# Init DB
+	# Check if MongoDB is enabled as the database, otherwise, fallback to TinyDB
+	if hxtool_global.hxtool_config.get_child_item('db', 'type') == "mongodb":
+		from hxtool_mongodb import hxtool_mongodb
+		
+		return hxtool_mongodb(hxtool_global.hxtool_config.get_child_item('db', 'host', False),
+								hxtool_global.hxtool_config.get_child_item('db', 'port', 27017), 
+								hxtool_global.hxtool_config.get_child_item('db', 'user', False), 
+								hxtool_global.hxtool_config.get_child_item('db', 'password', False),
+								hxtool_global.hxtool_config.get_child_item('db', 'auth_source', "admin"),
+								hxtool_global.hxtool_config.get_child_item('db', 'auth_mechanism', "SCRAM-SHA-256"),
+								hxtool_global.hxtool_config.get_child_item('db', 'db_name', "hxtool"))
+	else:
+		from hxtool_tinydb import hxtool_tinydb
+		
+		# Disable the write cache altogether - too many issues reported with it enabled.
+		return hxtool_tinydb(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), 
+								apicache = hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False),
+								apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
+								write_cache_size = 0)
+
+
+def app_init(debug = False):	
 	# If we're debugging use a static key
 	if debug:
 		app.secret_key = 'B%PT>65`)x<3_CRC3S~D6CynM7^F~:j0'.encode(default_encoding)
 		logger.setLevel(logging.DEBUG)
+		app.jinja_env.auto_reload = True
+		app.config['TEMPLATES_AUTO_RELOAD'] = True
 		logger.debug("Running in debug mode.")
 	else:
 		app.secret_key = crypt_generate_random(32)
 		logger.setLevel(logging.INFO)
 	
-	hxtool_global.hxtool_config = hxtool_config(combine_app_path(hxtool_vars.data_path, 'conf.json'))
-	
 	# Initialize configured log handlers
 	for log_handler in hxtool_global.hxtool_config.log_handlers():
 		logger.addHandler(log_handler)
 
+	hxtool_global.hxtool_db = init_db()
 	
-	# Init DB
-	# Disable the write cache altogether - too many issues reported with it enabled.
-	hxtool_global.hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'), 
-										apicache = hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False),
-										apicache_refresh_interval = hxtool_global.hxtool_config.get_child_item('apicache', 'refresh_interval'),
-										write_cache_size = 0)
-
+	# TODO: Disabled for now
 	# Enable X15 integration if config options are present
-	if hxtool_global.hxtool_config['x15']:
-		from hxtool_x15_db import hxtool_x15
-		hxtool_global.hxtool_x15_object = hxtool_x15()
+	#if hxtool_global.hxtool_config['x15']:
+	#	from hxtool_x15_db import hxtool_x15
+	#	hxtool_global.hxtool_x15_object = hxtool_x15()
 	
 	# Initialize the scheduler
 	hxtool_global.hxtool_scheduler = hxtool_scheduler(hxtool_global.hxtool_config['scheduler']['thread_count'])
@@ -495,20 +517,23 @@ def app_init(debug = False):
 	# Load tasks from the database after the task API sessions have been initialized
 	hxtool_global.hxtool_scheduler.load_from_database()
 	
+	with open(combine_app_path("static", "alert_types.json")) as f:
+		hxtool_global.hx_alert_types = json.load(f)
+		f.close()
+	
+	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
 	app.session_interface = hxtool_session_interface(app, expiration_delta=hxtool_global.hxtool_config['network']['session_timeout'])
 
-	if hxtool_global.hxtool_config['apicache']:
-		if 'enabled' in hxtool_global.hxtool_config['apicache']:
-			if hxtool_global.hxtool_config['apicache']['enabled']:
-				for profile in hxtool_global.hxtool_db.profileList():
-					if profile['profile_id'] in hxtool_global.hxtool_scheduler.task_hx_api_sessions:
-						hxtool_global.apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['intervals'], hxtool_global.hxtool_config['apicache']['types'])
-					else:
-						logger.info("No background credential for {}, not starting apicache".format(profile['profile_id']))
-
-	set_svg_mimetype()
+	# Disable API cache for now
+	# TODO: Restricted to MongoDB only?
+	#if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+	#	for profile in hxtool_global.hxtool_db.profileList():
+	#		if profile['profile_id'] in hxtool_global.hxtool_scheduler.task_hx_api_sessions:
+	#			hxtool_global.apicache[profile['profile_id']] = hxtool_api_cache(hxtool_global.hxtool_scheduler.task_hx_api_sessions[profile['profile_id']], profile['profile_id'], hxtool_global.hxtool_config['apicache']['intervals'], hxtool_global.hxtool_config['apicache']['types'])
+	#		else:
+	#			logger.info("No background credential for {}, not starting apicache".format(profile['profile_id']))
 
 # Version specific upgrade code goes here
 def hxtool_upgrade():
@@ -530,39 +555,55 @@ def hxtool_upgrade():
 hxtool_upgrade()
 
 if __name__ == "__main__":
-	hxtool_global.initialize()
-	
 	signal.signal(signal.SIGINT, sigint_handler)
 	
-	if len(sys.argv) == 2:
-		if sys.argv[1].endswith('-debug'):
-			debug_mode = True
-		elif sys.argv[1] == '--clear-sessions':
-			print("Clearing sessions from the database and exiting.")
-			hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'))
-			for s in hxtool_db.sessionList():
-				hxtool_db.sessionDelete(s['session_id'])
+	parser = argparse.ArgumentParser(description = "HXTool version {}".format(hxtool_vars.__version__), usage = "%(prog)s -h for more information.")
+	parser.add_argument('-debug', dest = 'debug', action='store_true', required = False, default = False, help = "Enable debug mode logging. Note: Very verbose.")
+	parser.add_argument('--clear-sessions', dest = 'clear_sessions', action='store_true', required = False, default = False, help = "Clear stale sessions from the database. Note that this should be done by a scheduler task.")
+	parser.add_argument('--clear-saved-tasks', dest = 'clear_saved_tasks', action='store_true', required = False, default = False, help = "Clear saved tasks from the database.")
+	parser.add_argument('-v', '--version', action='version', version='HXTool version {}'.format(hxtool_vars.__version__))
+	
+	try:
+		args = parser.parse_args()
+	except:
+		parser.exit(1)
+	
+	
+	hxtool_global.initialize()
+	
+	# Log early init/failures to stdout
+	console_log = logging.StreamHandler(sys.stdout)
+	console_log.setFormatter(logging.Formatter('[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'))
+	logger.addHandler(console_log)
+	
+	hxtool_global.hxtool_config = hxtool_config(combine_app_path(hxtool_vars.data_path, 'conf.json'))
+
+	if args.clear_sessions:
+		print("Clearing sessions from the database and exiting.")
+		hxtool_db = init_db()
+		for s in hxtool_db.sessionList():
+			hxtool_db.sessionDelete(s['session_id'])
+		hxtool_db.close()
+		hxtool_db = None
+		exit(0)
+	elif args.clear_saved_tasks:
+		print("WARNING! WARNING! WARNING!")
+		print("This will clear ALL saved tasks in the database for ALL profiles!")
+		try:
+			f = raw_input
+		except NameError:
+			f = input
+		r = f("Do you want to proceed (Y/N)?")
+		if r.strip().lower() == 'y':
+			print("Clearing saved tasks from the database and exiting.")
+			hxtool_db = init_db()
+			for t in hxtool_db.taskList():
+				hxtool_db.taskDelete(t['profile_id'], t['task_id'])
 			hxtool_db.close()
 			hxtool_db = None
-			exit(0)
-		elif sys.argv[1] == '--clear-saved-tasks':
-			print("WARNING! WARNING! WARNING!")
-			print("This will clear ALL saved tasks in the database for ALL profiles!")
-			try:
-				f = raw_input
-			except NameError:
-				f = input
-			r = f("Do you want to proceed (Y/N)?")
-			if r.strip().lower() == 'y':
-				print("Clearing saved tasks from the database and exiting.")
-				hxtool_db = hxtool_db(combine_app_path(hxtool_vars.data_path, 'hxtool.db'))
-				for t in hxtool_db.taskList():
-					hxtool_db.taskDelete(t['profile_id'], t['task_id'])
-				hxtool_db.close()
-				hxtool_db = None
-			exit(0)
-	
-	app_init(debug_mode)
+		exit(0)
+		
+	app_init(debug = args.debug)
 	
 	# WSGI request log - when not running under gunicorn or mod_wsgi
 	wsgi_logger = logging.getLogger('werkzeug')

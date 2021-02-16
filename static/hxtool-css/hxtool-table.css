@@ -2,7 +2,7 @@
 
 .hxtool_table {
 	border-collapse: collapse;
-	font-weight: 600;
+	font-weight: 400;
 }
 
 .hxtool_table td, .hxtool_table tr, .hxtool_table th {
@@ -10,8 +10,10 @@
 }
 
 .hxtool_table thead td, .hxtool_table thead th {
-	padding: 4px;
-    font-size: 12px;
+	padding: 2px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+    font-size: 11px;
     border-right: 1px solid rgba(15, 184, 220, 0.4);;
     border-bottom: 1px solid rgba(15, 184, 220, 0.4);;
     vertical-align: bottom;
@@ -23,9 +25,11 @@
 
 
 .hxtool_table tbody td {
-	padding: 4px;
+	padding: 2px;
+	padding-top: 4px;
+	padding-bottom: 4px;
 	border-right: 1px solid rgba(15, 184, 220, 0.4);
-	font-size: 12px;
+	font-size: 11px;
 	vertical-align: middle;
 }
 
@@ -124,4 +128,37 @@
 .hxtool_table_dashboard td {
 	padding: 5px;
 	vertical-align: top;
+}
+
+.auditFilter:hover {
+	background: rgba(255, 255, 255, 0.2);
+	cursor: pointer;
+}
+
+.auditFilterContainer {
+	width: 200px;
+	margin-top: 4px;
+	z-index: 999;
+	padding: 10px;
+	position: absolute;
+	display: none;
+	background: #49515d;
+	border: 1px solid #31363d;
+	border-radius: 3px;
+}
+
+.auditFilterDropdownChild {
+	width: 100%;
+	display: block;
+	color: #0fb8dc;
+	text-align: left;
+	background: #49515d;
+	border: 0;
+	padding-bottom: 10px;
+	padding-top: 10px;
+}
+
+.auditFilterDropdownChild:hover {
+	background: rgba(0, 0, 0, 0.6);
+	color: #66ebff !important;
 }

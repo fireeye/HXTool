@@ -90,6 +90,11 @@
 						"x15_password": $("#" + myTaskGuid + "_x15_password").val()
 					});
 				}
+				else if (myTaskType == "mongodb") {
+					myTasks['params'].push({
+						"module": myTaskType
+					});
+				}
 			});
 
 			$.ajax
@@ -178,6 +183,11 @@
 				$("#x15_" + myguid).append("<b>X15 Password</b><br><input class='fe-input' style='width: 100%;' id='" + myguid + "_x15_password' type='password'><br>");
 				$("#x15_" + myguid).append("<br>");
 			}
+			if(mymodule == 6) {
+				$("#params").append("<div class='taskProfileItem' id='mongodb_" + myguid + "'></div>");
+				$("#mongodb_" + myguid).html("<div class='taskProfileModule'>Store in MongoDB<button class='fe-btn fe-btn--sm fe-btn--hxtool-main-remove taskProfileRemove'>remove</button></div>");
+				$("#mongodb_" + myguid).append("<br>");
+			}
 		});
 
 		var taskprofileTable = $('#taskprofileTable').DataTable( {
@@ -253,6 +263,8 @@
 		});
 		$('div.dataTables_filter input').addClass("fe-input");
 
+		$('.fe-modal__body').css("min-height", "300px");
+
 	});
 
 </script>
@@ -277,16 +289,8 @@
 		{{ htDropdown.widgetItem("IP Sender", "2") }}
 		{{ htDropdown.widgetItem("Helix", "4") }}
 		{{ htDropdown.widgetItem("X15", "5") }}
+		{{ htDropdown.widgetItem("MongoDB", "6") }}
 	{{ htDropdown.widgetFooter(elementLabel="Select module to add to profile") }}
-
-	<!--
-	<select name='module' id='module'>
-		<option value='0'>-- select a module --
-		<option value='1'>File writer
-		<option value='2'>IP sender
-		<option value='4'>Helix
-	</select>
--->
 
 	<div style='margin-top: 10px;' id='params'></div>
 

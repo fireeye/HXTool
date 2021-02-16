@@ -9,6 +9,7 @@ import datetime
 import re
 import colorsys
 import traceback
+import json
 
 try:
 	from flask import request, session, redirect, url_for
@@ -21,6 +22,7 @@ try:
 	from Crypto.Cipher import AES
 	from Crypto.Protocol.KDF import PBKDF2
 	from Crypto.Hash import HMAC, SHA256
+	from Crypto.Util.Padding import pad, unpad
 except ImportError:
 	print("hxtool requires the 'pycryptodome' module, please install it.")
 	exit(1)
@@ -89,19 +91,12 @@ def crypt_aes(key, iv, data, decrypt = False, base64_coding = True):
 	if decrypt:
 		if base64_coding:
 			data = HXAPI.b64(data, True)
-		data = cipher.decrypt(data).decode('utf-8')
-		# Implement PKCS7 de-padding
-		pad_length = ord(data[-1:])
-		if 1 <= pad_length <= 15:
-			if all(c == chr(pad_length) for c in data[-pad_length:]):
-				data = data[:len(data) - pad_length:]
+		data = cipher.decrypt(data)
+		data = unpad(data, 16).decode('utf-8')
 		return data
 	else:
-		# Implement PKCS7 padding
-		pad_length = 16 - (len(data) % 16)
-		if pad_length < 16:
-			data += (chr(pad_length) * pad_length)
-		data = data.encode('utf-8')			
+		data = data.encode('utf-8')	
+		data = pad(data, 16)
 		data = cipher.encrypt(data)
 		if base64_coding:
 			data = HXAPI.b64(data)
@@ -148,12 +143,6 @@ def format_activity_log(**kwargs):
 	for key, value in kwargs.items():
 		mystring += " " + key + "='" + HXAPI.compat_str(value) + "'"
 	return(mystring)
-	
-# Workaround https://bugs.python.org/issue19377 on older Python versions		
-def set_svg_mimetype():
-	import mimetypes
-	if not '.svg' in mimetypes.types_map:
-		mimetypes.add_type('image/svg+xml', '.svg')
 				
 def set_time_macros(s):
 	(s, n) = re.subn('--\#\{(now|\-(\d{1,5})(m|h))\}--', _time_replace, s, re.I) 
@@ -175,6 +164,7 @@ def _time_replace(m):
 
 def pretty_exceptions(e):
 	return "{} in {}".format(e, traceback.format_exc())
+
 	
 class TemporaryFileLock(object):
 	def __init__(self, file_path, file_name = 'lock_file'):
@@ -202,10 +192,13 @@ class TemporaryFileLock(object):
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.release()	
 	
-#from hxtool_scheduler import hxtool_scheduler_task
-from hxtool_task_modules import *
 
-def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hxtool_host_list_id = None, start_time = None, schedule = None, comment = "HXTool Bulk Acquisition", download = True, task_profile = None, skip_base64 = False):
+def submit_bulk_job(script_content, hostset_id = None, hxtool_hostgroup_id = None, start_time = None, schedule = None, comment = "HXTool Bulk Acquisition", download = True, task_profile = None, skip_base64 = False):
+	# TODO: Fix circular imports with hxtool_scheduler and scheduler task modules
+	import hxtool_global
+	from hxtool_scheduler import hxtool_scheduler_task
+	from hxtool_task_modules import bulk_download_monitor_task_module, bulk_acquisition_task_module
+	
 	bulk_download_eid = None
 	
 	bulk_acquisition_task = hxtool_scheduler_task(session['ht_profileid'], 'Bulk Acquisition ID: pending', start_time = start_time)
@@ -235,7 +228,7 @@ def submit_bulk_job(hx_api_object, script_xml, hostset_id = None, hosts = {}, hx
 	bulk_acquisition_task.add_step(
 		bulk_acquisition_task_module, 
 		kwargs = {
-					'script' : script_xml,
+					'script' : script_content,
 					'hostset_id' : hostset_id,
 					'comment' : comment,
 					'skip_base64' : skip_base64,
@@ -280,3 +273,12 @@ def parse_schedule(request_params):
 
 	return (start_time, schedule)
 	
+def js_path(json_string, path):
+	try:
+		for path_part in path.split("."):
+			if path_part.startswith("#"):
+				path_part = int(path_part[1:])
+			json_string = json_string[path_part]
+		return json_string
+	except:
+		return "Not found!"

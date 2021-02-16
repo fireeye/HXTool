@@ -29,15 +29,11 @@
 				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
 			],
 			"columns": [
-				{ "title": "id", "data": "DT_RowId" },
 				{ "title": "state", "data": "state" },
 				{ "title": "comment", "data": "comment" },
 				{ "title": "hostset", "data": "hostset" },
 				{ "title": "created", "data": "create_time" },
 				{ "title": "user", "data": "create_actor" },
-				{ "title": "size", "data": "total_size" },
-				{ "title": "", "data": "stat_runtime_avg" },
-				{ "title": "", "data": "task_size_avg" },
 				{ "title": "", "data": "running_state_new" },
 				{ "title": "", "data": "running_state_queued" },
 				{ "title": "", "data": "running_state_failed" },
@@ -50,18 +46,18 @@
 
 			],
 			"headerCallback": function( thead, data, start, end, display ) {
-				$(thead).find('th').eq(7).html('<div class="hxtool_table_cell_vertical">runtime avg</div>');
+				//$(thead).find('th').eq(7).html('<div class="hxtool_table_cell_vertical">runtime avg</div>');
 				//$(thead).find('th').eq(8).html('<div class="hxtool_table_cell_vertical">runtime min</div>');
 				//$(thead).find('th').eq(9).html('<div class="hxtool_table_cell_vertical">runtime max</div>');
-				$(thead).find('th').eq(8).html('<div class="hxtool_table_cell_vertical">tasksize avg</div>');
+				//$(thead).find('th').eq(8).html('<div class="hxtool_table_cell_vertical">tasksize avg</div>');
 				//$(thead).find('th').eq(11).html('<div class="hxtool_table_cell_vertical">tasksize min</div>');
 				//$(thead).find('th').eq(12).html('<div class="hxtool_table_cell_vertical">tasksize max</div>');
-				$(thead).find('th').eq(9).html('<div class="hxtool_table_cell_vertical">new</div>');
-				$(thead).find('th').eq(10).html('<div class="hxtool_table_cell_vertical">queued</div>');
-				$(thead).find('th').eq(11).html('<div class="hxtool_table_cell_vertical">failed</div>');
-				$(thead).find('th').eq(12).html('<div class="hxtool_table_cell_vertical">complete</div>');
-				$(thead).find('th').eq(13).html('<div class="hxtool_table_cell_vertical">aborted</div>');
-				$(thead).find('th').eq(14).html('<div class="hxtool_table_cell_vertical">cancelled</div>');
+				$(thead).find('th').eq(5).html('<div class="hxtool_table_cell_vertical">new</div>');
+				$(thead).find('th').eq(6).html('<div class="hxtool_table_cell_vertical">queued</div>');
+				$(thead).find('th').eq(7).html('<div class="hxtool_table_cell_vertical">failed</div>');
+				$(thead).find('th').eq(8).html('<div class="hxtool_table_cell_vertical">complete</div>');
+				$(thead).find('th').eq(9).html('<div class="hxtool_table_cell_vertical">aborted</div>');
+				$(thead).find('th').eq(10).html('<div class="hxtool_table_cell_vertical">cancelled</div>');
 			},
 			"initComplete": function(settings, json) {
 				$("div[id^='crate_']").each(function() {
@@ -73,42 +69,71 @@
 			},
 			"columnDefs": [	
 				{
-				 "targets": 1,
+				 "targets": 0,
 				 render: function ( data, type, row, meta ) {
 				 	return (datatables_parseAcquisitionState(data));
 				 }
-				},				
-				{
-				 "targets": [ 7, 8, 9, 10, 11, 12, 13, 14 ],
-				 "width": "60px"
 				},
 				{
-				 "targets": [ 3, 4 ],
-				 render: function ( data, type, row, meta ) {
-				 	return (datatables_Timestamp(data));
-				 }
-				},				
-				{
-				 "targets": [ 7 ],
+				 "targets": 1,
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
-				 		data = Math.round(data);
+				 		data = '<span class="bulkname" style="font-weight: bold; cursor: pointer;">' + data + '</span>';
+				 		data += '<div style="display: none; position: absolute; border: 1px solid rgba(15, 184, 220, 0.4); padding: 15px; background: #2c3138; border-radius: 3px;">';
+				 		data += '<h5>Additional information</h5>';
+				 		data += '<table class="hxtool_table">';
+				 		data += '<tbody>';
+				 		data += '<tr>';
+				 		data += '<td>ID</td>';
+				 		data += '<td>' + row.DT_RowId + '</td>';
+				 		data += '</tr>';
+				 		data += '<tr>';
+				 		data += '<td>Total size</td>';
+				 		data += '<td>' + roundToTwo(row.total_size / 1024 / 1024) + ' MB</td>';
+				 		data += '</tr>';
+				 		data += '<tr>';
+				 		data += '<td>Runtime avg</td>';
+				 		data += '<td>' + Math.round(row.stat_runtime_avg) + ' seconds</td>';
+				 		data += '</tr>';
+				 		data += '<tr>';
+				 		data += '<td>Runtime min</td>';
+				 		data += '<td>' + Math.round(row.stat_runtime_min) + ' seconds</td>';
+				 		data += '</tr>';
+				 		data += '<tr>';
+				 		data += '<td>Runtime max</td>';
+				 		data += '<td>' + Math.round(row.stat_runtime_max) + ' seconds</td>';
+				 		data += '</tr>';
+				 		data += '<tr>';
+				 		data += '<td>Tasksize avg</td>';
+				 		data += '<td>' + roundToTwo(row.task_size_avg / 1024 / 1024) + ' MB</td>';
+				 		data += '</tr>';
+				 		data += '<tr>';
+				 		data += '<td>Tasksize min</td>';
+				 		data += '<td>' + roundToTwo(row.task_size_min / 1024 / 1024) + ' MB</td>';
+				 		data += '</tr>';
+				 		data += '<tr>';
+				 		data += '<td>Tasksize max</td>';
+				 		data += '<td>' + roundToTwo(row.task_size_max / 1024 / 1024) + ' MB</td>';
+				 		data += '</tr>';
+				 		data += '</tbody>';
+				 		data += '</table>';
+				 		data += '</div>';
 				 	}
 				 	return data;
 				 }
 				},
 				{
-				 "targets": [ 6, 8 ],
-				 render: function ( data, type, row, meta ) {
-				 	if(type === 'display') {
-				 		mysize = (data / 1024 / 1024);
-				 		data = roundToTwo(mysize);
-					}
-				 	return data;
-				 }
+				 "targets": [ 5, 6, 7, 8, 9, 10 ],
+				 "width": "60px"
 				},
 				{
-				 "targets": 15,
+				 "targets": [ 3 ],
+				 render: function ( data, type, row, meta ) {
+				 	return (datatables_Timestamp(data));
+				 }
+				},				
+				{
+				 "targets": 11,
 				 "width": "180px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
@@ -118,7 +143,7 @@
 				 }
 				},
 				{
-				 "targets": 16,
+				 "targets": 12,
 				 "width": "180px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
@@ -133,7 +158,7 @@
 				 }
 				},
 				{
-				 "targets": 17,
+				 "targets": 13,
 				 "width": "280px",
 				 render: function ( data, type, row, meta ) {
 				 	if(type === 'display') {
@@ -159,7 +184,7 @@
 				 	return data;
 				 }
 				},
-				{"className": "hxtool_table_cell_center", "targets": [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]}
+				{"className": "hxtool_table_cell_center", "targets": [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
 			]
 		});
 		$('div.dataTables_filter input').addClass("fe-input");
@@ -192,6 +217,12 @@
 
 		$("#bulkCancel").click(function(){
 			$("#bulkNewPopup").hide();
+		});
+
+		$(document).on('mouseenter', '.bulkname', function() {
+			$(this).next().show();
+		}).on('mouseleave','.bulkname',  function(){
+			$(this).next().hide();
 		});
 
 		$("#bulktable").on("click", ".bulkAction", function(){

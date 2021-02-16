@@ -2519,7 +2519,6 @@ i.fe-icon--right {
   box-shadow: 0 0.5px 5px 0 rgba(0, 0, 0, 0.25);
   background: linear-gradient(180deg, #4A71A0 0%, #262636 100%);
   display: flex;
-  border: 1px solid #151515;
   min-width: 70px;
 }
 
@@ -2531,8 +2530,6 @@ i.fe-icon--right {
   position: absolute;
   top: -1px;
   background: linear-gradient(180deg, #4A71A0 0%, #262636 100%);
-  border-top: 1px solid #151515;
-  border-bottom: 1px solid #151515;
   box-shadow: 3px 0.5px 3px -2px rgba(0, 0, 0, 0.25);
 }
 
@@ -2546,7 +2543,6 @@ i.fe-icon--right {
 .fe-top-nav__bookend--left:before {
   right: -30px;
   transform: skewX(-45deg);
-  border-right: 1px solid #151515;
 }
 
 .fe-top-nav__bookend--right {

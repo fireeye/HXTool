@@ -4,7 +4,6 @@
 from .task_module import *
 import hxtool_global
 from hxtool_util import *
-from hxtool_scheduler import *
 
 # TODO: fix this with a wildcard import
 from .bulk_download_task_module import *
@@ -15,6 +14,7 @@ from .streaming_task_module import *
 from .file_write_task_module import *
 from .helix_task_module import *
 from .x15_postgres_task_module import *
+from .mongodb_ingest_task_module import *
 
 class bulk_download_monitor_task_module(task_module):
 
@@ -46,6 +46,8 @@ class bulk_download_monitor_task_module(task_module):
 		return []
 		
 	def run(self, bulk_download_eid = None, task_profile = None):
+		from hxtool_scheduler import hxtool_scheduler_task
+		
 		ret = False
 		result = {}
 		try:
@@ -96,7 +98,7 @@ class bulk_download_monitor_task_module(task_module):
 									if task_profile == 'stacking':
 										self.logger.debug("Using stacking task module.")
 										# TODO: Maybe move this to the stacking module instead
-										hxtool_global.hxtool_db.stackJobAddHost(self.parent_task.profile_id, bulk_download_eid, bulk_host['host']['hostname'])
+										hxtool_global.hxtool_db.stackJobAddHost(self.parent_task.profile_id, bulk_download_eid, bulk_host['host']['hostname'], bulk_host['host']['_id'])
 										download_and_process_task.add_step(
 											stacking_task_module, 
 											kwargs = {
@@ -139,6 +141,11 @@ class bulk_download_monitor_task_module(task_module):
 																						'url' : task_module_params['helix_url'],
 																						'apikey' : task_module_params['helix_apikey'],
 																						'batch_mode' : (task_module_params['eventmode'] != 'per-event'),
+																						'delete_bulk_download' : False
+																					})
+												elif task_module_params['module'] == 'mongodb':
+													self.logger.debug("Using taskmodule 'mongodb'")
+													download_and_process_task.add_step(mongodb_ingest_task_module, kwargs = {
 																						'delete_bulk_download' : False
 																					})
 												elif task_module_params['module'] == 'x15':

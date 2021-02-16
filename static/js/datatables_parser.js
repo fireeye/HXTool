@@ -53,30 +53,35 @@ function host_parsePlatform(data) {
 }
 
 function datatables_parseAcquisitionType(data) {
-	if (data == "triage") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-medkit fa-md fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>Triage</b>";
-		data += "</span>";
+	if (data == "QUEUED") {
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-clock fa-md fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>QUEUED</b>";
+		//data += "</span>";
 	}
-	else if (data == "live") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-database fa-md fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Acquisition</b>";
-		data += "</span>";
+	else if (data == "RUNNING") {
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-md fa-spin fa-circle-notch' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
+		//data += "</span>";
 	}
-	else if (data == "file") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-file fa-md fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>File</b>";
-		data += "</span>";
+	else if (data == "COMPLETE") {
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-check-square fa-md fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>COMPLETE</b>";
+		//data += "</span>";
 	}
-	else if (data == "bulk") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-database fa-md fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Bulk</b>";
-		data += "</span>";
+	else if (data == "NEW") {
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-plus-square fa-md fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>NEW</b>";
+		//data += "</span>";
 	}
-	else if (data == "diag") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-diagnoses fa-md fa-fw' style='margin-right: 2px; color: #0f468e;' aria-hidden='true'></i><b>Diagnostics</b>";
-		data += "</span>";
+	else if (data == "STOPPED") {
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-stop-circle fa-md fa-fw' style='margin-right: 2px; color: #ea475b;' aria-hidden='true'></i><b>STOPPED</b>";
+		//data += "</span>";
+	}
+	else if (data == "ABORTED") {
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-ban fa-md fa-fw' style='margin-right: 2px; color: #f44242;' aria-hidden='true'></i><b>ABORTED</b>";
+		//data += "</span>";
 	}
 	else {
 		data = data;
@@ -118,34 +123,34 @@ function host_parseAcquisitionType(data) {
 
 function datatables_parseAcquisitionState(data) {
 	if (data == "QUEUED") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-clock fa-md fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i><b>QUEUED</b>";
-		data += "</span>";
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-clock fa-lg fa-fw' style='margin-right: 2px; color: #840f8e;' aria-hidden='true'></i>";
+		//data += "</span>";
 	}
 	else if (data == "RUNNING") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-md fa-spin fa-circle-notch' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i><b>RUNNING</b>";
-		data += "</span>";
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-lg fa-spin fa-circle-notch' style='margin-right: 2px; color: #d1cd17;' aria-hidden='true'></i>";
+		//data += "</span>";
 	}
 	else if (data == "COMPLETE") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-check-square fa-md fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i><b>COMPLETE</b>";
-		data += "</span>";
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-check-square fa-lg fa-fw' style='margin-right: 2px; color: green;' aria-hidden='true'></i>";
+		//data += "</span>";
 	}
 	else if (data == "NEW") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-plus-square fa-md fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i><b>NEW</b>";
-		data += "</span>";
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-plus-square fa-lg fa-fw' style='margin-right: 2px; color: #f4a742;' aria-hidden='true'></i>";
+		//data += "</span>";
 	}
 	else if (data == "STOPPED") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-stop-circle fa-md fa-fw' style='margin-right: 2px; color: #ea475b;' aria-hidden='true'></i><b>STOPPED</b>";
-		data += "</span>";
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-stop-circle fa-lg fa-fw' style='margin-right: 2px; color: #ea475b;' aria-hidden='true'></i>";
+		//data += "</span>";
 	}
 	else if (data == "ABORTED") {
-		data = "<span class='htLayoutIconWrapper'>";
-		data += "<i class='fas fa-ban fa-md fa-fw' style='margin-right: 2px; color: #f44242;' aria-hidden='true'></i><b>ABORTED</b>";
-		data += "</span>";
+		//data = "<span class='htLayoutIconWrapper'>";
+		data = "<i class='fas fa-ban fa-lg fa-fw' style='margin-right: 2px; color: #f44242;' aria-hidden='true'></i>";
+		//data += "</span>";
 	}
 	else {
 		data = data;

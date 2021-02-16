@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Audit Manager{% endblock %}
+{% block navlocation %}Audit Manager{% endblock %}
+{% block content %}
+
+<script>
+	$(document).ready(function() {
+
+		var auditTable = $('#auditTable').DataTable( {
+			"ajax": "/api/v1/auditmanager/getaudits",
+			"paging":   false,
+			"ordering": false,
+			"info":     false,
+			"searching": true,
+			"dom": '<"hxtool_datatables_buttons"B>frtip',
+			"buttons": [
+				{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
+				{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
+				{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
+			],
+			"columns": [
+				{ title: "bulk_acquisition_id", "data": "bulk_acquisition_id" },
+				{ title: "name", "data": "name" },
+				{ title: "state", "data": "state" },
+				{ title: "created", "data": "created" },
+				{ title: "hostset", "data": "hostset" },
+				{ title: "records", "data": "count" },
+				{ title: "action", "data": "action" }
+			],
+			"columnDefs": [	
+				{
+				 "targets": 2,
+				 render: function ( data, type, row, meta ) {
+				 	mystate = data;
+				 	return (datatables_parseAcquisitionState(data) + " " + mystate);
+				 }
+				},
+				{
+				 "targets": 6,
+				 "width": "220px",
+				 render: function ( data, type, row, meta ) {
+				 	myid = data;
+				 	data = "<button style='margin-right: 6px;' class='auditAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main-remove' data-type='remove' data-id='" + myid + "'>remove<i class='fe-icon--right fas fa-trash'></i></button>";
+				 	data += "<button style='margin-right: 6px;' class='auditAction fe-btn fe-btn--sm fe-btn--primary fe-btn--hxtool-main' data-type='explore' data-id='" + myid + "'>explore<i class='fe-icon--right fas fa-search'></i></button>";
+				 	return data;
+				 }
+				},
+				{
+				 "targets": [ 3 ],
+				 render: function ( data, type, row, meta ) {
+				 	return (datatables_Timestamp(data));
+				 }
+				},
+				{"className": "hxtool_table_cell_center", "targets": [0, 2, 3, 4, 5, 6]}
+			]
+		});
+		$('div.dataTables_filter input').addClass("fe-input");
+
+		setInterval( function () {
+			auditTable.ajax.reload();
+		}, 60000 );
+
+		$("#auditTable").on("click", ".auditAction", function(){
+			mytype = $(this).data("type");
+			myrow = $(this).closest("tr");
+
+			if (mytype == "explore") {
+				location.href = "/auditexplorer?id=" + $(this).data("id");
+			}
+			else if (mytype == "remove") {
+				hxtool_ajax_get_request("/api/v1/auditmanager/remove", "id=" + $(this).data("id"), function() {
+					myrow.fadeOut(200, function() {
+						auditTable.row(myrow).remove().draw();
+					});
+				});
+			}
+
+		});
+
+	});
+
+</script>
+
+{{ htPanel.widgetHeader("Collected acquisitions and audits", panelIcon="fa-table") }}
+	<table id='auditTable' class='hxtool_table' style='width: 100%;'></table>
+{{ htPanel.widgetFooter() }}
+
+{% endblock %}

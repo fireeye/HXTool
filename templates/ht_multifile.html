@@ -280,6 +280,7 @@ table.nested_table tr:hover {
 			fdata.append("listing_name", $("#listing_name").val());
 			fdata.append("listing_path", $("#listing_path").val());
 			fdata.append("listing_regex", $("#listing_regex").val());
+			fdata.append("listing_md5s", $("#listing_md5s").val());
 			fdata.append("hostset", $("#hostset").data("id"));
 			if ($('#use_raw_mode').is(':checked')) {
 				fdata.append("use_raw_mode", true);	
@@ -330,6 +331,7 @@ table.nested_table tr:hover {
 	{{ htInput.widget("my new listing", elementTitle="Name", elementHint="", elementId="listing_name", elementWidth="100%;") }}
 	{{ htInput.widget("c:\\temp", elementTitle="File Listing Path", elementHint="", elementId="listing_path", elementWidth="100%;") }}
 	{{ htInput.widget("regular expression", elementTitle="File Listing Regex", elementHint="", elementId="listing_regex", elementWidth="100%;") }}
+	{{ htTextArea.widget("MD5 hashes", elementTitle="MD5 Hashes", elementHint="", elementId="listing_md5s", elementWidth="100%;") }}
 
 	<h4 class='hxtool_typography_h3'>Hostset</h4>
 	<div id='hostsetContainer'></div>
@@ -339,9 +341,9 @@ table.nested_table tr:hover {
 	<input type='checkBox' id='use_raw_mode' name='use_raw_mode'/>
 	<label for='use_raw_mode'>Use Raw Mode?</label><br/>
 
-	<h5>Request a file listing by providing a file path, regex, and a set of hosts to acquire from. Once acquired, you will be able to selectively acquire files from the hosts.</h5>
+	<h5>Request a file listing by providing a file path, regex, optional MD5 hashes, and a set of hosts to acquire from. Once acquired, you will be able to selectively acquire files from the hosts.</h5>
 
-	<h5>Default is API mode. Raw mode should not be used when disk encryption is enabled on endpoint.</h5>
+	<h5>Default is API mode. Raw mode is only supported on Windows and should not be used when disk encryption is enabled on the endpoint.</h5>
 
 	<h5><b>Note</b>: The download feature is only available once you have set the background processing credentials on the settings page.</h5>
 

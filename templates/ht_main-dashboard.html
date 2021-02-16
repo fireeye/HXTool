@@ -194,7 +194,7 @@
 		}).done(function (myChartData) {
 
 			var config = {
-				type: 'bar',
+				type: 'horizontalBar',
 				data: myChartData,
 			
 				options: {
@@ -363,6 +363,12 @@
 				 		data = '<a class="hostLink" href="/hostview?host=' + encodeURIComponent(myArr[1]) + '&alertid=' + encodeURIComponent(myArr[2]) + '">' + myArr[0] + '</a>';
 				 	}
 				 	return data;
+				 }
+				},
+				{
+				 targets: 2,
+				 render: function ( data, type, row, meta ) {
+				 	return(datatables_Timestamp(data));
 				 }
 				},
 				{

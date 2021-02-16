@@ -6,8 +6,6 @@ import random
 import csv
 from io import BytesIO
 from io import StringIO
-from xml.sax.saxutils import escape as xmlescape
-from string import Template
 from collections import deque
 import zipfile
 
@@ -25,6 +23,7 @@ from hxtool_util import *
 from hxtool_data_models import *
 from hxtool_scheduler import *
 from hxtool_task_modules import *
+from hx_openioc import openioc_to_hxioc
 
 ht_api = Blueprint('ht_api', __name__, template_folder='templates')
 logger = hxtool_logging.getLogger(__name__)
@@ -68,6 +67,139 @@ def hxtool_api_version_get(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restGetControllerVersion()
 	(r, rcode) = create_api_response(ret, response_code, response_data)
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
+#################
+# Audit Manager #
+#################
+@ht_api.route('/api/v{0}/auditmanager/getaudits'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_auditmanager_getaudits(hx_api_object):
+	r = hxtool_global.hxtool_db.auditGetCollections()
+
+	# Grab all bulk acqs so we can use their data to enrich the table
+	bulk_acqs = {}
+	(ret, response_code, response_data) = hx_api_object.restListBulkAcquisitions()
+	if ret:
+		for entry in response_data['data']['entries']:
+			bulk_acqs[entry['_id']] = entry
+
+		response = {}
+		mydata = []
+
+		for res in r:
+			row = {}
+			res_data = eval(res['_id'])
+			for key, value in res_data.items():
+				row[key] = value
+			row['count'] = res['count']
+			row['action'] = res_data['bulk_acquisition_id']
+
+			if res_data['bulk_acquisition_id'] in bulk_acqs.keys():
+				row['created'] = bulk_acqs[res_data['bulk_acquisition_id']]['create_time'] 
+				row['state'] = bulk_acqs[res_data['bulk_acquisition_id']]['state'] 
+				row['name'] = bulk_acqs[res_data['bulk_acquisition_id']]['comment']
+				row['hostset'] = bulk_acqs[res_data['bulk_acquisition_id']]['host_set']['name']
+			else:
+				row['created'] = ""
+				row['state'] = ""
+				row['name'] = ""
+				row['hostset'] = ""
+
+			mydata.append(row)
+
+		response['columns'] = []
+		for column in list(set().union(*(d.keys() for d in mydata))):
+			response['columns'].append({ "data": column, "title": column })
+
+		response['data'] = mydata
+
+		return(app.response_class(response=json.dumps(response), status=200, mimetype='application/json'))
+	else:
+		return(app.response_class(response=json.dumps("Unable to list bulk acquisitions"), status=404, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/auditmanager/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_auditmanager_remove(hx_api_object):
+	rcode = 200
+	rmessage = "Audit action remove"
+	try:
+		r = hxtool_global.hxtool_db.auditRemove(request.args.get('id'))
+	except:
+		rcode = 404
+		rmessage = "Audit action remove failed"
+
+	return(app.response_class(response=json.dumps(rmessage), status=rcode, mimetype='application/json'))
+
+
+#################
+# Audit viewer  #
+#################
+@ht_api.route('/api/v{0}/auditviewer/query'.format(HXTOOL_API_VERSION), methods=['GET'])
+@valid_session_required
+def hxtool_api_auditviewer_query(hx_api_object):
+
+	mstr = hxtool_global.hxtool_db.queryParse(request.args.get('q'))
+	
+	if mstr['type'] == "find":
+		try:
+			if 'sort' in mstr.keys():
+				r = hxtool_global.hxtool_db.auditQuery(mstr['query'], mstr['sort'])
+			else:
+				r = hxtool_global.hxtool_db.auditQuery(mstr['query'])
+		except:
+			return(app.response_class(response=json.dumps(r), status=404, mimetype='application/json'))
+
+		response = {}
+		mydata = []
+		for res in r:
+			row = {
+				"hostname": res['hostname'],
+				"generator": res['generator'],
+				"hx_host": res['hx_host'],
+				"bulk_acquisition_id": res['bulk_acquisition_id']
+			}
+			for key in res[res['generator_item_name']].keys():
+				row[res['generator_item_name'] + "/" + key] = res[res['generator_item_name']][key]
+			mydata.append(row)
+		
+		response['columns'] = []
+		for column in list(set().union(*(d.keys() for d in mydata))):
+			response['columns'].append({ "data": column, "title": column })
+
+		mynewdata = []
+		for myrecord in mydata:
+			for mykey in list(set().union(*(d.keys() for d in mydata))):
+				if mykey not in myrecord.keys():
+					myrecord[mykey] = ""
+			mynewdata.append(myrecord)
+
+		response['data'] = mynewdata
+
+	if mstr['type'] == "aggregate":
+		try:
+			r = hxtool_global.hxtool_db.auditQueryAggregate(mstr['query'])
+		except:
+			return(app.response_class(response=json.dumps(r), status=404, mimetype='application/json'))
+
+		response = {}
+		mydata = []
+
+		for res in r:
+			row = {}
+			res_data = eval(res['_id'])
+			for key, value in res_data.items():
+				row[key] = value
+			row['count'] = res['count']
+			mydata.append(row)
+
+		response['columns'] = []
+		for column in list(set().union(*(d.keys() for d in mydata))):
+			response['columns'].append({ "data": column, "title": column })
+
+		response['data'] = mydata
+
+	return(app.response_class(response=json.dumps(response), status=200, mimetype='application/json'))
 
 
 ################
@@ -223,9 +355,27 @@ def hxtool_api_enterprise_search_new_db(hx_api_object):
 	
 	if schedule:
 		enterprise_search_task.set_schedule(**schedule)
-		
+
+	# IOC conditions can be in "event only" or "eventItem" format. The IOC content shipped via DTI
+	# and available in the Endpoint Supplementary IOCs on the Market use the "event only" format.
+	# Other IOCs may be in "eventItem" format, depending on how they are created using OpenIOC
+	# editor. Most importantly, the HX Enterprise Search API expects "eventItem" format. This
+	# regex adds the necessary "eventItem" prefix to any IOC conditions in "event only" format.
+	# For example, this regex converts:
+	#   <Context document="processEvent" search="processEvent/process" type="event" />
+	# to:
+	#   <Context document="eventItem" search="eventItem/processEvent/process" type="event" />
+    # This will not convert conditions such as:
+	#   <Context document="FileItem" search="FileItem/FullPath" type="endpoint" />
+
+	event_item_script = re.sub(
+	    '<Context\s+document="(?!eventItem).+"\s+search="(?!eventItem/)(?P<search>.+Event.+)"\s+type="(?!mir).+"\s+/>',
+	    '<Context document="eventItem" search="eventItem/\g<search>" type="event" />',
+	    HXAPI.b64(ioc_script['ioc'], True).decode('utf-8'),
+	    flags=re.IGNORECASE)
+
 	enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
-										'script' : ioc_script['ioc'],
+										'script' : HXAPI.b64(event_item_script),
 										'hostset_id' : request.args.get('sweephostset'),
 										'ignore_unsupported_items' : ignore_unsupported_items,
 										'skip_base64': True,
@@ -264,9 +414,16 @@ def hxtool_api_enterprise_search_new_file(hx_api_object):
 	
 	if schedule:
 		enterprise_search_task.set_schedule(**schedule)
-		
+
+	# see comment in hxtool_api_enterprise_search_new_db above
+	event_item_script = re.sub(
+		'<Context\s+document="(?!eventItem).+"\s+search="(?!eventItem/)(?P<search>.+Event.+)"\s+type="(?!mir).+"\s+/>',
+		'<Context document="eventItem" search="eventItem/\g<search>" type="event" />',
+		ioc_script.decode('utf-8'),
+		flags=re.IGNORECASE)
+
 	enterprise_search_task.add_step(enterprise_search_task_module, kwargs = {
-										'script' : HXAPI.b64(ioc_script),
+										'script' : HXAPI.b64(event_item_script),
 										'hostset_id' : request.form.get('sweephostset'),
 										'ignore_unsupported_items' : ignore_unsupported_items,
 										'skip_base64': True,
@@ -394,7 +551,16 @@ def hxtool_api_alerts_remove(hx_api_object):
 def hxtool_api_alerts_get(hx_api_object):
 	(ret, response_code, response_data) = hx_api_object.restGetAlertID(request.args.get('id'))
 	# Workaround for matching condition which isn't a part of the response
-	if response_data['data']['source'] == "IOC":
+	if response_data.get('data', None) is not None and response_data['data']['source'] == "IOC":
+		# Handle missing indicator object when multiple IOCs hit. ENDPT-52003
+		if response_data['data'].get('indicator', None) is None:
+			(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(response_data['data']['condition']['_id'])
+			if cret and len(cresponse_data['data']['entries']) > 0:
+				tlist = [ _['name'] for _ in cresponse_data['data']['entries'] ]
+				response_data['data'].update({
+					'indicator' : { 
+						'display_name' : "; ".join(tlist) 
+				}})
 		(cret, cresponse_code, cresponse_data) = hx_api_object.restGetConditionDetails(response_data['data']['condition']['_id'])
 		if ret:
 			response_data['data']['condition']['tests'] = cresponse_data['data']['tests']
@@ -497,6 +663,35 @@ def hxtool_api_taskprofile_new(hx_api_object):
 	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
+###############
+# Host Groups #
+###############
+@ht_api.route('/api/v{0}/hostgroups'.format(HXTOOL_API_VERSION), methods=['POST'])
+@valid_session_required
+def hxtool_api_hostgroup_add(hx_api_object):
+	hostgroup_data = request.json
+	hxtool_global.hxtool_db.hostGroupAdd(session['profile_id'], hostgroup_data['name'], session['ht_user'], hostgroup_data['agent_ids'])
+	(r, rcode) = create_api_response(ret=True)
+	logger.info(format_activity_log(msg="host group action", action="new", name=hostgroup_data['name'], user=session['ht_user'], controller=session['hx_ip']))
+	return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+@ht_api.route('/api/v{0}/hostgroups/<uuid:hostgroup_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'DELETE'])
+@valid_session_required
+def hxtool_api_hostgroup_id(hx_api_object, hostgroup_id):
+	if request.method == 'GET':
+		hostgroup = hxtool_global.hxtool_db.hostGroupGet(hostgroup_id)
+		if hostgroup:
+			(r, rcode) = create_api_response(ret=True, response_code=200, response_data=hostgroup)
+		else:
+			(r, rcode) = create_api_response(ret=False, response_code=404)
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+	elif request.method == 'DELETE':
+		hxtool_global.hxtool_db.hostGroupRemove(hostgroup_id)
+		(r, rcode) = create_api_response(ret=True)
+		logger.info(format_activity_log(msg="host group action", action="remove", hostgroup_id=hostgroup_id, user=session['ht_user'], controller=session['hx_ip']))
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+
+
 ####################
 # Bulk Acquisition #
 ####################
@@ -586,8 +781,7 @@ def hxtool_api_acquisition_bulk_new_db(hx_api_object):
 		task_profile = request.args.get('taskprocessor', None)
 		should_download = True
 
-	submit_bulk_job(hx_api_object,  
-					bulk_acquisition_script, 
+	submit_bulk_job(bulk_acquisition_script, 
 					hostset_id = int(request.args.get('bulkhostset')),
 					start_time = start_time, 
 					schedule = schedule, 
@@ -621,8 +815,7 @@ def hxtool_api_acquisition_bulk_new_file(hx_api_object):
 		task_profile = request.form.get('taskprocessor', None)
 		should_download = True
 
-	submit_bulk_job(hx_api_object,  
-					HXAPI.compat_str(bulk_acquisition_script), 
+	submit_bulk_job(HXAPI.compat_str(bulk_acquisition_script), 
 					hostset_id = int(request.form['bulkhostset']),
 					start_time = start_time, 
 					schedule = schedule, 
@@ -810,6 +1003,10 @@ def hxtool_api_indicators_get_conditions(hx_api_object):
 def hxtool_api_indicators_export(hx_api_object):
 	iocList = request.json
 	for uuid, ioc in iocList.items():
+		(ret, response_code, response_data) = hx_api_object.restListIndicators(filter_term = { 'uri_name' : ioc['uri_name'] })
+		if ret:
+			iocList[uuid]['description'] = response_data['data']['entries'][0]['description']
+			iocList[uuid]['create_text'] = response_data['data']['entries'][0]['create_text']
 		(ret, response_code, response_data) = hx_api_object.restGetCondition(ioc['category'], ioc['uri_name'], 'execution')
 		if ret:
 			for item in response_data['data']['entries']:
@@ -826,13 +1023,13 @@ def hxtool_api_indicators_export(hx_api_object):
 	
 	buffer = BytesIO()
 	if len(iocList.keys()) == 1:
-		iocfname = iocList[list(iocList.keys())[0]]['uri_name'] + ".ioc"
+		iocfname = iocList[list(iocList.keys())[0]]['uri_name'] + ".rule"
 		buffer.write(json.dumps(iocList, indent=4, ensure_ascii=False).encode(default_encoding))
 	else:
 		iocfname = "multiple_indicators.zip"
 		with zipfile.ZipFile(buffer, 'w') as zf:
 			for ioc in iocList:
-				zf.writestr(iocList[ioc]['uri_name'] + '.ioc', json.dumps(iocList[ioc], indent=4, ensure_ascii=False).encode(default_encoding))
+				zf.writestr(iocList[ioc]['uri_name'] + '.rule', json.dumps({ ioc : iocList[ioc] }, indent=4, ensure_ascii=False).encode(default_encoding))
 		zf.close()
 
 	buffer.seek(0)
@@ -846,10 +1043,20 @@ def hxtool_api_indicators_import(hx_api_object):
 	files = request.files.getlist('ruleImport')
 	
 	for file in files:
-		iocs = json.loads(file.read().decode(default_encoding))
+		file_content = file.read().decode(default_encoding)
+		try: 
+			iocs = json.loads(file_content)
+		except json.decoder.JSONDecodeError:
+			iocs = openioc_to_hxioc(file_content)
+			if iocs is None:
+				app.logger.warn(format_activity_log(msg="rule action fail", reason="{} is not a valid Endpoint Security (HX) JSON or OpenIOC 1.1 indicator." .format(file.filename), action="import", user=session['ht_user'], controller=session['hx_ip']))
+				continue
 		
 		for iockey in iocs:
-
+			# TODO: Add category selection to import dialog
+			if iocs[iockey].get('category', None) is None:
+				iocs[iockey]['category'] = "Custom"
+			
 			# Check if category exists
 			category_exists = False
 			(ret, response_code, response_data) = hx_api_object.restListCategories(limit = 1, filter_term={'name' : iocs[iockey]['category']})
@@ -862,7 +1069,7 @@ def hxtool_api_indicators_import(hx_api_object):
 					category_exists = ret
 				
 				if category_exists:
-					(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], session['ht_user'], iocs[iockey]['platforms'])
+					(ret, response_code, response_data) = hx_api_object.restAddIndicator(iocs[iockey]['category'], iocs[iockey]['name'], create_text=iocs[iockey].get('create_text', None) or session['ht_user'], platforms=iocs[iockey]['platforms'], description=iocs[iockey].get('description', None))
 					if ret:
 						ioc_guid = response_data['data']['_id']
 						
@@ -871,12 +1078,16 @@ def hxtool_api_indicators_import(hx_api_object):
 								data = json.dumps(p_cond)
 								data = """{"tests":""" + data + """}"""
 								(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'presence', data)
+								if not ret:
+									app.logger.warn(format_activity_log(msg="rule action fail", reason="failed to create presence condition", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 
 						if 'execution' in iocs[iockey].keys():
 							for e_cond in iocs[iockey]['execution']:
 								data = json.dumps(e_cond)
 								data = """{"tests":""" + data + """}"""
 								(ret, response_code, response_data) = hx_api_object.restAddCondition(iocs[iockey]['category'], ioc_guid, 'execution', data)
+								if not ret:
+									app.logger.warn(format_activity_log(msg="rule action fail", reason="failed to create execution condition", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 				
 						app.logger.info(format_activity_log(msg="rule action", action="import", name=iocs[iockey]['name'], user=session['ht_user'], controller=session['hx_ip']))
 				else:
@@ -936,7 +1147,8 @@ def hxtool_api_indicators_new(hx_api_object):
 						})
 				myrule['execution'].append(mycondition)
 
-	hxtool_global.hxtool_db.ruleAdd(session['ht_profileid'], mydata['name'], mydata['category'], chosenplatform, session['ht_user'], HXAPI.b64(json.dumps(myrule)), "add")
+	# TODO: Disable for now
+	#hxtool_global.hxtool_db.ruleAdd(session['ht_profileid'], mydata['name'], mydata['category'], chosenplatform, session['ht_user'], HXAPI.b64(json.dumps(myrule)), "add")
 
 	# REMOVE SOON
 	(ret, response_code, response_data) = hx_api_object.restAddIndicator(mydata['category'], mydata['name'], session['ht_user'], chosenplatform, description=mydata['description'])
@@ -983,7 +1195,7 @@ def hxtool_api_indicators_edit(hx_api_object):
 	myState = True
 
 	if mydata['platform'] == "all":
-		chosenplatform = ['win', 'osx']
+		chosenplatform = ['win', 'osx', 'linux']
 	else:
 		chosenplatform = [mydata['platform']]
 
@@ -1075,11 +1287,12 @@ def hxtool_api_stacking_new(hx_api_object):
 	if stack_type:
 		with open(combine_app_path('scripts', stack_type['script']), 'r') as f:
 			script_xml = f.read()
-			hostset_id = int(request.form['stackhostset'])
-			bulk_download_eid = submit_bulk_job(hx_api_object, script_xml, hostset_id = hostset_id, task_profile = "stacking")
-			ret = hxtool_global.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
-			app.logger.info(format_activity_log(msg="stacking", action="new", hostsetid=hostset_id, type=request.form['stack_type'], user=session['ht_user'], controller=session['hx_ip']))
-			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+			f.close()
+		hostset_id = int(request.form['stackhostset'])
+		bulk_download_eid = submit_bulk_job(script_xml, hostset_id = hostset_id, task_profile = "stacking", comment = "HXTool Stacking Job: {}".format(stack_type['name']))
+		ret = hxtool_global.hxtool_db.stackJobCreate(session['ht_profileid'], bulk_download_eid, request.form['stack_type'])
+		app.logger.info(format_activity_log(msg="stacking", action="new", hostsetid=hostset_id, type=request.form['stack_type'], user=session['ht_user'], controller=session['hx_ip']))
+		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 @ht_api.route('/api/v{0}/stacking/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
@@ -1091,9 +1304,12 @@ def hxtool_api_stacking_remove(hx_api_object):
 		if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
 			(ret, response_code, response_data) = hx_api_object.restDeleteJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
 			hxtool_global.hxtool_db.bulkDownloadDelete(bulk_download_job.doc_id)
+			(r, rcode) = create_api_response(ret, response_code, response_data)
+		else:
+			(r, rcode) = create_api_response()
 			
 		hxtool_global.hxtool_db.stackJobDelete(stack_job.doc_id)
-		(r, rcode) = create_api_response(ret, response_code, response_data)
+		
 		app.logger.info(format_activity_log(msg="stacking", action="remove", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
@@ -1105,12 +1321,15 @@ def hxtool_api_stacking_stop(hx_api_object):
 		bulk_download_job = hxtool_global.hxtool_db.bulkDownloadGet(bulk_download_eid = stack_job['bulk_download_eid'])
 		if bulk_download_job and 'bulk_acquisition_id' in bulk_download_job:
 			(ret, response_code, response_data) = hx_api_object.restCancelJob('acqs/bulk', bulk_download_job['bulk_acquisition_id'])
-			hxtool_global.hxtool_db.stackJobStop(stack_job_eid = stack_job.doc_id)
 			hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_job.doc_id, stopped = True)
-
 			(r, rcode) = create_api_response(ret, response_code, response_data)
-			app.logger.info(format_activity_log(msg="stacking", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
-			return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
+		else:
+			(r, rcode) = create_api_response()
+			
+		hxtool_global.hxtool_db.stackJobStop(stack_job_eid = stack_job.doc_id)
+			
+		app.logger.info(format_activity_log(msg="stacking", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
+		return(app.response_class(response=json.dumps(r), status=rcode, mimetype='application/json'))
 
 
 
@@ -1123,38 +1342,66 @@ def hxtool_api_stacking_stop(hx_api_object):
 def hxtool_api_acquisition_multi_file_listing(hx_api_object):
 
 	# Get Acquisition Options from Form
-	display_name = xmlescape(request.form['listing_name'])
-	regex = xmlescape(request.form['listing_regex'])
-	path = xmlescape(request.form['listing_path'])
-	hostset = int(xmlescape(request.form['hostset']))
+	display_name = request.form['listing_name']
+	path = request.form['listing_path']
+	regex = request.form['listing_regex']
+	md5_hashes = request.form['listing_md5s']
+	hostset = int(request.form['hostset'])
 	use_api_mode = ('use_raw_mode' not in request.form)
-	depth = '-1'
+	
 	# Build a script from the template
-	script_xml = None
-	try:
-		if regex:
+	with open(combine_app_path('scripts/files_listing_template.json'), 'r') as f:
+		script_json = json.load(f)
+		f.close()
+	
+	script_json['commands'][0]['parameters'].append({
+		'name' : 'Path', 
+		'value' : path
+	})
+	
+	regex = request.form['listing_regex']
+	if regex:
+		try:
 			re.compile(regex)
-		else:
-			app.logger.warn("Regex is empty!!")
-			regex = ''
-		if use_api_mode:
-			template_path = 'scripts/api_file_listing_script_template.xml'
-		else:
-			template_path = 'scripts/file_listing_script_template.xml'
-		with open(combine_app_path(template_path), 'r') as f:
-			t = Template(f.read())
-			script_xml = t.substitute(regex=regex, path=path, depth=depth)
-		if not display_name:
-			display_name = 'hostset: {0} path: {1} regex: {2}'.format(hostset, path, regex)
-	except re.error:
-		return(app.response_class(response=json.dumps("FAIL"), status=404, mimetype='application/json'))
-	if script_xml:
-		bulk_download_eid = submit_bulk_job(hx_api_object, HXAPI.compat_str(script_xml), hostset_id = hostset, task_profile = "file_listing")
-		ret = hxtool_global.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, depth, display_name, api_mode=use_api_mode)
-		app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="new", hostset_id=hostset, user=session['ht_user'], controller=session['hx_ip']))
-		return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
-	else:
-		return(app.response_class(response=json.dumps("FAIL"), status=404, mimetype='application/json'))
+			script_json['commands'][0]['parameters'].append({
+				'name' : 'Regex', 
+				'value' : regex
+			})	
+		except re.error:
+			return(app.response_class(response=json.dumps("Invalid regular expression."), status=400, mimetype='application/json'))
+	
+	if not use_api_mode:
+		script_json['commands'][0]['name'] = "files-raw"
+		script_json['commands'][0]['parameters'].append({
+			'name' : 'Active Files',
+			'value' : true
+		}, {
+			'name' : 'Deleted Files',
+			'value' : true
+		}, {
+			'name' : 'Parse NTFS INDX Buffers',
+			'value' : true
+		})
+	
+	if md5_hashes:
+		md5_hashes = md5_hashes.splitlines()
+
+		for md5 in md5_hashes:
+			if not re.match("^[A-F0-9]{32}$", md5, re.I):
+				return(app.response_class(response=json.dumps("{} is an invalid MD5 hash.".format(md5)), status=400, mimetype='application/json'))
+		
+		script_json['commands'][0]['parameters'].append({
+			'name' : 'Filter MD5', 
+			'value' : md5_hashes
+		})
+	
+	if not display_name:
+		display_name = 'hostset: {0} path: {1} regex: {2}'.format(hostset, path, regex)
+	
+	bulk_download_eid = submit_bulk_job(json.dumps(script_json), hostset_id = hostset, task_profile = "file_listing")
+	ret = hxtool_global.hxtool_db.fileListingCreate(session['ht_profileid'], session['ht_user'], bulk_download_eid, path, regex, -1, display_name, api_mode=use_api_mode)
+	app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="new", hostset_id=hostset, user=session['ht_user'], controller=session['hx_ip']))
+	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 
 @ht_api.route('/api/v{0}/acquisition/multi/file_listing/stop'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -1169,6 +1416,9 @@ def hxtool_api_acquisition_multi_file_listing_stop(hx_api_object):
 			hxtool_global.hxtool_db.bulkDownloadUpdate(file_listing_job['bulk_download_eid'], stopped = True)
 			app.logger.info(format_activity_log(msg="multi-file listing acquisition", action="stop", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
 			return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+		else:
+			return(app.response_class(response=json.dumps(response_data), status=response_code, mimetype='application/json'))
+	return(app.response_class(response=json.dumps("File listing job not found."), status=404, mimetype='application/json'))
 
 
 @ht_api.route('/api/v{0}/acquisition/multi/file_listing/remove'.format(HXTOOL_API_VERSION), methods=['GET'])
@@ -1232,13 +1482,13 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 
 		# Collect User Selections
 		file_jobs, choices, listing_ids = [], {}, set([])
-		choice_re = re.compile('^choose_file_(\d+)_(\d+)$')
+		#choice_re = re.compile('^choose_file_(\d+)_(\d+)$')
 		for k, v in list(request.form.items()):
-			m = choice_re.match(k)
-			if m:
-				fl_id = int(m.group(1))
+			if k.startswith("choose_file"):
+				(fl_id, myindex) = k[12:].split("_")
+			#	fl_id = int(m.group(1))
 				listing_ids.add(fl_id)
-				choices.setdefault(fl_id, []).append(int(m.group(2)))
+				choices.setdefault(fl_id, []).append(int(myindex))
 		if choices:
 			choice_files, agent_ids = [], {}
 			for fl_id, file_ids in list(choices.items()):
@@ -1256,7 +1506,10 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 					else:
 						(ret, response_code, response_data) = hx_api_object.restListHosts(search_term = cf['hostname'])
 						agent_id = agent_ids[cf['hostname']] = response_data['data']['entries'][0]['_id']
-					path, filename = cf['FullPath'].rsplit('\\', 1)
+					path_split_char = '\\'
+					if cf['FullPath'].startswith('/'):
+						path_split_char = '/'
+					path, filename = cf['FullPath'].rsplit(path_split_char, 1)
 					(ret, response_code, response_data) = hx_api_object.restAcquireFile(agent_id, path, filename, use_api_mode)
 					if ret:
 						acq_id = response_data['data']['_id']
@@ -1284,7 +1537,10 @@ def hxtool_api_acquisition_multi_mf_new(hx_api_object):
 						pass
 			if file_jobs:
 				app.logger.info(format_activity_log(msg="multi-file acquisition", action="new", user=session['ht_user'], controller=session['hx_ip']))
-				return redirect("/multifile", code=302)
+		else:
+			app.logger.error(format_activity_log(error="Multi-file acquisition failed, no files were selected.", action="new", user=session['ht_user'], controller=session['hx_ip']))
+			
+	return redirect("/multifile", code=302)
 
 ##############
 # Datatables #
@@ -1670,24 +1926,19 @@ def datatable_alerts_host(hx_api_object):
 		(ret, response_code, response_data) = hx_api_object.restGetAlerts(limit=request.args.get('limit'), filter_term={ "agent._id": request.args.get("host") })
 		if ret:
 			for alert in response_data['data']['entries']:
-				if alert['source'] == "IOC":
-					if alert['indicator']:
-						if 'display_name' in alert['indicator']:
-							tname = alert['indicator']['display_name']
+				tname = "N/A"
+				if alert['source'] in hxtool_global.hx_alert_types:
+					tname = js_path(alert, hxtool_global.hx_alert_types.get(alert['source'])['threat_key'])
+					if alert['source'] == "EXD":
+						tname = "Exploit detected in process {}".format(tname)
+					# Handle missing indicator object when multiple IOCs hit. ENDPT-52003
+					elif alert['source'] == "IOC" and alert.get("indicator", None) is None:
+						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+						if cret and len(cresponse_data['data']['entries']) > 0:
+							tlist = [ _['name'] for _ in cresponse_data['data']['entries'] ]
+							tname = "; ".join(tlist)
 						else:
-							(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
-							if cret:
-								tname = cresponse_data['data']['entries'][0]['name']
-							else:
-								tname = "N/A"
-					else:
-						tname = "N/A"
-				elif alert['source'] == "EXD":
-					tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
-				elif alert['source'] == "MAL":
-					tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
-				else:
-					tname = "N/A"
+							tname = "N/A"
 
 				myalerts['data'].append({
 					"DT_RowId": alert['_id'],
@@ -1717,7 +1968,9 @@ def datatable_alerts(hx_api_object):
 		if ret:
 			for alert in response_data['data']['entries']:
 				# Query host object
-				hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", alert['agent']['_id'])
+				hresponse_data = False
+				if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+					hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", alert['agent']['_id'])
 				if hresponse_data == False:
 					(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(alert['agent']['_id'])
 
@@ -1730,20 +1983,20 @@ def datatable_alerts(hx_api_object):
 					hostname = "unknown"
 					domain = "unknown"
 
-				if alert['source'] == "IOC":
-					(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
-					if cret:
-						tname = cresponse_data['data']['entries'][0]['name']
-					else:
-						tname = "N/A"
-				elif alert['source'] == "EXD":
-					tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
-				elif alert['source'] == "MAL":
-					tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
-				else:
-					tname = "N/A"
-
-
+				tname = "N/A"
+				if alert['source'] in hxtool_global.hx_alert_types:
+					tname = js_path(alert, hxtool_global.hx_alert_types.get(alert['source'])['threat_key'])
+					if alert['source'] == "EXD":
+						tname = "Exploit detected in process {}".format(tname)
+					# Handle missing indicator object when multiple IOCs hit. ENDPT-52003
+					elif alert['source'] == "IOC" and alert.get("indicator", None) is None:
+						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
+						if cret and len(cresponse_data['data']['entries']) > 0:
+							tlist = [ _['name'] for _ in cresponse_data['data']['entries'] ]
+							tname = "; ".join(tlist)
+						else:
+							tname = "N/A"
+							
 				myalerts['data'].append([HXAPI.compat_str(hostname) + "___" + HXAPI.compat_str(hid) + "___" + HXAPI.compat_str(aid), domain, alert['reported_at'], alert['source'], tname, alert['resolution']])
 		else:
 			return('', 500)
@@ -1909,24 +2162,19 @@ def datatable_alerts_full(hx_api_object):
 					platform = "linux"
 
 				
-				if alert['source'] == "IOC":
-					if alert['condition']['_id'] not in myiocs:
-						# Query IOC object since we do not have it in memory
+				tname = "N/A"
+				if alert['source'] in hxtool_global.hx_alert_types:
+					tname = js_path(alert, hxtool_global.hx_alert_types.get(alert['source'])['threat_key'])
+					if alert['source'] == "EXD":
+						tname = "Exploit detected in process {}".format(tname)
+					# Handle missing indicator object when multiple IOCs hit. ENDPT-52003
+					elif alert['source'] == "IOC" and alert.get("indicator", None) is None:
 						(cret, cresponse_code, cresponse_data) = hx_api_object.restGetIndicatorFromCondition(alert['condition']['_id'])
-						if cret:
-							myiocs[alert['condition']['_id']] = cresponse_data['data']['entries'][0]
-							tname = cresponse_data['data']['entries'][0]['name']
+						if cret and len(cresponse_data['data']['entries']) > 0:
+							tlist = [ _['name'] for _ in cresponse_data['data']['entries'] ]
+							tname = "; ".join(tlist)
 						else:
 							tname = "N/A"
-					else:
-						tname = myiocs[alert['condition']['_id']]['name']
-
-				elif alert['source'] == "EXD":
-					tname = "Exploit: " + HXAPI.compat_str(len(alert['event_values']['messages'])) + " behaviours"
-				elif alert['source'] == "MAL":
-					tname = HXAPI.compat_str(alert['event_values']['detections']['detection'][0]['infection']['infection-name'])
-				else:
-					tname = "N/A"
 
 				myalerts['data'].append({
 					"DT_RowId": alert['_id'],
@@ -1983,7 +2231,9 @@ def datatable_acqs(hx_api_object):
 			if ret:
 				for acq in response_data['data']['entries']:
 					if acq['type'] != "bulk":
-						hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", acq['host']['_id'])
+						hresponse_data = False
+						if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+							hresponse_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], "host", acq['host']['_id'])
 						if hresponse_data == False:
 							(hret, hresponse_code, hresponse_data) = hx_api_object.restGetHostSummary(acq['host']['_id'])
 						if ret:
@@ -1993,8 +2243,9 @@ def datatable_acqs(hx_api_object):
 								acq_url = acq['acq']['url']
 							else:
 								acq_url = "/hx/api/v3/acqs/{}/{}".format(acq['type'], HXAPI.compat_str(acq['acq']['_id']))
-
-							a_response_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], acq['type'], acq['acq']['_id'])
+							a_response_data = False
+							if hxtool_global.hxtool_config.get_child_item('apicache', 'enabled', False):
+								a_response_data = hxtool_global.hxtool_db.cacheGet(session['ht_profileid'], acq['type'], acq['acq']['_id'])
 							if a_response_data == False:
 								(a_ret, a_response_code, a_response_data) = hx_api_object.restGetUrl(acq_url)
 							else:
@@ -2280,38 +2531,37 @@ def datatable_es_result(hx_api_object):
 @ht_api.route('/api/v{0}/chartjs_agentstatus'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def chartjs_agentstatus(hx_api_object):
-
-	(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
-
-	myField = request.args.get('field')
-	myData = {}
-
-	for host in response_data['data']['entries']:
-		if "." in myField:
-			item1, item2 = myField.split(".")
-			if host[item1][item2] not in myData.keys():
-				myData[host[item1][item2]] = 0
-			myData[host[item1][item2]] += 1
-		else:
-			if host[myField] not in myData.keys():
-				myData[host[myField]] = 0
-			myData[host[myField]] += 1
-
-	del response_data
-
-	myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
-	random.shuffle(myPattern)
-
 	rData = {}
-	rData['labels'] = list(myData.keys())
-	rData['datasets'] = []
-	rData['datasets'].append({
-		"label": myField,
-		"backgroundColor": myPattern,
-		"borderColor": "#0d1a2b",
-		"borderWidth": 5,
-		"data": list(myData.values())
-		})
+	(ret, response_code, response_data) = hx_api_object.restListHosts()
+	if ret:
+		myField = request.args.get('field')
+		myData = {}
+
+		for host in response_data['data']['entries']:
+			if "." in myField:
+				item1, item2 = myField.split(".")
+				if host[item1][item2] not in myData.keys():
+					myData[host[item1][item2]] = 0
+				myData[host[item1][item2]] += 1
+			else:
+				if host[myField] not in myData.keys():
+					myData[host[myField]] = 0
+				myData[host[myField]] += 1
+
+		del response_data
+
+		myPattern = ["#0fb8dc", "#006b8c", "#fb715e", "#59dc90", "#11a962", "#99ddff", "#ffe352", "#f0950e", "#ea475b", "#00cbbe"]
+		random.shuffle(myPattern)
+
+		rData['labels'] = list(myData.keys())
+		rData['datasets'] = []
+		rData['datasets'].append({
+			"label": myField,
+			"backgroundColor": myPattern,
+			"borderColor": "#0d1a2b",
+			"borderWidth": 5,
+			"data": list(myData.values())
+			})
 
 	return(app.response_class(response=json.dumps(rData), status=200, mimetype='application/json'))
 
@@ -2623,9 +2873,10 @@ def chartjs_hosts_initial_agent_checkin(hx_api_object):
 @valid_session_required
 def chartjs_events_timeline(hx_api_object):
 
-	mydates = {}
-	mydates['labels'] = []
-	mydates['datasets'] = []
+	mydates = {
+		'labels' : [],
+		'datasets' : []
+	}
 	mycount = {}
 
 	# Get all dates and calculate delta
@@ -2636,7 +2887,7 @@ def chartjs_events_timeline(hx_api_object):
 	# Generate data for all dates
 	date_list = [endDate - datetime.timedelta(days=x) for x in range(0, delta.days + 1)]
 	for date in date_list[::-1]:
-		mycount[date.strftime("%Y-%m-%d")] = {"IOC": 0, "EXD": 0, "MAL": 0}
+		mycount[date.strftime("%Y-%m-%d")] = { k : 0 for k in hxtool_global.hx_alert_types.keys() }
 
 	# Get alerts
 	(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
@@ -2644,47 +2895,27 @@ def chartjs_events_timeline(hx_api_object):
 		for alert in response_data:
 			# Make sure the date exists
 			if not alert['event_at'][0:10] in mycount.keys():
-				mycount[alert['event_at'][0:10]] = {"IOC": 0, "EXD": 0, "MAL": 0}
-
+				mycount[alert['event_at'][0:10]] = { k : 0 for k in hxtool_global.hx_alert_types.keys() }
+			
 			# Add stats for date
 			mycount[alert['event_at'][0:10]][alert['source']] += 1
 
-		myDataIOC = []
-		myDataEXD = []
-		myDataMAL = []
+		stats_lists = { k : [] for k in hxtool_global.hx_alert_types.keys() }
 
 		for key, stats in mycount.items():
 			mydates['labels'].append(key)
-			myDataIOC.append(stats['IOC'])
-			myDataEXD.append(stats['EXD'])
-			myDataMAL.append(stats['MAL'])
+			for k in hxtool_global.hx_alert_types.keys():
+				stats_lists[k].append(stats[k])
 
-		mydates['datasets'].append({
-			"label": "IOC",
+		for k in hxtool_global.hx_alert_types.keys():
+			mydates['datasets'].append({
+			"label": hxtool_global.hx_alert_types[k]['label'],
 			"backgroundColor": "rgba(17, 169, 98, 0.2)",
 			"borderWidth": 2,
 			"borderColor": "#8fffc1",
 			"pointStyle": "circle",
 			"pointRadius": 2,
-			"data": myDataIOC
-		})
-		mydates['datasets'].append({
-			"label": "EXD",
-			"backgroundColor": "rgba(17, 169, 98, 0.2)",
-			"borderWidth": 2,
-			"borderColor": "#b20032",
-			"pointStyle": "circle",
-			"pointRadius": 2,
-			"data": myDataEXD
-		})
-		mydates['datasets'].append({
-			"label": "MAL",
-			"backgroundColor": "rgba(17, 169, 98, 0.2)",
-			"borderWidth": 2,
-			"borderColor": "#ffe352",
-			"pointStyle": "circle",
-			"pointRadius": 2,
-			"data": myDataMAL
+			"data": stats_lists[k]
 		})
 
 		return(app.response_class(response=json.dumps(mydates), status=200, mimetype='application/json'))
@@ -2696,53 +2927,31 @@ def chartjs_events_timeline(hx_api_object):
 @valid_session_required
 def chartjs_host_alert_timeline(hx_api_object):
 
-	mydates = {}
-	mydates['datasets'] = []
-
-	myIOC = {
-		"label": "IOC",
-		"backgroundColor": "rgba(17, 169, 98, 0.2)",
-		"borderWidth": 2,
-		"borderColor": "#8fffc1",
-		"pointStyle": "circle",
-		"pointRadius": 2,
-		"data": []
+	mydates = {
+		'datasets' : []
 	}
-	myEXD = {
-		"label": "EXD",
-		"backgroundColor": "rgba(17, 169, 98, 0.2)",
-		"borderWidth": 2,
-		"borderColor": "#b20032",
-		"pointStyle": "circle",
-		"pointRadius": 2,
-		"data": []
+	
+	stats_dict = {
+		k : {
+			"label": k,
+			"backgroundColor": "rgba(17, 169, 98, 0.2)",
+			"borderWidth": 2,
+			"borderColor": "#8fffc1",
+			"pointStyle": "circle",
+			"pointRadius": 2,
+			"data": [] }
+			for k in hxtool_global.hx_alert_types.keys() 
 	}
-	myMAL = {
-		"label": "MAL",
-		"backgroundColor": "rgba(17, 169, 98, 0.2)",
-		"borderWidth": 2,
-		"borderColor": "#ffe352",
-		"pointStyle": "circle",
-		"pointRadius": 2,
-		"data": []
-	}
-
-	mydates['datasets'].append(myIOC)
-	mydates['datasets'].append(myEXD)
-	mydates['datasets'].append(myMAL)
+	
 
 	(ret, response_code, response_data) = hx_api_object.restGetAlerts(filter_term={"agent._id": request.args.get("id")})
 	if ret:
 		for alert in response_data['data']['entries']:
-
-			if alert['source'] == "IOC":
-				mydates['datasets'][0]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
-
-			if alert['source'] == "EXD":
-				mydates['datasets'][1]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
-
-			if alert['source'] == "MAL":
-				mydates['datasets'][2]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
+			stats_dict[alert['source']]['data'].append({"x": alert['event_at'][0:19].replace("T", " "), "y": 1})
+			
+			
+		for k, v in stats_dict:
+			mydates['datasets'].append(v)
 
 		return(app.response_class(response=json.dumps(mydates), status=200, mimetype='application/json'))
 	else:
@@ -2753,10 +2962,13 @@ def chartjs_host_alert_timeline(hx_api_object):
 @valid_session_required
 def chartjs_events_distribution(hx_api_object):
 
-	mydata = {}
-	mydata['labels'] = []
-	mydata['datasets'] = []
-	mycount = {}
+	mydata = {
+		'labels' : [ k for k in hxtool_global.hx_alert_types.keys() ],
+		'datasets' : []
+	}
+	mycount = {
+		k : 0 for k in hxtool_global.hx_alert_types.keys()
+	}
 
 	# Get alerts
 	(ret, response_code, response_data) = hx_api_object.restGetAlertsTime(request.args.get('startDate'), request.args.get('endDate'))
@@ -2769,31 +2981,13 @@ def chartjs_events_distribution(hx_api_object):
 			# Add stats
 			mycount[alert['source']] += 1
 
-		mydata['labels'].append("IOC")
-		mydata['labels'].append("EXD")
-		mydata['labels'].append("MAL")
-
-		if 'IOC' in mycount.keys():
-			myDataIOC = mycount["IOC"]
-		else:
-			myDataIOC = 0
-		if 'EXD' in mycount.keys():
-			myDataEXD = mycount["EXD"]
-		else:
-			myDataEXD = 0
-		if 'MAL' in mycount.keys():
-			myDataMAL = mycount["MAL"]
-		else:
-			myDataMAL = 0
-
 		mydata['datasets'].append({
 			"label": "Alert count",
 			"backgroundColor": "rgba(17, 169, 98, 0.2)",
 			"borderColor": "#8fffc1",
 			"borderWidth": 0.5,
-			"data": [myDataIOC, myDataEXD, myDataMAL]
+			"data": [ mycount[k] for k in hxtool_global.hx_alert_types.keys() ]
 		})
-
 
 		return(app.response_class(response=json.dumps(mydata), status=200, mimetype='application/json'))
 	else:
@@ -2866,7 +3060,7 @@ def profile():
 		else:
 			return make_response_by_code(400)
 			
-@ht_api.route('/api/v{0}/profile/<profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
+@ht_api.route('/api/v{0}/profile/<uuid:profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
 def profile_by_id(profile_id):
 	if request.method == 'GET':
 		profile_object = hxtool_global.hxtool_db.profileGet(profile_id)
@@ -2892,7 +3086,7 @@ def profile_by_id(profile_id):
 # Stacking Results #
 ####################
 
-@ht_api.route('/api/v{0}/stacking/<int:stack_job_eid>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
+@ht_api.route('/api/v{0}/stacking/<stack_job_eid>/results'.format(HXTOOL_API_VERSION), methods=['GET'])
 @valid_session_required
 def stack_job_results(hx_api_object, stack_job_eid):
 	stack_job = hxtool_global.hxtool_db.stackJobGet(stack_job_eid = stack_job_eid)

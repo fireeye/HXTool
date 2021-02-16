@@ -1,4 +1,6 @@
 {% import 'widget-radio.html' as htRadio %}
+{% import 'widget-dropdown.html' as htDropdown %}
+{% import 'widget-input.html' as htInput %}
 
 {% macro widgetHeader() -%}
 <script language="javascript">
@@ -34,33 +36,38 @@ $(document).ready(function() {
 </script>
 <h3 class='hxtool_typography_h3 hxtool_typography_underline'>Schedule</h3>
 <div class='hxtool_panel_wrapper'>
-	{{ htRadio.widgetHeader("Run now", "run_now", "schedule", "schedule", elementChecked="true") }}
-	{{ htRadio.widgetHeader("Run at a specific date/time", "run_at", "schedule", "schedule", elementChecked="false") }}
-	<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px; width: 150px;'>
-		<input type='text' class="fe-input" id='run_at_value' name='run_at_value'>
+	{{ htRadio.widgetHeader("Run now", "run_now", "schedule", "schedule", elementChecked="true") }}	
+	<div style='float: left; width: 35%; margin-top: 1%;'>
+		{{ htRadio.widgetHeader("Run at a specific date/time", "run_at", "schedule", "schedule", elementChecked="false") }}
 	</div>
-
+	<div style='margin-left: 35%; width: 25%;'>
+		{{ htInput.widget("", elementId="run_at_value") }}
+	</div>
 	{{ htRadio.widgetHeader("Run on an interval", "run_interval", "schedule", "schedule", elementChecked="false") }}
 	<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>				
-		<span>
-			Every
-			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px; width: 75px;'>
-				<input type='text' class="fe-input" id='interval_value' name='interval_value'>
+				<div style='float: left; width: 15%;'>
+					{{ htInput.widget("Every", elementId="interval_value") }}
+				</div>
+				<div style='margin-left: 16%; padding-top: 1%;'>
+					{{ htDropdown.widgetHeader("Select an interval unit", "interval_unit", "false") }}
+						{{ htDropdown.widgetItem("Second(s)", "second") }}
+						{{ htDropdown.widgetItem("Minute(s)", "minute") }}
+						{{ htDropdown.widgetItem("Hour(s)", "hour") }}
+						{{ htDropdown.widgetItem("Week(s)", "week") }}
+						{{ htDropdown.widgetItem("Month(s)", "month") }}
+					{{ htDropdown.widgetFooter(elementLabel="") }}
+				</div>
+				<br />
+			<h4 class='hxtool_typography_h4'>Starting</h4> 
+			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px;'>		
+				{{ htRadio.widgetHeader("Now", "interval_start_now", "interval_start", "interval_start", elementChecked="true") }}
+				<div style='float: left; width: 33%; margin-top: 1%;'>
+					{{ htRadio.widgetHeader("At a specific date/time", "interval_start_at", "interval_start", "interval_start", elementChecked="false") }}
+				</div>
+				<div style='margin-left: 33%; width: 25%;'>
+					{{ htInput.widget("", elementId="interval_start_value") }}
+				</div>
 			</div>
-			<select class="hxtool_input_select fe-input" name='interval_unit' id='interval_unit' style='width: 150px; display: inline-block;'>
-				<option value='second'>Second(s)
-				<option value='minute'>Minute(s)
-				<option value='hour'>Hour(s)
-				<option value='week'>Week(s)
-				<option value='month'>Month(s)
-			</select>
-		<br />
-		Starting: {{ htRadio.widgetHeader("Now", "interval_start_now", "interval_start", "interval_start", elementChecked="true") }}
-		{{ htRadio.widgetHeader("At a specific date/time", "interval_start_at", "interval_start", "interval_start", elementChecked="false") }}
-			<div style='margin-left: 24px; margin-bottom: 12px; margin-top: 6px; width: 150px;'>
-				<input type='text' class="fe-input" id='interval_start_value' name='interval_start_value'>
-			</div>
-		</span>		
 	</div>
 </div>
 {% endmacro %}
