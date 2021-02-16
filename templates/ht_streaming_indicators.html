@@ -35,6 +35,10 @@
 
 		hxtool_ajax_get_request("/api/v1/streaming_indicator_category/get_edit_policies", "", function(myCategoryPolicies) {
 			myEditPolicies = JSON.parse(myCategoryPolicies['api_response']);
+			const xOpts = {	// see: https://datatables.net/reference/api/buttons.exportData()
+				orthogonal: 'export',
+				columns: [1,2,3,4,5,6,7]
+				};
 
 			ioc_datatable = $('#iocTable').DataTable( {
 				"ajax": "/api/v1/datatable_streaming_indicators",
@@ -45,9 +49,24 @@
 				"processing": false,
 				"dom": '<"hxtool_datatables_buttons"B>frtip',
 				"buttons": [
-					{ extend: "copy", className: "fe-btn", "text": "copy<i class='fe-icon--right fas fa-copy'></i>" },
-					{ extend: "csv", className: "fe-btn", "text": "csv<i class='fe-icon--right fas fa-file'></i>" },
-					{ extend: "excel", className: "fe-btn", "text": "excel<i class='fe-icon--right fas fa-file-excel'></i>" }
+					{ 
+						extend: "copy", 
+						className: "fe-btn", 
+						exportOptions: xOpts,
+						text: "copy<i class='fe-icon--right fas fa-copy'></i>" 
+					},
+					{ 
+						extend: "csv", 
+						className: "fe-btn", 
+						exportOptions: xOpts,
+						text: "csv<i class='fe-icon--right fas fa-file'></i>" 
+					},
+					{ 
+						extend: "excel", 
+						className: "fe-btn", 
+						exportOptions: xOpts,
+						text: "excel<i class='fe-icon--right fas fa-file-excel'></i>"
+					}
 				],
 				"columns": [
 					{ title: "", 				"data": "DT_RowId" },		//0
@@ -57,10 +76,11 @@
 					{ title: "Category", 		"data": "category_name" },	//4
 					{ title: "Last Updated", 	"data": "last_updated" },	//5
 					{ title: "Updated by", 		"data": "updated_by" },		//6
-					{ title: "Action", 			"data": "DT_RowId" }		//7
+					{ title: "Enabled", 		"data": "is_enabled" },		//7
+					{ title: "Action", 			"data": "DT_RowId" }		//8
 				],
 				"columnDefs": [	
-					{"className": "hxtool_table_cell_center", "targets": [3, 4, 5, 6]},
+					{"className": "hxtool_table_cell_center", "targets": [3, 4, 5, 6, 7]},
 					{
 					 "targets": 0,
 					 "width": "34px",
@@ -80,6 +100,23 @@
 					},
 					{
 					 "targets": 7,
+					 "width": "34px",
+					 render: function ( is_enabled, type, row, meta ) {
+						if (type === 'export') {
+							return is_enabled ? 'Yes' : 'No';	// format specific to export
+						}
+
+						r = "<input id='" + row.DT_RowId + "_is_enabled' class='iocAction' data-type='is_enabled' type='checkbox' data-id='" + row.DT_RowId + "' data-name='" + row.name + "'"
+						if (is_enabled) {
+							r += " checked />";
+						} else {
+							r += " />";
+						}
+						return (r);
+					 }
+					},
+					{
+					 "targets": 8,
 					 "width": "350px",
 					 render: function ( data, type, row, meta ) {
 					 	r = "";
@@ -107,6 +144,8 @@
 
 		});
 
+
+
 		$("#iocTable").on("click", ".iocAction", function() {
 			if ($(this).data("type") == "edit") {
 				location.href = "/streamingioc?indicator=" + encodeURIComponent($(this).data("url"));
@@ -120,6 +159,27 @@
 					myrow.fadeOut(200, function() {
 						ioc_datatable.row(myrow).remove().draw();
 					});
+				});
+			}
+			if ($(this).data("type") == "is_enabled") {
+				let is_enabled = false;
+				if (this.checked) {
+					is_enabled = true;
+				}
+				let msg = "Rule: " + $(this).data('name') + " has been " + (is_enabled?"enabled":"disabled") + "!"
+
+				// update the bound data
+				let cell = ioc_datatable.cell($(this).parent());
+				cell.data(is_enabled);
+
+				let form = new FormData();
+				data = {};
+				data["id"] = $(this).data("id");
+				data["is_enabled"] = is_enabled;
+				form.append('data', JSON.stringify(data))
+				hxtool_ajax_post_request("/api/v1/streaming_indicators/enable", form, function() {
+					$("#hxtoolMessageBody").html(msg);
+					$("#hxtoolMessage").show();
 				});
 			}
 			if ($(this).data("type") == "view") {
