@@ -11,7 +11,7 @@
 		r += "<ul><li>or<ul>";
 
 		$.each(myConditions, function(key, value) {
-			r += "<li>and<ul>";
+			r += "<li>and <span class = 'streaming_condition_id'>(" + value['id'] + ")</span><ul>";
 			$.each(value['condition']['tests'], function(ckey, cvalue) {
 				r += "<li>";
 				if (cvalue['negate'] == true) {
@@ -90,6 +90,12 @@
 							r += "<input id='" + row.DT_RowId + "_check' type='checkbox' />";
 					 	}
 					 	return (r);
+					 }
+					},
+					{
+					 "targets":1,
+					 render: function ( data, type, row, meta ) {
+					 	return (row.name + '<br><span class=streaming_ioc_id>' + row.DT_RowId + '</span>');
 					 }
 					},
 					{
