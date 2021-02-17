@@ -9,9 +9,10 @@ import hashlib
 import threading
 import datetime
 
+import hxtool_global
 import hxtool_logging
 from hx_lib import *
-from hxtool_scheduler import *
+from hxtool_scheduler_task import hxtool_scheduler_task
 
 logger = hxtool_logging.getLogger(__name__)
 

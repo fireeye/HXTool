@@ -22,6 +22,7 @@ from hx_lib import *
 from hxtool_util import *
 from hxtool_data_models import *
 from hxtool_scheduler import *
+from hxtool_scheduler_task import *
 from hxtool_task_modules import *
 from hx_openioc import openioc_to_hxioc
 
@@ -620,10 +621,10 @@ def scheduler_tasks(hx_api_object):
 			taskstates = {}
 			for subtask in hxtool_global.hxtool_scheduler.tasks():
 				if subtask['parent_id'] == task['task_id']:
-					if not task_state_description.get(subtask['state'], "Unknown") in taskstates.keys():
-						taskstates[task_state_description.get(subtask['state'], "Unknown")] = 1
+					if not task_states.description.get(subtask['state'], "Unknown") in taskstates.keys():
+						taskstates[task_states.description.get(subtask['state'], "Unknown")] = 1
 					else:
-						taskstates[task_state_description.get(subtask['state'], "Unknown")] += 1
+						taskstates[task_states.description.get(subtask['state'], "Unknown")] += 1
 
 			mytasks['data'].append({
 				"DT_RowId": task['task_id'],
@@ -635,7 +636,7 @@ def scheduler_tasks(hx_api_object):
 				"last_run": str(task['last_run']),
 				"next_run": str(task['next_run']),
 				"immutable": task['immutable'],
-				"state": task_state_description.get(task['state'], "Unknown"),
+				"state": task_states.description.get(task['state'], "Unknown"),
 				"action": task['task_id']
 				})
 	return(app.response_class(response=json.dumps(mytasks), status=200, mimetype='application/json'))
