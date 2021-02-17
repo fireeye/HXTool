@@ -23,11 +23,6 @@ import hxtool_task_modules
 
 logger = hxtool_logging.getLogger(__name__)
 
-try:
-	import keyring
-except ImportError:
-	logger.error("The HXTool scheduler requires the keyring module in order to securely store credentials needed to interact with the controller. Please install it.")
-	exit(1)
 
 TASK_API_KEY = 'Z\\U+z$B*?AiV^Fr~agyEXL@R[vSTJ%N&'.encode(default_encoding)
 
