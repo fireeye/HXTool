@@ -331,8 +331,22 @@ class HXAPI:
 		(ret, response_code, response_data, response_headers) = self.handle_response(request)
 		
 		return(ret, response_code, response_data)
+		
+	##################
+	# Module Support #
+	##################
+	
+	def restListModules(self, limit=DEFAULT_LIMIT, offset=0, query_terms = {}):
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}
+		params.update(query_terms)
 
-
+		request = self.build_request('/hx/api/services/plugin', params=params)
+		(ret, response_code, response_data, response_headers) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
 	
 	## IOC Streaming
 	################
