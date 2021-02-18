@@ -716,3 +716,7 @@ if __name__ == "__main__":
 	else:
 		app.run(host=hxtool_global.hxtool_config['network']['listen_address'], 
 				port=hxtool_global.hxtool_config['network']['port'])
+				
+else:
+	# Running under gunicorn/mod_wsgi
+	app_init(debug = False)
