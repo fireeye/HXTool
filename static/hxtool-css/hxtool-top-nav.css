@@ -32,6 +32,17 @@
 	text-align: right;
 }
 
+.hxtool_topnav_dropdown_divider {
+	width: 100%;
+	margin-right: 0px;
+	border-top: 1px solid;
+	height: 16px;
+	padding-bottom: 0px;
+	padding-left: 8px;
+	font-size: 10px;
+	color: #b3cacf;
+}
+
 .hxtool_topnav_mainbutton {
 	background: transparent;
 	color: #0fb8dc;
