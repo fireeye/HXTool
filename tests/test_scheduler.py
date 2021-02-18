@@ -9,6 +9,7 @@ import logging
 sys.path.append('../')
 
 from hxtool_scheduler import *
+from hxtool_scheduler_task import hxtool_scheduler_task
 import hxtool_global
 
 class test_scheduler:

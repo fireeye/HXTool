@@ -8,6 +8,7 @@ from collections import deque
 
 from hx_lib import *
 from hxtool_scheduler import *
+from hxtool_scheduler_task import hxtool_scheduler_task
 from hxtool_db import *
 
 

@@ -112,11 +112,7 @@ def host_view(hx_api_object):
 	mytaskprofiles = hxtool_global.hxtool_db.taskProfileList()
 	taskprofiles = formatTaskprofilesFabric(mytaskprofiles)
 
-	with open(combine_app_path("static", "alert_types.json"), 'r') as f:
-		alerttypes = f.read()
-		f.close()
-
-	return render_template('ht_host_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), scripts=scripts, taskprofiles=taskprofiles, alerttypes=alerttypes)
+	return render_template('ht_host_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), scripts=scripts, taskprofiles=taskprofiles, alerttypes=json.dumps(hxtool_global.hx_alert_types))
 
 ### Alerts page
 @app.route('/alert', methods=['GET'])
@@ -720,3 +716,7 @@ if __name__ == "__main__":
 	else:
 		app.run(host=hxtool_global.hxtool_config['network']['listen_address'], 
 				port=hxtool_global.hxtool_config['network']['port'])
+				
+else:
+	# Running under gunicorn/mod_wsgi
+	app_init(debug = False)
