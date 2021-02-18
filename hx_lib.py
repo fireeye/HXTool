@@ -132,6 +132,9 @@ class HXAPI:
 		if not min_api_version:
 			min_api_version = self.api_version
 		return '/hx/api/v{0}/{1}'.format(min_api_version, api_endpoint)
+
+	def build_module_api_route(self, module_name, api_endpoint, min_api_version):
+		return '/hx/api/plugins/{0}/v{1}/{2}'.format(module_name, min_api_version, api_endpoint)
 		
 	def handle_response(self, request, multiline_json = False, multiline_json_limit = DEFAULT_LIMIT, stream = False):
 		
@@ -330,6 +333,135 @@ class HXAPI:
 		return(ret, response_code, response_data)
 
 
+	
+	## IOC Streaming
+	################
+	STREAMING_MODULE_NAME = 'ioc-streaming'
+	STREAMING_MODULE_API_VER = '1'
+
+	# List streaming indicators
+	def restListStreamingIndicators(self, limit=DEFAULT_LIMIT, offset=0, sort_term=None, filter_term={}, query_terms = {}):
+		
+		params = {
+			'limit' : limit,
+			'offset' : offset
+		}
+		if sort_term:
+			params['sort'] = sort_term
+		if filter_term:
+			params['filter'] = filter_term
+		params.update(query_terms)
+		
+		request = self.build_request(self.buildStreamingIndicatorURI(), params = params)
+		(ret, response_code, response_data, _) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	# List conditions for a streaming indicator
+	def restListConditionsForStreamingIndicator(self, indicator_id):
+		
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=indicator_id) + '/conditions')
+		(ret, response_code, response_data, _) = self.handle_response(request)
+
+		# filter out deleted conditions
+		not_deleted = list(filter(lambda x: x['deleted'] == False, response_data['data']['entries']))
+		response_data['data']['entries'] = not_deleted
+		return(ret, response_code, response_data)		
+
+	# build the URI for the Indicators endpoint.  Accommodate a specific indicator if provided
+	def buildStreamingIndicatorURI(self, api_endpoint='indicators', indicator_id=None):
+		uri = self.build_module_api_route(module_name=self.STREAMING_MODULE_NAME, 
+										  min_api_version=self.STREAMING_MODULE_API_VER,
+										  api_endpoint=api_endpoint)
+		if indicator_id:
+			uri += '/{0}'.format(indicator_id)
+		return uri
+
+	# Add a new streaming indicator
+	def restAddStreamingIndicator(self, ioc_category, display_name, create_text=None, platforms=None, description=None, enabled=True):
+
+		data = {
+			'name' 	  : display_name,
+			'enabled' : enabled
+		}
+		if create_text:
+			data['created_by'] = create_text
+			data['updated_by'] = create_text
+		if platforms:
+			data['platforms'] = platforms
+		if description:
+			data['description'] = description
+
+		body = {}
+		body['indicators'] = []
+		body['indicators'].append(data)
+		
+		request = self.build_request(self.buildStreamingIndicatorURI(), method = 'POST', data = json.dumps(body))
+		(ret, response_code, response_data, _) = self.handle_response(request)
+		if ret:
+			response_data = response_data['data']['entries'][0]
+
+		return(ret, response_code, response_data)	
+		
+	# Enable/Disable a streaming indicator
+	def restEnableStreamingIndicator(self, ioc_id, is_enabled = True):
+		endpoint_suffix = '/enable' if is_enabled else '/disable'
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id) + endpoint_suffix, method = 'POST')
+		(ret, response_code, response_data, _) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+
+	# Add a new streaming condition
+	def restAddStreamingCondition(self, ioc_category, ioc_id, condition_class, condition_data):
+
+		body = {}
+		body['conditions'] = []
+		body['conditions'].append(condition_data)
+
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id) + '/conditions', method = 'POST', data = json.dumps(body))
+		(ret, response_code, response_data, _) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+	
+	# Delete a streaming indicator by id
+	def restDeleteStreamingIndicator(self, indicator_category, ioc_id):
+		self.restDeleteAllConditionsFromStreamingIndicator(
+													indicator_category=indicator_category,
+													ioc_id=ioc_id)
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id), method = 'DELETE')
+		(ret, response_code, response_data, _) = self.handle_response(request)
+		
+		return(ret, response_code, response_data)
+	
+	# Delete a condition from a streaming indicator by id
+	def restDeleteConditionFromStreamingIndicator(self, indicator_category, ioc_id, condition_id):
+		
+		# detach the condition from the indicator
+		request = self.build_request(self.buildStreamingIndicatorURI(indicator_id=ioc_id) + '/conditions/{0}'.format(condition_id), method = 'DELETE')
+		(ret, response_code, response_data, _) = self.handle_response(request)
+
+		# delete the condition
+		if ret:
+			request = self.build_request(self.buildStreamingIndicatorURI(api_endpoint='conditions') + '/{0}'.format(condition_id), method = 'DELETE')
+			(ret, response_code, response_data, _) = self.handle_response(request)
+
+		return(ret, response_code, response_data)
+	
+	# Delete all conditions from a streaming indicator by id
+	def restDeleteAllConditionsFromStreamingIndicator(self, indicator_category, ioc_id):
+		
+		(ret, response_code, response_data) = self.restListConditionsForStreamingIndicator(indicator_id=ioc_id)
+		if ret:
+			myConditions = response_data['data']['entries']
+			for condition in myConditions:
+				condition_id = condition['id']
+				self.logger.debug('Deleting condition {0} from indicator {1}'.format(condition_id, ioc_id))
+				(ret_2, response_code, response_data) = self.restDeleteConditionFromStreamingIndicator('', ioc_id=ioc_id, condition_id=condition_id)
+				if not ret_2:
+					self.logger.error('Deleting condition {0} from indicator {1} yielded error [{2}] with reason [{3}]'.format(condition_id, ioc_id, response_code, response_data))
+					ret = ret_2
+
+		return(ret, response_code, response_data)
 	
 	## Indicators
 	#############

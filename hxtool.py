@@ -44,6 +44,7 @@ from hxtool_data_models import *
 from hxtool_session import *
 from hxtool_scheduler import *
 from hxtool_apicache import *
+from hxtool_api import indicator_dict_from_indicator
 
 # Import HXTool API Flask blueprint
 from hxtool_api import ht_api
@@ -218,14 +219,73 @@ def indicatorsqueue(hx_api_object):
 def categories(hx_api_object):
 	return render_template('ht_categories.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
 
+### Streaming indicators
+@app.route('/streaming_indicators', methods=['GET', 'POST'])
+@valid_session_required
+def streaming_indicators(hx_api_object):
+	return render_template('ht_streaming_indicators.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port))
+
+@app.route('/streamingioc', methods=['GET'])
+@valid_session_required
+def streamingioc(hx_api_object):
+			
+	eventspace = eventspace_from_file()
+
+	if request.args.get('indicator'):
+
+		url = request.args.get('indicator')
+
+		(ret, response_code, response_data) = hx_api_object.restListCategories()
+		categories = formatCategoriesSelect(response_data)
+
+		(ret, response_code, response_data) = hx_api_object.restGetUrl(url, include_params=True)
+		if ret:
+			indicator = indicator_dict_from_indicator(indicator=response_data['data'], hx_api_object=hx_api_object)
+			iocname 		= indicator['name']
+			myiocuri 		= indicator['url']
+			ioccategory 	= indicator['category_name']
+			mydescription 	= indicator['description']
+			if len(indicator['platforms']) == 1:
+				platform = indicator['platforms'][0]
+			else:
+				platform = "all"
+
+			if request.args.get('clone'):
+				ioccategory = "Custom"
+
+			(ret, response_code, conditions) = hx_api_object.restListConditionsForStreamingIndicator(indicator['DT_RowId'])
+			
+			myconditions = json.dumps(conditions['data']['entries'])
+
+		return render_template(
+							'ht_streaming_indicator_create_edit.html',
+							user=session['ht_user'], 
+							controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), 
+							categories=categories, 
+							iocname=iocname, 
+							myiocuri=myiocuri, 
+							myioccategory=ioccategory,
+							mydescription=mydescription, 
+							ioccategory=json.dumps(ioccategory), 
+							myconditions = myconditions,
+							platform=json.dumps(platform), 
+							eventspace=eventspace)
+	else:
+		(ret, response_code, response_data) = hx_api_object.restListCategories()
+		categories = formatCategoriesSelect(response_data)
+		return render_template(
+							'ht_streaming_indicator_create_edit.html', 
+							user=session['ht_user'], 
+							controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), 
+							categories=categories, 
+							eventspace=eventspace)
+
 ### Real-time indicators
 @app.route('/rtioc', methods=['GET'])
 @valid_session_required
 def rtioc(hx_api_object):
 			
-	myEventFile = open(combine_app_path('static/eventbuffer.json'), 'r')
-	eventspace = myEventFile.read()
-	myEventFile.close()
+	eventspace = eventspace_from_file()
 
 	if request.args.get('indicator'):
 
@@ -256,12 +316,33 @@ def rtioc(hx_api_object):
 			if request.args.get('clone'):
 				ioccategory = "Custom"
 
-		return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, iocname=iocname, myiocuri=myiocuri, myioccategory=ioccategory, mydescription=mydescription, ioccategory=json.dumps(ioccategory), platform=json.dumps(platform), mypre=mypre, myexec=myexec, eventspace=eventspace)
+		return render_template(
+							'ht_indicator_create_edit.html', 
+							user=session['ht_user'], 
+							controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), 
+							categories=categories, 
+							iocname=iocname, 
+							myiocuri=myiocuri, 
+							myioccategory=ioccategory, 
+							mydescription=mydescription, 
+							ioccategory=json.dumps(ioccategory), 
+							platform=json.dumps(platform), 
+							mypre=mypre, 
+							myexec=myexec, 
+							eventspace=eventspace)
 	else:
 		(ret, response_code, response_data) = hx_api_object.restListCategories()
 		categories = formatCategoriesSelect(response_data)
-		return render_template('ht_indicator_create_edit.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), categories=categories, eventspace=eventspace)
+		return render_template(
+							'ht_indicator_create_edit.html', 
+							user=session['ht_user'], 
+							controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), 
+							categories=categories, 
+							eventspace=eventspace)
 
+def eventspace_from_file():
+	with open(combine_app_path('static/eventbuffer.json'), 'r') as myEventFile:
+		return myEventFile.read()
 
 # TODO: These two functions should be merged at some point
 @app.route('/bulkdownload', methods = ['GET'])
@@ -459,7 +540,6 @@ def sigint_handler(signum, frame):
 		hxtool_global.hxtool_db.close()
 	exit(0)	
 
-
 def init_db():
 	# Init DB
 	# Check if MongoDB is enabled as the database, otherwise, fallback to TinyDB
@@ -640,7 +720,3 @@ if __name__ == "__main__":
 	else:
 		app.run(host=hxtool_global.hxtool_config['network']['listen_address'], 
 				port=hxtool_global.hxtool_config['network']['port'])
-	
-else:
-	# Running under gunicorn/mod_wsgi
-	app_init(debug = False)
