@@ -47,7 +47,6 @@ def valid_session_required(f):
 		ret = redirect(url_for('login', redirect_uri = request.full_path))	
 		if (session and 'ht_user' in session and 'ht_api_object' in session):
 			o = HXAPI.deserialize(session['ht_api_object'])
-			h = hash(o)
 			if o.restIsSessionValid():
 				kwargs['hx_api_object'] = o
 				ret = f(*args, **kwargs)
