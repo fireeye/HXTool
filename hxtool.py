@@ -501,6 +501,12 @@ def login():
 					session['hx_int_version'] = int(''.join(str(i) for i in hx_api_object.hx_version))
 					session['hx_ip'] = hx_api_object.hx_host
 					session['ht_database_engine'] = hxtool_global.hxtool_db.database_engine
+					(m_ret, m_response_code, m_response_data) = hx_api_object.restListModules(query_terms = {'status' : 'enabled'})
+					if m_ret:
+						enabled_module_names = [ _['name'] for _ in m_response_data['data'] ]
+						session['hx_enabled_modules'] = enabled_module_names
+					else:
+						logger.info("Failed to retreive enabled modules. Error: {}".format(m_response_data))
 					logger.info(format_activity_log(msg="user logged in", user=session['ht_user'], controller=session['hx_ip']))
 					redirect_uri = request.args.get('redirect_uri')
 					if not redirect_uri:
