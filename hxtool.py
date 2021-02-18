@@ -111,7 +111,7 @@ def host_view(hx_api_object):
 	mytaskprofiles = hxtool_global.hxtool_db.taskProfileList()
 	taskprofiles = formatTaskprofilesFabric(mytaskprofiles)
 
-	return render_template('ht_host_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), scripts=scripts, taskprofiles=taskprofiles, alerttypes=hxtool_global.hx_alert_types)
+	return render_template('ht_host_view.html', user=session['ht_user'], controller='{0}:{1}'.format(hx_api_object.hx_host, hx_api_object.hx_port), scripts=scripts, taskprofiles=taskprofiles, alerttypes=json.dumps(hxtool_global.hx_alert_types))
 
 ### Alerts page
 @app.route('/alert', methods=['GET'])
