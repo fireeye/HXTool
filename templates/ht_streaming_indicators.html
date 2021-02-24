@@ -80,7 +80,7 @@
 					{ title: "Action", 			"data": "DT_RowId" }		//8
 				],
 				"columnDefs": [	
-					{"className": "hxtool_table_cell_center", "targets": [3, 4, 5, 6, 7]},
+					{"className": "hxtool_table_cell_center", "targets": [3, 4, 5, 6, 7, 8]},
 					{
 					 "targets": 0,
 					 "width": "34px",
@@ -94,6 +94,7 @@
 					},
 					{
 					 "targets":1,
+					 "width": "250px",
 					 render: function ( data, type, row, meta ) {
 						if (type === 'export') {
 							return (row.name)
@@ -101,6 +102,10 @@
 					 	return (row.name + '<br><span class=streaming_ioc_id>' + row.DT_RowId + '</span>');
 					 }
 					},
+					{
+					 "targets":2,
+					 "width": "440px"
+					},					
 					{
 					 "targets": 5,
 					 render: function ( data, type, row, meta ) {
