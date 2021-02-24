@@ -16,7 +16,7 @@ from multiprocessing import cpu_count, TimeoutError
 import hxtool_logging
 import hxtool_global
 from hx_lib import HXAPI
-from hxtool_util import pretty_exceptions
+from hxtool_util import pretty_exceptions, crypt_pbkdf2_hmacsha256, crypt_aes
 from hxtool_vars import default_encoding
 # TODO: Move background API session initialization out of scheduler
 from hxtool_scheduler_task import hxtool_scheduler_task, task_states

@@ -94,7 +94,33 @@
 		}
 		
 		$(document).ready(function() {
-			hxtool_doc_ready();		
+
+			/* Hide menu items based on capabilities */
+			myDBEngine = "{{session['ht_database_engine']}}";
+			myHXModules = [];
+
+			{% for mymodule in session['hx_enabled_modules'] %}
+				myHXModules.push("{{ mymodule }}");
+			{% endfor %}
+
+			/* Hide all mongoDB related items if we are using another database */
+			if (myDBEngine != "mongodb") {
+				$("#topnav_auditexplorer").prev().hide();
+				$("#topnav_auditexplorer").hide();
+				$("#topnav_manageaudits").prev().hide();
+				$("#topnav_manageaudits").hide();
+			}
+
+			/* Hide IOC Streaming rules if the IOC Streaming modules isn't installed */
+			if (!myHXModules.includes("ioc-streaming")) {
+				$("#topnav_iocstreaming_label").prev().hide();
+				$("#topnav_iocstreaming_label").hide();
+				$("#topnav_iocstreaming").prev().hide();
+				$("#topnav_iocstreaming").hide();
+			}
+
+			hxtool_doc_ready();
+
 		});
 	</script>
 	</body>
@@ -152,8 +178,8 @@
 					<div class='hxtool_topnav_dropdown'>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scriptbuilder'>script builder</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scripts'>manage scripts</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/auditexplorer'>audit explorer</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/auditmanager'>manage audits</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/auditexplorer' id='topnav_auditexplorer'>audit explorer</button><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/auditmanager' id='topnav_manageaudits'>manage audits</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/acqs'>acquisitions</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/bulkacq'>bulk acquisitions</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/multifile'>multi-file acquisitions</button><br>
@@ -173,8 +199,8 @@
 						<!--<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/indicatorqueue'>rule queue</button><br>-->
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/indicators'>manage rules</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/categories'>manage rule categories</button><br>
-						<label class='hxtool_topnav_dropdown_divider fe-label'>Streaming</label><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/streaming_indicators'>manage streaming rules</button><br>
+						<label class='hxtool_topnav_dropdown_divider fe-label' id='topnav_iocstreaming_label'>Streaming</label><br>
+						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/streaming_indicators' id='topnav_iocstreaming'>manage streaming rules</button><br>
 					</div>
 				</li>
 				<li class="fe-top-nav__bar-nav-items">
