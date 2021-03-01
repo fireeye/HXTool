@@ -26,5 +26,9 @@
     "UACPROTECT": {
         "label": "UAC Protect",
         "threat_key": "event_values.#0.name"
+    },
+	"AMSI": {
+        "label": "AMSI",
+        "threat_key": "event_values.#0.name"
     }
 }

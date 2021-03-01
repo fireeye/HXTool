@@ -164,7 +164,19 @@
 	function generateScript() {
 
 		myScript = {"commands": []}
-
+		
+		try{
+           can_parse = $.parseXML($("#scriptJobFilter").val());
+		   if (can_parse) {
+			   myScript['jobfilter'] = [];
+			   // TODO: handle multiple job filters
+			   myScript['jobfilter'].push({ 
+					"type" : "ioc1.1",
+					"value" : $('#scriptJobFilter').val().replace('"', '\"')
+			   });
+		   }
+        } catch {};
+		
 		$('#tabMenu li').each(function(i, li) {
 			myIdArr = $(li).attr('id').split("_");
 			myId = myIdArr[1];
@@ -342,7 +354,8 @@
 		{{ htDropdown.widgetItem("Apple MacOS", "osx", elementIcon="fa-apple") }}
 		{{ htDropdown.widgetItem("Linux", "linux", elementIcon="fa-linux") }}
 		{{ htDropdown.widgetFooter(elementLabel="Select the target platform") }}
-
+		<h3 class='hxtool_typography_h3'>Job Filter</h3>
+		{{ htTextArea.widget("Job Filter", elementHint="Add an OpenIOC formatted indicator here with elements that match the audit modules selected.", elementId="scriptJobFilter", elementWidth="400") }}
 		<h3 class='hxtool_typography_h3'>Audit modules</h3>
 		{{ htDropdown.widgetHeader("Select audit module", "add_audit", "false", elementAdditionalClass="hxtool_dynamic-dropdown") }}
 		{{ htDropdown.widgetFooter(elementLabel="Select an audit module to add it to the script") }}
