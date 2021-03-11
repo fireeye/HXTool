@@ -107,6 +107,22 @@
 				]
 			});
 			$('div.dataTables_filter input').addClass("fe-input");
+			
+			// Render categories
+			hxtool_ajax_get_request("/api/v1/indicator_category/list", "", function(setResponse) {
+				myCategoryResponse = JSON.parse(setResponse['api_response']);
+				mycats = [];
+				$.each(myCategoryResponse['data']['entries'], function( index, value ) {
+					mycats.push({"elementText": value['uri_name'], "elementId": value['uri_name'], "elementIcon": "fa-check"});
+					if ( typeof ioccategory === 'undefined' ) {
+						if (value['uri_name'] == "Custom") { catsDefault = value['uri_name']; catsDefaultName = value['uri_name']; }
+					}
+					else {
+						if (value['uri_name'] == ioccategory) { catsDefault = value['uri_name']; catsDefaultName = value['uri_name']; }
+					}
+				});
+				$("#categoryContainer").html(generateDropDown(catsDefaultName, "ruleImportCategory", catsDefault, entries=mycats, false, false));
+			});
 
 		});
 
@@ -167,7 +183,10 @@
 			$.each($('#ruleImportFile').prop('files'), function(key, value) {
 				data.append("ruleImport", value);
 			});
-
+			
+			data.append('category', $('#ruleImportCategory').data("id"));
+			data.append('platform', $('#ruleImportPlatform').data("id"));
+			
 			hxtool_ajax_post_request("/api/v1/indicators/import", data, function() {
 				ioc_datatable.ajax.reload();
 			});
@@ -243,11 +262,21 @@
 	<button class="fe-btn fe-btn--md fe-btn--secondary" id="ruleViewDismiss" aria-label="Dismiss"><span> Dismiss </span></button>
 {{ htModal.widgetFooter() }}
 
-{{ htModal.widgetHeader("Import indicators", modalId="ruleImportPopup", modalSize="small") }}
-	<h3 class='hxtool_typography_h3'>Upload hxtool exported rules</h3>
+{{ htModal.widgetHeader("Import rule(s)", modalId="ruleImportPopup", modalSize="medium") }}
+	<h4 class='hxtool_typography_h3'>Rule category</h4>
+	<div id='categoryContainer'></div>
+	<span class="fe-input-hint-text">Category selection will be used when the indicator has no category element in the content</span>
+	<h4 class='hxtool_typography_h3'>Platform</h4>
+		{{ htDropdown.widgetHeader("Microsoft Windows", "ruleImportPlatform", "win") }}
+		{{ htDropdown.widgetItem("Microsoft Windows", "win", elementIcon="fa-windows") }}
+		{{ htDropdown.widgetItem("Apple MacOS", "osx", elementIcon="fa-apple") }}
+		{{ htDropdown.widgetItem("Linux", "linux", elementIcon="fa-linux") }}
+		{{ htDropdown.widgetItem("All", "all", elementIcon="fas fa-globe") }}
+		{{ htDropdown.widgetFooter(elementLabel="Platform selection will be used when the indicator has no platform element in the content") }}
+	<h4 class='hxtool_typography_h3'>Rule file(s)</h4>
 	<input class="fe-btn fe-btn--sm fe-btn--primary active" style='background: transparent;' type='file' id='ruleImportFile' name='ruleImportFile' multiple>
-	<br>
-	<h5>HXTool rule and OpenIOC 1.1 format only! <br>(No STIX/TAXII/YARA formats)</h5>
+	<br />
+	<span class="fe-input-hint-text">HXTool rule and OpenIOC 1.1 format only! (STIX/TAXII/YARA are not supported)</span>
 {{ htModal.widgetMiddle() }}
 	<button class="fe-btn fe-btn--md fe-btn--secondary" id="ruleImportCancel" aria-label="Cancel"><span> Cancel </span></button>
 	<button class="fe-btn fe-btn--md fe-btn--primary" id="ruleImportSubmit" aria-label="Submit"><span> Submit </span></button>

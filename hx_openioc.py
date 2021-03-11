@@ -110,7 +110,7 @@ def generate_conditions(elem):
 	# return result
 	return conds
 
-def generate_indicator(root):
+def generate_indicator(root, platform_fallback=[]):
 	m = root.find('{http://openioc.org/schemas/OpenIOC_1.1}metadata')
 	meta = {}
 	
@@ -152,6 +152,8 @@ def generate_indicator(root):
 	
 	if len(platform) > 0:
 		meta['platforms'] = platform
+	elif len(platform_fallback) > 0:
+		meta['platforms'] = platform_fallback
 	else:
 		# Assume all platforms
 		meta['platforms'] = [ 'win', 'osx', 'linux' ]
@@ -160,7 +162,7 @@ def generate_indicator(root):
 	return meta
 	
 #Parse IOC
-def process_ioc(ioc):
+def process_ioc(ioc, platform_fallback=[]):
 	root = ioc.getroot()
 	indicator_id = root.get('id')
 	indicator = {
@@ -171,7 +173,7 @@ def process_ioc(ioc):
 	}
 	
 	# Generate indicator data
-	ind = generate_indicator(root)
+	ind = generate_indicator(root, platform_fallback)
 	try: 
 		ind['display_name'].encode('ascii')
 	except:
@@ -205,14 +207,14 @@ def process_ioc(ioc):
 		
 	return indicator
 
-def openioc_to_hxioc(xml_content):
+def openioc_to_hxioc(xml_content, platform_fallback=[]):
 	et.register_namespace('xsd','http://www.w3.org/2001/XMLSchema')
 	et.register_namespace('xsi','http://www.w3.org/2001/XMLSchema-instance')
 	et.register_namespace('','http://openioc.org/schemas/OpenIOC_1.1')
 	
 	try:
 		openioc_xml = et.ElementTree(et.fromstring(xml_content))
-		return process_ioc(openioc_xml)
+		return process_ioc(openioc_xml, platform_fallback)
 	except Exception as e:
 		logger.warning('OpenIOC 1.1 indicator parsing failed with exception: {}'.format(e))
 		return None
