@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-logger = hxtool_logging.getLogger(__name__)
-
-try:
-	import keyring
-except ImportError:
-	logger.error("The HXTool scheduler requires the keyring module in order to securely store credentials needed to interact with the controller. Please install it.")
-	exit(1)
-
 import threading
 import datetime
 from argparse import Namespace
@@ -23,6 +15,14 @@ from hxtool_vars import default_encoding
 # TODO: Move background API session initialization out of scheduler
 from hxtool_scheduler_task import hxtool_scheduler_task, task_states
 from hxtool_task_modules import task_api_session_module
+
+logger = hxtool_logging.getLogger(__name__)
+
+try:
+	import keyring
+except ImportError:
+	logger.error("The HXTool scheduler requires the keyring module in order to securely store credentials needed to interact with the controller. Please install it.")
+	exit(1)
 
 MAX_HISTORY_QUEUE_LENGTH = 1000
 
