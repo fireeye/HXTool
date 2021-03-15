@@ -1320,15 +1320,21 @@ def hxtool_api_indicators_import(hx_api_object):
 		try: 
 			iocs = json.loads(file_content)
 		except json.decoder.JSONDecodeError:
-			iocs = openioc_to_hxioc(file_content)
+			import_platform = request.form.get('platform', '')
+			if import_platform == "all":
+				import_platform = ['win', 'osx', 'linux']
+			else:
+				import_platform = [import_platform]
+			iocs = openioc_to_hxioc(file_content, import_platform)
 			if iocs is None:
 				app.logger.warn(format_activity_log(msg="rule action fail", reason="{} is not a valid Endpoint Security (HX) JSON or OpenIOC 1.1 indicator." .format(file.filename), action="import", user=session['ht_user'], controller=session['hx_ip']))
 				continue
 		
 		for iockey in iocs:
-			# TODO: Add category selection to import dialog
+			# Default to custom if no category is in the IOC content
+			# and no category is sent in the request
 			if iocs[iockey].get('category', None) is None:
-				iocs[iockey]['category'] = "Custom"
+				iocs[iockey]['category'] = request.form.get('category', 'Custom')
 			
 			# Check if category exists
 			category_exists = False
