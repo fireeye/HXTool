@@ -77,7 +77,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_audits.insert_one(auditdata)
 
 	def auditRemove(self, myid):
-		return self._db_audits.remove({"bulk_acquisition_id": int(myid)})
+		return self._db_audits.delete_one({"bulk_acquisition_id": int(myid)})
 
 	def auditQueryAggregate(self, query, qlimit = 1000):
 		query.append({ "$limit": qlimit })
@@ -111,13 +111,13 @@ class hxtool_mongodb(hxtool_db):
 
 	def profileDelete(self, profile_id):
 		self.backgroundProcessorCredentialRemove(profile_id)	
-		return self._db_profile.remove( { "profile_id": profile_id } )
-
+		return self._db_profile.delete_one( { "profile_id": profile_id } )
+		
 	def backgroundProcessorCredentialCreate(self, profile_id, hx_api_username):
 		return self._db_background_processor_credential.insert_one({'profile_id' : profile_id, 'hx_api_username' : hx_api_username})
 		
 	def backgroundProcessorCredentialRemove(self, profile_id):
-		return self._db_background_processor_credential.remove( { "profile_id": profile_id } )
+		return self._db_background_processor_credential.delete_one( { "profile_id": profile_id } )
 			
 	def backgroundProcessorCredentialGet(self, profile_id):
 		return self._db_background_processor_credential.find_one( { "profile_id": profile_id } )
@@ -188,7 +188,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_bulk_download.update_one( { "_id": ObjectId(bulk_download_eid) }, { "$unset": { "hosts." + host_id } } )
 	
 	def bulkDownloadDelete(self, bulk_download_eid):
-		return self._db_bulk_download.remove({ "_id": ObjectId(bulk_download_eid) })
+		return self._db_bulk_download.delete_one({ "_id": ObjectId(bulk_download_eid) })
 	
 	def fileListingCreate(self, profile_id, username, bulk_download_eid, path, regex, depth, display_name, api_mode=False):
 		ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
@@ -225,7 +225,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_file_listing.update_one( { "_id": ObjectId(file_listing_id) }, { "$set": { "stopped": True, "update_timestamp": HXAPI.dt_to_str(datetime.datetime.utcnow()) } } )
 	
 	def fileListingDelete(self, file_listing_id):
-		return self._db_file_listing.remove( { "_id": ObjectId(file_listing_id) } )
+		return self._db_file_listing.delete_one( { "_id": ObjectId(file_listing_id) } )
 	
 	def multiFileCreate(self, username, profile_id, display_name=None, file_listing_id=None, api_mode=False):
 		ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
@@ -258,7 +258,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_multi_file.update_one( { "_id": ObjectId(multi_file_id) }, { "$set": { "stopped": True, "update_timestamp": HXAPI.dt_to_str(datetime.datetime.utcnow()) } } )
 	
 	def multiFileDelete(self, multi_file_id):
-		return self._db_multi_file.remove( { "_id": ObjectId(multi_file_id) } )
+		return self._db_multi_file.delete_one( { "_id": ObjectId(multi_file_id) } )
 	
 	def stackJobCreate(self, profile_id, bulk_download_eid, stack_type):
 		ts = HXAPI.dt_to_str(datetime.datetime.utcnow())
@@ -296,7 +296,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_stacking.update_one( { "_id": ObjectId(stack_job_eid) }, { "$set": { "stopped": True, "update_timestamp": HXAPI.dt_to_str(datetime.datetime.utcnow()) } } )
 	
 	def stackJobDelete(self, stack_job_eid):
-		return self._db_stacking.remove( { "_id": ObjectId(stack_job_eid) } )
+		return self._db_stacking.delete_one( { "_id": ObjectId(stack_job_eid) } )
 	
 	def sessionCreate(self, session_id):
 		return self._db_session.insert_one({'session_id': session_id, 'session_data': {}, 'update_timestamp'	: HXAPI.dt_to_str(datetime.datetime.utcnow())})
@@ -311,7 +311,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_session.replace_one({ "session_id": session_id }, { 'session_id': session_id, 'session_data' : dict(session_data), 'update_timestamp' : HXAPI.dt_to_str(datetime.datetime.utcnow())})
 		
 	def sessionDelete(self, session_id):
-		return self._db_session.remove( { "session_id": session_id } )
+		return self._db_session.delete_one( { "session_id": session_id } )
 	
 	def scriptCreate(self, scriptname, script, username):
 		return self._db_scripts.insert_one({'script_id' : str(secure_uuid4()), 
@@ -325,7 +325,7 @@ class hxtool_mongodb(hxtool_db):
 		return list(self._db_scripts.find())
 
 	def scriptDelete(self, script_id):
-		return self._db_scripts.remove( { "script_id": script_id } )
+		return self._db_scripts.delete_one( { "script_id": script_id } )
 
 	def scriptGet(self, script_id):
 		return self._db_scripts.find_one( { "script_id": script_id } )
@@ -343,7 +343,7 @@ class hxtool_mongodb(hxtool_db):
 		return list(self._db_openioc.find())
 
 	def oiocDelete(self, ioc_id):
-		return self._db_openioc.remove( { "ioc_id": ioc_id } )
+		return self._db_openioc.delete_one( { "ioc_id": ioc_id } )
 
 	def oiocGet(self, ioc_id):
 		return self._db_openioc.find_one( { "ioc_id": ioc_id } )
@@ -361,7 +361,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_tasks.replace_one({ "profile_id": profile_id, "task_id": task_id }, serialized_task)
 	
 	def taskDelete(self, profile_id, task_id):
-		return self._db_tasks.remove( { "profile_id": profile_id, "task_id": task_id } )
+		return self._db_tasks.delete_one( { "profile_id": profile_id, "task_id": task_id } )
 			
 	def taskProfileAdd(self, name, actor, params):
 		return self._db_taskprofiles.insert_one({'taskprofile_id' : str(secure_uuid4()), 
@@ -378,7 +378,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_taskprofiles.find_one( { "taskprofile_id": taskprofile_id } )
 
 	def taskProfileDelete(self, taskprofile_id):
-		return self._db_taskprofiles.remove({ "taskprofile_id": taskprofile_id })
+		return self._db_taskprofiles.delete_one({ "taskprofile_id": taskprofile_id })
 
 
 	def auditCreate(self, profile_id, host_id, hostname, generator, start_time, end_time, results):
@@ -398,7 +398,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_audits.find_one( { "profile_id": profile_id, "audit_id": audit_id } )
 			
 	def auditDelete(self, profile_id, audit_id):
-		return self._db_audits.remove( { "profile_id": profile_id, "audit_id": audit_id } )
+		return self._db_audits.delete_one( { "profile_id": profile_id, "audit_id": audit_id } )
 		
 	def hostGroupAdd(self, profile_id, name, actor, agent_ids = []):
 		return self._db_hostgroups.insert_one({'profile_id' : profile_id,
@@ -425,7 +425,7 @@ class hxtool_mongodb(hxtool_db):
 		return self._db_hostgroups.find_one( {'hostgroup_id' : hostgroup_id} )
 
 	def hostGroupDelete(self, hostgroup_id):
-		return self._db_hostgroups.remove( {'hostgroup_id' : hostgroup_id} )	
+		return self._db_hostgroups.delete_one( {'hostgroup_id' : hostgroup_id} )	
 		
 
 	def queryParse(self, myQuery):
