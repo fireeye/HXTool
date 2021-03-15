@@ -691,7 +691,7 @@ if __name__ == "__main__":
 	wsgi_logger = logging.getLogger('werkzeug')
 	if wsgi_logger:
 		wsgi_logger.setLevel(logging.INFO)
-		request_log_handler = logging.handlers.RotatingFileHandler(combine_app_path(hxtool_vars.log_path, 'access.log'), maxBytes=50000, backupCount=5)
+		request_log_handler = logging.handlers.RotatingFileHandler(combine_app_path(hxtool_vars.log_path, 'access.log'), maxBytes=5000000, backupCount=5)
 		request_log_formatter = logging.Formatter("[%(asctime)s] {%(threadName)s} %(levelname)s - %(message)s")
 		request_log_handler.setFormatter(request_log_formatter)	
 		wsgi_logger.addHandler(request_log_handler)

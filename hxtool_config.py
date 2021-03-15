@@ -19,7 +19,7 @@ class hxtool_config:
 		'log_handlers' : {
 			'rotating_file_handler' : {
 				'file' : 'log/hxtool.log',
-				'max_bytes' : 50000,
+				'max_bytes' : 5000000,
 				'backup_count' : 5,
 				'level' : 'info',
 				'format' : '[%(asctime)s] {%(module)s} {%(threadName)s} %(levelname)s - %(message)s'
