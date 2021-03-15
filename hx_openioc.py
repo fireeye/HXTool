@@ -194,7 +194,7 @@ def process_ioc(ioc, platform_fallback=[]):
 			cond = cond['tests']
 			sample_token = cond[0]['token']
 			if sample_token.split('/')[0] in valid_tokens:
-				if 'fileWriteEvent' or 'regKeyEvent' in sample_token:
+				if 'fileWriteEvent' in sample_token or 'regKeyEvent' in sample_token:
 					indicator[indicator_id]['presence'].append(cond)
 				else:
 					indicator[indicator_id]['execution'].append(cond)					
