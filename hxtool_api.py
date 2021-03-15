@@ -679,6 +679,7 @@ def hxtool_api_hostgroup_add(hx_api_object):
 @ht_api.route('/api/v{0}/hostgroups/<uuid:hostgroup_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'DELETE'])
 @valid_session_required
 def hxtool_api_hostgroup_id(hx_api_object, hostgroup_id):
+	hostgroup_id = str(hostgroup_id)
 	if request.method == 'GET':
 		hostgroup = hxtool_global.hxtool_db.hostGroupGet(hostgroup_id)
 		if hostgroup:
@@ -3341,6 +3342,7 @@ def profile():
 			
 @ht_api.route('/api/v{0}/profile/<uuid:profile_id>'.format(HXTOOL_API_VERSION), methods=['GET', 'PUT', 'DELETE'])
 def profile_by_id(profile_id):
+	profile_id = str(profile_id)
 	if request.method == 'GET':
 		profile_object = hxtool_global.hxtool_db.profileGet(profile_id)
 		if profile_object:
