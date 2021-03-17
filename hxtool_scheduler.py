@@ -118,7 +118,7 @@ class hxtool_scheduler:
 						keyring.set_password("hxtool_{}".format(profile['profile_id']), task_api_credential['hx_api_username'], decrypted_background_password)
 						hxtool_global.hxtool_db.backgroundProcessorCredentialRemove(profile['profile_id'])
 						hxtool_global.hxtool_db.backgroundProcessorCredentialCreate(profile['profile_id'], task_api_credential['hx_api_username'])
-					except (UnicodeDecodeError, ValueError):
+					except (UnicodeDecodeError, ValueError, KeyError):
 						logger.error("Please reset the background credential for {} ({}).".format(profile['hx_host'], profile['profile_id']))
 				
 				if decrypted_background_password:
