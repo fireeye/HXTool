@@ -1,17 +1,13 @@
-FROM python:3.6-alpine
+FROM python:3.6-slim
 LABEL maintainer="Elazar Broad <elazar.broad@fireeye.com>"
 WORKDIR /opt/hxtool
 # TODO: should be converted to a script
 COPY requirements.txt ./
-RUN apk add --no-cache libstdc++ \ 
-&& apk add --no-cache --virtual .build-dependencies build-base gcc abuild binutils binutils-doc gcc-doc postgresql-dev python3-dev libffi-dev rust cargo \
-&& pip install numpy psycopg2 pymongo --no-cache-dir \
+RUN apt-get update && apt-get install -y dbus gnome-keyring \
+&& pip install --no-cache-dir pymongo psycopg2-binary pydbus \
 && pip install --no-cache-dir -r requirements.txt \
-&& find /usr/local/lib/python3.6/site-packages/pandas -type f -name *.so -exec strip {} \; \
-&& find /usr/local/lib/python3.6/site-packages/numpy -type f -name *.so -exec strip {} \; \
-&& apk del .build-dependencies \
 && rm -rf /root/.cache
 COPY . /opt/hxtool
 VOLUME /opt/hxtool/data /opt/hxtool/bulkdownload /opt/hxtool/log
 EXPOSE 8080/tcp
-ENTRYPOINT ["python", "hxtool.py"]
+ENTRYPOINT ["/bin/sh", "docker-entrypoint.sh"]
