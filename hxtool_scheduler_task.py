@@ -110,12 +110,14 @@ class hxtool_scheduler_task:
 			}
 			
 	def should_run(self):
-		return (self.next_run is not None and
-				self.enabled and  
-				self.state == task_states.TASK_STATE_SCHEDULED and
-				(self.parent_complete if (self.parent_id and self.wait_for_parent) else True) and
-				datetime.datetime.utcnow() >= self.next_run)
-					
+		return (
+				self.enabled and
+				self.state is task_states.TASK_STATE_SCHEDULED and
+				self.next_run is not None and
+				datetime.datetime.utcnow() >= self.next_run and
+				(self.parent_complete if self.parent_id is not None and self.wait_for_parent else True)
+		)
+
 	def add_step(self, module, func = "run", args = (), kwargs = {}):
 		# This is an HXTool task module, we need to init it.
 		if hasattr(module, 'hxtool_task_module'):
@@ -201,7 +203,7 @@ class hxtool_scheduler_task:
 					self.state = task_states.TASK_STATE_COMPLETE
 				
 				if not self.parent_id:
-					hxtool_global.hxtool_scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
+					scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
 				
 				self._calculate_next_run()
 				
@@ -220,7 +222,7 @@ class hxtool_scheduler_task:
 		if self.state != task_states.TASK_STATE_SCHEDULED and self._stored:
 			self.unstore()
 			if self.state != task_states.TASK_STATE_PENDING_DELETION:
-				hxtool_global.hxtool_scheduler.move_to_history(self.task_id)
+				scheduler.move_to_history(self.task_id)
 		else:
 			self.store()
 				

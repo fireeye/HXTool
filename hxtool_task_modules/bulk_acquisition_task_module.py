@@ -108,8 +108,14 @@ class bulk_acquisition_task_module(task_module):
 					if download and bulk_download_eid:
 						hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_eid, bulk_acquisition_id = response_data['data']['_id'], hosts = {})
 						result['bulk_download_eid'] = bulk_download_eid
-				else:
-					self.logger.error("Bulk acquisition submission failed. Response code: {}, response data: {}".format(response_code, response_data))
+				elif not ret:
+					if self.can_retry(response_data):
+						self.logger.warning("Bulk acquisition submission failed, will defer and retry up to {} times. Response code: {}, response data: {}".format(task_module.MAX_RETRY, response_code, response_data))
+						self.retry_count +=1
+						self.parent_task.defer()
+						ret = True
+					else:
+						self.logger.error("Bulk acquisition submission failed and the retry count has been exceeded. Response code: {}, response data: {}".format(response_code, response_data))
 			else:
 				self.logger.warn("No task API session for profile: {}".format(self.parent_task.profile_id))
 		else:

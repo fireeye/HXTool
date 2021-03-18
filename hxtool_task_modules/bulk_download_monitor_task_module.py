@@ -55,15 +55,21 @@ class bulk_download_monitor_task_module(task_module):
 					hx_api_object = self.get_task_api_object()
 					if hx_api_object:
 						(ret, response_code, response_data) = hx_api_object.restGetBulkDetails(bulk_download_job['bulk_acquisition_id'])
-						if ret:
-							if response_data['data']['state'] != 'RUNNING':
-								self.logger.warning("The bulk acquisition job {} is not in a running state. Controller state: {}".format(bulk_download_job['bulk_acquisition_id'], response_data['data']['state']))
-								hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_eid, stopped=True)
-								self.parent_task.stop()
-								return(ret, result)
-						else:
-							self.logger.error("Failed to get bulk acquisition job status for ID {}".format(bulk_download_job['bulk_acquisition_id']))
+						if ret and response_data['data']['state'] != 'RUNNING':
+							self.logger.warning("The bulk acquisition job {} is not in a running state. Controller state: {}".format(bulk_download_job['bulk_acquisition_id'], response_data['data']['state']))
+							hxtool_global.hxtool_db.bulkDownloadUpdate(bulk_download_eid, stopped=True)
 							self.parent_task.stop()
+							return(ret, result)
+						elif not ret:
+							if self.can_retry(response_data):
+								self.logger.warning("Failed to get bulk acquisition job status for ID {}, will defer and retry up to {} times.".format(bulk_download_job['bulk_acquisition_id'], task_module.MAX_RETRY))
+								self.retry_count +=1
+								self.parent_task.defer()
+								ret = True
+							else:							
+								self.logger.error("Failed to get bulk acquisition job status for ID {}, and the retry count has been exceeded.".format(bulk_download_job['bulk_acquisition_id']))
+								self.parent_task.stop()
+							
 							return(ret, result)
 						
 						(ret, response_code, response_data) = hx_api_object.restListBulkHosts(bulk_download_job['bulk_acquisition_id'], filter_term = {'state' : 'COMPLETE'})
@@ -162,8 +168,11 @@ class bulk_download_monitor_task_module(task_module):
 							
 							self.parent_task.defer()
 							ret = True
+						# TODO: Add retry - though if status is successful then hosts should be successful too. 
 						else:
-							self.logger.error("No task API session for profile: {}".format(self.parent_task.profile_id))
+							self.logger.error("Failed to get bulk acquisition job host status for ID {}.".format(bulk_download_job['bulk_acquisition_id']))
+					else:
+						self.logger.error("No task API session for profile: {}".format(self.parent_task.profile_id))
 				else:
 					self.logger.warning("Bulk download database entry {} is marked as stopped.".format(bulk_download_eid))
 					self.parent_task.stop()

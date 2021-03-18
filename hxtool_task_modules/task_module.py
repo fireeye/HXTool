@@ -7,10 +7,15 @@ from hx_audit import *
 from hxtool_util import *
 
 class task_module(object):
-	def __init__(self, parent_task):
-		self.parent_task = parent_task
+	MAX_RETRY = 10
+	
+	# TODO: parent_task should probably be renamed to just task, as modules are associated with tasks
+	# and this confuses the parent/child task relationship.
+	def __init__(self, task):
+		self.parent_task = task
 		self.logger = hxtool_logging.getLogger(__name__)
 		self.enabled = True
+		self.retry_count = 0
 	
 	def get_task_api_object(self):
 		s = self.parent_task.scheduler.task_hx_api_sessions.get(self.parent_task.profile_id, None)
@@ -20,7 +25,9 @@ class task_module(object):
 			self.logger.error("There is no valid background task API session for profile {}".format(self.parent_task.profile_id))
 			return None
 		
-		
+	def can_retry(self, err):
+		return('connection' in str(type(err)).lower() and self.retry_count < task_module.MAX_RETRY)
+	
 	def yield_audit_results(self, bulk_download_path, batch_mode, host_name, agent_id, bulk_acquisition_id = None):
 		hx_host = None
 		api_object = self.get_task_api_object()
