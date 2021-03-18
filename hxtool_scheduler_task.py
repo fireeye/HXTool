@@ -110,11 +110,12 @@ class hxtool_scheduler_task:
 			}
 			
 	def should_run(self):
-		return (self.next_run is not None and
-				self.enabled and  
+		return self.enabled and
 				self.state == task_states.TASK_STATE_SCHEDULED and
-				(self.parent_complete if (self.parent_id and self.wait_for_parent) else True) and
-				datetime.datetime.utcnow() >= self.next_run)
+				self.next_run is not None and
+				datetime.datetime.utcnow() >= self.next_run and
+				self.parent_complete if self.parent_id and self.wait_for_parent else True
+				
 					
 	def add_step(self, module, func = "run", args = (), kwargs = {}):
 		# This is an HXTool task module, we need to init it.
