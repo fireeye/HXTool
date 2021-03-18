@@ -201,7 +201,7 @@ class hxtool_scheduler_task:
 					self.state = task_states.TASK_STATE_COMPLETE
 				
 				if not self.parent_id:
-					hxtool_global.hxtool_scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
+					scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
 				
 				self._calculate_next_run()
 				
@@ -220,7 +220,7 @@ class hxtool_scheduler_task:
 		if self.state != task_states.TASK_STATE_SCHEDULED and self._stored:
 			self.unstore()
 			if self.state != task_states.TASK_STATE_PENDING_DELETION:
-				hxtool_global.hxtool_scheduler.move_to_history(self.task_id)
+				scheduler.move_to_history(self.task_id)
 		else:
 			self.store()
 				
