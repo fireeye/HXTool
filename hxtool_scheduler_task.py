@@ -42,6 +42,7 @@ class hxtool_scheduler_task:
 		self.profile_name = "Unknown"
 		self.task_id = task_id or str(secure_uuid4())
 		self.parent_id = parent_id
+		self.scheduler = None
 		self.wait_for_parent = wait_for_parent
 		self.parent_complete = False
 		self.name = name
@@ -143,6 +144,8 @@ class hxtool_scheduler_task:
 				
 				self.state = task_states.TASK_STATE_RUNNING
 				
+				self.scheduler = scheduler
+				
 				# Reset microseconds to keep from drifting too badly
 				self.last_run = datetime.datetime.utcnow().replace(microsecond=1)
 				# Clear this, otherwise the task view looks confusing
@@ -198,7 +201,7 @@ class hxtool_scheduler_task:
 					self.state = task_states.TASK_STATE_COMPLETE
 				
 				if not self.parent_id:
-					scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
+					hxtool_global.hxtool_scheduler.signal_child_tasks(self.task_id, self.state, self.stored_result)
 				
 				self._calculate_next_run()
 				
@@ -209,6 +212,7 @@ class hxtool_scheduler_task:
 						# Reset parent_complete for recurring tasks
 						self.parent_complete = False
 			
+			self.scheduler = None
 		else:
 			self.set_state(task_states.TASK_STATE_STOPPED)
 		
