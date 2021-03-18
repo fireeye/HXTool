@@ -3,7 +3,6 @@
 
 # This is a system task module that performs the API logins needed by the task scheduler.
 
-import hxtool_global
 from .task_module import *
 from hx_lib import *
 
@@ -43,13 +42,13 @@ class task_api_session_module(task_module):
 	
 	def run(self, profile_id = None, username = None, password = None):
 		ret = False
-		hx_api_object = self.parent_task.scheduler.task_hx_api_sessions.get(self.parent_task.profile_id, None)
+		hx_api_object = self.parent_task.scheduler.task_hx_api_sessions.get(profile_id, None)
 		if hx_api_object is not None:
 			(ret, response_code, response_data) = hx_api_object.restLogin(username, password, auto_renew_token = True)
 			if ret:
 				self.logger.info("Successfully initialized task API session for host {} ({})".format(hx_api_object.hx_host, profile_id))
 			else:
-				self.logger.warn("Failed to initialize task API session for host {} ({})".format(hx_api_object.hx_host, profile_id))
+				self.logger.warn("Failed to initialize task API session for host {} ({}). Response code: {}, response data: {}".format(hx_api_object.hx_host, profile_id, response_code, response_data))
 				del self.parent_task.scheduler.task_hx_api_sessions[profile_id]
 			password = None
 			hx_api_object = None
