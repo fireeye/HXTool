@@ -1652,16 +1652,16 @@ def hxtool_api_acquisition_multi_file_listing(hx_api_object):
 	
 	if not use_api_mode:
 		script_json['commands'][0]['name'] = "files-raw"
-		script_json['commands'][0]['parameters'].append({
+		script_json['commands'][0]['parameters'].extend([{
 			'name' : 'Active Files',
-			'value' : true
+			'value' : True
 		}, {
 			'name' : 'Deleted Files',
-			'value' : true
+			'value' : True
 		}, {
 			'name' : 'Parse NTFS INDX Buffers',
-			'value' : true
-		})
+			'value' : True
+		}])
 	
 	if md5_hashes:
 		md5_hashes = md5_hashes.splitlines()
