@@ -286,7 +286,7 @@
 				}
 				else if (myschedule == "run_interval") {
 					data.append("interval_value", $("#interval_value").val());
-					data.append("interval_unit", $("#interval_unit").val());
+					data.append("interval_unit", $("#interval_unit").data("id"));
 					data.append("interval_start", $("#interval_start").val());
 					data.append("interval_start_value", $("#interval_start_value").val());
 				}
