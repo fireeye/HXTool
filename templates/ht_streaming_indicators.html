@@ -235,6 +235,8 @@
 				data.append("ruleImport", value);
 			});
 
+			data.append('platform', $('#ruleImportPlatform').data("id"));
+			
 			hxtool_ajax_post_request("/api/v1/streaming_indicators/import", data, function() {
 				ioc_datatable.ajax.reload();
 			});
