@@ -6,7 +6,7 @@ HXTool is a web-based, standalone tool that can be used with FireEye Endpoint Se
 HXTool provides additional features not directly available in the product by leveraging FireEye Endpoint Security's rich API.
 
 ### Version
-4.7-pre
+4.7
 
 ## Installation
 To install HXTool:
@@ -33,13 +33,14 @@ Configuration for HXTool is held in the `conf.json` file, documentation is in [R
 ### Docker
 To build a Docker image from the HXTool source, execute the following: 
 ```bash
-docker build -t hxtool:latest .
+docker build --pull -t hxtool:latest .
 ```
 
 To run HXTool once the image build process is complete, execute the following:
 ```bash
-docker run -p 8080:8080 -d --name hxtool hxtool:latest
+docker run -p 8080:8080/tcp -d --cap-add=IPC_LOCK --name hxtool hxtool:latest
 ```
+IPC_LOCK is needed for the GNOME keyring daemon. See [README.DOCKER](README.DOCKER)
 
 ## Contribution
 

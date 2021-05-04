@@ -92,7 +92,7 @@ class hxtool_mongodb(hxtool_db):
 			return self._db_audits.find(query).limit(qlimit)
 
 	def auditGetCollections(self):
-		pipeline = [{'$group': {'count': {'$sum': 1}, '_id': {'bulk_acquisition_id': '$bulk_acquisition_id'}}}, {'$limit': 1000}]
+		pipeline = [{'$group': {'count': {'$sum': 1}, '_id': {'bulk_acquisition_id': '$bulk_acquisition_id'}}}, {'$limit': 1000}, {'$sort': {'_id': 1}}]
 		return self._db_audits.aggregate(pipeline)
 		
 	def profileCreate(self, hx_name, hx_host, hx_port):

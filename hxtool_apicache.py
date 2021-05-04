@@ -87,7 +87,7 @@ class hxtool_api_cache:
 		hxtool_global.apicache['data'][objectType]['stats']['timeline'].append(myStats)
 
 		# Show log if we have updates or new records
-		if s_update is not 0 or s_add is not 0:
+		if s_update != 0 or s_add != 0:
 			self.logger.info("{}: [{}] {} records updated, {} records added in {} seconds".format(self.profile_id, objectType, s_update, s_add, (s_end - s_start).total_seconds()))
 
 		return currOffset
