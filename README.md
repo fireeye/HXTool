@@ -6,7 +6,7 @@ HXTool is a web-based, standalone tool that can be used with FireEye Endpoint Se
 HXTool provides additional features not directly available in the product by leveraging FireEye Endpoint Security's rich API.
 
 ### Version
-4.7-pre
+4.7
 
 ## Installation
 To install HXTool:
