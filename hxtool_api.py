@@ -1089,7 +1089,13 @@ def hxtool_api_streaming_indicators_export(hx_api_object):
 @valid_session_required
 def hxtool_api_streaming_indicators_import(hx_api_object):
 	files = request.files.getlist('ruleImport')
-
+	
+	import_platform = request.form.get('platform', '')
+	if import_platform == "all":
+		import_platform = ['win', 'osx', 'linux']
+	else:
+		import_platform = [import_platform]
+	
 	for file in files:
 		# we may have a zip file, or a list of one or more files
 		if (zipfile.is_zipfile(file)):
@@ -1100,18 +1106,41 @@ def hxtool_api_streaming_indicators_import(hx_api_object):
 				# for each zip file
 				for zfile in zfiles:
 					with myzip.open(zfile) as myfile:
-						iocs = json.loads(myfile.read())
+						file_content = myfile.read().decode(default_encoding)
+						try:
+							iocs = json.loads(file_content)	
+						except json.decoder.JSONDecodeError:
+							iocs = openioc_to_hxioc(file_content, import_platform)
+							if iocs is None:
+								app.logger.warn(format_activity_log(msg="rule action fail", reason="{} is not a valid Endpoint Security (HX) JSON or OpenIOC 1.1 indicator." .format(file.filename), action="import", user=session['ht_user'], controller=session['hx_ip']))
+								continue
+								
 						hxtool_handle_streaming_indicator_import(hx_api_object=hx_api_object, iocs=iocs)
 		else:
 			# not a zip file
 			file.seek(0)  # rewind to the start of the file
-			iocs = json.loads(file.read().decode(default_encoding))
+			file_content = file.read().decode(default_encoding)
+			try:
+				iocs = json.loads(file_content)
+			except json.decoder.JSONDecodeError:
+				iocs = openioc_to_hxioc(file_content, import_platform)
+				if iocs is None:
+					app.logger.warn(format_activity_log(msg="rule action fail", reason="{} is not a valid Endpoint Security (HX) JSON or OpenIOC 1.1 indicator." .format(file.filename), action="import", user=session['ht_user'], controller=session['hx_ip']))
+					continue
+					
 			hxtool_handle_streaming_indicator_import(hx_api_object=hx_api_object, iocs=iocs)
 		
 	return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
 
 def hxtool_handle_streaming_indicator_import(hx_api_object, iocs):
 	for (_, ioc) in iocs.items():
+		# Add category for IOCs that don't have, i.e. OpenIOC 1.1 import
+		if not ioc.get('category', False):
+			ioc['category'] = 'Custom'
+		if not ioc.get('description', False):
+			ioc['description'] = ""
+		if not ioc.get('uri_name', False):
+			ioc['uri_name'] = _
 		# only import custom 
 		if ioc['category'].lower() == 'custom':
 				# create the new indicator.  If this is an update, the orginal will be removed below.
@@ -1123,6 +1152,15 @@ def hxtool_handle_streaming_indicator_import(hx_api_object, iocs):
 												description='{0}\n\nImported from {1}'.format(ioc['description'], ioc['uri_name']))
 				if ret:
 					new_ioc_id = response_data['id']
+					
+					# Convert realtime format to streaming format
+					if not 'conditions' in ioc:
+						ioc['conditions'] = []
+					if 'presence' in ioc:
+						ioc['conditions'].extend(ioc['presence'])
+					if 'execution' in ioc:
+						ioc['conditions'].extend(ioc['execution'])
+						
 					for condition in ioc['conditions']:
 						mytests = {"tests": []}
 						for test in condition:
@@ -1146,7 +1184,7 @@ def hxtool_handle_streaming_indicator_import(hx_api_object, iocs):
 						app.logger.info(format_activity_log(msg="streaming rule action", reason="imported indicator", action="import", name=ioc['name'], user=session['ht_user'], controller=session['hx_ip']))
 				else:
 					# failed to create IOC
-					app.logger.info(format_activity_log(msg="streaming rule action", reason="unable to import indicator", action="import", name=iocs['name'], user=session['ht_user'], controller=session['hx_ip']))
+					app.logger.info(format_activity_log(msg="streaming rule action", reason="unable to import indicator", action="import", name=ioc['name'], user=session['ht_user'], controller=session['hx_ip']))
 	return					
 
 
