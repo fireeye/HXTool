@@ -1316,16 +1316,17 @@ def hxtool_api_indicators_export(hx_api_object):
 def hxtool_api_indicators_import(hx_api_object):
 	files = request.files.getlist('ruleImport')
 	
+	import_platform = request.form.get('platform', '')
+	if import_platform == "all":
+		import_platform = ['win', 'osx', 'linux']
+	else:
+		import_platform = [import_platform]
+	
 	for file in files:
 		file_content = file.read().decode(default_encoding)
 		try: 
 			iocs = json.loads(file_content)
 		except json.decoder.JSONDecodeError:
-			import_platform = request.form.get('platform', '')
-			if import_platform == "all":
-				import_platform = ['win', 'osx', 'linux']
-			else:
-				import_platform = [import_platform]
 			iocs = openioc_to_hxioc(file_content, import_platform)
 			if iocs is None:
 				app.logger.warn(format_activity_log(msg="rule action fail", reason="{} is not a valid Endpoint Security (HX) JSON or OpenIOC 1.1 indicator." .format(file.filename), action="import", user=session['ht_user'], controller=session['hx_ip']))
