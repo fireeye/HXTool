@@ -17,14 +17,14 @@ except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)
 
-# pycryptodome imports
+# pycryptodomex imports
 try:
-	from Crypto.Cipher import AES
-	from Crypto.Protocol.KDF import PBKDF2
-	from Crypto.Hash import HMAC, SHA256
-	from Crypto.Util.Padding import pad, unpad
+	from Cryptodome.Cipher import AES
+	from Cryptodome.Protocol.KDF import PBKDF2
+	from Cryptodome.Hash import HMAC, SHA256
+	from Cryptodome.Util.Padding import pad, unpad
 except ImportError:
-	print("hxtool requires the 'pycryptodome' module, please install it.")
+	print("hxtool requires the 'pycryptodomex' module, please install it.")
 	exit(1)
 
 import hxtool_logging
