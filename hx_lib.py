@@ -42,6 +42,20 @@ class HXAPI:
 		
 		self._session = requests.Session()
 		
+		if proxies:
+			if 'use_pac' in proxies and proxies['use_pac'] is True:
+				try:
+					from pypac import PACSession, get_pac
+					pac_url = proxies.get('pac_url', None)
+					self._session = PACSession(get_pac(pac_url))
+				except ImportError as e:
+					print(e)
+					self.logger.error("PAC support requested by configuration but pypac is not installed. Please install it if you'd like to use PAC files for proxy support")
+			elif 'https' in proxies:
+				self._session.proxies = proxies
+			self.logger.info("Proxy support enabled.")
+		
+		
 		if headers:
 			self.logger.debug('Appending additional headers passed to __init__')
 			self._session.headers.update(headers)
@@ -54,10 +68,6 @@ class HXAPI:
 			self.logger.info('SSL/TLS certificate verification disabled.')
 			self._session.verify = False
 			self.suppress_requests_insecure_warning()
-		
-		if proxies:
-			self._session.proxies = proxies
-			self.logger.info("Proxy support enabled.")
 		
 		self.hx_user = None
 		self._hx_password = None
