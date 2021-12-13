@@ -232,3 +232,19 @@ def js_path(json_string, path):
 		return json_string
 	except:
 		return "Not found!"
+		
+def validate_hashes(hash_list, hash_type="MD5"):
+	hash_length = 32
+	if hash_type is "SHA1":
+		hash_length = 40
+	elif hash_type is "SHA256":
+		hash_length = 64
+	elif hash_type is "SHA512":
+		hash_length = 128
+	
+	split_hashes = hash_list.splitlines()
+	for h in split_hashes:
+		if not re.match("^[A-F0-9]{" + hash_length + "}$", h, re.I):
+			return False, "{} is an invalid {} hash.".format(h, hash_type)
+
+	return True, split_hashes
