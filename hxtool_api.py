@@ -1703,16 +1703,15 @@ def hxtool_api_acquisition_multi_file_listing(hx_api_object):
 		}])
 	
 	if md5_hashes:
-		md5_hashes = md5_hashes.splitlines()
+		valid_hashes, md5_hashes = validate_hashes(md5_hashes, "MD5")
 
-		for md5 in md5_hashes:
-			if not re.match("^[A-F0-9]{32}$", md5, re.I):
-				return(app.response_class(response=json.dumps("{} is an invalid MD5 hash.".format(md5)), status=400, mimetype='application/json'))
-		
-		script_json['commands'][0]['parameters'].append({
-			'name' : 'Filter MD5', 
-			'value' : md5_hashes
-		})
+		if valid_hashes:
+			script_json['commands'][0]['parameters'].append({
+				'name' : 'Filter MD5', 
+				'value' : md5_hashes
+			})
+		else:	
+			return(app.response_class(response=json.dumps("{} is an invalid MD5 hash.".format(md5_hashes)), status=400, mimetype='application/json'))
 	
 	if not display_name:
 		display_name = 'hostset: {0} path: {1} regex: {2}'.format(hostset, path, regex)

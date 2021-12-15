@@ -215,7 +215,14 @@
 
 							}
 							else {
-								myParams.push({"name": myParamName, "value": $(mitem).val()});
+								v = $(mitem).val();
+								if (v.length > 0) {
+									// Convert multiline (textarea) inputs to lists
+									if ($(mitem).is("textarea")) {
+										v = v.split(/\n/);
+									}
+									myParams.push({"name": myParamName, "value": v});
+								}
 							}
 						}
 						else if ($(mitem).attr("class") == "fe-dropdown") {

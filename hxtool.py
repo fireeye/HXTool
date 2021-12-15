@@ -714,8 +714,11 @@ if __name__ == "__main__":
 		context.options |= ssl.OP_NO_SSLv2
 		context.options |= ssl.OP_NO_SSLv3
 		context.options |= ssl.OP_NO_TLSv1
+    context.options |= ssl.OP_NO_TLSv1_1
+    
 		context.set_ciphers('HIGH:!ADH:!EXP:!NULL:!aNULL:!SHA1:!SHA256:!SHA384')
-		context.load_cert_chain(combine_app_path(hxtool_vars.data_path, hxtool_global.hxtool_config['ssl']['cert']), combine_app_path(hxtool_vars.data_path, hxtool_global.hxtool_config['ssl']['key']))
+    
+    context.load_cert_chain(combine_app_path(hxtool_vars.data_path, hxtool_global.hxtool_config['ssl']['cert']), combine_app_path(hxtool_vars.data_path, hxtool_global.hxtool_config['ssl']['key']))
 		app.run(host=hxtool_global.hxtool_config['network']['listen_address'], 
 				port=hxtool_global.hxtool_config['network']['port'], 
 				ssl_context=context, 
