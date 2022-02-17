@@ -9,6 +9,7 @@
     { "name": "fileExtension", "fullname": "imageLoadEvent/fileExtension", "type": "text"},
     { "name": "pid", "fullname": "imageLoadEvent/pid", "type": "integer"},
     { "name": "process", "fullname": "imageLoadEvent/process", "type": "text"},
+    { "name": "processPath", "fullname": "imageLoadEvent/processPath", "type": "text"},
     { "name": "parentPid", "fullname": "imageLoadEvent/parentPid", "type": "text"},
     { "name": "username", "fullname": "imageLoadEvent/username", "type": "text"},
     { "name": "error", "fullname": "imageLoadEvent/error", "type": "text"}
