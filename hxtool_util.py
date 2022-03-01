@@ -235,11 +235,11 @@ def js_path(json_string, path):
 		
 def validate_hashes(hash_list, hash_type="MD5"):
 	hash_length = 32
-	if hash_type is "SHA1":
+	if hash_type == "SHA1":
 		hash_length = 40
-	elif hash_type is "SHA256":
+	elif hash_type == "SHA256":
 		hash_length = 64
-	elif hash_type is "SHA512":
+	elif hash_type == "SHA512":
 		hash_length = 128
 	
 	split_hashes = hash_list.splitlines()
