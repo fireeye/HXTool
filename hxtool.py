@@ -708,13 +708,18 @@ if __name__ == "__main__":
 																							hxtool_global.hxtool_config['network']['port']))
 	if hxtool_global.hxtool_config['network']['ssl'] == "enabled":
 		app.config['SESSION_COOKIE_SECURE'] = True
-		context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+		context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH)
 		context.check_hostname = False
 		context.verify_mode = ssl.CERT_NONE
-		context.options |= ssl.OP_NO_SSLv2
-		context.options |= ssl.OP_NO_SSLv3
-		context.options |= ssl.OP_NO_TLSv1
-		context.options |= ssl.OP_NO_TLSv1_1
+		
+		# ssl.OP_NO_* has been deprecated since Python 3.6, see https://docs.python.org/3/library/ssl.html#ssl.OP_NO_TLSv1
+		try:
+			context.minimum_version = ssl.TLSVersion.TLSv1_2
+		except AttributeError:
+			context.options |= ssl.OP_NO_SSLv2
+			context.options |= ssl.OP_NO_SSLv3
+			context.options |= ssl.OP_NO_TLSv1
+			context.options |= ssl.OP_NO_TLSv1_1
     
 		context.set_ciphers('HIGH:!ADH:!EXP:!NULL:!aNULL:!SHA1:!SHA256:!SHA384')
 		
