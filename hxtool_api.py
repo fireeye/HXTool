@@ -11,7 +11,6 @@ import zipfile
 
 try:
 	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort, Blueprint, current_app as app
-	from jinja2 import evalcontextfilter, Markup, escape
 except ImportError:
 	print("hxtool requires the 'Flask' module, please install it.")
 	exit(1)

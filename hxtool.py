@@ -28,10 +28,19 @@ import argparse
 # Flask imports
 try:
 	from flask import Flask, request, Response, session, redirect, render_template, send_file, g, url_for, abort, Blueprint
-	from jinja2 import evalcontextfilter, Markup, escape
-except ImportError:
-	print("hxtool requires the 'Flask' module, please install it.")
+except ImportError as e:
+	print("hxtool requires the 'Flask' module, please install it.\r\nError: {}".format(e))
 	exit(1)
+
+# Deal with jinja2 namespace changes in newer versions
+try:
+	from jinja2.utils import markupsafe
+	Markup = markupsafe.Markup
+	escape = markupsafe.escape
+	from jinja2 import pass_eval_context as evalcontextfilter
+except ImportError:
+	from jinja2 import evalcontextfilter
+	from jinja2 import Markup, escape
 	
 # hx_tool imports
 import hxtool_logging
