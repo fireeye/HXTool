@@ -30,5 +30,13 @@
 	"AMSI": {
         "label": "AMSI",
         "threat_key": "event_values.#0.name"
-    }
+    },
+	"TP": {
+		"label": "Tamper Protection",
+		"threat_key": "event_values.#0.name"
+	},
+	"DL": {
+		"label": "Deny List",
+		"threat_key": "event_values.#0.name"
+	}
 }
