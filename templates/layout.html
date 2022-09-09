@@ -41,6 +41,14 @@
 </head>
 <body>
 	<script>
+		
+		//Function to get and show the name of the current server
+		function getHx_name() {
+			hxtool_ajax_get_request("/api/v1/profile", "", function(myprofile) {
+				var hx_name = myprofile.data[0]['hx_name'];
+				$('#hx_name-placeholder').text(hx_name);
+			});
+		}
 
 		// Function to check if current HX version is equal or greater than a specific version
 		function checkVersion(version) {
@@ -94,7 +102,7 @@
 		}
 		
 		$(document).ready(function() {
-
+			getHx_name();
 			/* Hide menu items based on capabilities */
 			myDBEngine = "{{session['ht_database_engine']}}";
 			myHXModules = [];
@@ -214,6 +222,9 @@
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scheduler'>scheduler</button><br>
 						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/settings'>hxtool settings</button><br>
 					</div>
+				</li>
+				<li class="fe-top-nav__bar-nav-items" id="fe-top-nav__bar-right-item">
+						<span class="hxtool_topnav_mainbutton fe-btn--lg" id="hx_name-placeholder"></span>
 				</li>
 			</ul>
 		</nav>
