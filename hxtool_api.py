@@ -3367,7 +3367,10 @@ def chartjs_inactive_hosts_per_hostset(hx_api_object):
 def profile():
 	if request.method == 'GET':
 		profiles = hxtool_global.hxtool_db.profileList()
-		return json.dumps({'data_count' :  len(profiles), 'data' : profiles})
+		if 'ht_profileid' in session:
+			return json.dumps({'data' : profiles, 'profileid' : session['ht_profileid']})
+		else:
+			return json.dumps({'data_count' :  len(profiles), 'data' : profiles})
 	elif request.method == 'PUT':
 		request_json = request.json
 		if validate_json(['hx_name', 'hx_host', 'hx_port'], request_json):
