@@ -3013,13 +3013,14 @@ def chartjs_malwarestatus(hx_api_object):
 		if ret:
 			for host in response_data['data']['entries']:
 				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
-				if 'MalwareProtectionStatus' in sresponse_data['data'].keys():
+				if sret and 'MalwareProtectionStatus' in sresponse_data['data'].keys():
 					if not sresponse_data['data']['MalwareProtectionStatus'] in myContent.keys():
 						myContent[sresponse_data['data']['MalwareProtectionStatus']] = 1
 					else:
 						myContent[sresponse_data['data']['MalwareProtectionStatus']] += 1
 				else:
 					myContent['none'] += 1
+					logger.warn(format_activity_log(error="Failed to retrieve MalwareProtection status for agent ID {}".format(host['_id']), controller_reponse_code=sresponse_code, controller_response_data=sresponse_data, user=session['ht_user'], controller=session['hx_ip']))
 
 		del response_data
 
