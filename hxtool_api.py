@@ -16,7 +16,7 @@ except ImportError:
 	exit(1)
 
 import hxtool_logging
-from hxtool_vars import HXTOOL_API_VERSION
+from hxtool_vars import HXTOOL_API_VERSION, default_encoding
 from hx_lib import *
 from hxtool_util import *
 from hxtool_data_models import *
@@ -28,7 +28,6 @@ from hx_openioc import openioc_to_hxioc
 ht_api = Blueprint('ht_api', __name__, template_folder='templates')
 logger = hxtool_logging.getLogger(__name__)
 
-default_encoding = 'utf-8'
 
 ###################################
 # Common User interface endpoints #
