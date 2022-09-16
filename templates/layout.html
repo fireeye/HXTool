@@ -46,7 +46,6 @@
 		function getHx_name() {
 			hxtool_ajax_get_request("/api/v1/profile", "", function(myprofile) {
 				var n = 0;
-				console.log(myprofile);
 				var hx_name = myprofile.cur_hx_name;
 				$('#hx_name-placeholder').text(hx_name);
 			});
