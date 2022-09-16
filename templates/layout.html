@@ -46,11 +46,8 @@
 		function getHx_name() {
 			hxtool_ajax_get_request("/api/v1/profile", "", function(myprofile) {
 				var n = 0;
-				var hx_name = myprofile.data[n]['hx_name'];
-				while (myprofile.profileid != myprofile.data[n]['profile_id']) {
-					n++;
-					hx_name = myprofile.data[n]['hx_name'];
-				}
+				console.log(myprofile);
+				var hx_name = myprofile.cur_hx_name;
 				$('#hx_name-placeholder').text(hx_name);
 			});
 		}

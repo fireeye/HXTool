@@ -491,7 +491,6 @@ def login():
 		if 'ht_user' in request.form:
 			ht_profile = hxtool_global.hxtool_db.profileGet(request.form['controllerProfileDropdown'])
 			if ht_profile:
-
 				hx_api_object = HXAPI(ht_profile['hx_host'], 
 									hx_port = ht_profile['hx_port'], 
 									proxies = hxtool_global.hxtool_config['network'].get('proxies'), 
@@ -505,6 +504,7 @@ def login():
 					# Set session variables
 					session['ht_user'] = request.form['ht_user']
 					session['ht_profileid'] = ht_profile['profile_id']
+					session['ht_hx_name'] = ht_profile['hx_name']
 					session['ht_api_object'] = hx_api_object.serialize()
 					session['hx_version'] = hx_api_object.hx_version
 					session['hx_int_version'] = int(''.join(str(i) for i in hx_api_object.hx_version))
