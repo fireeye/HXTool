@@ -41,16 +41,6 @@
 </head>
 <body>
 	<script>
-		
-		//Function to get and show the name of the current server
-		function getHx_name() {
-			hxtool_ajax_get_request("/api/v1/profile", "", function(myprofile) {
-				var n = 0;
-				var hx_name = myprofile.cur_hx_name;
-				$('#hx_name-placeholder').text(hx_name);
-			});
-		}
-
 		// Function to check if current HX version is equal or greater than a specific version
 		function checkVersion(version) {
 			myVersionArr = version.split(".");
@@ -103,7 +93,7 @@
 		}
 		
 		$(document).ready(function() {
-			getHx_name();
+			$('#hx_name-placeholder').text("{{session['ht_hx_name']}}");
 			/* Hide menu items based on capabilities */
 			myDBEngine = "{{session['ht_database_engine']}}";
 			myHXModules = [];
