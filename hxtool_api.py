@@ -6,7 +6,7 @@ import random
 import csv
 from io import BytesIO
 from io import StringIO
-from collections import deque
+from collections import deque, defaultdict
 import zipfile
 
 try:
@@ -2058,14 +2058,13 @@ def datatable_avcontent_detail(hx_api_object):
 	(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts()
 	for host in hresponse_data['data']['entries']:
 		(ret, response_code, response_data) = hx_api_object.restGetHostSysinfo(host['_id'])
-		if 'malware' in response_data['data']:
-			if 'av' in response_data['data']['malware']:
-				if myversion == response_data['data']['malware']['av']['content']['version']:
-					mydata['data'].append({
-						"hostname": host['hostname'],
-						"agentid": host['_id'],
-						"content_version": myversion
-						})
+		if ret and js_path(response_data, "data.malware.av.content.version", None) is not None:
+			if myversion == response_data['data']['malware']['av']['content']['version']:
+				mydata['data'].append({
+					"hostname": host['hostname'],
+					"agentid": host['_id'],
+					"content_version": myversion
+					})
 		else:
 			if myversion == "none":
 				mydata['data'].append({
@@ -2090,14 +2089,13 @@ def datatable_avengine_detail(hx_api_object):
 	(hret, hresponse_code, hresponse_data) = hx_api_object.restListHosts()
 	for host in hresponse_data['data']['entries']:
 		(ret, response_code, response_data) = hx_api_object.restGetHostSysinfo(host['_id'])
-		if 'malware' in response_data['data']:
-			if 'av' in response_data['data']['malware']:
-				if myversion == response_data['data']['malware']['av']['engine']['version']:
-					mydata['data'].append({
-						"hostname": host['hostname'],
-						"agentid": host['_id'],
-						"engine_version": myversion
-						})
+		if ret and js_path(response_data, "data.malware.av.engine.version", None) is not None:
+			if myversion == response_data['data']['malware']['av']['engine']['version']:
+				mydata['data'].append({
+					"hostname": host['hostname'],
+					"agentid": host['_id'],
+					"engine_version": myversion
+					})
 		else:
 			if myversion == "none":
 				mydata['data'].append({
@@ -2888,31 +2886,31 @@ def chartjs_agentstatus(hx_api_object):
 def chartjs_malwarecontent(hx_api_object):
 	if request.method == 'GET':
 		
-		myContent = {}
-		myContent['none'] = 0
+		myContent = defaultdict(int)
 		myData = {}
 		myData['labels'] = []
 		myData['datasets'] = []
 
-		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
-		if ret:
-			for host in response_data['data']['entries']:
-				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
-				if sret and 'malware' in sresponse_data['data'].keys():
-					if 'av' in sresponse_data['data']['malware'].keys():
-						if 'content' in sresponse_data['data']['malware']['av'].keys():
-							if not sresponse_data['data']['malware']['av']['content']['version'] in myContent.keys():
-								myContent[sresponse_data['data']['malware']['av']['content']['version']] = 1
-							else:
-								myContent[sresponse_data['data']['malware']['av']['content']['version']] += 1
-						else:
-							myContent['none'] += 1
+
+		try:
+			(ret, response_code, response_data) = hx_api_object.restAgentSysinfo()
+			if ret:
+				for sysinfo in response_data['data']['entries']:
+					if 'data' in sysinfo:
+						myContent[js_path(sysinfo, "data.malware.av.content.version", "none")] +=1
 					else:
 						myContent['none'] += 1
-				else:
-					myContent['none'] += 1
-		
-		del response_data
+		except NotImplementedError:
+			(ret, response_code, response_data) = hx_api_object.restListHosts()
+			if ret:
+				for host in response_data['data']['entries']:
+					(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+					if sret:
+						myContent[js_path(sresponse_data, "data.malware.av.content.version", "none")] += 1
+					else:
+						myContent['none'] += 1
+			
+			del response_data
 		
 		dataset = []
 		mylist = []
@@ -2946,31 +2944,30 @@ def chartjs_malwarecontent(hx_api_object):
 def chartjs_malwareengine(hx_api_object):
 	if request.method == 'GET':
 		
-		myContent = {}
-		myContent['none'] = 0
+		myContent = defaultdict(int)
 		myData = {}
 		myData['labels'] = []
 		myData['datasets'] = []
 
-		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
-		if ret:
-			for host in response_data['data']['entries']:
-				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
-				if sret and 'malware' in sresponse_data['data'].keys():
-					if 'av' in sresponse_data['data']['malware'].keys():
-						if 'content' in sresponse_data['data']['malware']['av'].keys():
-							if not sresponse_data['data']['malware']['av']['engine']['version'] in myContent.keys():
-								myContent[sresponse_data['data']['malware']['av']['engine']['version']] = 1
-							else:
-								myContent[sresponse_data['data']['malware']['av']['engine']['version']] += 1
-						else:
-							myContent['none'] += 1
+		try:
+			(ret, response_code, response_data) = hx_api_object.restAgentSysinfo()
+			if ret:
+				for sysinfo in response_data['data']['entries']:
+					if 'data' in sysinfo:
+						myContent[js_path(sysinfo, "data.malware.av.engine.version", "none")] +=1
 					else:
 						myContent['none'] += 1
-				else:
-					myContent['none'] += 1
+		except NotImplementedError:
+			(ret, response_code, response_data) = hx_api_object.restListHosts()
+			if ret:
+				for host in response_data['data']['entries']:
+					(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+					if sret:
+						myContent[js_path(sresponse_data, "data.malware.av.engine.version", "none")] += 1
+					else:
+						myContent['none'] += 1
 
-		del response_data
+			del response_data
 
 		dataset = []
 		mylist = []
@@ -3003,26 +3000,33 @@ def chartjs_malwareengine(hx_api_object):
 def chartjs_malwarestatus(hx_api_object):
 	if request.method == 'GET':
 		
-		myContent = {}
-		myContent['none'] = 0
+		myContent = defaultdict(int)
 		myData = {}
 		myData['labels'] = []
 		myData['datasets'] = []
-
-		(ret, response_code, response_data) = hx_api_object.restListHosts(limit=100000)
-		if ret:
-			for host in response_data['data']['entries']:
-				(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
-				if sret and 'MalwareProtectionStatus' in sresponse_data['data'].keys():
-					if not sresponse_data['data']['MalwareProtectionStatus'] in myContent.keys():
-						myContent[sresponse_data['data']['MalwareProtectionStatus']] = 1
+		
+		# Try the /agents/sysinfo call on HX 5.0+
+		try:
+			(ret, response_code, response_data) = hx_api_object.restAgentSysinfo()
+			if ret:
+				for sysinfo in response_data['data']['entries']:
+					if 'data' in sysinfo:
+						myContent[sysinfo['data'].get('MalwareProtectionStatus', 'none')] +=1
 					else:
-						myContent[sresponse_data['data']['MalwareProtectionStatus']] += 1
-				else:
-					myContent['none'] += 1
-					logger.warn(format_activity_log(error="Failed to retrieve MalwareProtection status for agent ID {}".format(host['_id']), controller_reponse_code=sresponse_code, controller_response_data=sresponse_data, user=session['ht_user'], controller=session['hx_ip']))
+						myContent['none'] += 1
+			
+		# Fall back to the old code
+		except NotImplementedError:			
+			(ret, response_code, response_data) = hx_api_object.restListHosts()
+			if ret:
+				for host in response_data['data']['entries']:
+					(sret, sresponse_code, sresponse_data) = hx_api_object.restGetHostSysinfo(host['_id'])
+					if sret and 'data' in sresponse_data:
+						myContent[sresponse_data['data'].get('MalwareProtectionStatus', 'none')] += 1
+					else:
+						myContent['none'] += 1
 
-		del response_data
+			del response_data
 
 		dataset = []
 		mylist = []
