@@ -1065,7 +1065,30 @@ class HXAPI:
 		
 		else:
 			return(ret, response_code, response_data)
+
+	#########
+	# Agents
+	#########
+	
+	def restAgentSysinfo(self, limit=DEFAULT_LIMIT, offset=0, search_term=None, sort_term=None, filter_term={}, query_terms = {}):
+		if self.hx_version >= [5, 0, 0]:
+			params = {
+				'limit' : limit,
+				'offset' : offset
+			}		
+			if search_term:
+				params['search'] = search_term
+			if sort_term:
+				params['sort'] = sort_term
+			params.update(filter_term)
+			params.update(query_terms)
+
+			request = self.build_request(self.build_api_route('agents/sysinfo'), params = params)
+			(ret, response_code, response_data, response_headers) = self.handle_response(request)
 			
+			return(ret, response_code, response_data)
+		else:
+			raise NotImplementedError("This API call requires FireEye Endpoint Security version 5.0 and above.")
 
 
 	########
