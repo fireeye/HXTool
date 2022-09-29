@@ -229,7 +229,7 @@ def parse_schedule(request_params):
 
 	return (start_time, schedule)
 	
-def js_path(json_string, path):
+def js_path(json_string, path, not_found="Not found!"):
 	try:
 		for path_part in path.split("."):
 			if path_part.startswith("#"):
@@ -237,7 +237,7 @@ def js_path(json_string, path):
 			json_string = json_string[path_part]
 		return json_string
 	except:
-		return "Not found!"
+		return not_found
 		
 def validate_hashes(hash_list, hash_type="MD5"):
 	hash_length = 32
