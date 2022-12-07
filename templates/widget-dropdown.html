@@ -6,14 +6,14 @@
 
 {% endmacro %}
 
-{% macro widgetItem(elementText, elementId, elementIcon="fa-check") -%}
+{% macro widgetItem(elementText, elementId, elementIcon="fa-check", elementAdditionalClass="") -%}
 				<li class="fe-dropdown__item">
-					<a class="fe-dropdown__item-link">
+					<a class='fe-dropdown__item-link{% if elementAdditionalClass != "" %} {{elementAdditionalClass}}{% endif %}'>
 						<span class="fe-dropdown__item-link-left-section">
 							{% if elementIcon == "fa-windows" or elementIcon == "fa-apple" or elementIcon == "fa-linux" %}
-							<i style='margin-top: 2px;' class="fab {{elementIcon}} fa-lg"></i>
+							<i style='margin-top: 2px;' class='fab {{elementIcon}} fa-lg'></i>
 							{% else %}
-							<i style='margin-top: 2px;' class="fas {{elementIcon}} fa-lg"></i>
+							<i style='margin-top: 2px;' class='fas {{elementIcon}} fa-lg'></i>
 							{% endif %}
 						</span>
 						<span class="fe-dropdown__item-link-text" data-id="{{elementId}}">{{elementText}}</span>

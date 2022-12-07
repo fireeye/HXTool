@@ -47,8 +47,8 @@
 }
 
 .hxtool_panel_scriptbuilder {
-	width: 1200px;
-	height: calc(100vh - 120px);
+	width: 1536px;
+	height: calc(100vh - 190px);
 	overflow-y: visible;
 }
 

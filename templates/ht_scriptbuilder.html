@@ -215,14 +215,7 @@
 
 							}
 							else {
-								v = $(mitem).val();
-								if (v.length > 0) {
-									// Convert multiline (textarea) inputs to lists
-									if ($(mitem).is("textarea")) {
-										v = v.split(/\n/);
-									}
-									myParams.push({"name": myParamName, "value": v});
-								}
+								myParams.push({"name": myParamName, "value": $(mitem).val()});
 							}
 						}
 						else if ($(mitem).attr("class") == "fe-dropdown") {
@@ -252,7 +245,8 @@
 		{% endif %}
 
 		// The user changed platform
-		$('.hxtool_platform_link').click(function() {
+		$('.platform_option').click(function() {
+
 			targetOS = $(this).find(".fe-dropdown__item-link-text").data("id");
 			renderAuditSelector(auditspace, targetOS);
 
@@ -357,9 +351,9 @@
 
 		<h3 class='hxtool_typography_h3'>Platform</h3>
 		{{ htDropdown.widgetHeader("Microsoft Windows", "platform", "win") }}
-		{{ htDropdown.widgetItem("Microsoft Windows", "win", elementIcon="fa-windows") }}
-		{{ htDropdown.widgetItem("Apple MacOS", "osx", elementIcon="fa-apple") }}
-		{{ htDropdown.widgetItem("Linux", "linux", elementIcon="fa-linux") }}
+		{{ htDropdown.widgetItem("Microsoft Windows", "win", elementIcon="fa-windows", elementAdditionalClass="platform_option") }}
+		{{ htDropdown.widgetItem("Apple MacOS", "osx", elementIcon="fa-apple", elementAdditionalClass="platform_option") }}
+		{{ htDropdown.widgetItem("Linux", "linux", elementIcon="fa-linux", elementAdditionalClass="platform_option") }}
 		{{ htDropdown.widgetFooter(elementLabel="Select the target platform") }}
 		<h3 class='hxtool_typography_h3'>Job Filter</h3>
 		{{ htTextArea.widget("Job Filter", elementHint="Add an OpenIOC formatted indicator here with elements that match the audit modules selected.", elementId="scriptJobFilter", elementWidth="400") }}
@@ -367,10 +361,10 @@
 		{{ htDropdown.widgetHeader("Select audit module", "add_audit", "false", elementAdditionalClass="hxtool_dynamic-dropdown") }}
 		{{ htDropdown.widgetFooter(elementLabel="Select an audit module to add it to the script") }}
 
-		<div id='scriptArea' style='margin-top: 15px; margin-bottom: 15px;'>
+		<div id='scriptArea' style='margin-top: 15px; margin-bottom: 25px;'>
 			<ul id='tabMenu' class='tabMenu' style='float: left; width: 180px; list-style-type: none; margin: 0;'>
 			</ul>
-			<div id='scriptItems' class='hxtool_scriptbuilder_scriptarea' style='float: left; width: 980px;'>
+			<div id='scriptItems' class='hxtool_scriptbuilder_scriptarea' style='float: left; width: 1330px;'>
 			</div>
 			<div style='clear: both;'></div>
 		</div>
