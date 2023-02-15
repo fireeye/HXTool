@@ -1,9 +1,9 @@
 # HXTool
 
 ## Summary
-HXTool is a web-based, standalone tool that can be used with FireEye Endpoint Security (formerly HX).
+HXTool is a web-based, standalone tool that can be used with Trellix Endpoint Security (HX).
 
-HXTool provides additional features not directly available in the product by leveraging FireEye Endpoint Security's rich API.
+HXTool provides additional features not directly available in the product by leveraging Trellix Endpoint Security (HX)'s rich API.
 
 ### Version
 4.8-pre
@@ -48,9 +48,9 @@ IPC_LOCK is needed for the GNOME keyring daemon. See [README.DOCKER](README.DOCK
 None so far
 
 ### Who do I talk to?
-* [Henrik Olsson](mailto:henrik.olsson@FireEye.com)
+* [Henrik Olsson](mailto:henrik.olsson@trellix.com)
 
 ### Contributors
-* [Elazar Broad](mailto:elazar.broad@FireEye.com)
-* [Matthew Briggs](mailto:matthew.briggs@FireEye.com)
-* [Martin Holste](mailto:martin.holste@FireEye.com)
+* [Elazar Broad](mailto:elazar.broad@trellix.com)
+* [Matthew Briggs](mailto:matthew.briggs@trellix.com)
+* [Martin Holste](mailto:martin.holste@trellix.com)
