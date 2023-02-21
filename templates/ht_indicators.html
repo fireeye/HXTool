@@ -39,7 +39,8 @@
 			ioc_datatable = $('#iocTable').DataTable( {
 				"ajax": "/api/v1/datatable_indicators",
 				"paging":   false,
-				"ordering": false,
+				"ordering": true,
+				"order": [[3,"asc"],[1,"asc"],[2,"desc"]],
 				"info":     false,
 				"searching": true,
 				"processing": false,
