@@ -531,7 +531,7 @@ def hxtool_api_openioc_download(hx_api_object):
 	buffer.seek(0)
 
 	app.logger.info(format_activity_log(msg="openioc action", action="download", name=myiocData['iocname'], user=session['ht_user'], controller=session['hx_ip']))
-	return send_file(buffer, attachment_filename=myiocData['iocname'] + ".ioc", as_attachment=True)
+	return send_file(buffer, download_name=myiocData['iocname'] + ".ioc", as_attachment=True)
 
 
 ##########
@@ -872,7 +872,7 @@ def hxtool_api_scripts_download(hx_api_object):
 	buffer.seek(0)
 
 	app.logger.info(format_activity_log(msg="script action", action="download", id=request.args.get('id'), user=session['ht_user'], controller=session['hx_ip']))
-	return send_file(buffer, attachment_filename=myscriptData['scriptname'] + ".json", as_attachment=True)
+	return send_file(buffer, download_name=myscriptData['scriptname'] + ".json", as_attachment=True)
 
 
 
@@ -1079,7 +1079,7 @@ def hxtool_api_streaming_indicators_export(hx_api_object):
 		buffer.seek(0)
 		
 		app.logger.info(format_activity_log(msg="streaming rule action", action="export", name=iocfname, user=session['ht_user'], controller=session['hx_ip']))
-		return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
+		return send_file(buffer, download_name=iocfname, as_attachment=True)
 	return('Nothing selected to export', 500)
 
 
@@ -1345,7 +1345,7 @@ def hxtool_api_indicators_export(hx_api_object):
 	buffer.seek(0)
 	
 	app.logger.info(format_activity_log(msg="rule action", action="export", name=iocfname, user=session['ht_user'], controller=session['hx_ip']))
-	return send_file(buffer, attachment_filename=iocfname, as_attachment=True)
+	return send_file(buffer, download_name=iocfname, as_attachment=True)
 
 @ht_api.route('/api/v{0}/indicators/import'.format(HXTOOL_API_VERSION), methods=['POST'])
 @valid_session_required
@@ -2014,7 +2014,7 @@ def datatable_agentstatus_csv(hx_api_object):
 	mem.seek(0)
 	writer_file.close()
 
-	return send_file(mem, attachment_filename="agent_statistics_" + myField + ".csv", as_attachment=True)
+	return send_file(mem, download_name="agent_statistics_" + myField + ".csv", as_attachment=True)
 
 
 @ht_api.route('/api/v{0}/datatable/agentstatus'.format(HXTOOL_API_VERSION), methods=['GET'])
