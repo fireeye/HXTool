@@ -333,6 +333,10 @@
 							{ mycase = false; }
 
 						var mydata = $(this).find('td:eq(5)').find('input').val();
+						// Handle integer types where the operator is between - the type needs to be set to range
+						if (myoper == "between") {
+							mytype = "range";
+						};
 						var mydict = {"group": mygroup, "field": myfield, "type": mytype, "operator": myoper, "negate": myneg, "case": mycase, "data": mydata};
 						data[currguid].push(mydict);
 					}
