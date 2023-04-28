@@ -65,7 +65,7 @@ class hxtool_session_interface(SessionInterface):
 	def open_session(self, app, request):
 		session = hxtool_session(app.secret_key)
 		
-		session_id = request.cookies.get(app.session_cookie_name)
+		session_id = request.cookies.get(app.config['SESSION_COOKIE_NAME'])
 		if session_id:
 			cached_session = self.session_cache.get(session_id)
 			if not cached_session:					
@@ -86,7 +86,7 @@ class hxtool_session_interface(SessionInterface):
 			if not session.new:
 				self.delete_session(app, session.id)
 			if session.modified:
-				response.delete_cookie(app.session_cookie_name, domain=cookie_domain)
+				response.delete_cookie(app.config['SESSION_COOKIE_NAME'], domain=cookie_domain)
 			return
 		
 		if not self.should_set_cookie(app, session):
@@ -107,7 +107,7 @@ class hxtool_session_interface(SessionInterface):
 		cookie_path = self.get_cookie_path(app)
 		http_only = self.get_cookie_httponly(app)
 		secure = self.get_cookie_secure(app)	
-		response.set_cookie(app.session_cookie_name, session.id, expires=self.get_expiration_time(app, session), path=cookie_path, httponly=http_only, secure=secure, domain=cookie_domain)	
+		response.set_cookie(app.config['SESSION_COOKIE_NAME'], session.id, expires=self.get_expiration_time(app, session), path=cookie_path, httponly=http_only, secure=secure, domain=cookie_domain)	
 
 	def delete_session(self, app, session_id):
 		logger.debug("Deleting session with id: {0}".format(session_id))
