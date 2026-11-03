@@ -1,0 +1,19 @@
+
+# --- Python Bytecode & Virtualenvs ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- HXTool Runtime Data & Logs (NEVER COMMIT) ---
+data/hxtool.db
+data/*.db
+*.db
+log/*.log
+*.log
+conf.local.json
+
+# --- AI & Patch Artifacts ---
+.aider*
+claude_bundle*.txt
+*.patch

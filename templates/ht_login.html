@@ -13,8 +13,9 @@
 	<script type="text/javascript" src="/static/hxtool-js/hxtool-doc-ready.js"></script>
 	<link href="/static/fontawesome-free-5.7.2-web/css/all.css" rel="stylesheet">
 	<link href="/static/fe-fds/fds-dark.css" rel="stylesheet" />
-	<link rel="stylesheet" type="text/css" href="static/hxtool-css/hxtool-main.css">
-	<link href="/static/favicon.ico" rel="icon" type="image/x-icon" />
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='hxtool-css/hxtool-main.css') }}">
+	<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='trellix-icon.png') }}">
+	<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='trellix-icon.png') }}">
 </head>
 
 <script language="JavaScript">
@@ -135,9 +136,10 @@
 
 		<div style='padding: 24px;'>
 
-			<div style='text-align: center;'><img src='/static/fireeye-2-color.png' style='width: 250px;'></div>
+			<!-- BRAND: Trellix logo -->
+			<div style='text-align: center;'><img src='/static/trellix-logo.png' alt='Trellix' style='width: 250px;'></div>
 			<h3 style='text-align: center; font-size: 24px; font-weight: bold;'>HXTool {{ version }}</h3>
-			<h3 style='text-align: center; font-size: 14px;'>Extended user interface for FireEye Endpoint Security</h3>
+			<h3 style='text-align: center; font-size: 14px;'>Extended user interface for Trellix Endpoint Security</h3>
 			<br/>
 
 			<form id='login_form' method='post'>
@@ -162,7 +164,7 @@
 					<button id="login_submit" style='width: 100%;' class="fe-btn fe-btn--lg fe-btn--primary fe-btn--hxtool-main-master"> login <i style='color: #11a962;' class="fe-icon--right fas fa-check"></i></button>
 				</div>
 
-				<h5 class='hxtool_typography_h5' style='text-align: center;'>Copyright &copy; 2022 by FireEye. All rights reserved</h5>
+				<h5 class='hxtool_typography_h5' style='text-align: center;'>Copyright &copy; 2025 by Trellix. All rights reserved</h5>
 
 			</form>
 

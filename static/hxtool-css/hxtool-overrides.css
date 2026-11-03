@@ -1,0 +1,25 @@
+/* Make native <select> dropdowns legible on the dark theme */
+select.fe-select,
+select.fe-input {
+  color: #c7ccd4 !important;           /* text in the closed control */
+}
+
+/* Text inside the expanded dropdown menu */
+select.fe-select option,
+select.fe-input option {
+  color: #6e7781 !important;           /* medium grey text */
+  background-color: #fff !important;   /* keep menu background white */
+}
+
+/* Optional: nicer focus ring */
+select.fe-select:focus,
+select.fe-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px #1482d0 inset;
+}
+
+/* (Optional) tell browsers to render selects in light scheme to avoid forced dark dropdowns */
+@supports (color-scheme: light dark) {
+  select.fe-select,
+  select.fe-input { color-scheme: light; }
+}

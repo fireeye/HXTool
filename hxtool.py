@@ -72,6 +72,18 @@ hxtool_vars.app_instance_path = app.root_path
 # Register HXTool API blueprint
 app.register_blueprint(ht_api)
 
+# --- BEGIN: HXWebUI add-ons registration (Policy Tool + Host Sets) ---
+# These will be present if you dropped `hxwebui_addons/` into the repo root.
+try:
+	from hxwebui_addons.policytool import bp as policytool_bp
+	from hxwebui_addons.hostsets import bp as hostsets_bp
+
+	app.register_blueprint(policytool_bp, url_prefix="/policytool")
+	app.register_blueprint(hostsets_bp,  url_prefix="/hostsets")
+	logger.info("HXWebUI add-ons registered: /policytool and /hostsets")
+except Exception as e:
+	logger.warning("HXWebUI add-ons not loaded (%s). If you want these pages, drop hxwebui_addons/ into the repo root.", e)
+# --- END: HXWebUI add-ons registration ---
 
 ### Flask/Jinja Filters
 ####################################
@@ -510,8 +522,8 @@ def login():
 					session['hx_int_version'] = int(''.join(str(i) for i in hx_api_object.hx_version))
 					session['hx_ip'] = hx_api_object.hx_host
 					session['ht_database_engine'] = hxtool_global.hxtool_db.database_engine
-					(m_ret, m_response_code, m_response_data) = hx_api_object.restListModules(query_terms = {'status' : 'enabled'})
-					if m_ret:
+					(ret, response_code, m_response_data) = hx_api_object.restListModules(query_terms = {'status' : 'enabled'})
+					if ret:
 						enabled_module_names = [ _['name'] for _ in m_response_data['data'] ]
 						session['hx_enabled_modules'] = enabled_module_names
 					else:

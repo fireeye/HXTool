@@ -1,0 +1,189 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Policy Tool{% endblock %}
+{% block content %}
+
+<style>
+  .addons-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 1100px) { .addons-grid { grid-template-columns: 1fr 1fr; } }
+  .fe-panel__title { text-transform: none; }
+  .form-row { display:flex; gap:12px; align-items:center; margin:6px 0; }
+  .form-row > .fe-input, .form-row > .fe-select, .form-row > .fe-textarea { flex: 1; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  .table-actions a { margin-right: 10px; }
+</style>
+
+<div class="addons-grid">
+
+  <!-- Policies -->
+  <div class="fe-panel">
+    <div class="fe-panel__header">
+      <div class="fe-panel__title">Policies</div>
+    </div>
+    <div class="fe-panel__body">
+      {% if api_ok and policies %}
+      <table class="fe-table fe-table--striped" style="width:100%">
+        <thead>
+          <tr>
+            <th style="width:30%">Name</th>
+            <th style="width:35%">ID</th>
+            <th style="width:10%">Type</th>
+            <th style="width:25%">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in policies %}
+          {% set pid = p._id or p['id'] or p['persist_id'] %}
+          <tr>
+            <td class="mono">{{ p.name or p['name'] }}</td>
+            <td class="mono">{{ pid }}</td>
+            <td class="mono">{{ p.type or p['type'] or 'Agent' }}</td>
+            <td class="table-actions">
+              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid }}&section=all">Export All</a>
+              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid }}&section=real_time_indicator_detection">Export Real-Time</a>
+              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid }}&section=malware_protection">Export Malware Protection</a>
+              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid }}&section=exploit_guard_protection">Export Exploit Guard</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="fe-text--muted">No policies found or API error.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Clone policy -->
+  <div class="fe-panel">
+    <div class="fe-panel__header">
+      <div class="fe-panel__title">Clone Policy</div>
+    </div>
+    <div class="fe-panel__body">
+      <form method="post" action="/policytool/clone">
+        <div class="form-row">
+          <label class="fe-label" style="min-width:130px;">Source Policy ID</label>
+          <input class="fe-input mono" name="source_policy_id" placeholder="e.g. 6e2d...c9" required />
+        </div>
+        <div class="form-row">
+          <label class="fe-label" style="min-width:130px;">New Policy Name</label>
+          <input class="fe-input" name="new_policy_name" placeholder="My New Policy" required />
+        </div>
+        <button class="fe-btn fe-btn--primary" type="submit">Clone</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Import exclusions -->
+  <div class="fe-panel" style="grid-column: 1 / -1;">
+    <div class="fe-panel__header">
+      <div class="fe-panel__title">Import Exclusions (Paste or File)</div>
+    </div>
+    <div class="fe-panel__body">
+      <form method="post" action="/policytool/exclusions/import" enctype="multipart/form-data">
+        <div class="form-row">
+          <label class="fe-label" style="min-width:150px;">Target Policy ID</label>
+          <input class="fe-input mono" name="policy_id" placeholder="e.g. 6e2d...c9" required />
+        </div>
+
+        <div class="form-row">
+          <label class="fe-label" style="min-width:150px;">Mode</label>
+          <select class="fe-select" name="mode">
+            <option value="append">Append</option>
+            <option value="overwrite">Replace</option>
+          </select>
+        </div>
+
+        <div class="fe-divider"></div>
+
+        <!-- Category / options -->
+        <div class="form-row">
+          <label class="fe-label" style="min-width:150px;">Category / Options</label>
+          <select class="fe-select" name="category" id="mod-select" style="max-width:320px;">
+            <option value="real_time_indicator_detection">Real-Time</option>
+            <option value="malware_protection">Malware Protection</option>
+            <option value="exploit_guard_protection">Exploit Guard</option>
+          </select>
+        </div>
+
+        <div id="opt-rt">
+          <div class="form-row">
+            <span class="fe-label" style="min-width:150px;">Type</span>
+            <label class="fe-radio"><input type="radio" name="type_real_time_indicator_detection" value="process">Process</label>
+            <label class="fe-radio"><input type="radio" name="type_real_time_indicator_detection" value="path" checked>File/Folder</label>
+          </div>
+        </div>
+
+        <div id="opt-mp" style="display:none;">
+          <div class="form-row">
+            <span class="fe-label" style="min-width:150px;">Type</span>
+            <label class="fe-radio"><input type="radio" name="type_malware_protection" value="process">Process</label>
+            <label class="fe-radio"><input type="radio" name="type_malware_protection" value="path" checked>File/Folder</label>
+          </div>
+          <div class="form-row">
+            <span class="fe-label" style="min-width:150px;">Platform (MP only)</span>
+            <select class="fe-select" name="mp_platform">
+              <option value="platform#win">Windows</option>
+              <option value="platform#osx">macOS</option>
+              <option value="platform#linux">Linux</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="opt-eg" style="display:none;">
+          <div class="form-row">
+            <span class="fe-label" style="min-width:150px;">Type</span>
+            <label class="fe-radio"><input type="radio" name="type_exploit_guard_protection" value="process">Process</label>
+            <label class="fe-radio"><input type="radio" name="type_exploit_guard_protection" value="path" checked>File/Folder</label>
+          </div>
+        </div>
+
+        <div class="form-row" style="align-items:flex-start;">
+          <label class="fe-label" style="min-width:150px;">Paste exclusions (one per line)</label>
+          <textarea class="fe-textarea mono" name="paste_text" rows="7" placeholder="C:\path\to\exclude\nprocess.exe"></textarea>
+        </div>
+
+        <div class="form-row">
+          <span class="fe-label" style="min-width:150px;">OR upload a .txt/.csv file</span>
+          <input type="file" class="fe-input" name="file" accept=".txt,.csv" />
+        </div>
+
+        <div class="fe-text--muted" style="margin: 6px 0 12px 150px;">
+          TXT or pasted list uses the Category/Type/Platform options above. CSV still supported (<span class="mono">item,item_type,module,platform</span>).
+        </div>
+
+        <button class="fe-btn fe-btn--primary" type="submit">Import</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Agent policy lookup -->
+  <div class="fe-panel" style="grid-column: 1 / -1;">
+    <div class="fe-panel__header">
+      <div class="fe-panel__title">Agent Policy Lookup</div>
+    </div>
+    <div class="fe-panel__body">
+      <form method="get" action="/policytool/agent/policy">
+        <div class="form-row">
+          <label class="fe-label" style="min-width:150px;">Agent Query (agent id or hostname)</label>
+          <input class="fe-input mono" name="q" placeholder="e.g. Aw1U4y..., or PC-FOO" />
+          <!-- CHANGE: make this blue like Import/Clone -->
+          <button class="fe-btn fe-btn--primary" type="submit">Lookup</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function selMod() {
+    var v = document.getElementById('mod-select').value;
+    document.getElementById('opt-rt').style.display = (v === 'real_time_indicator_detection') ? '' : 'none';
+    document.getElementById('opt-mp').style.display = (v === 'malware_protection') ? '' : 'none';
+    document.getElementById('opt-eg').style.display = (v === 'exploit_guard_protection') ? '' : 'none';
+  }
+  document.getElementById('mod-select').addEventListener('change', selMod);
+  selMod();
+</script>
+
+{% endblock %}

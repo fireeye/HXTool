@@ -1,0 +1,123 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Host Sets{% endblock %}
+{% block content %}
+
+<style>
+  .addons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 1100px) { .addons-grid { grid-template-columns: 1fr; } }
+  .form-row { display:flex; gap:12px; align-items:center; margin:6px 0; }
+  .form-row > .fe-input, .form-row > .fe-textarea, .form-row > .fe-select { flex: 1; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+</style>
+
+<div class="addons-grid">
+
+  <!-- Host sets list -->
+  <div class="fe-panel" style="grid-column: 1 / -1;">
+    <div class="fe-panel__header">
+      <div class="fe-panel__title">Host Sets</div>
+    </div>
+    <div class="fe-panel__body">
+      {% if api_ok and hostsets %}
+      <table class="fe-table fe-table--striped" style="width:100%">
+        <thead>
+          <tr>
+            <th style="width:40%">Name</th>
+            <th style="width:30%">ID</th>
+            <th style="width:30%">Members</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for hs in hostsets %}
+          <tr>
+            <td class="mono">{{ hs.name or hs['name'] }}</td>
+            <td class="mono">{{ hs._id or hs['id'] or hs['persist_id'] or hs['uuid'] }}</td>
+            <td class="mono">{{ hs.members or hs['members'] or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="fe-text--muted">No host sets found.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Create -->
+  <div class="fe-panel">
+    <div class="fe-panel__header"><div class="fe-panel__title">Create Host Set</div></div>
+    <div class="fe-panel__body">
+      <form method="post" action="/hostsets/create">
+        <div class="form-row">
+          <label class="fe-label" style="min-width:70px;">Name</label>
+          <input class="fe-input" name="name" placeholder="e.g. Workstations – Finance" required />
+        </div>
+        <button class="fe-btn fe-btn--primary" type="submit">Create</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modify membership -->
+  <div class="fe-panel">
+    <div class="fe-panel__header"><div class="fe-panel__title">Modify Host Set Membership</div></div>
+    <div class="fe-panel__body">
+      <form method="post" action="/hostsets/modify" enctype="multipart/form-data">
+        <div class="form-row">
+          <label class="fe-label" style="min-width:110px;">Host Set ID</label>
+          <input class="fe-input mono" name="hostset_id" placeholder="e.g. 1801" required />
+        </div>
+        <div class="form-row">
+          <label class="fe-label" style="min-width:110px;">Host Set Name</label>
+          <input class="fe-input" name="hostset_name" placeholder="Exact current name" required />
+        </div>
+        <div class="form-row">
+          <label class="fe-label" style="min-width:110px;">Mode</label>
+          <select class="fe-select" name="mode" style="max-width:160px;">
+            <option value="add">Add</option>
+            <option value="remove">Remove</option>
+          </select>
+        </div>
+        <div class="form-row" style="align-items:flex-start;">
+          <label class="fe-label" style="min-width:110px;">IDs / Hostnames (one per line)</label>
+          <!-- IMPORTANT: name="ids" (matches blueprint) -->
+          <textarea class="fe-textarea mono" name="ids" rows="6" placeholder="HOST123&#10;HOST456"></textarea>
+        </div>
+        <div class="form-row">
+          <span class="fe-label" style="min-width:110px;">OR upload a .txt file</span>
+          <input type="file" class="fe-input" name="file" accept=".txt" />
+        </div>
+        <div class="form-row">
+          <!-- IMPORTANT: name="use_hostnames" (matches blueprint) -->
+          <label class="fe-checkbox">
+            <input type="checkbox" name="use_hostnames" />
+            Treat entries as hostnames (convert to agent IDs)
+          </label>
+        </div>
+        <button class="fe-btn fe-btn--primary" type="submit">Apply</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete -->
+  <div class="fe-panel" style="grid-column: 1 / -1; border-color:#7a2020;">
+    <div class="fe-panel__header"><div class="fe-panel__title">Delete Host Set</div></div>
+    <div class="fe-panel__body">
+      <form method="post" action="/hostsets/delete">
+        <div class="form-row">
+          <label class="fe-label" style="min-width:110px;">Host Set ID</label>
+          <input class="fe-input mono" name="hostset_id" placeholder="e.g. 1801" required />
+        </div>
+        <div class="form-row">
+          <label class="fe-label" style="min-width:110px;">Type <span class="mono">DELETE</span> to confirm</label>
+          <input class="fe-input mono" name="confirm" placeholder="DELETE" />
+        </div>
+        <!-- CHANGE: make this the same blue primary style -->
+        <button class="fe-btn fe-btn--primary" type="submit">Delete Host Set</button>
+        <div class="fe-text--muted" style="margin-top:6px;">This permanently removes the entire host set (not just members).</div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

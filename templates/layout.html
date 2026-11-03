@@ -7,274 +7,284 @@
 {% import 'widget-textarea.html' as htTextArea %}
 {% import 'widget-schedule.html' as htSchedule %}
 
-
 <!DOCTYPE html>
 <html>
 <head>
-	<title>{% block title %}{% endblock %}</title>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
-	
-	<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.colReorder.min.js') }}"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.scroller.min.js') }}"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.buttons.min.js') }}"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/buttons.jqueryui.min.js') }}"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/buttons.html5.min.js') }}"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/buttons.print.min.js') }}"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/jszip.min.js') }}"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='js/datatables_parser.js') }}"></script>
-	<script type="text/javascript" src="/static/datetimepicker/moment.min.js"></script>
-	<script type="text/javascript" src="{{ url_for('static', filename='ChartJS/Chart.min.js') }}"></script>
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}" />
-	<script type="text/javascript" src="/static/progress.js"></script>
-	<script type="text/javascript" src="/static/jquery.multi-select.js"></script>
-	<script type="text/javascript" src="/static/datetimepicker/daterangepicker.js"></script>
-	<script type="text/javascript" src="/static/hxtool-js/hxtool-doc-ready.js"></script>
-	<script type="text/javascript" src="/static/hxtool-js/hxtool-generic.js"></script>
-	<script type="text/javascript" src="/static/hxtool-js/hxtool-widgets.js"></script>
-	<link href="/static/fontawesome-free-5.7.2-web/css/all.css" rel="stylesheet">
-	<link href="/static/fe-fds/fds-dark.css" rel="stylesheet" />
-	<link rel="stylesheet" type="text/css" href="static/hxtool-css/hxtool-main.css">
-    <link rel="stylesheet" type="text/css" href="static/datetimepicker/daterangepicker.css">
-	<link rel="stylesheet" type="text/css" href="static/multi-select.css">
-	<link href="/static/favicon.ico" rel="icon" type="image/x-icon" />
+  <title>{% block title %}{% endblock %}</title>
+
+  <!-- JS -->
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.colReorder.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.scroller.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.buttons.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/buttons.jqueryui.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/buttons.html5.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/buttons.print.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/jszip.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/datatables_parser.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='datetimepicker/moment.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='ChartJS/Chart.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='progress.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='jquery.multi-select.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='datetimepicker/daterangepicker.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='hxtool-js/hxtool-doc-ready.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='hxtool-js/hxtool-generic.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='hxtool-js/hxtool-widgets.js') }}"></script>
+
+  <!-- CSS -->
+  <link href="{{ url_for('static', filename='fontawesome-free-5.7.2-web/css/all.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='fe-fds/fds-dark.css') }}" rel="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='hxtool-css/hxtool-main.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='datetimepicker/daterangepicker.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='multi-select.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='hxtool-css/hxtool-overrides.css') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='trellix-icon.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='trellix-icon.png') }}">
+
 </head>
+
 <body>
-	<script>
-		// Function to check if current HX version is equal or greater than a specific version
-		function checkVersion(version) {
-			myVersionArr = version.split(".");
-			currversion = JSON.parse("{{session['hx_version']}}");
+  <script>
+    function checkVersion(version) {
+      let myVersionArr = version.split(".");
+      let currversion = JSON.parse("{{session['hx_version']}}");
+      return (currversion[0] >= myVersionArr[0] &&
+              currversion[1] >= myVersionArr[1] &&
+              currversion[2] >= myVersionArr[2]);
+    }
 
-			if (currversion[0] >= myVersionArr[0] && currversion[1] >= myVersionArr[1] && currversion[2] >= myVersionArr[2]) {
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
+    function getQueryParam(param) {
+      var ret = '';
+      location.search.substr(1).split("&").some(function (item) {
+        let parts = item.split('=');
+        if (parts[0] == param) ret = parts[1];
+      });
+      return ret;
+    }
 
-		function getQueryParam(param) {
-			var ret = '';
-			location.search.substr(1)
-				.split("&")
-				.some(function(item) {
-					parts = item.split('=');
-					if (parts[0] == param) {
-						ret = parts[1];
-					}
-				})
-			return ret;
-		}
-		
-		(function($){
-			$.fn.extend({
-				center: function () {
-					return this.each(function() {
-						var top = ($(window).height() - $(this).outerHeight()) / 2;
-						var left = ($(window).width() - $(this).outerWidth()) / 2;
-						$(this).css({position:'absolute', margin:0, top: (top > 0 ? top : 0)+'px', left: (left > 0 ? left : 0)+'px'});
-					});
-				}
-			}); 
-		})(jQuery);
+    (function ($) {
+      $.fn.extend({
+        center: function () {
+          return this.each(function () {
+            var top  = ($(window).height() - $(this).outerHeight()) / 2;
+            var left = ($(window).width()  - $(this).outerWidth())  / 2;
+            $(this).css({ position: 'absolute', margin: 0,
+              top: (top > 0 ? top : 0) + 'px',
+              left: (left > 0 ? left : 0) + 'px' });
+          });
+        }
+      });
+    })(jQuery);
 
-		jQuery.fn.realcenter = function () {
- 			this.css("position","absolute");
-			this.css("top", ( $(window).height() - this.height() ) / 2+$(window).scrollTop() + "px");
-			this.css("left", ( $(window).width() - this.width() ) / 2+$(window).scrollLeft() + "px");
-			return this;
-		}
+    jQuery.fn.realcenter = function () {
+      this.css("position", "absolute");
+      this.css("top",  (($(window).height() - this.height()) / 2) + $(window).scrollTop()  + "px");
+      this.css("left", (($(window).width()  - this.width())  / 2) + $(window).scrollLeft() + "px");
+      return this;
+    }
 
-		jQuery.fn.popupshow = function () {
- 			this.css("height", $(document).height());
- 			this.show();
-			return this;
-		}
-		
-		$(document).ready(function() {
-			$('#hx_name-placeholder').text("{{session['ht_hx_name']}}");
-			/* Hide menu items based on capabilities */
-			myDBEngine = "{{session['ht_database_engine']}}";
-			myHXModules = [];
+    jQuery.fn.popupshow = function () {
+      this.css("height", $(document).height());
+      this.show();
+      return this;
+    }
 
-			{% for mymodule in session['hx_enabled_modules'] %}
-				myHXModules.push("{{ mymodule }}");
-			{% endfor %}
+    $(document).ready(function () {
+      $('#hx_name-placeholder').text("{{session['ht_hx_name']}}");
 
-			/* Hide all mongoDB related items if we are using another database */
-			if (myDBEngine != "mongodb") {
-				$("#topnav_auditexplorer").prev().hide();
-				$("#topnav_auditexplorer").hide();
-				$("#topnav_manageaudits").prev().hide();
-				$("#topnav_manageaudits").hide();
-			}
+      let myDBEngine = "{{session['ht_database_engine']}}";
+      let myHXModules = [];
+      {% for mymodule in session['hx_enabled_modules'] %}
+        myHXModules.push("{{ mymodule }}");
+      {% endfor %}
 
-			/* Hide IOC Streaming rules if the IOC Streaming modules isn't installed */
-			if (!myHXModules.includes("ioc-streaming")) {
-				$("#topnav_iocstreaming_label").prev().hide();
-				$("#topnav_iocstreaming_label").hide();
-				$("#topnav_iocstreaming").prev().hide();
-				$("#topnav_iocstreaming").hide();
-			}
+      if (myDBEngine != "mongodb") {
+        $("#topnav_auditexplorer").prev().hide();
+        $("#topnav_auditexplorer").hide();
+        $("#topnav_manageaudits").prev().hide();
+        $("#topnav_manageaudits").hide();
+      }
 
-			hxtool_doc_ready();
+      if (!myHXModules.includes("ioc-streaming")) {
+        $("#topnav_iocstreaming_label").prev().hide();
+        $("#topnav_iocstreaming_label").hide();
+        $("#topnav_iocstreaming").prev().hide();
+        $("#topnav_iocstreaming").hide();
+      }
 
-		});
-	</script>
-	</body>
+      hxtool_doc_ready();
+    });
+  </script>
 
+  <div class="hxtool5_container container">
+    <div class="row">
+      <div class="col-12">
 
-<div class="hxtool5_container container">
-  <div class="row">
-    <div class="col-12">
+        <!-- TOP NAV BAR -->
+        <header class="fe-top-nav fe-top-nav__topnav">
+          <div class="fe-top-nav__title fe-top-nav__bookend--left fe-top-nav__bookend">
+            <a class="fe-top-nav__home" routerlink="/">
+              <!-- BRAND: Change FireEye -> Trellix -->
+              <div class="fe-top-nav__title-brand">Trellix<sup>®</sup></div>
+              <div class="fe-top-nav__title-name">HXTool</div>
+            </a>
+          </div>
 
-	<!-- TOP NAV BAR -->
-	<header class="fe-top-nav fe-top-nav__topnav">
-		<div class="fe-top-nav__title fe-top-nav__bookend--left fe-top-nav__bookend">
-			<a class="fe-top-nav__home" routerlink="/">
-				<div class="fe-top-nav__title-brand">FireEye<sup>®</sup></div>
-				<div class="fe-top-nav__title-name">HXTool</div>
-			</a>
-		</div>
-		<nav class="fe-top-nav__bar">
-			<ul class="fe-top-nav__bar-nav">
-				<li class="fe-top-nav__bar-nav-items">
-					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 1">
-						<i class='fas fa-tachometer-alt' aria-hidden='true'></i>
-						<span>dashboard</span>
-						<i class="fas fa-chevron-down"></i>
-					</button>
-					<div class='hxtool_topnav_dropdown'>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/'>Main Dashboard</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/dashboard-agent'>Agent Dashboard</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/dashboard-av'>Antivirus Dashboard</button><br>
-					</div>
-				</li>
-				<li class="fe-top-nav__bar-nav-items">
-					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" data-link='/alert' aria-label="item 2">
-						<i class='fas fa-exclamation-triangle' aria-hidden='true'></i>
-						<span>alerts</span>
-					</button>
-				</li>
-				<li class="fe-top-nav__bar-nav-items">
-					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 3">
-						<i class='fas fa-search' aria-hidden='true'></i>
-						<span>enterprise search</span>
-						<i class="fas fa-chevron-down"></i>
-					</button>
-					<div class='hxtool_topnav_dropdown'>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/search'>OpenIOC search</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/openioc'>Manage OpenIOC indicators</button><br>
-					</div>
-				</li>
-				<li class="fe-top-nav__bar-nav-items">
-					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 4">
-						<i class='fas fa-download' aria-hidden='true'></i>
-						<span>acquisition</span>
-						<i class="fas fa-chevron-down"></i>
-					</button>
-					<div class='hxtool_topnav_dropdown'>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scriptbuilder'>script builder</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scripts'>manage scripts</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/auditexplorer' id='topnav_auditexplorer'>audit explorer</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/auditmanager' id='topnav_manageaudits'>manage audits</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/acqs'>acquisitions</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/bulkacq'>bulk acquisitions</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/multifile'>multi-file acquisitions</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/stacking'>data stacking</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/taskprofile'>task profiles</button><br>
-					</div>
-				</li>
-				<li class="fe-top-nav__bar-nav-items">
-					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 5">
-						<i class='fas fa-headphones' aria-hidden='true'></i>
-						<span>rules</span>
-						<i class="fas fa-chevron-down"></i>
-					</button>
-					<div class='hxtool_topnav_dropdown'>
-						<label class='hxtool_topnav_dropdown_divider fe-label'>Alerting</label><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/rtioc'>build rule</button><br>
-						<!--<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/indicatorqueue'>rule queue</button><br>-->
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/indicators'>manage rules</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/categories'>manage rule categories</button><br>
-						<label class='hxtool_topnav_dropdown_divider fe-label' id='topnav_iocstreaming_label'>Streaming</label><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/streaming_indicators' id='topnav_iocstreaming'>manage streaming rules</button><br>
-					</div>
-				</li>
-				<li class="fe-top-nav__bar-nav-items">
-					<button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 7">
-						<i class='fas fa-toolbox' aria-hidden='true'></i>
-						<span>admin</span>
-						<i class="fas fa-chevron-down"></i>
-					</button>
-					<div class='hxtool_topnav_dropdown'>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/channels'>custom configuration channels</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scheduler'>scheduler</button><br>
-						<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/settings'>hxtool settings</button><br>
-					</div>
-				</li>
-				<li class="fe-top-nav__bar-nav-items" id="fe-top-nav__bar-right-item">
-						<span class="hxtool_topnav_mainbutton fe-btn--lg" id="hx_name-placeholder"></span>
-				</li>
-			</ul>
-		</nav>
-		<div class="fe-top-nav__action-container fe-top-nav__bookend--right fe-top-nav__bookend hxtool_topnav_right_container">
-			<div id='hxtool_topnav_left_container-search' class='hxtool_topnav_left_container-left'>
-				<input type="text" id="hxtool_global_search" value="" class="fe-input" style="width: 180px;" placeholder="search for a host" />
-			</div>
-			<div class='hxtool_topnav_right_container-right'>
-				<a aria-label="search in topnav" id="hxtool_topnavSearch" class="fe-top-nav__action-item" data-clicked='false' role="button" tabindex="0" aria-expanded="false">
-					<i class="fe-icon--center fas fa-search fa-2x"></i>
-				</a>
-				<a aria-label="info in topnav" class="fe-top-nav__action-item" href="/sysinfo" role="button" tabindex="0" aria-expanded="false">
-					<i class="fe-icon--center fas fa-info-circle fa-2x"></i>
-				</a>
-				<a id="hxtoolLogout" aria-label="logout" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
-					<i class="fe-icon--center fas fa-power-off fa-2x"></i>
-				</a>
-			</div>
-		</div>
-	</header>
+          <nav class="fe-top-nav__bar">
+            <ul class="fe-top-nav__bar-nav">
+              <li class="fe-top-nav__bar-nav-items">
+                <button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 1">
+                  <i class='fas fa-tachometer-alt' aria-hidden='true'></i>
+                  <span>dashboard</span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class='hxtool_topnav_dropdown'>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/'>Main Dashboard</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/dashboard-agent'>Agent Dashboard</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/dashboard-av'>Antivirus Dashboard</button><br>
+                </div>
+              </li>
 
+              <li class="fe-top-nav__bar-nav-items">
+                <button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" data-link='/alert' aria-label="item 2">
+                  <i class='fas fa-exclamation-triangle' aria-hidden='true'></i>
+                  <span>alerts</span>
+                </button>
+              </li>
 
+              <li class="fe-top-nav__bar-nav-items">
+                <button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 3">
+                  <i class='fas fa-search' aria-hidden='true'></i>
+                  <span>enterprise search</span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class='hxtool_topnav_dropdown'>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/search'>OpenIOC search</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/openioc'>Manage OpenIOC indicators</button><br>
+                </div>
+              </li>
+
+              <li class="fe-top-nav__bar-nav-items">
+                <button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 4">
+                  <i class='fas fa-download' aria-hidden='true'></i>
+                  <span>acquisition</span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class='hxtool_topnav_dropdown'>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scriptbuilder'>script builder</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scripts'>manage scripts</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/auditexplorer' id='topnav_auditexplorer'>audit explorer</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/auditmanager' id='topnav_manageaudits'>manage audits</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/acqs'>acquisitions</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/bulkacq'>bulk acquisitions</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/multifile'>multi-file acquisitions</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/stacking'>data stacking</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/taskprofile'>task profiles</button><br>
+                </div>
+              </li>
+
+              <li class="fe-top-nav__bar-nav-items">
+                <button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 5">
+                  <i class='fas fa-headphones' aria-hidden='true'></i>
+                  <span>rules</span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class='hxtool_topnav_dropdown'>
+                  <label class='hxtool_topnav_dropdown_divider fe-label'>Alerting</label><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/rtioc'>build rule</button><br>
+                  <!--<button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/indicatorqueue'>rule queue</button><br>-->
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/indicators'>manage rules</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/categories'>manage rule categories</button><br>
+                  <label class='hxtool_topnav_dropdown_divider fe-label' id='topnav_iocstreaming_label'>Streaming</label><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/streaming_indicators' id='topnav_iocstreaming'>manage streaming rules</button><br>
+                </div>
+              </li>
+
+              <!-- ADD-ONS -->
+              <li class="fe-top-nav__bar-nav-items">
+                <button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 6">
+                  <i class='fas fa-puzzle-piece' aria-hidden='true'></i>
+                  <span>add-ons</span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class='hxtool_topnav_dropdown'>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/policytool/'>policy tool</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/hostsets/'>host sets</button><br>
+                </div>
+              </li>
+
+              <li class="fe-top-nav__bar-nav-items">
+                <button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 7">
+                  <i class='fas fa-toolbox' aria-hidden='true'></i>
+                  <span>admin</span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class='hxtool_topnav_dropdown'>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/channels'>custom configuration channels</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/scheduler'>scheduler</button><br>
+                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/settings'>hxtool settings</button><br>
+                </div>
+              </li>
+
+              <li class="fe-top-nav__bar-nav-items" id="fe-top-nav__bar-right-item">
+                <span class="hxtool_topnav_mainbutton fe-btn--lg" id="hx_name-placeholder"></span>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="fe-top-nav__action-container fe-top-nav__bookend--right fe-top-nav__bookend hxtool_topnav_right_container">
+            <div id='hxtool_topnav_left_container-search' class='hxtool_topnav_left_container-left'>
+              <input type="text" id="hxtool_global_search" value="" class="fe-input" style="width: 180px;" placeholder="search for a host" />
+            </div>
+            <div class='hxtool_topnav_right_container-right'>
+              <a aria-label="search in topnav" id="hxtool_topnavSearch" class="fe-top-nav__action-item" data-clicked='false' role="button" tabindex="0" aria-expanded="false">
+                <i class="fe-icon--center fas fa-search fa-2x"></i>
+              </a>
+              <a aria-label="info in topnav" class="fe-top-nav__action-item" href="/sysinfo" role="button" tabindex="0" aria-expanded="false">
+                <i class="fe-icon--center fas fa-info-circle fa-2x"></i>
+              </a>
+              <a id="hxtoolLogout" aria-label="logout" class="fe-top-nav__action-item" role="button" tabindex="0" aria-expanded="false">
+                <i class="fe-icon--center fas fa-power-off fa-2x"></i>
+              </a>
+            </div>
+          </div>
+        </header>
+
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="hxtool5_content col-12">
+
+        <!-- Message popup -->
+        <div id="hxtoolMessage" style='z-index: 100;' class="fe-modal" role="dialog" aria-modal="true">
+          <div class="fe-modal__dialog fe-modal__dialog--medium">
+            <div class="fe-modal__content">
+              <div>
+                <div class="fe-modal__header">
+                  <h4 class="fe-modal__title">Message</h4>
+                  <button class="fe-modal-close" name="button" type="button">
+                    <i class="fe-icon--center fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="fe-modal__body">
+                <div id="hxtoolMessageBody"></div>
+              </div>
+              <div class="fe-modal__footer clearfix">
+                <button class="fe-btn fe-btn--md fe-btn--secondary" id="hxtoolMessageCancel" aria-label="Cancel"><span> Dismiss </span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% block content %}{% endblock %}
+
+      </div>
     </div>
   </div>
-  <div class="row">
-    <div class="hxtool5_content col-12">
 
-	<!-- Message popup -->
-	<div id="hxtoolMessage" style='z-index: 100;' class="fe-modal" role="dialog" aria-modal="true">
-		<div class="fe-modal__dialog fe-modal__dialog--medium">
-			<div class="fe-modal__content">
-				<div>
-					<div class="fe-modal__header">
-						<h4 class="fe-modal__title">Message</h4>
-						<button class="fe-modal-close" name="button" type="button">
-							<i class="fe-icon--center fas fa-times"></i>
-						</button>
-					</div>
-				</div>
-				<div class="fe-modal__body">
-					<div id="hxtoolMessageBody">
-					</div>
-				</div>
-				<div class="fe-modal__footer clearfix">
-					<button class="fe-btn fe-btn--md fe-btn--secondary" id="hxtoolMessageCancel" aria-label="Cancel"><span> Dismiss </span></button>
-				</div>
-			</div>
-		</div>
-	</div>
-
-
-
-
-	<!-- Main placeholder -->
-	{% block content %}{% endblock %}
-
-
-    </div>
-  </div>
-
-
+</body>
 </html>
