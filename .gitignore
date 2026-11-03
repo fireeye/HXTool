@@ -17,3 +17,4 @@ conf.local.json
 .aider*
 claude_bundle*.txt
 *.patch
+bundle-hx.sh

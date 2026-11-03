@@ -42,7 +42,56 @@ class hxtool_session(CallbackDict, SessionMixin):
 			self.modified = False
 			self.id = id
 			self.update(session_record['session_data'])
+			changed = self._scrub_legacy_hxapi()
 			self.accessed = False
+			if changed:
+				self.modified = True
+			
+	def _scrub_legacy_hxapi(self):
+		def _walk(node):
+			changed = False
+			if isinstance(node, dict):
+				for k in list(node.keys()):
+					v = node[k]
+					if isinstance(v, (dict, list)):
+						if _walk(v):
+							changed = True
+					elif isinstance(v, str) and v.startswith(('gAS', 'gAW')):
+						obj = HXAPI.deserialize(v)
+						if obj is None:
+							del node[k]
+							changed = True
+						elif isinstance(obj, HXAPI) and getattr(obj, '_was_scrubbed', False):
+							node[k] = obj.serialize()
+							changed = True
+			elif isinstance(node, list):
+				i = 0
+				while i < len(node):
+					v = node[i]
+					if isinstance(v, (dict, list)):
+						if _walk(v):
+							changed = True
+						i += 1
+					elif isinstance(v, str) and v.startswith(('gAS', 'gAW')):
+						obj = HXAPI.deserialize(v)
+						if obj is None:
+							del node[i]
+							changed = True
+						else:
+							if isinstance(obj, HXAPI) and getattr(obj, '_was_scrubbed', False):
+								node[i] = obj.serialize()
+								changed = True
+							i += 1
+					else:
+						i += 1
+			return changed
+
+		try:
+			return _walk(self)
+		except Exception:
+			logger.exception("Failed to scrub legacy HXAPI session data for session id: %s", self.id)
+			self.clear()
+			return True
 	
 # expiration_delta is in minutes		
 class hxtool_session_interface(SessionInterface):

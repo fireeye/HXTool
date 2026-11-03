@@ -21,6 +21,7 @@ import logging
 import datetime
 import pickle
 import shutil
+import binascii
 
 class HXAPI:
 	HX_DEFAULT_PORT = 3000
@@ -91,20 +92,35 @@ class HXAPI:
 	
 	@staticmethod
 	def deserialize(base64_pickle):
-		return pickle.loads(HXAPI.b64(base64_pickle, True))
+		try:
+			obj = pickle.loads(HXAPI.b64(base64_pickle, True))
+		except (pickle.UnpicklingError, EOFError, AttributeError, ImportError, ValueError, TypeError, binascii.Error) as e:
+			logging.getLogger(__name__).warning("Failed to deserialize HXAPI object (%s).", type(e).__name__)
+			return None
+		if not isinstance(obj, HXAPI):
+			logging.getLogger(__name__).warning("Deserialized object is not an HXAPI instance.")
+			return None
+		return obj
 	
 	# Loggers don't pickle nicely	
 	def __getstate__(self):
 		d = self.__dict__.copy()
-		if 'logger' in d.keys():
-			d['logger'] = d['logger'].name
+		if 'logger' in d: d['logger'] = d['logger'].name
+		d['_hx_password'] = None
+		d['auto_renew_token'] = False
+		d.pop('_was_scrubbed', None)
 		return d
 
 	def __setstate__(self, d):
+		was_scrubbed = bool(d.get('_hx_password') is not None or d.get('auto_renew_token'))
 		if 'logger' in d.keys():
 			d['logger'] = logging.getLogger(d['logger'])
 		self.__dict__.update(d)
-		if not self._session.verify:
+		self.__dict__.setdefault('_hx_password', None)
+		self._hx_password = None
+		self.auto_renew_token = False
+		self._was_scrubbed = was_scrubbed
+		if not getattr(self._session, 'verify', True):
 			self.suppress_requests_insecure_warning()	
 
 	def suppress_requests_insecure_warning(self):
@@ -283,22 +299,27 @@ class HXAPI:
 	# See page 47 in the API guide
 	def restLogin(self, hx_api_username, hx_api_password, auto_renew_token = False):
 	
-		request = self.build_request(self.build_api_route('token', min_api_version = 1), auth = (hx_api_username, hx_api_password))
+		if auto_renew_token:
+			self.logger.warning("auto_renew_token is no longer supported; credentials are not retained. Re-login required on token expiry.")
+		self._hx_password = None
+		self.auto_renew_token = False
+		try:
+			request = self.build_request(self.build_api_route('token', min_api_version = 1), auth = (hx_api_username, hx_api_password))
 
-		(ret, response_code, response_data, response_headers) = self.handle_response(request)
-		
-		if ret and response_code == 204 and 'X-FeApi-Token' in response_headers:
-			self.logger.debug('Token granted.')
-			self.set_token(response_headers.get('X-FeApi-Token'))
-			self.hx_user = hx_api_username
-			self.auto_renew_token = auto_renew_token
-			if self.auto_renew_token:
-				self._hx_password = hx_api_password
-			self._set_version()
-		else:
-			ret = False
-		
-		return(ret, response_code, response_data)
+			(ret, response_code, response_data, response_headers) = self.handle_response(request)
+			
+			if ret and response_code == 204 and 'X-FeApi-Token' in response_headers:
+				self.logger.debug('Token granted.')
+				self.set_token(response_headers.get('X-FeApi-Token'))
+				self.hx_user = hx_api_username
+				self._set_version()
+			else:
+				ret = False
+			
+			return(ret, response_code, response_data)
+		finally:
+			self._hx_password = None
+			self.auto_renew_token = False
 
 	# Logout
 	# 204 = Success
@@ -321,18 +342,15 @@ class HXAPI:
 		is_valid = False
 		current_token = self.get_token(update_last_use_timestamp=False)
 		if current_token:
-			last_use_delta = (datetime.datetime.utcnow() - HXAPI.dt_from_str(current_token['grant_timestamp'])).seconds / 60
-			grant_time_delta = (datetime.datetime.utcnow() - HXAPI.dt_from_str(current_token['grant_timestamp'])).seconds / 60
+			last_use_delta = (datetime.datetime.utcnow() - HXAPI.dt_from_str(current_token['grant_timestamp'])).total_seconds() / 60
+			grant_time_delta = (datetime.datetime.utcnow() - HXAPI.dt_from_str(current_token['grant_timestamp'])).total_seconds() / 60
 			self.logger.debug("Token last_use_timestamp is: {}, grant_timestamp is: {}, last_use_delta is: {}, grant_time_delta is: {}".format(current_token['last_use_timestamp'], current_token['grant_timestamp'], last_use_delta, grant_time_delta))
 			is_valid = (last_use_delta < 15 and grant_time_delta < 150)
 		
-		if self.auto_renew_token and not is_valid:
-			self.logger.debug("Token has expired and auto_renew_token is set, renewing token.")
-			if current_token:
-				# Make sure we delete/logout the existing token so we don't leave stale ones on the controller
-				(ret, response_code, response_data) = self.restLogout()
-			(is_valid, response_code, response_data) = self.restLogin(self.hx_user, self._hx_password, self.auto_renew_token)
-			
+		if current_token and not is_valid:
+			self.logger.debug("Token expired; discarding. Re-login required.")
+			self.set_token(None)
+			self._session.headers.pop('X-FeApi-Token', None)
 		return is_valid
 		
 	def restGetControllerVersion(self):
