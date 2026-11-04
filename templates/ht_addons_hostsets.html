@@ -33,7 +33,7 @@
                 <td class="mono">{{ hs.name or hs['name'] }}</td>
                 <td class="mono">{{ id }}</td>
                 <td>
-                  <span class="addon-badge addon-badge--{{ 'static' if (hs.type or '')|lower == 'static' else 'dynamic' }}">{{ hs.type or '-' }}</span>
+                  {% set hs_type_lc = (hs.type or '')|lower %}<span class="addon-badge addon-badge--{{ 'static' if hs_type_lc == 'static' else 'dynamic' }}">{{ 'DYNAMIC' if hs_type_lc == 'venn' else (hs.type or '-') }}</span>
                 </td>
                 <td>
                   <button type="button" class="addon-row-btn" data-action="modify" data-id="{{ id }}" data-name="{{ hs.name }}" {% if (hs.type or '')|lower != 'static' %}disabled title="Dynamic host sets cannot be modified manually"{% endif %}>Select for Modify</button>

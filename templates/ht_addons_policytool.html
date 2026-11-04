@@ -72,13 +72,13 @@
                 </td>
                 <td class="mono">{{ p.priority if p.priority is defined and p.priority is not none else '-' }}</td>
                 <td class="table-actions">
-                  <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=all">All</a>
-                  <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=real_time_indicator_detection">Real-Time</a>
-                  <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=malware_protection">Malware Protection</a>
-                  <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=exploit_guard_protection">Exploit Guard</a>
+                  <a class="addon-dl-btn" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=all" title="Download all exclusions for this policy as CSV">&#8595; All CSV</a>
+                  <a class="addon-dl-btn" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=real_time_indicator_detection" title="Download Real-Time Indicator Detection exclusions as CSV">&#8595; Real-Time CSV</a>
+                  <a class="addon-dl-btn" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=malware_protection" title="Download Malware Protection exclusions as CSV">&#8595; Malware CSV</a>
+                  <a class="addon-dl-btn" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=exploit_guard_protection" title="Download Exploit Guard exclusions as CSV">&#8595; Exploit Guard CSV</a>
                 </td>
                 <td class="table-actions">
-                  <a class="fe-link" href="/policytool/export?policy_id={{ pid|urlencode }}">Export JSON</a>
+                  <a class="addon-dl-btn addon-dl-btn--json" href="/policytool/export?policy_id={{ pid|urlencode }}" title="Download full sanitized policy as JSON">&#8595; Policy JSON</a>
                 </td>
               </tr>
               {% endfor %}
@@ -352,7 +352,7 @@
                     <td class="mono">{{ m.name or '-' }}</td>
                     <td class="mono">{{ m._id or m.persist_id or '-' }}</td>
                     <td>
-                      <span class="addon-badge addon-badge--{{ 'static' if (m.type or '')|lower == 'static' else 'dynamic' }}">{{ m.type or '-' }}</span>
+                      {% set m_type_lc = (m.type or '')|lower %}<span class="addon-badge addon-badge--{{ 'static' if m_type_lc == 'static' else 'dynamic' }}">{{ 'DYNAMIC' if m_type_lc == 'venn' else (m.type or '-') }}</span>
                     </td>
                   </tr>
                   {% endfor %}

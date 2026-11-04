@@ -372,3 +372,53 @@ select.fe-input:focus {
 .addons-wrap .fe-table tbody tr:hover {
   background: rgba(79, 163, 255, 0.06);
 }
+
+/* High-contrast download action pills for Policy Tool export columns */
+.addons-wrap .table-actions a,
+.addons-wrap a.fe-link {
+  color: #7cc4ff;
+  text-decoration: none;
+}
+.addons-wrap .table-actions a:hover,
+.addons-wrap a.fe-link:hover {
+  color: #b8e1ff;
+  text-decoration: underline;
+}
+.addons-wrap a.addon-dl-btn {
+  display: inline-block;
+  margin: 2px 4px 2px 0;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #d8ecff !important;
+  background-color: #1f324d;
+  border: 1px solid #3b6ea5;
+  border-radius: 4px;
+  text-decoration: none !important;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.addons-wrap a.addon-dl-btn:hover,
+.addons-wrap a.addon-dl-btn:focus {
+  color: #ffffff !important;
+  background-color: #2b4c78;
+  border-color: #66b0ff;
+  text-decoration: none !important;
+}
+.addons-wrap a.addon-dl-btn--json {
+  color: #d4f7e6 !important;
+  background-color: #19382d;
+  border-color: #2c7a5b;
+}
+.addons-wrap a.addon-dl-btn--json:hover,
+.addons-wrap a.addon-dl-btn--json:focus {
+  color: #ffffff !important;
+  background-color: #235342;
+  border-color: #46b88a;
+}
+
+.addons-wrap a.addon-dl-btn:focus-visible {
+  outline: 2px solid #66b0ff;
+  outline-offset: 2px;
+}
