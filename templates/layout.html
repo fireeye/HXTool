@@ -207,14 +207,14 @@
               <!-- ADD-ONS -->
               {% if addons_loaded %}
               <li class="fe-top-nav__bar-nav-items">
-                <button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 6">
+                <button id="hx_addons-main-button" class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link {% if request.blueprint in ('policytool', 'hostsets') %}hxtool_topnav_active{% endif %}" aria-label="item 6">
                   <i class='fas fa-puzzle-piece' aria-hidden='true'></i>
                   <span>add-ons</span>
                   <i class="fas fa-chevron-down"></i>
                 </button>
                 <div class='hxtool_topnav_dropdown'>
-                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/policytool/'>policy tool</button><br>
-                  <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/hostsets/'>host sets</button><br>
+                  <button id="hx_addons-policytool-button" class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link {% if request.blueprint == 'policytool' %}hxtool_topnav_active{% endif %}' {% if request.blueprint == 'policytool' %}aria-current="page"{% endif %} data-link='/policytool/'>policy tool</button><br>
+                  <button id="hx_addons-hostsets-button" class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link {% if request.blueprint == 'hostsets' %}hxtool_topnav_active{% endif %}' {% if request.blueprint == 'hostsets' %}aria-current="page"{% endif %} data-link='/hostsets/'>host sets</button><br>
                 </div>
               </li>
               {% endif %}

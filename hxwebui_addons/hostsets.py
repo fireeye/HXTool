@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from hxtool_util import valid_session_required
 from .helpers_hxtool import api_call
 from .security import (
@@ -24,7 +24,14 @@ def index(hx_api_object):
     if not ok:
         flash(safe_error("Failed to list host sets", code, data), "error")
     hostsets = data.get("data", {}).get("entries", []) if ok else []
-    return render_template("ht_addons_hostsets.html", hostsets=hostsets, api_ok=ok, api_msg=None)
+    return render_template(
+        "ht_addons_hostsets.html",
+        hostsets=hostsets,
+        api_ok=ok,
+        api_msg=None,
+        user=session.get("ht_user"),
+        controller=f"{getattr(api, 'hx_host', '')}:{getattr(api, 'hx_port', '')}",
+    )
 
 @bp.post("/create")
 @valid_session_required
