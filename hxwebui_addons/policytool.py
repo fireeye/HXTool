@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from werkzeug.utils import secure_filename
 from io import StringIO, BytesIO
-import csv, datetime, os, re
+import csv, datetime, json, os, re
 
 from hxtool_util import valid_session_required
 from .helpers_hxtool import api_call
@@ -9,6 +9,7 @@ from .security import (
     install_guards,
     valid_policy_id,
     parse_lines,
+    read_upload_bytes,
     read_upload_lines,
     audit,
     safe_error,
@@ -18,6 +19,8 @@ from .security import (
 
 bp = Blueprint("policytool", __name__)
 install_guards(bp)
+
+EXCLUSION_KEYS = ["excludedPaths", "excludedProcessNames", "excludedProcesses", "excludedMD5s", "excludedFiles"]
 
 def _section_aliases(section: str):
     s = (section or "").strip().lower().replace(" ", "_")
@@ -63,7 +66,8 @@ def _pick_platform_key(module_dict, want):
     if not isinstance(module_dict, dict):
         return ""
     plat = [k for k in module_dict.keys() if "platform" in k.lower()]
-    if not plat: return ""
+    if not plat:
+        return ""
     want = (want or "").lower()
     def score(k):
         kl = k.lower(); s = 0
@@ -73,6 +77,8 @@ def _pick_platform_key(module_dict, want):
         if "platform" in kl: s += 1
         return s
     plat.sort(key=score, reverse=True)
+    if score(plat[0]) < 2:
+        return ""
     return plat[0]
 
 def _validate_rows(policy, rows) -> tuple[list[dict] | None, str | None]:
@@ -94,8 +100,11 @@ def _validate_rows(policy, rows) -> tuple[list[dict] | None, str | None]:
             return None, f"Invalid exclusion row at row {idx}"
         if module not in valid_modules or module not in categories:
             return None, f"Invalid exclusion row at row {idx}"
-        if platform != "":
-            mod_dict = categories.get(module)
+        mod_dict = categories.get(module)
+        if platform == "":
+            if isinstance(mod_dict, dict) and any("platform" in k.lower() for k in mod_dict.keys()):
+                return None, f"Missing required platform at row {idx}"
+        else:
             if not (isinstance(mod_dict, dict) and isinstance(mod_dict.get(platform), dict) and "platform" in platform):
                 return None, f"Invalid exclusion row at row {idx}"
         if not (1 <= len(item) <= 1024) or _CTRL.search(item):
@@ -137,7 +146,7 @@ def clone_policy(hx_api_object):
         flash(safe_error("Failed to read source policy", code, resp), "error")
         return redirect(url_for("policytool.index"))
 
-    src = resp["data"][0]
+    src = (resp["data"][0] if isinstance(resp["data"], list) else resp["data"])
     payload = {
         "policy_type_id": src.get("policy_type_id"),
         "default": False,
@@ -153,6 +162,215 @@ def clone_policy(hx_api_object):
         flash("Policy cloned successfully.", "success")
     else:
         flash(safe_error("Clone failed", code, resp), "error")
+    return redirect(url_for("policytool.index"))
+
+@bp.get("/export")
+@valid_session_required
+def export_policy_json(hx_api_object):
+    api = hx_api_object
+    policy_id = request.args.get("policy_id", "").strip()
+    if not valid_policy_id(policy_id):
+        flash("Invalid policy id.", "error")
+        return redirect(url_for("policytool.index"))
+
+    ok, code, resp = api_call(api.restGetPolicy, policy_id)
+    if not ok or not isinstance(resp, dict) or not resp.get("data"):
+        flash(safe_error("Failed to fetch policy", code, resp), "error")
+        return redirect(url_for("policytool.index"))
+
+    policy = (resp["data"][0] if isinstance(resp["data"], list) else resp["data"])
+    sanitized = {
+        k: policy[k]
+        for k in ("policy_type_id", "name", "description", "enabled", "priority", "categories")
+        if k in policy
+    }
+    raw_bytes = json.dumps(sanitized, indent=2).encode("utf-8")
+    filename = f"{secure_filename(policy.get('name', '')) or 'policy'}_policy_{datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
+    audit("export_policy_json", msg="policy action", id=policy_id, result="ok", code=200)
+    return send_file(BytesIO(raw_bytes), mimetype="application/json", as_attachment=True, download_name=filename)
+
+@bp.post("/import")
+@valid_session_required
+def import_policy_json(hx_api_object):
+    api = hx_api_object
+    file = request.files.get("file")
+    new_name = request.form.get("new_policy_name", "").strip()
+
+    try:
+        raw = read_upload_bytes(file, {".json"})
+    except ValueError as e:
+        flash(str(e), "error")
+        return redirect(url_for("policytool.index"))
+
+    if not raw:
+        flash("No JSON policy file uploaded.", "error")
+        return redirect(url_for("policytool.index"))
+
+    try:
+        doc = json.loads(raw.decode("utf-8-sig"))
+    except (UnicodeDecodeError, ValueError, json.JSONDecodeError):
+        flash("Invalid JSON policy file.", "error")
+        return redirect(url_for("policytool.index"))
+
+    if not isinstance(doc, dict):
+        flash("Invalid JSON policy file.", "error")
+        return redirect(url_for("policytool.index"))
+
+    name = new_name if new_name else str(doc.get("name") or "").strip()
+    if not (1 <= len(name) <= 255) or _CTRL.search(name):
+        flash("Invalid policy name.", "error")
+        return redirect(url_for("policytool.index"))
+
+    pti = doc.get("policy_type_id")
+    if not isinstance(pti, str) or not (1 <= len(pti.strip()) <= 128) or _CTRL.search(pti):
+        flash("Invalid policy_type_id in JSON policy.", "error")
+        return redirect(url_for("policytool.index"))
+
+    categories = doc.get("categories")
+    if not isinstance(categories, dict) or len(categories) == 0 or not all(isinstance(v, dict) for v in categories.values()):
+        flash("Invalid categories structure in JSON policy.", "error")
+        return redirect(url_for("policytool.index"))
+
+    for mod_name, mod_dict in categories.items():
+        has_plat = any("platform" in k.lower() for k in mod_dict.keys())
+        if has_plat:
+            for k, v in mod_dict.items():
+                if "platform" in k.lower():
+                    if not isinstance(v, dict):
+                        flash(f"Invalid platform structure in module '{mod_name}'.", "error")
+                        return redirect(url_for("policytool.index"))
+                    for ek in EXCLUSION_KEYS:
+                        if ek in v:
+                            if not isinstance(v[ek], list) or not all(isinstance(x, str) for x in v[ek]):
+                                flash(f"Invalid exclusion list '{ek}' in module '{mod_name}'.", "error")
+                                return redirect(url_for("policytool.index"))
+        else:
+            for ek in EXCLUSION_KEYS:
+                if ek in mod_dict:
+                    if not isinstance(mod_dict[ek], list) or not all(isinstance(x, str) for x in mod_dict[ek]):
+                        flash(f"Invalid exclusion list '{ek}' in module '{mod_name}'.", "error")
+                        return redirect(url_for("policytool.index"))
+
+    clean_rows, err_msg = _validate_rows(doc, _exclusions_to_rows(doc))
+    if err_msg is not None or clean_rows is None:
+        flash(err_msg or "Invalid exclusions in JSON policy.", "error")
+        return redirect(url_for("policytool.index"))
+
+    raw_priority = doc.get("priority", 1)
+    priority = int(raw_priority) if (isinstance(raw_priority, int) and not isinstance(raw_priority, bool)) else 1
+
+    payload = {
+        "policy_type_id": str(doc["policy_type_id"]).strip(),
+        "default": False,
+        "name": name,
+        "description": str(doc.get("description") or "")[:1024],
+        "enabled": bool(doc.get("enabled", True)),
+        "priority": priority,
+        "categories": doc["categories"],
+    }
+
+    ok, code, resp = api_call(api.restCreatePolicy, payload)
+    audit("import_policy_json", msg="policy action", name=name, result="ok" if ok else "fail", code=code)
+    if ok:
+        flash("Policy imported successfully.", "success")
+    else:
+        flash(safe_error("Policy import failed", code, resp), "error")
+    return redirect(url_for("policytool.index"))
+
+@bp.post("/exclusions/copy")
+@valid_session_required
+def copy_exclusions(hx_api_object):
+    api = hx_api_object
+    src_id = request.form.get("source_policy_id", "").strip()
+    dst_id = request.form.get("target_policy_id", "").strip()
+    module_filter = request.form.get("module", "all").strip().lower()
+    mode = request.form.get("mode", "append").strip().lower()
+
+    valid_modules = {"all", "real_time_indicator_detection", "malware_protection", "exploit_guard_protection"}
+    if (
+        not valid_policy_id(src_id)
+        or not valid_policy_id(dst_id)
+        or src_id == dst_id
+        or module_filter not in valid_modules
+        or mode not in ("append", "overwrite")
+    ):
+        flash("Invalid source/target policy id, module, or mode.", "error")
+        return redirect(url_for("policytool.index"))
+
+    ok_s, code_s, resp_s = api_call(api.restGetPolicy, src_id)
+    if not ok_s or not isinstance(resp_s, dict) or not resp_s.get("data"):
+        flash(safe_error("Failed to fetch source policy", code_s, resp_s), "error")
+        return redirect(url_for("policytool.index"))
+
+    ok_d, code_d, resp_d = api_call(api.restGetPolicy, dst_id)
+    if not ok_d or not isinstance(resp_d, dict) or not resp_d.get("data"):
+        flash(safe_error("Failed to fetch target policy", code_d, resp_d), "error")
+        return redirect(url_for("policytool.index"))
+
+    src_policy = resp_s["data"][0]
+    target_policy = resp_d["data"][0]
+    target_cats = target_policy.get("categories", {}) or {}
+
+    rows = _exclusions_to_rows(src_policy)
+    if module_filter != "all":
+        if module_filter not in target_cats:
+            flash(f"Target policy does not contain module '{module_filter}'.", "error")
+            return redirect(url_for("policytool.index"))
+        to_match = {m.lower() for m in _section_aliases(module_filter)}
+        rows = [r for r in rows if r.get("module", "").lower() in to_match]
+
+    if not rows:
+        flash("No exclusions found in source policy for the selected module.", "error")
+        return redirect(url_for("policytool.index"))
+
+    clean_rows, err_msg = _validate_rows(target_policy, rows)
+    if err_msg or clean_rows is None:
+        flash(f"Target policy incompatible: {err_msg}", "error")
+        return redirect(url_for("policytool.index"))
+
+    if mode == "overwrite":
+        if module_filter == "all":
+            target_modules = [
+                m for m in ("real_time_indicator_detection", "malware_protection", "exploit_guard_protection")
+                if m in target_cats
+            ]
+        else:
+            target_modules = [module_filter] if module_filter in target_cats else []
+
+        for mod in target_modules:
+            mod_dict = target_cats.get(mod)
+            if not isinstance(mod_dict, dict):
+                continue
+            plat_keys = [k for k in mod_dict.keys() if "platform" in k.lower()]
+            if plat_keys:
+                for pk in plat_keys:
+                    sub = mod_dict.get(pk)
+                    if isinstance(sub, dict):
+                        for ek in EXCLUSION_KEYS:
+                            if ek in sub:
+                                sub[ek] = []
+            else:
+                for ek in EXCLUSION_KEYS:
+                    if ek in mod_dict:
+                        mod_dict[ek] = []
+
+    updated = _apply_exclusions(target_policy, clean_rows, overwrite=(mode == "overwrite"))
+    ok, code, resp = api_call(api.restModifyPolicy, dst_id, updated)
+    audit(
+        "copy_exclusions",
+        msg="policy action",
+        src=src_id,
+        dst=dst_id,
+        module=module_filter,
+        mode=mode,
+        count=len(clean_rows),
+        result="ok" if ok else "fail",
+        code=code,
+    )
+    if ok:
+        flash(f"Copied {len(clean_rows)} exclusion(s) to target policy.", "success")
+    else:
+        flash(safe_error("Failed to copy exclusions", code, resp), "error")
     return redirect(url_for("policytool.index"))
 
 @bp.get("/exclusions/export")
@@ -171,7 +389,7 @@ def export_exclusions(hx_api_object):
         flash(safe_error("Failed to fetch policy", code, resp), "error")
         return redirect(url_for("policytool.index"))
 
-    policy = resp["data"][0]
+    policy = (resp["data"][0] if isinstance(resp["data"], list) else resp["data"])
     rows = _exclusions_to_rows(policy)
     if section != "all":
         to_match = {m.lower() for m in _section_aliases(section)}
@@ -184,7 +402,7 @@ def export_exclusions(hx_api_object):
         w.writerow({k: csv_safe(v) for k, v in r.items()})
     mem = BytesIO(out.getvalue().encode("utf-8"))
     base = secure_filename(policy.get('name', '')) or 'policy'
-    filename = f"{base}_exclusions_{section}_{datetime.datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}.csv"
+    filename = f"{base}_exclusions_{section}_{datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.csv"
     audit("export_exclusions", msg="policy action", id=policy_id, section=section, count=len(rows), result="ok", code=200)
     return send_file(mem, mimetype="text/csv", as_attachment=True, download_name=filename)
 
@@ -228,7 +446,7 @@ def import_exclusions(hx_api_object):
     if not ok or not isinstance(resp, dict) or not resp.get("data"):
         flash(safe_error("Failed to fetch policy", code, resp), "error")
         return redirect(url_for("policytool.index"))
-    policy = resp["data"][0]
+    policy = (resp["data"][0] if isinstance(resp["data"], list) else resp["data"])
 
     import_rows = []
     if has_upload and file_lines:
@@ -266,7 +484,14 @@ def import_exclusions(hx_api_object):
         return redirect(url_for("policytool.index"))
 
     if any((r.get("module","").lower() == "malware_protection") for r in import_rows):
+        needs_pk = any(
+            r.get("module", "").lower() == "malware_protection" and not r.get("platform")
+            for r in import_rows
+        )
         pk = _pick_platform_key(policy.get("categories", {}).get("malware_protection", {}), mp_platform)
+        if needs_pk and pk == "":
+            flash("No matching platform in policy for malware_protection.", "error")
+            return redirect(url_for("policytool.index"))
         for r in import_rows:
             if r.get("module","").lower() == "malware_protection" and not r.get("platform"):
                 r["platform"] = pk or ""

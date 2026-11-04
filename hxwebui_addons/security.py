@@ -10,6 +10,7 @@ MAX_LINES = 10000
 MAX_LINE_LEN = 1024
 RE_NUMERIC_ID = re.compile(r'[0-9]{1,10}')
 RE_POLICY_ID = re.compile(r'[A-Za-z0-9_-]{1,64}')
+RE_AGENT_ID = re.compile(r'[A-Za-z0-9]{22}')
 _CTRL = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]')
 
 
@@ -51,6 +52,10 @@ def valid_policy_id(s) -> bool:
     return bool(s is not None and RE_POLICY_ID.fullmatch(str(s)))
 
 
+def valid_agent_id(s) -> bool:
+    return bool(s is not None and RE_AGENT_ID.fullmatch(str(s)))
+
+
 def parse_lines(text) -> list[str]:
     if not text:
         return []
@@ -63,15 +68,22 @@ def parse_lines(text) -> list[str]:
     return lines
 
 
-def read_upload_lines(file_storage, allowed_exts) -> list[str]:
+def read_upload_bytes(file_storage, allowed_exts) -> bytes:
     if not file_storage or not getattr(file_storage, 'filename', ''):
-        return []
+        return b""
     ext = os.path.splitext((file_storage.filename or '').lower())[1]
     if ext not in allowed_exts:
         raise ValueError("Unsupported file type")
     raw = file_storage.stream.read(ADDON_MAX_UPLOAD_BYTES + 1)
     if len(raw) > ADDON_MAX_UPLOAD_BYTES:
         raise ValueError("Upload too large (max 2 MiB)")
+    return raw
+
+
+def read_upload_lines(file_storage, allowed_exts) -> list[str]:
+    raw = read_upload_bytes(file_storage, allowed_exts)
+    if not raw:
+        return []
     try:
         text = raw.decode("utf-8-sig")
     except UnicodeDecodeError:

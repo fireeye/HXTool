@@ -1188,6 +1188,10 @@ class HXAPI:
 	# Host Sets
 	###########
 		
+	def restGetHostset(self, host_set_id):
+		url = self.build_api_route('host_sets/{0}'.format(host_set_id))
+		return self.restGetUrl(url)
+
 	def restListHostsets(self, limit=DEFAULT_LIMIT, offset=0, search_term=None, sort_term=None, filter_term={}):
 		
 		endpoint_url = "host_sets"
