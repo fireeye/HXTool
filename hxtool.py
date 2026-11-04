@@ -74,12 +74,16 @@ app.register_blueprint(ht_api)
 
 # --- BEGIN: HXWebUI add-ons registration (Policy Tool + Host Sets) ---
 # These will be present if you dropped `hxwebui_addons/` into the repo root.
+app.jinja_env.globals['addons_loaded'] = False
 try:
 	from hxwebui_addons.policytool import bp as policytool_bp
 	from hxwebui_addons.hostsets import bp as hostsets_bp
 
 	app.register_blueprint(policytool_bp, url_prefix="/policytool")
 	app.register_blueprint(hostsets_bp,  url_prefix="/hostsets")
+	from hxwebui_addons.security import get_csrf_token
+	app.jinja_env.globals['csrf_token'] = get_csrf_token
+	app.jinja_env.globals['addons_loaded'] = True
 	logger.info("HXWebUI add-ons registered: /policytool and /hostsets")
 except Exception as e:
 	logger.warning("HXWebUI add-ons not loaded (%s). If you want these pages, drop hxwebui_addons/ into the repo root.", e)
@@ -544,7 +548,8 @@ def logout():
 	if session:
 		if 'ht_api_object' in session:
 			hx_api_object = HXAPI.deserialize(session['ht_api_object'])
-			hx_api_object.restLogout()
+			if hx_api_object is not None:
+				hx_api_object.restLogout()
 			logger.info(format_activity_log(msg="user logged out", user=session['ht_user'], controller=session['hx_ip']))
 			hx_api_object = None	
 		session.clear()
@@ -626,6 +631,8 @@ def app_init(debug = False):
 	
 	
 	app.config['SESSION_COOKIE_NAME'] = "hxtool_session"
+	app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+	app.config['SESSION_COOKIE_HTTPONLY'] = True
 	app.permanent_session_lifetime = datetime.timedelta(days=7)
 	app.session_interface = hxtool_session_interface(app, expiration_delta=hxtool_global.hxtool_config['network']['session_timeout'])
 

@@ -114,6 +114,8 @@
         $("#topnav_iocstreaming").hide();
       }
 
+      $(document).on('click', '.hxtool-flash__close', function(){ $(this).parent().remove(); });
+
       hxtool_doc_ready();
     });
   </script>
@@ -203,6 +205,7 @@
               </li>
 
               <!-- ADD-ONS -->
+              {% if addons_loaded %}
               <li class="fe-top-nav__bar-nav-items">
                 <button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 6">
                   <i class='fas fa-puzzle-piece' aria-hidden='true'></i>
@@ -214,6 +217,7 @@
                   <button class='hxtool_topnav_dropdown_child fe-btn fe-btn--lg fe-btn--primary-link' data-link='/hostsets/'>host sets</button><br>
                 </div>
               </li>
+              {% endif %}
 
               <li class="fe-top-nav__bar-nav-items">
                 <button class="hxtool_topnav_mainbutton fe-btn fe-btn--lg fe-btn--primary-link" aria-label="item 7">
@@ -279,6 +283,16 @@
             </div>
           </div>
         </div>
+
+        {% with msgs = get_flashed_messages(with_categories=true) %}
+          {% for category, message in msgs %}
+            {% set cat = category if category in ['success','error','warning','info'] else 'info' %}
+            <div class="hxtool-flash hxtool-flash--{{ cat }}" role="alert">
+              <span>{{ message }}</span>
+              <button type="button" class="hxtool-flash__close" aria-label="Dismiss">&times;</button>
+            </div>
+          {% endfor %}
+        {% endwith %}
 
         {% block content %}{% endblock %}
 

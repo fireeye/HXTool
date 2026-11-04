@@ -38,10 +38,10 @@
             <td class="mono">{{ pid }}</td>
             <td class="mono">{{ p.type or p['type'] or 'Agent' }}</td>
             <td class="table-actions">
-              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid }}&section=all">Export All</a>
-              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid }}&section=real_time_indicator_detection">Export Real-Time</a>
-              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid }}&section=malware_protection">Export Malware Protection</a>
-              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid }}&section=exploit_guard_protection">Export Exploit Guard</a>
+              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=all">Export All</a>
+              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=real_time_indicator_detection">Export Real-Time</a>
+              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=malware_protection">Export Malware Protection</a>
+              <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=exploit_guard_protection">Export Exploit Guard</a>
             </td>
           </tr>
           {% endfor %}
@@ -60,6 +60,7 @@
     </div>
     <div class="fe-panel__body">
       <form method="post" action="/policytool/clone">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-row">
           <label class="fe-label" style="min-width:130px;">Source Policy ID</label>
           <input class="fe-input mono" name="source_policy_id" placeholder="e.g. 6e2d...c9" required />
@@ -80,6 +81,7 @@
     </div>
     <div class="fe-panel__body">
       <form method="post" action="/policytool/exclusions/import" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-row">
           <label class="fe-label" style="min-width:150px;">Target Policy ID</label>
           <input class="fe-input mono" name="policy_id" placeholder="e.g. 6e2d...c9" required />

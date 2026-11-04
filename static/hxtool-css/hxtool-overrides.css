@@ -23,3 +23,43 @@ select.fe-input:focus {
   select.fe-select,
   select.fe-input { color-scheme: light; }
 }
+
+.hxtool-flash {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  margin: 0 0 12px 0;
+  border-left: 4px solid #1482d0;
+  background: rgba(20, 26, 36, 0.92);
+  color: #e8eef5;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.hxtool-flash--success {
+  border-left-color: #11a962;
+}
+
+.hxtool-flash--error {
+  border-left-color: #ea475b;
+}
+
+.hxtool-flash--warning {
+  border-left-color: #f0950e;
+}
+
+.hxtool-flash--info {
+  border-left-color: #1482d0;
+}
+
+.hxtool-flash__close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0 0 12px;
+  opacity: 0.8;
+}
