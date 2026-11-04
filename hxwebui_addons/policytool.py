@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, session
 from werkzeug.utils import secure_filename
 from io import StringIO, BytesIO
 import csv, datetime, json, os, re
@@ -11,6 +11,7 @@ from .security import (
     parse_lines,
     read_upload_bytes,
     read_upload_lines,
+    clean_log,
     audit,
     safe_error,
     csv_safe,
@@ -21,6 +22,37 @@ bp = Blueprint("policytool", __name__)
 install_guards(bp)
 
 EXCLUSION_KEYS = ["excludedPaths", "excludedProcessNames", "excludedProcesses", "excludedMD5s", "excludedFiles"]
+
+def _ctx(api) -> dict:
+    return {
+        "user": session.get("ht_user"),
+        "controller": f"{getattr(api, 'hx_host', '')}:{getattr(api, 'hx_port', '')}",
+    }
+
+def _list_policies(api) -> tuple[bool, list]:
+    ok, code, data = api_call(api.restListPolicies, limit=250)
+    policies_list = data.get("data", {}).get("entries", []) if (ok and isinstance(data, dict)) else []
+    return bool(ok), policies_list
+
+def _render_page(api, **extra):
+    if "policies" in extra and "api_ok" in extra:
+        policies = extra.pop("policies")
+        ok = bool(extra.pop("api_ok"))
+    else:
+        ok, policies = _list_policies(api)
+        extra.pop("policies", None)
+        extra.pop("api_ok", None)
+    active_tab = extra.pop("active_tab", "policies")
+    lookup_result = extra.pop("lookup_result", None)
+    return render_template(
+        "ht_addons_policytool.html",
+        policies=policies,
+        api_ok=ok,
+        active_tab=active_tab,
+        lookup_result=lookup_result,
+        **_ctx(api),
+        **extra,
+    )
 
 def _section_aliases(section: str):
     s = (section or "").strip().lower().replace(" ", "_")
@@ -124,11 +156,10 @@ def _validate_rows(policy, rows) -> tuple[list[dict] | None, str | None]:
 @valid_session_required
 def index(hx_api_object):
     api = hx_api_object
-    ok, code, data = api_call(api.restListPolicies)
+    ok, policies = _list_policies(api)
     if not ok:
-        flash(safe_error("Failed to list policies", code, data), "error")
-    policies = data.get("data", {}).get("entries", []) if ok else []
-    return render_template("ht_addons_policytool.html", policies=policies, api_ok=ok, api_msg=None)
+        flash("Failed to list policies from controller.", "warning")
+    return _render_page(api, policies=policies, api_ok=ok, api_msg=None)
 
 @bp.post("/clone")
 @valid_session_required
@@ -416,7 +447,7 @@ def import_exclusions(hx_api_object):
     type_choice = request.form.get(f"type_{ui_category}", "path")
     mp_platform = request.form.get("mp_platform", "platform#win").strip().lower()
     file = request.files.get("file")
-    paste_text = request.form.get("paste_text", "").strip()
+    paste_text = (request.form.get("paste_text") or request.form.get("items") or "").strip()
 
     if not valid_policy_id(policy_id) or mode not in ("append", "overwrite"):
         flash("Invalid policy id or import mode.", "error")
@@ -510,55 +541,140 @@ def import_exclusions(hx_api_object):
         flash(safe_error("Import failed", code2, resp2), "error")
     return redirect(url_for("policytool.index"))
 
+@bp.get("/agent-policy")
 @bp.get("/agent/policy")
 @valid_session_required
 def agent_policy(hx_api_object):
     api = hx_api_object
-    q = request.args.get("q", "").strip()
+    q = (request.args.get("q") or "").strip()
     if not q:
-        return render_template("ht_addons_policytool.html", policies=[], api_ok=True, api_msg=None)
-    if not (1 <= len(q) <= 255) or _CTRL.search(q):
-        flash("Invalid agent search query.", "error")
+        return _render_page(api, active_tab="lookup")
+
+    if len(q) > 255 or _CTRL.search(q):
+        flash("Invalid query.", "error")
         return redirect(url_for("policytool.index"))
 
-    ok, code, data = api_call(api.restListHosts, search_term=q, limit=5)
-    if not ok or not isinstance(data, dict) or not data.get("data", {}).get("entries"):
-        flash(safe_error("Host not found", code, data), "error")
-        return redirect(url_for("policytool.index"))
-    agent = data["data"]["entries"][0]
-    agent_id = agent.get("_id")
+    ok, code, data = api_call(api.restListHosts, search_term=q, limit=50)
+    entries = data.get("data", {}).get("entries", []) if (ok and isinstance(data, dict)) else []
 
-    ok_s, code_s, data_s = api_call(api.restGetHostSummary, agent_id)
-    host_summary = data_s.get("data") if ok_s else agent
+    if not entries:
+        flash(safe_error("Host not found", code, data) if not ok else "No host found matching query.", "error")
+        return _render_page(api, active_tab="lookup")
 
-    ok, code, hs_data = api_call(api.restListHostsets, limit=100000)
-    memberships, id_to_name = [], {}
-    if ok:
-        for hs in hs_data.get("data", {}).get("entries", []):
-            hid = hs.get("_id") or hs.get("id"); nm = hs.get("name")
-            id_to_name[hid] = nm
-            ok_m, code_m, data_m = api_call(api.restListHostsInHostset, host_set_id=hid, search_term=agent_id, limit=1)
-            if ok_m and data_m.get("data", {}).get("entries"):
-                memberships.append({"_id": hid, "name": nm})
+    ql = q.lower()
+    agent = entries[0]
+    for candidate in entries:
+        if not isinstance(candidate, dict):
+            continue
+        cid = str(candidate.get("_id") or "").strip().lower()
+        chost = str(candidate.get("hostname") or "").strip().lower()
+        if ql in (cid, chost):
+            agent = candidate
+            break
 
-    ok_p, code_p, polmap = api_call(api.restGetUrl, "/hx/api/v3/host_set_policies", include_params=True)
+    agent_id = str(agent.get("_id") or "").strip()
+    if not agent_id:
+        flash("Matched host entry is missing agent ID.", "error")
+        return _render_page(api, active_tab="lookup")
+
+    ok_s, code_s, sum_data = api_call(api.restGetHostSummary, agent_id)
+    raw_s = sum_data.get("data") if isinstance(sum_data, dict) else None
+    if isinstance(raw_s, list) and raw_s:
+        raw_s = raw_s[0]
+    host_summary = raw_s if (ok_s and isinstance(raw_s, dict) and raw_s) else agent
+
+    ok_hs, code_hs, hs_data = api_call(api.restListHostsets, limit=500)
+    all_sets = hs_data.get("data", {}).get("entries", []) if (ok_hs and isinstance(hs_data, dict)) else []
+    if len(all_sets) >= 500:
+        flash("Host set scan capped at 500 sets; results may be partial.", "warning")
+
+    memberships = []
+    search_val = agent.get("hostname") or agent_id
+    for hs in all_sets:
+        if not isinstance(hs, dict):
+            continue
+        sid = hs.get("_id")
+        if sid is None:
+            continue
+        ok_m, _, m_data = api_call(
+            api.restListHostsInHostset,
+            sid,
+            limit=500,
+            search_term=search_val,
+        )
+        m_entries = m_data.get("data", {}).get("entries", []) if (ok_m and isinstance(m_data, dict)) else []
+        if any(isinstance(e, dict) and str(e.get("_id") or "") == agent_id for e in m_entries):
+            memberships.append({
+                "_id": sid,
+                "persist_id": hs.get("persist_id"),
+                "name": hs.get("name"),
+                "type": hs.get("type"),
+            })
+
+    member_keys = (
+        {str(m.get("_id")) for m in memberships if m.get("_id")}
+        | {str(m.get("persist_id")) for m in memberships if m.get("persist_id")}
+    )
+
+    ok_map, _, map_data = api_call(api.restGetUrl, api.build_api_route("host_set_policies"), include_params=True, limit=1000)
+    mappings = map_data.get("data", {}).get("entries", []) if (ok_map and isinstance(map_data, dict)) else []
+
+    policy_cache = {}
     applied = []
-    if ok_p:
-        for entry in polmap.get("data", {}).get("entries", []):
-            hs_persist = entry.get("persist_id")
-            if hs_persist in {m["_id"] for m in memberships}:
-                pol_id = entry.get("policy_id")
-                ok_g, code_g, pol_data = api_call(api.restGetPolicy, pol_id)
-                if ok_g and pol_data.get("data"):
-                    pol = pol_data["data"][0]
-                    applied.append({
-                        "host_set_id": hs_persist, "host_set_name": id_to_name.get(hs_persist, hs_persist),
-                        "policy_id": pol.get("_id"), "policy_name": pol.get("name"),
-                        "priority": pol.get("priority")
-                    })
+    for m in mappings:
+        if not isinstance(m, dict):
+            continue
+        m_hs_key = str(m.get("persist_id") or m.get("host_set_id") or m.get("_id") or "")
+        if m_hs_key in member_keys:
+            pid = m.get("policy_id")
+            if not pid:
+                continue
+            if pid not in policy_cache:
+                ok_p, _, pdata = api_call(api.restGetPolicy, pid)
+                pdoc = {}
+                if ok_p and isinstance(pdata, dict) and pdata.get("data"):
+                    raw_p = pdata["data"]
+                    pdoc = raw_p[0] if isinstance(raw_p, list) else raw_p
+                    if not isinstance(pdoc, dict):
+                        pdoc = {}
+                policy_cache[pid] = pdoc
+            pdoc = policy_cache[pid]
 
-    # For now we just flash summary to user via UI or keep on page
-    return render_template("ht_addons_policytool.html", policies=[], api_ok=True, api_msg=None)
+            hs_name = m_hs_key
+            for mem in memberships:
+                if m_hs_key in (str(mem.get("_id") or ""), str(mem.get("persist_id") or "")):
+                    hs_name = mem.get("name") or m_hs_key
+                    break
+
+            applied.append({
+                "host_set_id": m_hs_key,
+                "host_set_name": hs_name,
+                "policy_id": pid,
+                "policy_name": pdoc.get("name"),
+                "priority": pdoc.get("priority"),
+            })
+
+    audit(
+        "agent_lookup",
+        msg="policy action",
+        query=clean_log(q, 64),
+        agent_id=agent_id,
+        memberships=len(memberships),
+        applied=len(applied),
+        result="ok",
+        code=200,
+    )
+
+    return _render_page(
+        api,
+        active_tab="lookup",
+        lookup_result={
+            "query": q,
+            "agent": host_summary,
+            "memberships": memberships,
+            "applied": applied,
+        },
+    )
 
 def _exclusions_to_rows(policy_json):
     exclusion_keys = ["excludedPaths","excludedProcessNames","excludedProcesses","excludedMD5s","excludedFiles"]
