@@ -7,7 +7,6 @@ import random
 
 import hxtool_logging
 import hxtool_global
-# TODO: figure out how to remove this, need to remove the eval() from deserialize
 import hxtool_task_modules
 from hxtool_util import secure_uuid4
 from hx_lib import HXAPI
@@ -90,7 +89,7 @@ class hxtool_scheduler_task:
 		elif not self.last_run and self.parent_id and self.parent_complete:
 			# Add some random seconds to the interval to keep the task threads from deadlocking
 			self.next_run = (now + datetime.timedelta(seconds = (self.defer_interval + random.randint(1, 15))))
-		elif self.schedule and ((not self.end_time) or (self.end_time and (self.end_time < now))):
+		elif self.schedule and self.last_run and ((not self.end_time) or (self.end_time and (self.end_time > now))):
 			self.next_run = self.last_run + datetime.timedelta(
 				weeks = self.schedule['weeks'],
 				days = self.schedule['days'],
@@ -118,7 +117,8 @@ class hxtool_scheduler_task:
 				(self.parent_complete if self.parent_id is not None and self.wait_for_parent else True)
 		)
 
-	def add_step(self, module, func = "run", args = (), kwargs = {}):
+	def add_step(self, module, func = "run", args = (), kwargs = None):
+		kwargs = dict(kwargs) if kwargs else {}
 		# This is an HXTool task module, we need to init it.
 		if hasattr(module, 'hxtool_task_module'):
 			module = module(self)
@@ -330,14 +330,27 @@ class hxtool_scheduler_task:
 		task.last_run_state = d.get('last_run_state', None)							
 		task.state = d.get('state')
 		schedule = d.get('schedule', None)
-		if schedule is dict:
+		if isinstance(schedule, dict) and any(schedule.values()):
 			task.set_schedule(**schedule)
-			task._calculate_next_run()
+			if task.last_run:
+				task._calculate_next_run()
 		for s in d['steps']:
-			# I hate this
-			step_module = eval(s['module'])
+			step_module = hxtool_scheduler_task._resolve_step_module(s.get('module'))
 			task.add_step(step_module, s['function'], s['args'], s['kwargs'])
 		return task
+
+	@staticmethod
+	def _resolve_step_module(mod_path):
+		if not isinstance(mod_path, str) or not mod_path.startswith('hxtool_task_modules.'):
+			raise ValueError("Disallowed task step module: {!r}".format(mod_path))
+		mod_name = mod_path.split('.', 1)[1]
+		if not mod_name.isidentifier():
+			raise ValueError("Invalid task step module name: {!r}".format(mod_path))
+		candidate = getattr(hxtool_task_modules, mod_name, None)
+		base_cls = getattr(hxtool_task_modules, 'task_module', None)
+		if not isinstance(candidate, type) or base_cls is None or not issubclass(candidate, base_cls) or candidate is base_cls:
+			raise ValueError("Unrecognized task step module class: {!r}".format(mod_path))
+		return candidate
 									
 									
 		
