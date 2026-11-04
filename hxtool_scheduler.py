@@ -218,10 +218,13 @@ class hxtool_scheduler:
 						logger.warn("Deleting orphan task {}, {}".format(task_entry['name'], task_entry['task_id']))
 						hxtool_global.hxtool_db.taskDelete(task_entry['profile_id'], task_entry['task_id'])
 					else:
-						task = hxtool_scheduler_task.deserialize(task_entry)
-						task.set_stored()
-						# Set should_store to False as we've already been stored, and we skip a needless update
-						self.add(task, should_store = False)
+						try:
+							task = hxtool_scheduler_task.deserialize(task_entry)
+							task.set_stored()
+							# Set should_store to False as we've already been stored, and we skip a needless update
+							self.add(task, should_store = False)
+						except (ValueError, KeyError, TypeError) as task_err:
+							logger.error("Skipping invalid saved task {}: {}".format(task_entry.get('task_id'), task_err))
 			else:
 				logger.warn("Task scheduler must be running before loading queued tasks from the database.")
 		except Exception as e:

@@ -1,0 +1,424 @@
+/* Make native <select> dropdowns legible on the dark theme */
+select.fe-select,
+select.fe-input {
+  color: #c7ccd4 !important;           /* text in the closed control */
+}
+
+/* Text inside the expanded dropdown menu */
+select.fe-select option,
+select.fe-input option {
+  color: #6e7781 !important;           /* medium grey text */
+  background-color: #fff !important;   /* keep menu background white */
+}
+
+/* Optional: nicer focus ring */
+select.fe-select:focus,
+select.fe-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px #1482d0 inset;
+}
+
+/* (Optional) tell browsers to render selects in light scheme to avoid forced dark dropdowns */
+@supports (color-scheme: light dark) {
+  select.fe-select,
+  select.fe-input { color-scheme: light; }
+}
+
+.hxtool-flash {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  margin: 0 0 12px 0;
+  border-left: 4px solid #1482d0;
+  background: rgba(20, 26, 36, 0.92);
+  color: #e8eef5;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.hxtool-flash--success {
+  border-left-color: #11a962;
+}
+
+.hxtool-flash--error {
+  border-left-color: #ea475b;
+}
+
+.hxtool-flash--warning {
+  border-left-color: #f0950e;
+}
+
+.hxtool-flash--info {
+  border-left-color: #1482d0;
+}
+
+.hxtool-flash__close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0 0 12px;
+  opacity: 0.8;
+}
+
+/* ==========================================================================
+   WO-3: Add-ons Dark Theme UI/UX Styles
+   ========================================================================== */
+
+/* Active state in top navigation */
+.hxtool_topnav_active {
+  color: #4fa3ff !important;
+  box-shadow: inset 0 -2px 0 #4fa3ff;
+  background-color: rgba(79, 163, 255, 0.08);
+}
+
+/* Layout containers */
+.addons-wrap {
+  padding: 4px 0 24px 0;
+}
+
+.addons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .addons-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.addons-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Typography & form rows */
+.fe-panel__title {
+  text-transform: none;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.form-row > .fe-input,
+.form-row > .fe-textarea,
+.form-row > .fe-select {
+  flex: 1;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+.table-actions a {
+  margin-right: 10px;
+  display: inline-block;
+}
+
+.help {
+  color: #9aa4b2;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Add-on Cards */
+.addon-card {
+  background: rgba(18, 24, 34, 0.92);
+  border: 1px solid #283242;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.addon-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #283242;
+  background: rgba(24, 32, 45, 0.75);
+  font-size: 15px;
+  font-weight: 600;
+  color: #e8eef5;
+}
+
+.addon-card__body {
+  padding: 16px;
+  color: #cfd6e0;
+}
+
+.addon-card--danger {
+  border-color: #ea475b;
+}
+
+.addon-card--danger > .addon-card__header {
+  border-bottom-color: rgba(234, 71, 91, 0.45);
+  color: #ff8593;
+}
+
+@keyframes addonCardFlash {
+  0%   { box-shadow: 0 0 0 2px #4fa3ff, 0 0 16px rgba(79, 163, 255, 0.45); }
+  100% { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
+}
+
+.addon-card--flash {
+  outline: 2px solid #4fa3ff;
+  animation: addonCardFlash 1.2s ease-out;
+}
+
+/* Tabs */
+.addon-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid #283242;
+  margin-bottom: 16px;
+}
+
+.addon-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #9aa4b2;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.addon-tab:hover {
+  color: #e8eef5;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.addon-tab[aria-selected="true"] {
+  color: #4fa3ff;
+  border-bottom-color: #4fa3ff;
+  background: rgba(79, 163, 255, 0.08);
+}
+
+.addon-tab-panel[hidden] {
+  display: none !important;
+}
+
+/* Badges */
+.addon-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: rgba(154, 164, 178, 0.18);
+  color: #cfd6e0;
+}
+
+.addon-badge--static {
+  background: rgba(17, 169, 98, 0.18);
+  color: #3be08d;
+  border: 1px solid rgba(17, 169, 98, 0.55);
+}
+
+.addon-badge--dynamic {
+  background: rgba(240, 149, 14, 0.18);
+  color: #ffbe4d;
+  border: 1px solid rgba(240, 149, 14, 0.55);
+}
+
+/* Danger button */
+.fe-btn.btn-danger {
+  background-color: #ea475b !important;
+  border-color: #ea475b !important;
+  color: #ffffff !important;
+}
+
+.fe-btn.btn-danger:hover,
+.fe-btn.btn-danger:focus {
+  background-color: #d13246 !important;
+  border-color: #d13246 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(234, 71, 91, 0.35);
+}
+
+/* Toolbar, Filter, and Row Action Buttons */
+.addon-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.addon-filter {
+  flex: 1;
+  min-width: 220px;
+  background: #0f151f;
+  border: 1px solid #2e3b4e;
+  border-radius: 3px;
+  color: #e8eef5;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.addon-filter:focus {
+  outline: none;
+  border-color: #4fa3ff;
+  box-shadow: 0 0 0 1px #4fa3ff inset;
+}
+
+.addon-row-btn {
+  background: #1b2535;
+  border: 1px solid #33435a;
+  border-radius: 3px;
+  color: #d6e0ee;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-right: 4px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.addon-row-btn:hover:not(:disabled) {
+  background: #25344a;
+  border-color: #4fa3ff;
+  color: #ffffff;
+}
+
+.addon-row-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Lookup Result & Key-Value Summary Grid */
+.addon-result {
+  margin-top: 16px;
+}
+
+.addon-kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  background: rgba(12, 17, 25, 0.65);
+  border: 1px solid #263142;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.addon-kv__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.addon-kv__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9aa4b2;
+}
+
+.addon-kv__value {
+  font-size: 13px;
+  color: #e8eef5;
+  word-break: break-all;
+}
+
+/* Scrollable dark tables */
+.addons-scroll {
+  max-height: 540px;
+  overflow-y: auto;
+  border: 1px solid #263142;
+  border-radius: 3px;
+}
+
+.addons-wrap .fe-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.addons-wrap .fe-table th,
+.addons-wrap .fe-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #232d3d;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.addons-wrap .fe-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #182130;
+  color: #cfd6e0;
+  font-weight: 600;
+  border-bottom: 1px solid #314057;
+}
+
+.addons-wrap .fe-table tbody tr:hover {
+  background: rgba(79, 163, 255, 0.06);
+}
+
+/* High-contrast download action pills for Policy Tool export columns */
+.addons-wrap .table-actions a,
+.addons-wrap a.fe-link {
+  color: #7cc4ff;
+  text-decoration: none;
+}
+.addons-wrap .table-actions a:hover,
+.addons-wrap a.fe-link:hover {
+  color: #b8e1ff;
+  text-decoration: underline;
+}
+.addons-wrap a.addon-dl-btn {
+  display: inline-block;
+  margin: 2px 4px 2px 0;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #d8ecff !important;
+  background-color: #1f324d;
+  border: 1px solid #3b6ea5;
+  border-radius: 4px;
+  text-decoration: none !important;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.addons-wrap a.addon-dl-btn:hover,
+.addons-wrap a.addon-dl-btn:focus {
+  color: #ffffff !important;
+  background-color: #2b4c78;
+  border-color: #66b0ff;
+  text-decoration: none !important;
+}
+.addons-wrap a.addon-dl-btn--json {
+  color: #d4f7e6 !important;
+  background-color: #19382d;
+  border-color: #2c7a5b;
+}
+.addons-wrap a.addon-dl-btn--json:hover,
+.addons-wrap a.addon-dl-btn--json:focus {
+  color: #ffffff !important;
+  background-color: #235342;
+  border-color: #46b88a;
+}
+
+.addons-wrap a.addon-dl-btn:focus-visible {
+  outline: 2px solid #66b0ff;
+  outline-offset: 2px;
+}

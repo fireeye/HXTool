@@ -1,0 +1,515 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Policy Tool{% endblock %}
+{% block content %}
+
+{% macro policy_options() -%}
+  <option value="">Select a policy...</option>
+  {% for p in policies %}
+    {% set pid = p._id or p['id'] or p['persist_id'] %}
+    <option value="{{ pid }}">{{ p.name }} ({{ pid }})</option>
+  {% endfor %}
+{%- endmacro %}
+
+{% set active = 'lookup' if lookup_result or active_tab == 'lookup' else 'policies' %}
+
+<div class="addons-wrap">
+
+  <!-- 5-Tab Bar -->
+  <div class="addon-tabs" role="tablist" aria-label="Policy Tool Sections">
+    <button type="button" class="addon-tab" role="tab" id="tab-btn-policies" data-tab="policies" aria-controls="tab-panel-policies" aria-selected="{{ 'true' if active == 'policies' else 'false' }}">
+      Policies &amp; Export
+    </button>
+    <button type="button" class="addon-tab" role="tab" id="tab-btn-copy" data-tab="copy" aria-controls="tab-panel-copy" aria-selected="{{ 'true' if active == 'copy' else 'false' }}">
+      Copy Exclusions
+    </button>
+    <button type="button" class="addon-tab" role="tab" id="tab-btn-import" data-tab="import" aria-controls="tab-panel-import" aria-selected="{{ 'true' if active == 'import' else 'false' }}">
+      Import Exclusions (CSV/TXT)
+    </button>
+    <button type="button" class="addon-tab" role="tab" id="tab-btn-clone" data-tab="clone" aria-controls="tab-panel-clone" aria-selected="{{ 'true' if active == 'clone' else 'false' }}">
+      Clone &amp; JSON Import
+    </button>
+    <button type="button" class="addon-tab" role="tab" id="tab-btn-lookup" data-tab="lookup" aria-controls="tab-panel-lookup" aria-selected="{{ 'true' if active == 'lookup' else 'false' }}">
+      Agent Policy Lookup
+    </button>
+  </div>
+
+  <!-- TAB 1: Policies & Export -->
+  <section class="addon-tab-panel" role="tabpanel" id="tab-panel-policies" data-tab-panel="policies" aria-labelledby="tab-btn-policies" {% if active != 'policies' %}hidden{% endif %}>
+    <div class="addon-card">
+      <div class="addon-card__header">
+        <div class="fe-panel__title">Policies &amp; Export</div>
+      </div>
+      <div class="addon-card__body">
+        {% if api_ok and policies %}
+        <div class="addon-toolbar">
+          <input type="search" id="policy-filter" class="addon-filter" placeholder="Filter policies by name, ID, priority, or status...">
+          <span id="policy-count" class="help">{{ policies|length }} policy(ies)</span>
+        </div>
+        <div class="addons-scroll">
+          <table class="fe-table fe-table--striped" id="policies-table">
+            <thead>
+              <tr>
+                <th style="width:24%">Name</th>
+                <th style="width:24%">ID</th>
+                <th style="width:10%">Enabled</th>
+                <th style="width:10%">Priority</th>
+                <th style="width:22%">Export Exclusions (CSV)</th>
+                <th style="width:10%">Export Policy (JSON)</th>
+              </tr>
+            </thead>
+            <tbody id="policies-tbody">
+              {% for p in policies %}
+              {% set pid = p._id or p['id'] or p['persist_id'] %}
+              <tr class="policy-row">
+                <td class="mono">{{ p.name or p['name'] }}</td>
+                <td class="mono">{{ pid }}</td>
+                <td>
+                  {% if p.enabled is defined %}
+                    {{ 'Yes' if p.enabled else 'No' }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td class="mono">{{ p.priority if p.priority is defined and p.priority is not none else '-' }}</td>
+                <td class="table-actions">
+                  <a class="addon-dl-btn" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=all" title="Download all exclusions for this policy as CSV">&#8595; All CSV</a>
+                  <a class="addon-dl-btn" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=real_time_indicator_detection" title="Download Real-Time Indicator Detection exclusions as CSV">&#8595; Real-Time CSV</a>
+                  <a class="addon-dl-btn" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=malware_protection" title="Download Malware Protection exclusions as CSV">&#8595; Malware CSV</a>
+                  <a class="addon-dl-btn" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=exploit_guard_protection" title="Download Exploit Guard exclusions as CSV">&#8595; Exploit Guard CSV</a>
+                </td>
+                <td class="table-actions">
+                  <a class="addon-dl-btn addon-dl-btn--json" href="/policytool/export?policy_id={{ pid|urlencode }}" title="Download full sanitized policy as JSON">&#8595; Policy JSON</a>
+                </td>
+              </tr>
+              {% endfor %}
+              <tr id="policy-no-matches" hidden>
+                <td colspan="6" class="help">No matching policies.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+          <div class="help">No policies available.</div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: Copy Exclusions -->
+  <section class="addon-tab-panel" role="tabpanel" id="tab-panel-copy" data-tab-panel="copy" aria-labelledby="tab-btn-copy" {% if active != 'copy' %}hidden{% endif %}>
+    <div class="addon-card">
+      <div class="addon-card__header">
+        <div class="fe-panel__title">Copy Exclusions (Policy &rarr; Policy)</div>
+      </div>
+      <div class="addon-card__body">
+        {% if not policies %}
+          <div class="help" style="margin-bottom:8px;">No policies available.</div>
+        {% endif %}
+        <form method="post" action="/policytool/exclusions/copy" id="copy-exclusions-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="form-row">
+            <label class="fe-label" style="min-width:140px;" for="copy-src-policy">Source Policy</label>
+            <select class="fe-input" name="source_policy_id" id="copy-src-policy" required {% if not policies %}disabled{% endif %}>{{ policy_options() }}</select>
+          </div>
+          <div class="form-row">
+            <label class="fe-label" style="min-width:140px;" for="copy-dst-policy">Target Policy</label>
+            <select class="fe-input" name="target_policy_id" id="copy-dst-policy" required {% if not policies %}disabled{% endif %}>{{ policy_options() }}</select>
+          </div>
+          <div id="copy-same-warning" class="help" style="color:#f0950e; margin:4px 0 8px 140px;" hidden>
+            Source and target policy must be different.
+          </div>
+          <div class="form-row">
+            <label class="fe-label" style="min-width:140px;">Module</label>
+            <select class="fe-select" name="module">
+              <option value="all">All</option>
+              <option value="real_time_indicator_detection">Real-Time</option>
+              <option value="malware_protection">Malware Protection</option>
+              <option value="exploit_guard_protection">Exploit Guard</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="fe-label" style="min-width:140px;">Mode</label>
+            <select class="fe-select" name="mode">
+              <option value="append">Append</option>
+              <option value="overwrite">Overwrite</option>
+            </select>
+          </div>
+          <button class="fe-btn fe-btn--primary" type="submit" id="copy-submit-btn" {% if not policies %}disabled{% endif %}>Copy Exclusions</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: Import Exclusions CSV/TXT -->
+  <section class="addon-tab-panel" role="tabpanel" id="tab-panel-import" data-tab-panel="import" aria-labelledby="tab-btn-import" {% if active != 'import' %}hidden{% endif %}>
+    <div class="addon-card">
+      <div class="addon-card__header">
+        <div class="fe-panel__title">Import Exclusions (Paste or CSV/TXT File)</div>
+      </div>
+      <div class="addon-card__body">
+        {% if not policies %}
+          <div class="help" style="margin-bottom:8px;">No policies available.</div>
+        {% endif %}
+        <form method="post" action="/policytool/exclusions/import" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="form-row">
+            <label class="fe-label" style="min-width:150px;">Target Policy</label>
+            <select class="fe-input" name="policy_id" required {% if not policies %}disabled{% endif %}>{{ policy_options() }}</select>
+          </div>
+
+          <div class="form-row">
+            <label class="fe-label" style="min-width:150px;">Mode</label>
+            <select class="fe-select" name="mode">
+              <option value="append">Append</option>
+              <option value="overwrite">Replace</option>
+            </select>
+          </div>
+
+          <div class="fe-divider"></div>
+
+          <div class="form-row">
+            <label class="fe-label" style="min-width:150px;">Category / Options</label>
+            <select class="fe-select" name="category" id="mod-select" style="max-width:320px;">
+              <option value="real_time_indicator_detection">Real-Time</option>
+              <option value="malware_protection">Malware Protection</option>
+              <option value="exploit_guard_protection">Exploit Guard</option>
+            </select>
+          </div>
+
+          <div id="opt-rt">
+            <div class="form-row">
+              <span class="fe-label" style="min-width:150px;">Type</span>
+              <label class="fe-radio"><input type="radio" name="type_real_time_indicator_detection" value="process">Process</label>
+              <label class="fe-radio"><input type="radio" name="type_real_time_indicator_detection" value="path" checked>File/Folder</label>
+            </div>
+          </div>
+
+          <div id="opt-mp" style="display:none;">
+            <div class="form-row">
+              <span class="fe-label" style="min-width:150px;">Type</span>
+              <label class="fe-radio"><input type="radio" name="type_malware_protection" value="process">Process</label>
+              <label class="fe-radio"><input type="radio" name="type_malware_protection" value="path" checked>File/Folder</label>
+            </div>
+            <div class="form-row">
+              <span class="fe-label" style="min-width:150px;">Platform (MP only)</span>
+              <select class="fe-select" name="mp_platform">
+                <option value="platform#win">Windows</option>
+                <option value="platform#osx">macOS</option>
+                <option value="platform#linux">Linux</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="opt-eg" style="display:none;">
+            <div class="form-row">
+              <span class="fe-label" style="min-width:150px;">Type</span>
+              <label class="fe-radio"><input type="radio" name="type_exploit_guard_protection" value="process">Process</label>
+              <label class="fe-radio"><input type="radio" name="type_exploit_guard_protection" value="path" checked>File/Folder</label>
+            </div>
+          </div>
+
+          <div class="form-row" style="align-items:flex-start;">
+            <label class="fe-label" style="min-width:150px;">Paste exclusions (one per line)</label>
+            <textarea class="fe-textarea mono" name="paste_text" rows="7" placeholder="C:\path\to\exclude&#10;process.exe"></textarea>
+          </div>
+
+          <div class="form-row">
+            <span class="fe-label" style="min-width:150px;">OR upload a .txt/.csv file</span>
+            <input type="file" class="fe-input" name="file" accept=".txt,.csv" />
+          </div>
+
+          <div class="help" style="margin: 6px 0 12px 150px;">
+            TXT or pasted list uses the Category/Type/Platform options above. CSV still supported (<span class="mono">item,item_type,module,platform</span>).
+          </div>
+
+          <button class="fe-btn fe-btn--primary" type="submit" {% if not policies %}disabled{% endif %}>Import</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 4: Clone & JSON Import -->
+  <section class="addon-tab-panel" role="tabpanel" id="tab-panel-clone" data-tab-panel="clone" aria-labelledby="tab-btn-clone" {% if active != 'clone' %}hidden{% endif %}>
+    <div class="addons-grid">
+
+      <!-- Clone Policy -->
+      <div class="addon-card">
+        <div class="addon-card__header">
+          <div class="fe-panel__title">Clone Policy</div>
+        </div>
+        <div class="addon-card__body">
+          {% if not policies %}
+            <div class="help" style="margin-bottom:8px;">No policies available.</div>
+          {% endif %}
+          <form method="post" action="/policytool/clone">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-row">
+              <label class="fe-label" style="min-width:130px;">Source Policy</label>
+              <select class="fe-input" name="source_policy_id" required {% if not policies %}disabled{% endif %}>{{ policy_options() }}</select>
+            </div>
+            <div class="form-row">
+              <label class="fe-label" style="min-width:130px;">New Policy Name</label>
+              <input class="fe-input" name="new_policy_name" placeholder="My New Policy" required />
+            </div>
+            <button class="fe-btn fe-btn--primary" type="submit" {% if not policies %}disabled{% endif %}>Clone</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Import Policy (JSON) -->
+      <div class="addon-card">
+        <div class="addon-card__header">
+          <div class="fe-panel__title">Import Policy (JSON)</div>
+        </div>
+        <div class="addon-card__body">
+          <form method="post" action="/policytool/import" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-row">
+              <label class="fe-label" style="min-width:130px;">Policy JSON File</label>
+              <input type="file" class="fe-input" name="file" accept=".json" required />
+            </div>
+            <div class="form-row">
+              <label class="fe-label" style="min-width:130px;">New Policy Name</label>
+              <input class="fe-input" name="new_policy_name" placeholder="Optional override policy name" />
+            </div>
+            <button class="fe-btn fe-btn--primary" type="submit">Import Policy JSON</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- TAB 5: Agent Policy Lookup -->
+  <section class="addon-tab-panel" role="tabpanel" id="tab-panel-lookup" data-tab-panel="lookup" aria-labelledby="tab-btn-lookup" {% if active != 'lookup' %}hidden{% endif %}>
+    <div class="addon-card">
+      <div class="addon-card__header">
+        <div class="fe-panel__title">Agent Policy Lookup</div>
+      </div>
+      <div class="addon-card__body">
+        <form method="get" action="/policytool/agent-policy">
+          <div class="form-row">
+            <label class="fe-label" style="min-width:180px;">Agent Query (ID or Hostname)</label>
+            <input class="fe-input mono" name="q" maxlength="255" value="{{ lookup_result.query if lookup_result else '' }}" placeholder="e.g. Aw1U4y..., or PC-FOO" required />
+            <button class="fe-btn fe-btn--primary" type="submit">Lookup</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {% if lookup_result %}
+    <div class="addon-card addon-result">
+      <div class="addon-card__header">
+        <div class="fe-panel__title">Lookup Results for <span class="mono">{{ lookup_result.query }}</span></div>
+      </div>
+      <div class="addon-card__body">
+
+        <!-- Agent Summary -->
+        <div class="addon-kv">
+          <div class="addon-kv__item">
+            <span class="addon-kv__label">Hostname</span>
+            <span class="addon-kv__value mono">{{ lookup_result.agent.hostname or '-' }}</span>
+          </div>
+          <div class="addon-kv__item">
+            <span class="addon-kv__label">Agent ID</span>
+            <span class="addon-kv__value mono">{{ lookup_result.agent._id or '-' }}</span>
+          </div>
+          <div class="addon-kv__item">
+            <span class="addon-kv__label">Agent Version</span>
+            <span class="addon-kv__value mono">{{ lookup_result.agent.agent_version or '-' }}</span>
+          </div>
+          <div class="addon-kv__item">
+            <span class="addon-kv__label">OS</span>
+            <span class="addon-kv__value">{{ (lookup_result.agent.os.platform_name or lookup_result.agent.os.product_name or lookup_result.agent.os.platform or '-') if lookup_result.agent.os is mapping else (lookup_result.agent.os or '-') }}</span>
+          </div>
+          <div class="addon-kv__item">
+            <span class="addon-kv__label">Last Poll IP</span>
+            <span class="addon-kv__value mono">{{ lookup_result.agent.last_poll_ip or '-' }}</span>
+          </div>
+          <div class="addon-kv__item">
+            <span class="addon-kv__label">Containment State</span>
+            <span class="addon-kv__value">{{ lookup_result.agent.containment_state or '-' }}</span>
+          </div>
+        </div>
+
+        <div class="addons-grid">
+          <!-- Host Set Memberships Table -->
+          <div>
+            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #e8eef5;">Host Set Memberships ({{ lookup_result.memberships|length }})</h4>
+            {% if lookup_result.memberships %}
+            <div class="addons-scroll">
+              <table class="fe-table fe-table--striped">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>ID</th>
+                    <th>Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for m in lookup_result.memberships %}
+                  <tr>
+                    <td class="mono">{{ m.name or '-' }}</td>
+                    <td class="mono">{{ m._id or m.persist_id or '-' }}</td>
+                    <td>
+                      {% set m_type_lc = (m.type or '')|lower %}<span class="addon-badge addon-badge--{{ 'static' if m_type_lc == 'static' else 'dynamic' }}">{{ 'DYNAMIC' if m_type_lc == 'venn' else (m.type or '-') }}</span>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+              <div class="help">Not a member of any scanned host sets.</div>
+            {% endif %}
+          </div>
+
+          <!-- Applied Policies Table -->
+          <div>
+            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #e8eef5;">Applied Policies ({{ lookup_result.applied|length }})</h4>
+            {% if lookup_result.applied %}
+            <div class="addons-scroll">
+              <table class="fe-table fe-table--striped">
+                <thead>
+                  <tr>
+                    <th>Host Set</th>
+                    <th>Policy Name</th>
+                    <th>Policy ID</th>
+                    <th>Priority</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for ap in lookup_result.applied %}
+                  <tr>
+                    <td class="mono">{{ ap.host_set_name or ap.host_set_id or '-' }}</td>
+                    <td class="mono">{{ ap.policy_name or '-' }}</td>
+                    <td class="mono">{{ ap.policy_id or '-' }}</td>
+                    <td class="mono">{{ ap.priority if ap.priority is not none else '-' }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+              <div class="help">No policies applied via host sets.</div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+</div>
+
+<script>
+(function () {
+  // 1. Tab switching with URL #tab-... hash support
+  var tabButtons = Array.prototype.slice.call(document.querySelectorAll('.addon-tab[data-tab]'));
+  var tabPanels = Array.prototype.slice.call(document.querySelectorAll('.addon-tab-panel[data-tab-panel]'));
+  var validTabs = { policies: true, copy: true, import: true, clone: true, lookup: true };
+
+  function activateTab(tabName, updateHash) {
+    if (!validTabs[tabName]) return;
+    tabButtons.forEach(function (btn) {
+      var isTarget = btn.getAttribute('data-tab') === tabName;
+      btn.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+    });
+    tabPanels.forEach(function (panel) {
+      var isTarget = panel.getAttribute('data-tab-panel') === tabName;
+      panel.hidden = !isTarget;
+    });
+    if (updateHash && history.replaceState) {
+      history.replaceState(null, '', '#tab-' + tabName);
+    }
+  }
+
+  tabButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      activateTab(btn.getAttribute('data-tab'), true);
+    });
+  });
+
+  function checkHash() {
+    var h = (window.location.hash || '').replace(/^#tab-/, '').replace(/^#/, '');
+    if (validTabs[h]) {
+      activateTab(h, false);
+    }
+  }
+  window.addEventListener('hashchange', checkHash);
+  checkHash();
+
+  // 2. Live filtering for #policy-filter
+  var filterInput = document.getElementById('policy-filter');
+  var tbody = document.getElementById('policies-tbody');
+  var countEl = document.getElementById('policy-count');
+  var noMatchesRow = document.getElementById('policy-no-matches');
+
+  if (filterInput && tbody) {
+    var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr.policy-row'));
+    var total = rows.length;
+
+    filterInput.addEventListener('input', function () {
+      var q = (filterInput.value || '').toLowerCase().trim();
+      var shown = 0;
+      rows.forEach(function (row) {
+        var text = (row.textContent || '').toLowerCase();
+        var match = !q || text.indexOf(q) !== -1;
+        row.hidden = !match;
+        if (match) shown += 1;
+      });
+      if (noMatchesRow) {
+        noMatchesRow.hidden = (shown > 0);
+      }
+      if (countEl) {
+        countEl.textContent = q ? (shown + ' of ' + total + ' policy(ies)') : (total + ' policy(ies)');
+      }
+    });
+  }
+
+  // 3. Toggle #mod-select option panels
+  var modSelect = document.getElementById('mod-select');
+  function selMod() {
+    if (!modSelect) return;
+    var v = modSelect.value;
+    var rt = document.getElementById('opt-rt');
+    var mp = document.getElementById('opt-mp');
+    var eg = document.getElementById('opt-eg');
+    if (rt) rt.style.display = (v === 'real_time_indicator_detection') ? '' : 'none';
+    if (mp) mp.style.display = (v === 'malware_protection') ? '' : 'none';
+    if (eg) eg.style.display = (v === 'exploit_guard_protection') ? '' : 'none';
+  }
+  if (modSelect) {
+    modSelect.addEventListener('change', selMod);
+    selMod();
+  }
+
+  // 4. Client-side check: copy-src-policy != copy-dst-policy
+  var srcSel = document.getElementById('copy-src-policy');
+  var dstSel = document.getElementById('copy-dst-policy');
+  var sameWarn = document.getElementById('copy-same-warning');
+  var copyForm = document.getElementById('copy-exclusions-form');
+
+  function checkCopyPair() {
+    if (!srcSel || !dstSel || !sameWarn) return true;
+    var same = Boolean(srcSel.value && dstSel.value && srcSel.value === dstSel.value);
+    sameWarn.hidden = !same;
+    return !same;
+  }
+
+  if (srcSel && dstSel) {
+    srcSel.addEventListener('change', checkCopyPair);
+    dstSel.addEventListener('change', checkCopyPair);
+    if (copyForm) {
+      copyForm.addEventListener('submit', function (ev) {
+        if (!checkCopyPair()) {
+          ev.preventDefault();
+        }
+      });
+    }
+  }
+})();
+</script>
+
+{% endblock %}

@@ -53,7 +53,9 @@ def valid_session_required(f):
 		ret = redirect(url_for('login', redirect_uri = request.full_path))	
 		if (session and 'ht_user' in session and 'ht_api_object' in session):
 			o = HXAPI.deserialize(session['ht_api_object'])
-			if o.restIsSessionValid():
+			if o is None:
+				logger.warning("Failed to deserialize HX API object for the current session, redirecting to the login page.")
+			elif o.restIsSessionValid():
 				kwargs['hx_api_object'] = o
 				ret = f(*args, **kwargs)
 				session['ht_api_object'] = o.serialize()

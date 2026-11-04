@@ -1,0 +1,228 @@
+{% extends "layout.html" %}
+{% block title %}HXTool - Host Sets{% endblock %}
+{% block content %}
+
+<div class="addons-wrap">
+  <div class="addons-grid">
+
+    <!-- Left column: Existing Host Sets -->
+    <div class="addon-card">
+      <div class="addon-card__header">
+        <div class="fe-panel__title">Existing Host Sets</div>
+      </div>
+      <div class="addon-card__body">
+        {% if api_ok and hostsets %}
+        <div class="addon-toolbar">
+          <input type="search" id="hostset-filter" class="addon-filter" placeholder="Filter host sets by name, ID, or type...">
+          <span id="hostset-count" class="help">{{ hostsets|length }} host set(s)</span>
+        </div>
+        <div class="addons-scroll">
+          <table class="fe-table fe-table--striped" id="hostsets-table">
+            <thead>
+              <tr>
+                <th style="width:36%">Name</th>
+                <th style="width:18%">ID</th>
+                <th style="width:16%">Type</th>
+                <th style="width:30%">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="hostsets-tbody">
+              {% for hs in hostsets %}
+              {% set id = hs._id or hs['id'] or hs['persist_id'] or hs['uuid'] %}
+              <tr class="hostset-row">
+                <td class="mono">{{ hs.name or hs['name'] }}</td>
+                <td class="mono">{{ id }}</td>
+                <td>
+                  {% set hs_type_lc = (hs.type or '')|lower %}<span class="addon-badge addon-badge--{{ 'static' if hs_type_lc == 'static' else 'dynamic' }}">{{ 'DYNAMIC' if hs_type_lc == 'venn' else (hs.type or '-') }}</span>
+                </td>
+                <td>
+                  <button type="button" class="addon-row-btn" data-action="modify" data-id="{{ id }}" data-name="{{ hs.name }}" {% if (hs.type or '')|lower != 'static' %}disabled title="Dynamic host sets cannot be modified manually"{% endif %}>Select for Modify</button>
+                  <button type="button" class="addon-row-btn" data-action="delete" data-id="{{ id }}" data-name="{{ hs.name }}" {% if (id ~ '') == '9' %}disabled title="Protected host set ID 9 cannot be deleted"{% endif %}>Select for Delete</button>
+                </td>
+              </tr>
+              {% endfor %}
+              <tr id="hostset-no-matches" hidden>
+                <td colspan="4" class="help">No matching host sets.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+          <div class="help">No host sets found.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right column: 3 Action Cards -->
+    <div class="addons-stack">
+
+      <!-- 1. Modify Membership (Add / Remove) -->
+      <div class="addon-card" id="card-modify-hostset">
+        <div class="addon-card__header">
+          <div class="fe-panel__title">Modify Membership (Add / Remove)</div>
+        </div>
+        <div class="addon-card__body">
+          <form method="post" action="/hostsets/modify" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-row">
+              <label class="fe-label" style="min-width:110px;" for="modify-hostset-id">Host Set ID</label>
+              <input class="fe-input mono" id="modify-hostset-id" name="hostset_id" placeholder="e.g. 1801" required />
+            </div>
+            <div id="modify-selected-label" class="help"></div>
+            <div class="help" style="margin: 2px 0 8px 0;">
+              Static host sets only; host set name is looked up automatically by ID.
+            </div>
+            <div class="form-row">
+              <label class="fe-label" style="min-width:110px;">Mode</label>
+              <select class="fe-select" name="mode" style="max-width:160px;">
+                <option value="add">Add</option>
+                <option value="remove">Remove</option>
+              </select>
+            </div>
+            <div class="form-row" style="align-items:flex-start;">
+              <label class="fe-label" style="min-width:110px;">IDs / Hostnames (one per line)</label>
+              <textarea class="fe-textarea mono" name="ids" rows="6" placeholder="HOST123&#10;HOST456"></textarea>
+            </div>
+            <div class="form-row">
+              <span class="fe-label" style="min-width:110px;">OR upload a .txt file</span>
+              <input type="file" class="fe-input" name="file" accept=".txt" />
+            </div>
+            <div class="form-row">
+              <label class="fe-checkbox">
+                <input type="checkbox" name="use_hostnames" />
+                Force all entries to be treated as hostnames (otherwise 22-character Agent IDs are auto-detected)
+              </label>
+            </div>
+            <button class="fe-btn fe-btn--primary" type="submit">Apply</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- 2. Create Static Host Set -->
+      <div class="addon-card" id="card-create-hostset">
+        <div class="addon-card__header">
+          <div class="fe-panel__title">Create Static Host Set</div>
+        </div>
+        <div class="addon-card__body">
+          <form method="post" action="/hostsets/create">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-row">
+              <label class="fe-label" style="min-width:110px;">Name</label>
+              <input class="fe-input" name="name" placeholder="e.g. Workstations – Finance" required />
+            </div>
+            <button class="fe-btn fe-btn--primary" type="submit">Create</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- 3. Delete Host Set -->
+      <div class="addon-card addon-card--danger" id="card-delete-hostset">
+        <div class="addon-card__header">
+          <div class="fe-panel__title">Delete Host Set</div>
+        </div>
+        <div class="addon-card__body">
+          <form method="post" action="/hostsets/delete">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-row">
+              <label class="fe-label" style="min-width:110px;" for="delete-hostset-id">Host Set ID</label>
+              <input class="fe-input mono" id="delete-hostset-id" name="hostset_id" placeholder="e.g. 1801" required />
+            </div>
+            <div id="delete-selected-label" class="help"></div>
+            <div class="form-row">
+              <label class="fe-label" style="min-width:110px;">Type <span class="mono">DELETE</span> to confirm</label>
+              <input class="fe-input" type="text" name="confirm" placeholder="Type DELETE" pattern="DELETE" required autocomplete="off" title="Type DELETE in uppercase to confirm">
+            </div>
+            <button class="fe-btn btn-danger" type="submit">Delete Host Set</button>
+            <div class="help" style="margin-top:6px;">This permanently removes the entire host set (not just members).</div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var filterInput = document.getElementById('hostset-filter');
+  var tbody = document.getElementById('hostsets-tbody');
+  var countEl = document.getElementById('hostset-count');
+  var noMatchesRow = document.getElementById('hostset-no-matches');
+
+  if (filterInput && tbody) {
+    var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr.hostset-row'));
+    var total = rows.length;
+
+    filterInput.addEventListener('input', function () {
+      var q = (filterInput.value || '').toLowerCase().trim();
+      var shown = 0;
+      rows.forEach(function (row) {
+        var text = (row.textContent || '').toLowerCase();
+        var match = !q || text.indexOf(q) !== -1;
+        row.hidden = !match;
+        if (match) shown += 1;
+      });
+      if (noMatchesRow) {
+        noMatchesRow.hidden = (shown > 0);
+      }
+      if (countEl) {
+        countEl.textContent = q ? (shown + ' of ' + total + ' host set(s)') : (total + ' host set(s)');
+      }
+    });
+  }
+
+  function flashCard(cardEl) {
+    if (!cardEl) return;
+    cardEl.classList.remove('addon-card--flash');
+    void cardEl.offsetWidth;
+    cardEl.classList.add('addon-card--flash');
+    setTimeout(function () {
+      cardEl.classList.remove('addon-card--flash');
+    }, 1250);
+  }
+
+  document.addEventListener('click', function (ev) {
+    var btn = ev.target.closest ? ev.target.closest('.addon-row-btn') : null;
+    if (!btn || btn.disabled) return;
+
+    var action = btn.getAttribute('data-action');
+    var hsId = btn.getAttribute('data-id') || '';
+    var hsName = btn.getAttribute('data-name') || '';
+
+    if (action === 'modify') {
+      var modInput = document.getElementById('modify-hostset-id');
+      var modLabel = document.getElementById('modify-selected-label');
+      var modCard = document.getElementById('card-modify-hostset');
+      if (modInput) {
+        modInput.value = hsId;
+        modInput.focus();
+      }
+      if (modLabel) {
+        modLabel.textContent = hsName ? ('Selected: ' + hsName + ' (ID ' + hsId + ')') : ('Selected ID: ' + hsId);
+      }
+      if (modCard) {
+        modCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        flashCard(modCard);
+      }
+    } else if (action === 'delete') {
+      var delInput = document.getElementById('delete-hostset-id');
+      var delLabel = document.getElementById('delete-selected-label');
+      var delCard = document.getElementById('card-delete-hostset');
+      if (delInput) {
+        delInput.value = hsId;
+        delInput.focus();
+      }
+      if (delLabel) {
+        delLabel.textContent = hsName ? ('Selected for deletion: ' + hsName + ' (ID ' + hsId + ')') : ('Selected ID: ' + hsId);
+      }
+      if (delCard) {
+        delCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        flashCard(delCard);
+      }
+    }
+  });
+})();
+</script>
+
+{% endblock %}
