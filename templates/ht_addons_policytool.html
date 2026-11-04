@@ -38,6 +38,7 @@
             <td class="mono">{{ pid }}</td>
             <td class="mono">{{ p.type or p['type'] or 'Agent' }}</td>
             <td class="table-actions">
+              <a class="fe-link" href="/policytool/export?policy_id={{ pid|urlencode }}">Export JSON</a>
               <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=all">Export All</a>
               <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=real_time_indicator_detection">Export Real-Time</a>
               <a class="fe-link" href="/policytool/exclusions/export?policy_id={{ pid|urlencode }}&section=malware_protection">Export Malware Protection</a>
@@ -70,6 +71,64 @@
           <input class="fe-input" name="new_policy_name" placeholder="My New Policy" required />
         </div>
         <button class="fe-btn fe-btn--primary" type="submit">Clone</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Copy Exclusions (Policy -> Policy) -->
+  <div class="fe-panel">
+    <div class="fe-panel__header">
+      <div class="fe-panel__title">Copy Exclusions (Policy → Policy)</div>
+    </div>
+    <div class="fe-panel__body">
+      <form method="post" action="/policytool/exclusions/copy">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-row">
+          <label class="fe-label" style="min-width:130px;">Source Policy ID</label>
+          <input class="fe-input mono" name="source_policy_id" placeholder="e.g. 6e2d...c9" required />
+        </div>
+        <div class="form-row">
+          <label class="fe-label" style="min-width:130px;">Target Policy ID</label>
+          <input class="fe-input mono" name="target_policy_id" placeholder="e.g. 9a1b...f0" required />
+        </div>
+        <div class="form-row">
+          <label class="fe-label" style="min-width:130px;">Module</label>
+          <select class="fe-select" name="module">
+            <option value="all">All</option>
+            <option value="real_time_indicator_detection">Real-Time</option>
+            <option value="malware_protection">Malware Protection</option>
+            <option value="exploit_guard_protection">Exploit Guard</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="fe-label" style="min-width:130px;">Mode</label>
+          <select class="fe-select" name="mode">
+            <option value="append">Append</option>
+            <option value="overwrite">Overwrite</option>
+          </select>
+        </div>
+        <button class="fe-btn fe-btn--primary" type="submit">Copy Exclusions</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Import Policy (JSON) -->
+  <div class="fe-panel">
+    <div class="fe-panel__header">
+      <div class="fe-panel__title">Import Policy (JSON)</div>
+    </div>
+    <div class="fe-panel__body">
+      <form method="post" action="/policytool/import" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-row">
+          <label class="fe-label" style="min-width:130px;">Policy JSON File</label>
+          <input type="file" class="fe-input" name="file" accept=".json" required />
+        </div>
+        <div class="form-row">
+          <label class="fe-label" style="min-width:130px;">New Policy Name</label>
+          <input class="fe-input" name="new_policy_name" placeholder="Optional override policy name" />
+        </div>
+        <button class="fe-btn fe-btn--primary" type="submit">Import Policy JSON</button>
       </form>
     </div>
   </div>

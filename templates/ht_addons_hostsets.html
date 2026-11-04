@@ -22,9 +22,10 @@
       <table class="fe-table fe-table--striped" style="width:100%">
         <thead>
           <tr>
-            <th style="width:40%">Name</th>
-            <th style="width:30%">ID</th>
-            <th style="width:30%">Members</th>
+            <th style="width:35%">Name</th>
+            <th style="width:25%">ID</th>
+            <th style="width:20%">Type</th>
+            <th style="width:20%">Members</th>
           </tr>
         </thead>
         <tbody>
@@ -32,6 +33,7 @@
           <tr>
             <td class="mono">{{ hs.name or hs['name'] }}</td>
             <td class="mono">{{ hs._id or hs['id'] or hs['persist_id'] or hs['uuid'] }}</td>
+            <td class="mono">{{ hs.type or '-' }}</td>
             <td class="mono">{{ hs.members or hs['members'] or '-' }}</td>
           </tr>
           {% endfor %}
@@ -68,9 +70,8 @@
           <label class="fe-label" style="min-width:110px;">Host Set ID</label>
           <input class="fe-input mono" name="hostset_id" placeholder="e.g. 1801" required />
         </div>
-        <div class="form-row">
-          <label class="fe-label" style="min-width:110px;">Host Set Name</label>
-          <input class="fe-input" name="hostset_name" placeholder="Exact current name" required />
+        <div class="fe-text--muted" style="margin: 2px 0 8px 0;">
+          Static host sets only; host set name is looked up automatically by ID.
         </div>
         <div class="form-row">
           <label class="fe-label" style="min-width:110px;">Mode</label>
@@ -92,7 +93,7 @@
           <!-- IMPORTANT: name="use_hostnames" (matches blueprint) -->
           <label class="fe-checkbox">
             <input type="checkbox" name="use_hostnames" />
-            Treat entries as hostnames (convert to agent IDs)
+            Force all entries to be treated as hostnames (otherwise 22-character Agent IDs are auto-detected)
           </label>
         </div>
         <button class="fe-btn fe-btn--primary" type="submit">Apply</button>
